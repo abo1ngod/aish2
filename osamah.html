@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>قارئ النص العربي</title>
+    <!-- استيراد خطوط عربية مميزة -->
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Cairo:wght@400;700&family=Tajawal:wght@400;700&family=Scheherazade+New:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* تخصيص شريط التمرير */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+        /* تعديلات الـ CSS لضمان عمل التمرير باللمس بشكل صحيح */
+        body { 
+            transition: background-color 0.3s ease; 
+            overscroll-behavior-y: none;
+            /* touch-action يدار عبر JS */
+        }
+        
+        #text-container { transition: all 0.3s ease; line-height: 1.8; }
+        
+        /* --- تصميم لوحة التحكم المدمج --- */
+        #controls-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+        /* تنسيق المدخلات */
+        input[type=range] {
+            height: 4px;
+            border-radius: 2px;
+            background: #e2e8f0;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 14px;
+            width: 14px;
+            border-radius: 50%;
+            background: #3b82f6;
+            margin-top: -5px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        /* زر التبديل المصغر */
+        .switch-mini {
+            position: relative;
+            display: inline-block;
+            width: 30px;
+            height: 18px;
+        }
+        .switch-mini input { opacity: 0; width: 0; height: 0; }
+        .slider-mini {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #cbd5e1;
+            transition: .3s;
+            border-radius: 34px;
+        }
+        .slider-mini:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+        input:checked + .slider-mini { background-color: #3b82f6; }
+        input:checked + .slider-mini:before { transform: translateX(12px); }
+
+        /* منطقة "اعرض محاضرتك هنا" */
+        .placeholder-box {
+            border: 2px dashed #cbd5e1;
+            transition: all 0.3s ease;
+        }
+        .placeholder-box:hover {
+            border-color: #3b82f6;
+            background-color: #f8fafc;
+            transform: scale(1.01);
+        }
+
+        /* إخفاء عند الطباعة */
+        @media print {
+            #controls-panel, #settings-toggle, #touch-hint, #editor-modal { display: none; }
+            #text-container { border: none; box-shadow: none; margin-top: 0; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen text-gray-800 font-sans">
+
+    <!-- زر الإعدادات العائم (أصغر وأبسط) -->
+    <button id="settings-toggle" onclick="toggleControls()" class="fixed top-3 left-3 z-[60] bg-white/90 text-gray-600 p-2 rounded-xl shadow border border-gray-100 backdrop-blur hover:text-blue-600 active:scale-95 transition-transform" title="الإعدادات">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+        </svg>
+    </button>
+
+    <!-- لوحة التحكم الجديدة (مضغوطة جداً) -->
+    <div id="controls-panel" class="fixed top-0 left-0 w-full z-50 transform -translate-y-full transition-transform duration-300 ease-out">
+        <div class="w-full max-w-lg mx-auto bg-white/95 backdrop-blur-sm shadow-xl rounded-b-xl overflow-hidden border border-t-0 border-gray-100">
+            
+            <!-- شريط العنوان والأدوات -->
+            <div class="flex items-center justify-between px-3 py-2 border-b border-gray-100 bg-gray-50/50">
+                <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">الإعدادات</span>
+                <div class="flex items-center gap-2">
+                    <button onclick="openEditor()" class="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded hover:bg-blue-100 transition flex items-center gap-1">
+                        <span>✎</span> تحرير
+                    </button>
+                    <button onclick="toggleControls()" class="text-gray-400 hover:text-red-500 p-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- شبكة التحكم (Dense Grid) -->
+            <div class="grid grid-cols-2 gap-x-3 gap-y-2 p-3 text-sm">
+                
+                <!-- الصف 1: الخط والحجم -->
+                <div class="col-span-2 flex items-center gap-2">
+                    <select id="fontFamily" class="flex-1 bg-gray-50 border border-gray-200 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-blue-500 outline-none h-8">
+                        <option value="'Amiri', serif">الأميري</option>
+                        <option value="'Cairo', sans-serif">القاهرة</option>
+                        <option value="'Tajawal', sans-serif">تجوال</option>
+                        <option value="'Scheherazade New', serif">شهرزاد</option>
+                        <option value="sans-serif">نسخ</option>
+                    </select>
+                    <div class="flex-1 flex items-center gap-2 bg-gray-50 rounded border border-gray-200 px-2 h-8">
+                        <span class="text-[10px] text-gray-400">A</span>
+                        <input type="range" id="fontSize" min="14" max="80" value="20" class="flex-1 h-1 bg-gray-300 rounded-lg appearance-none cursor-pointer">
+                    </div>
+                </div>
+
+                <!-- الصف 2: الألوان والتمرير -->
+                <div class="flex items-center gap-2 bg-gray-50 rounded border border-gray-200 px-2 h-9">
+                    <div class="relative w-5 h-5 rounded-full border border-gray-300 overflow-hidden cursor-pointer" title="لون النص">
+                        <input type="color" id="textColor" value="#000000" class="absolute -top-1/2 -left-1/2 w-[200%] h-[200%] cursor-pointer p-0 border-0">
+                    </div>
+                    <div class="relative w-5 h-5 rounded-full border border-gray-300 overflow-hidden cursor-pointer" title="لون الخلفية">
+                        <input type="color" id="bgColor" value="#ffffff" class="absolute -top-1/2 -left-1/2 w-[200%] h-[200%] cursor-pointer p-0 border-0">
+                    </div>
+                    <div class="w-px h-4 bg-gray-300 mx-1"></div>
+                    <span class="text-[10px] text-gray-400 whitespace-nowrap">ألوان</span>
+                </div>
+
+                <div class="flex items-center gap-2 bg-gray-50 rounded border border-gray-200 px-2 h-9">
+                    <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+                    <input type="range" id="scrollSpeed" min="0" max="10" value="0" class="flex-1 h-1 bg-gray-300 rounded-lg appearance-none cursor-pointer">
+                    <div class="w-px h-4 bg-gray-300 mx-1"></div>
+                    
+                    <!-- زر التبديل المصغر للتمرير البطيء -->
+                    <label class="switch-mini" title="تفعيل اللمس البطيء">
+                        <input type="checkbox" id="frictionToggle" checked>
+                        <span class="slider-mini"></span>
+                    </label>
+                </div>
+
+            </div>
+            
+            <!-- شريط حالة صغير جداً في الأسفل -->
+            <div class="bg-blue-50 px-3 py-1 text-[10px] text-blue-600 flex justify-between">
+                <span id="speedStatus">التمرير التلقائي: متوقف</span>
+                <span class="opacity-75">المس للسحب البطيء</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- تلميح التمرير -->
+    <div id="touch-hint" class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black/80 text-white px-4 py-2 rounded-full text-xs font-bold shadow-xl z-40 backdrop-blur-sm pointer-events-none opacity-0 transition-opacity duration-300">
+        السرعة الحالية
+    </div>
+
+    <!-- نافذة تحرير النص -->
+    <div id="editor-modal" class="fixed inset-0 bg-black/60 z-[100] hidden flex items-center justify-center p-4 backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-white w-full max-w-3xl h-[70vh] rounded-xl shadow-2xl flex flex-col transform transition-all scale-95 opacity-0 overflow-hidden" id="editor-content">
+            <div class="p-3 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                <span class="font-bold text-gray-700 text-sm">محرر النص</span>
+                <button onclick="closeEditor()" class="text-gray-400 hover:text-red-500">✕</button>
+            </div>
+            <textarea id="text-input" class="flex-grow p-4 border-none focus:ring-0 font-sans text-base resize-none leading-relaxed text-gray-700" placeholder="اكتب النص هنا..."></textarea>
+            <div class="p-3 border-t border-gray-100 bg-gray-50 flex justify-end gap-2">
+                <button onclick="closeEditor()" class="px-3 py-1.5 rounded-lg text-gray-600 text-sm hover:bg-gray-200">إلغاء</button>
+                <button onclick="saveText()" class="px-4 py-1.5 rounded-lg bg-blue-600 text-white text-sm hover:bg-blue-700 shadow">حفظ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- منطقة عرض النص -->
+    <div class="w-full min-h-screen pt-12 pb-12 px-2 md:px-4 flex flex-col items-center">
+        <div id="text-container" class="w-full max-w-4xl bg-white p-6 md:p-12 rounded-2xl shadow-lg border border-gray-100 min-h-[85vh] relative cursor-auto transition-colors duration-300">
+            
+            <!-- المحتوى -->
+            <div id="textContent" style="font-family: 'Amiri', serif; font-size: 20px;" class="min-h-[50vh]">
+                <!-- الحالة الافتراضية -->
+                <div onclick="openEditor()" class="placeholder-box cursor-pointer flex flex-col items-center justify-center h-full min-h-[40vh] rounded-xl bg-gray-50/50 border-2 border-dashed border-gray-200 hover:border-blue-400 group py-12 transition-all">
+                    <div class="w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                        <svg class="h-6 w-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                    </div>
+                    <span class="text-lg font-bold text-gray-600 group-hover:text-blue-600">اعرض محاضرتك هنا</span>
+                </div>
+            </div>
+            
+            <div class="h-[50vh]"></div>
+        </div>
+    </div>
+
+    <script>
+        // المتغيرات
+        const container = document.getElementById('text-container');
+        const textContent = document.getElementById('textContent');
+        const fontFamilySelect = document.getElementById('fontFamily');
+        const fontSizeInput = document.getElementById('fontSize');
+        const textColorInput = document.getElementById('textColor');
+        const bgColorInput = document.getElementById('bgColor');
+        const scrollSpeedInput = document.getElementById('scrollSpeed');
+        const speedStatus = document.getElementById('speedStatus');
+        const touchHint = document.getElementById('touch-hint');
+        const controlsPanel = document.getElementById('controls-panel');
+        const settingsToggle = document.getElementById('settings-toggle');
+        const frictionToggle = document.getElementById('frictionToggle');
+        const editorModal = document.getElementById('editor-modal');
+        const editorContent = document.getElementById('editor-content');
+        const textInput = document.getElementById('text-input');
+
+        // === المحرر ===
+        function openEditor() {
+            const currentText = textContent.innerText;
+            textInput.value = currentText.includes("اعرض محاضرتك هنا") ? "" : currentText.trim();
+            editorModal.classList.remove('hidden');
+            setTimeout(() => {
+                editorContent.classList.remove('scale-95', 'opacity-0');
+                editorContent.classList.add('scale-100', 'opacity-100');
+            }, 10);
+            textInput.focus();
+        }
+
+        function closeEditor() {
+            editorContent.classList.remove('scale-100', 'opacity-100');
+            editorContent.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => { editorModal.classList.add('hidden'); }, 300);
+        }
+
+        function saveText() {
+            const rawText = textInput.value;
+            if (!rawText.trim()) return;
+            const paragraphs = rawText.split('\n').filter(line => line.trim() !== '');
+            let htmlContent = '';
+            paragraphs.forEach(para => {
+                htmlContent += `<p class="mb-4 text-justify leading-relaxed">${para}</p>`;
+            });
+            textContent.innerHTML = htmlContent;
+            closeEditor();
+        }
+        editorModal.addEventListener('click', (e) => { if (e.target === editorModal) closeEditor(); });
+
+        // === لوحة التحكم ===
+        let isControlsOpen = false;
+        function toggleControls() {
+            isControlsOpen = !isControlsOpen;
+            if (isControlsOpen) {
+                controlsPanel.classList.remove('-translate-y-full');
+                settingsToggle.style.opacity = '0';
+                settingsToggle.style.pointerEvents = 'none';
+            } else {
+                controlsPanel.classList.add('-translate-y-full');
+                settingsToggle.style.opacity = '1';
+                settingsToggle.style.pointerEvents = 'auto';
+            }
+        }
+        document.addEventListener('click', (e) => {
+            if (isControlsOpen && !controlsPanel.contains(e.target) && !settingsToggle.contains(e.target) && !editorModal.contains(e.target)) {
+                toggleControls();
+            }
+        });
+
+        // === الإعدادات ===
+        fontFamilySelect.addEventListener('change', (e) => textContent.style.fontFamily = e.target.value);
+        fontSizeInput.addEventListener('input', (e) => textContent.style.fontSize = e.target.value + 'px');
+        textColorInput.addEventListener('input', (e) => textContent.style.color = e.target.value);
+        bgColorInput.addEventListener('input', (e) => container.style.backgroundColor = e.target.value);
+
+        // === التمرير التلقائي ===
+        let scrollInterval;
+        let isAutoScrolling = false;
+        function stopAutoScroll() {
+            if (scrollInterval) { clearInterval(scrollInterval); scrollInterval = null; }
+            isAutoScrolling = false;
+        }
+        function startAutoScroll(speed) {
+            stopAutoScroll();
+            if (speed == 0) {
+                speedStatus.textContent = "التمرير التلقائي: متوقف";
+                return;
+            }
+            speedStatus.textContent = `سرعة التمرير: ${speed}`;
+            isAutoScrolling = true;
+            if (isControlsOpen) toggleControls();
+            const delay = 200 - (speed * 16);
+            scrollInterval = setInterval(() => {
+                window.scrollBy(0, 1);
+                if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight) {
+                    stopAutoScroll();
+                    scrollSpeedInput.value = 0;
+                    speedStatus.textContent = "انتهى";
+                }
+            }, delay > 5 ? delay : 5);
+        }
+        scrollSpeedInput.addEventListener('input', (e) => startAutoScroll(parseInt(e.target.value)));
+
+        // === التمرير البطيء (Friction) ===
+        let isDragging = false;
+        let startY;
+        let scrollTop;
+        const FRICTION_FACTOR = 2.5; // القيمة المعدلة كما طلبت
+        let isFrictionEnabled = true;
+
+        function updateFrictionState() {
+            isFrictionEnabled = frictionToggle.checked;
+            document.body.style.touchAction = isFrictionEnabled ? 'none' : 'auto';
+        }
+        frictionToggle.addEventListener('change', updateFrictionState);
+        updateFrictionState();
+
+        document.addEventListener('touchstart', (e) => {
+            if (!isFrictionEnabled) return;
+            if (e.target.closest('#controls-panel') || e.target.closest('#settings-toggle') || e.target.closest('#editor-modal')) return;
+            if (isAutoScrolling) {
+                stopAutoScroll();
+                scrollSpeedInput.value = 0;
+                speedStatus.textContent = "تم إيقاف التمرير";
+            }
+            isDragging = true;
+            startY = e.touches[0].pageY;
+            scrollTop = window.scrollY;
+        }, { passive: false });
+
+        document.addEventListener('touchmove', (e) => {
+            if (!isFrictionEnabled || !isDragging) return;
+            if (e.target.closest('#controls-panel') || e.target.closest('#editor-modal')) return;
+            e.preventDefault();
+            const y = e.touches[0].pageY;
+            const walk = (startY - y) / FRICTION_FACTOR;
+            window.scrollTo(0, scrollTop + walk);
+        }, { passive: false });
+
+        document.addEventListener('touchend', () => { isDragging = false; });
+    </script>
+</body>
+</html>
+
+
