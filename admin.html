@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>لوحة المعلم - المنصة</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/dark.css" id="dark-css-admin" disabled>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+<header class="site-header">
+  <div class="container">
+    <h1>لوحة المعلم</h1>
+    <div class="header-controls">
+      <button id="themeToggleAdmin" class="btn small">🌙</button>
+      <a href="index.html" class="btn small outline">واجهة الطالب</a>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+  <section class="card">
+    <div class="flex-between">
+      <h2>قائمة الطلاب</h2>
+      <div>
+        <input id="search-students" placeholder="بحث باسم الطالب" class="search">
+        <button id="export-csv" class="btn">تصدير CSV</button>
+        <button id="export-pdf" class="btn">تصدير PDF</button>
+      </div>
+    </div>
+    <table id="students-table" class="table">
+      <thead><tr><th>الاسم</th><th>الشعبة</th><th>التقدم</th><th>الدرجات</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <section class="card">
+    <h3>إدارة الدروس</h3>
+    <button id="add-lesson" class="btn">إضافة درس جديد</button>
+    <button id="reset-lessons" class="btn outline">استعادة الدروس الافتراضية</button>
+
+    <div id="lessons-admin" class="lesson-admin-list"></div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="container">جميع الحقوق محفوظة © 2025</div>
+</footer>
+
+<script src="js/lessons.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>

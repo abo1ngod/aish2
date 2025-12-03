@@ -1,0 +1,25 @@
+
+:root{
+  --bg:#f8faf9; --card:#fff; --primary:#0f766e; --accent:#14b8a6; --text:#111827;
+}
+*{box-sizing:border-box;font-family:'Tajawal',sans-serif}
+body{background:var(--bg);color:var(--text);margin:0}
+.container{max-width:1000px;margin:20px auto;padding:15px}
+.site-header{background:var(--primary);color:#fff;padding:15px;border-radius:10px}
+.site-header .container{display:flex;justify-content:space-between;align-items:center}
+.card{background:var(--card);padding:15px;border-radius:10px;margin-bottom:15px;box-shadow:0 2px 6px rgba(0,0,0,0.05)}
+.btn{padding:8px 12px;border-radius:8px;border:0;cursor:pointer;background:var(--primary);color:#fff}
+.btn.outline{background:transparent;border:2px solid var(--primary);color:var(--primary)}
+.btn.small{padding:6px 8px;font-size:0.9rem}
+.btn.primary{background:var(--accent)}
+.search{width:100%;padding:8px;margin:10px 0;border-radius:6px;border:1px solid #e5e7eb}
+.lesson-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.lesson-card{padding:10px;border-radius:8px;border-left:6px solid var(--accent);cursor:pointer}
+.lesson-card h3{margin:0 0 8px 0}
+.timer{background:#111827;color:#fff;padding:6px 10px;border-radius:8px;display:inline-block}
+.flex-between{display:flex;justify-content:space-between;align-items:center}
+.table{width:100%;border-collapse:collapse}
+.table th,.table td{padding:8px;border:1px solid #eee;text-align:right}
+.lesson-admin-list .lesson-item{padding:8px;border:1px dashed #e5e7eb;margin:8px 0;border-radius:6px}
+.badges img{width:64px;margin:6px}
+.footer{opacity:0.7;text-align:center;padding:10px}
