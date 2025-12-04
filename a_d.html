@@ -5,8 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>منصة الدراسات الإسلامية - المرحلة الثانوية</title>
     
-    <!-- Tailwind CSS (من dros.html) -->
+    <!-- إعدادات Tailwind لمنع التعارض مع التنسيق الأصلي -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            corePlugins: {
+                preflight: false, // هذا السطر يمنع تدمير تنسيقات الصفحة الأصلية
+            }
+        }
+    </script>
     
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
@@ -16,7 +23,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     
     <style>
-        /* --- تنسيقات tafser.html الأصلية (للهيدر والداشبورد) --- */
+        /* --- تنسيقات tafser.html الأصلية --- */
         :root {
             --primary: #0f766e;
             --primary-light: #14b8a6;
@@ -32,11 +39,9 @@
             --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
 
-        /* إصلاح تعارض Tailwind مع التنسيقات القديمة */
-        body { font-family: 'Tajawal', sans-serif; background-color: var(--bg-body); }
-        h1, h2, h3, h4, h5, h6 { font-family: inherit; }
+        body { font-family: 'Tajawal', sans-serif; background-color: var(--bg-body); margin: 0; padding: 0; }
+        * { box-sizing: border-box; }
         
-        /* الحفاظ على تنسيقات الداشبورد القديمة */
         .old-style-card {
             background: var(--surface); padding: 30px; border-radius: var(--radius);
             box-shadow: var(--shadow); margin-bottom: 25px; animation: fadeIn 0.4s ease-out;
@@ -47,7 +52,7 @@
             background-color: var(--primary); color: white; border: none;
             padding: 12px 24px; border-radius: 8px; cursor: pointer;
             font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-            transition: 0.2s;
+            transition: 0.2s; font-family: 'Tajawal', sans-serif; font-size: 1rem;
         }
         .old-style-btn:hover { background-color: #0d5f58; transform: translateY(-2px); }
 
@@ -60,7 +65,7 @@
             display: flex; flex-direction: column; justify-content: space-between; height: 100%;
         }
         .lesson-card:hover { transform: translateY(-5px); border-color: var(--primary-light); }
-        .lesson-card h3 { font-size: 1.1rem; color: var(--text-main); margin-bottom: 10px; font-weight: bold; }
+        .lesson-card h3 { font-size: 1.1rem; color: var(--text-main); margin-bottom: 10px; font-weight: bold; font-family: 'Tajawal'; }
 
         .status-pill { 
             display: inline-block; padding: 4px 12px; border-radius: 20px; 
@@ -72,20 +77,14 @@
         .fade-in { animation: fadeIn 0.5s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
-        .correct-answer { background-color: #d1fae5; border: 1px solid #10b981; color: #065f46; }
-        .wrong-answer { background-color: #fee2e2; border: 1px solid #ef4444; color: #991b1b; }
-        
-        /* View Management */
         .view-section { display: none; }
         .view-section.active { display: block; }
 
-        /* Inputs for Auth/Admin forms */
         .form-input {
             width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px;
-            margin-bottom: 15px; background: #f9fafb;
+            margin-bottom: 15px; background: #f9fafb; display: block;
         }
         
-        /* Modal */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.6); z-index: 1000;
@@ -101,11 +100,14 @@
 
     <div class="container mx-auto max-w-5xl p-4 flex-1">
         
-        <!-- الهيدر الأصلي مع تحسينات طفيفة -->
+        <!-- الهيدر -->
         <header class="bg-white p-4 rounded-xl shadow-md mb-6 border-b-4 border-teal-700 flex justify-between items-center">
             <div class="logo-area">
-                <h1 class="text-xl font-extrabold text-teal-800">منصة الدراسات الإسلامية</h1>
-                <span id="user-display" style="display:none;" class="text-sm text-gray-500 font-bold mt-1"></span>
+                <h1 class="text-xl font-extrabold text-teal-800 font-['Tajawal']">منصة الدراسات الإسلامية</h1>
+                <div class="flex items-center gap-2">
+                    <span id="user-display" style="display:none;" class="text-sm text-gray-500 font-bold mt-1"></span>
+                    <span id="connection-status" class="w-3 h-3 rounded-full bg-gray-300" title="حالة الاتصال"></span>
+                </div>
             </div>
             <div class="header-actions flex gap-2">
                 <button id="home-btn" onclick="showDashboard()" class="w-10 h-10 rounded-full bg-gray-100 text-gray-600 hover:bg-teal-600 hover:text-white transition flex items-center justify-center" title="الرئيسية"><i class="fas fa-home"></i></button>
@@ -113,7 +115,7 @@
             </div>
         </header>
 
-        <!-- === Auth View (الأصلية) === -->
+        <!-- === Auth View === -->
         <div id="auth-view" class="view-section active">
             <div class="old-style-card max-w-md mx-auto text-center mt-10">
                 <div class="text-6xl text-teal-700 mb-4"><i class="fas fa-quran"></i></div>
@@ -125,7 +127,7 @@
                         <input type="password" id="login-password" class="form-input" placeholder="كلمة المرور" required>
                         <button type="submit" class="old-style-btn w-full justify-center">دخول <i class="fas fa-sign-in-alt"></i></button>
                     </form>
-                    <p class="mt-4 text-sm">ليس لديك حساب؟ <a href="#" onclick="toggleAuth('register')" class="text-teal-600 font-bold">إنشاء حساب جديد</a></p>
+                    <p class="mt-4 text-sm font-['Tajawal']">ليس لديك حساب؟ <a href="#" onclick="toggleAuth('register')" class="text-teal-600 font-bold">إنشاء حساب جديد</a></p>
                 </div>
                 
                 <div id="register-box" style="display: none;">
@@ -136,18 +138,18 @@
                         <input type="text" id="reg-section" class="form-input" placeholder="الصف / الشعبة" required>
                         <button type="submit" class="old-style-btn w-full justify-center bg-yellow-500 hover:bg-yellow-600">تسجيل حساب</button>
                     </form>
-                    <p class="mt-4 text-sm">لديك حساب؟ <a href="#" onclick="toggleAuth('login')" class="text-teal-600 font-bold">عودة للدخول</a></p>
+                    <p class="mt-4 text-sm font-['Tajawal']">لديك حساب؟ <a href="#" onclick="toggleAuth('login')" class="text-teal-600 font-bold">عودة للدخول</a></p>
                 </div>
             </div>
         </div>
 
-        <!-- === Dashboard View (الأصلية) === -->
+        <!-- === Dashboard View === -->
         <div id="dashboard-view" class="view-section">
             <div class="old-style-card">
                 <div class="flex justify-between items-center mb-5">
                     <div>
-                        <h2 class="text-2xl font-bold text-gray-800">فهرس الدروس المقررة</h2>
-                        <div class="text-gray-500 text-sm mt-1" id="progress-text">التقدم: 0%</div>
+                        <h2 class="text-2xl font-bold text-gray-800 font-['Tajawal']">فهرس الدروس المقررة</h2>
+                        <div class="text-gray-500 text-sm mt-1 font-['Tajawal']" id="progress-text">التقدم: 0%</div>
                     </div>
                     <div>
                         <button id="cert-btn" onclick="showCertificate()" class="old-style-btn bg-yellow-500 hover:bg-yellow-600" style="display:none;"><i class="fas fa-award"></i> الشهادة</button>
@@ -162,21 +164,16 @@
             </div>
         </div>
 
-        <!-- ================================================================================= -->
-        <!-- بداية الكود المستبدل من dros.html (تصميم جديد للدرس والاختبار) -->
-        <!-- ================================================================================= -->
-
-        <!-- Lesson View (الجديدة بتصميم dros.html) -->
+        <!-- === Lesson View (الجديدة) === -->
         <div id="lesson-view" class="view-section">
             <section class="bg-white rounded-xl shadow-md overflow-hidden fade-in border-t-4 border-emerald-500">
                 <div class="p-6 md:p-8">
                     <div class="flex justify-between items-center border-b pb-4 border-emerald-100 mb-6">
                         <h2 id="view-lesson-title" class="text-2xl font-bold text-gray-800 font-['Cairo']"></h2>
-                        <span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1 rounded-full border border-emerald-200">درس تفاعلي</span>
+                        <span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1 rounded-full border border-emerald-200 font-['Cairo']">درس تفاعلي</span>
                     </div>
                     
                     <div class="space-y-6 text-gray-700 leading-relaxed text-lg font-['Amiri']">
-                        <!-- سيتم حقن المحتوى هنا -->
                         <div id="lesson-read-area" class="prose max-w-none text-justify"></div>
                     </div>
 
@@ -185,11 +182,10 @@
                             <span>انتقل للاختبار</span>
                             <i class="fa-solid fa-pen-to-square"></i>
                         </button>
-                        <p class="text-gray-500 text-sm mt-3" id="start-hint">عليك اجتياز الاختبار بنسبة 50% على الأقل</p>
+                        <p class="text-gray-500 text-sm mt-3 font-['Cairo']" id="start-hint">عليك اجتياز الاختبار بنسبة 50% على الأقل</p>
                     </div>
 
-                    <!-- أزرار التنقل -->
-                    <div class="flex gap-4 mt-8 pt-6 border-t border-gray-100">
+                    <div class="flex gap-4 mt-8 pt-6 border-t border-gray-100 font-['Cairo']">
                         <button onclick="navigateLesson(-1)" class="flex-1 bg-gray-100 text-gray-700 hover:bg-gray-200 font-bold py-3 rounded-lg transition text-sm"><i class="fas fa-arrow-right ml-2"></i> الدرس السابق</button>
                         <button onclick="navigateLesson(1)" class="flex-1 border-2 border-emerald-600 text-emerald-600 hover:bg-emerald-600 hover:text-white font-bold py-3 rounded-lg transition text-sm">الدرس التالي <i class="fas fa-arrow-left mr-2"></i></button>
                     </div>
@@ -197,24 +193,22 @@
             </section>
         </div>
 
-        <!-- Quiz View (الجديدة بتصميم dros.html) -->
+        <!-- === Quiz View (الجديدة) === -->
         <div id="quiz-view" class="view-section">
             <section class="bg-white rounded-xl shadow-md overflow-hidden fade-in">
                 <div class="bg-gray-800 text-white p-4 flex justify-between items-center">
                     <h2 class="font-bold text-lg font-['Cairo']" id="quiz-header-title">اختبار الدرس</h2>
-                    <span class="bg-gray-700 px-3 py-1 rounded text-sm" id="quiz-q-count"></span>
+                    <span class="bg-gray-700 px-3 py-1 rounded text-sm font-['Cairo']" id="quiz-q-count"></span>
                 </div>
                 
                 <div class="p-6 md:p-8">
-                    <!-- المرجع السريع (ميزة موجودة في الكود القديم نحتفظ بها ولكن بتصميم جديد) -->
                     <div class="bg-emerald-50 p-4 rounded-lg border-r-4 border-emerald-500 mb-6 text-sm">
-                        <h4 class="font-bold text-emerald-900 mb-2"><i class="fas fa-book-open ml-2"></i> مرجع سريع:</h4>
-                        <div id="quiz-reference-text" class="text-gray-700 h-24 overflow-y-auto pr-2 custom-scroll"></div>
+                        <h4 class="font-bold text-emerald-900 mb-2 font-['Cairo']"><i class="fas fa-book-open ml-2"></i> مرجع سريع:</h4>
+                        <div id="quiz-reference-text" class="text-gray-700 h-24 overflow-y-auto pr-2 custom-scroll font-['Amiri']"></div>
                     </div>
 
                     <form id="quiz-form">
                         <div id="questions-container" class="space-y-6"></div>
-
                         <div class="mt-8 border-t pt-6 flex justify-end">
                             <button type="submit" id="submit-quiz-btn" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-8 rounded-lg shadow-md transition w-full md:w-auto font-['Cairo']">
                                 تسليم الإجابات
@@ -225,19 +219,12 @@
             </section>
         </div>
 
-        <!-- Results View (جديد كلياً من dros.html) -->
+        <!-- === Results View (الجديدة) === -->
         <div id="results-view" class="view-section">
             <section class="fade-in">
-                <!-- Score Card -->
-                <div id="score-card" class="bg-white rounded-xl shadow-md p-8 text-center mb-6 border-t-8 border-emerald-500">
-                    <!-- سيتم تعبئته بالجافاسكربت -->
-                </div>
-
-                <!-- Review Section -->
+                <div id="score-card" class="bg-white rounded-xl shadow-md p-8 text-center mb-6 border-t-8 border-emerald-500"></div>
                 <div id="review-container" class="space-y-4 mb-6"></div>
-
-                <!-- Footer Actions -->
-                <div class="bg-white p-4 rounded-xl shadow-sm text-center">
+                <div class="bg-white p-4 rounded-xl shadow-sm text-center font-['Cairo']">
                     <button onclick="returnToLesson()" class="text-emerald-600 font-bold underline hover:text-emerald-800 mx-4">
                         <i class="fas fa-book ml-1"></i> العودة لمحتوى الدرس
                     </button>
@@ -248,21 +235,17 @@
             </section>
         </div>
 
-        <!-- ================================================================================= -->
-        <!-- نهاية الكود المستبدل -->
-        <!-- ================================================================================= -->
-
-        <!-- === Certificate View (الأصلية) === -->
+        <!-- === Certificate View === -->
         <div id="certificate-view" class="view-section">
             <div class="old-style-card text-center">
                 <div id="cert-element" class="bg-white border-[10px] border-double border-teal-700 p-10 max-w-3xl mx-auto relative my-5 text-gray-800">
                     <div class="border-2 border-teal-600 p-8">
                         <i class="fas fa-medal text-6xl text-yellow-500 mb-5"></i>
                         <h1 class="font-['Amiri'] text-5xl text-teal-800 mb-4">شهادة تفوق وإنجاز</h1>
-                        <p class="text-xl my-5">تشهد منصة الدراسات الإسلامية بأن الطالب/ـة</p>
+                        <p class="text-xl my-5 font-['Tajawal']">تشهد منصة الدراسات الإسلامية بأن الطالب/ـة</p>
                         <h2 id="cert-name" class="text-4xl text-teal-600 font-['Amiri'] font-bold my-4"></h2>
-                        <p class="text-xl">قد أتم جميع الدروس والاختبارات المقررة بنجاح وتميز</p>
-                        <div class="mt-10 pt-5 border-t border-gray-300 flex justify-around">
+                        <p class="text-xl font-['Tajawal']">قد أتم جميع الدروس والاختبارات المقررة بنجاح وتميز</p>
+                        <div class="mt-10 pt-5 border-t border-gray-300 flex justify-around font-['Tajawal']">
                             <div><strong>التاريخ:</strong> <span id="cert-date"></span></div>
                             <div><strong>التقدير:</strong> ممتاز</div>
                         </div>
@@ -275,21 +258,21 @@
             </div>
         </div>
 
-        <!-- === Admin Views (الأصلية) === -->
+        <!-- === Admin Views === -->
         <div id="admin-login-view" class="view-section">
             <div class="old-style-card max-w-sm mx-auto text-center mt-10">
-                <h3 class="text-xl font-bold mb-4">بوابة المعلم</h3>
+                <h3 class="text-xl font-bold mb-4 font-['Tajawal']">بوابة المعلم</h3>
                 <input type="password" id="admin-pin" class="form-input" placeholder="رمز الدخول (1234)">
                 <button onclick="verifyAdmin()" class="old-style-btn w-full justify-center">دخول</button>
-                <button onclick="showSection('auth-view')" class="mt-2 text-sm text-gray-500 underline">رجوع</button>
+                <button onclick="showSection('auth-view')" class="mt-2 text-sm text-gray-500 underline font-['Tajawal']">رجوع</button>
             </div>
         </div>
 
         <div id="admin-dashboard-view" class="view-section">
             <div class="old-style-card">
                 <div class="flex justify-between mb-5">
-                    <h2 class="text-2xl font-bold">لوحة التحكم</h2>
-                    <button onclick="logoutAdmin()" class="px-4 py-2 bg-gray-200 rounded text-sm hover:bg-gray-300">خروج</button>
+                    <h2 class="text-2xl font-bold font-['Tajawal']">لوحة التحكم</h2>
+                    <button onclick="logoutAdmin()" class="px-4 py-2 bg-gray-200 rounded text-sm hover:bg-gray-300 font-['Tajawal']">خروج</button>
                 </div>
                 
                 <div class="flex gap-2 mb-5">
@@ -302,10 +285,10 @@
                         <button onclick="openAddStudentModal()" class="old-style-btn py-2 text-sm"><i class="fas fa-plus"></i> طالب جديد</button>
                         <button onclick="exportStudentsExcel()" class="old-style-btn bg-green-600 hover:bg-green-700 py-2 text-sm"><i class="fas fa-file-excel"></i> تصدير Excel</button>
                         <input type="file" id="import-file" class="p-2 border rounded bg-white text-sm">
-                        <button onclick="importStudentsExcel()" class="px-3 py-2 bg-gray-300 rounded hover:bg-gray-400 text-sm">استيراد</button>
+                        <button onclick="importStudentsExcel()" class="px-3 py-2 bg-gray-300 rounded hover:bg-gray-400 text-sm font-['Tajawal']">استيراد</button>
                     </div>
                     <div class="overflow-x-auto">
-                        <table class="w-full text-right border-collapse">
+                        <table class="w-full text-right border-collapse font-['Tajawal']">
                             <thead class="bg-gray-50 text-gray-500"><tr><th class="p-3 border-b">الاسم</th><th class="p-3 border-b">المستخدم</th><th class="p-3 border-b">الشعبة</th><th class="p-3 border-b">الإنجاز</th><th class="p-3 border-b">خيارات</th></tr></thead>
                             <tbody id="students-table-body"></tbody>
                         </table>
@@ -321,29 +304,29 @@
         <!-- Student Modal -->
         <div id="student-modal" class="modal-overlay">
             <div class="modal-content text-right">
-                <h3 id="student-modal-title" class="text-xl font-bold mb-4">بيانات الطالب</h3>
+                <h3 id="student-modal-title" class="text-xl font-bold mb-4 font-['Tajawal']">بيانات الطالب</h3>
                 <input type="hidden" id="st-index">
                 <input type="text" id="st-name" class="form-input" placeholder="الاسم الثلاثي">
                 <input type="text" id="st-username" class="form-input" placeholder="اسم المستخدم">
                 <input type="text" id="st-password" class="form-input" placeholder="كلمة المرور">
                 <input type="text" id="st-section" class="form-input" placeholder="الشعبة">
                 <button onclick="saveStudentData()" class="old-style-btn w-full justify-center">حفظ</button>
-                <button onclick="document.getElementById('student-modal').style.display='none'" class="mt-3 text-gray-500 underline w-full">إلغاء</button>
+                <button onclick="document.getElementById('student-modal').style.display='none'" class="mt-3 text-gray-500 underline w-full font-['Tajawal']">إلغاء</button>
             </div>
         </div>
 
     </div>
 
-    <footer class="text-center p-5 text-gray-500 text-sm mt-auto">
+    <footer class="text-center p-5 text-gray-500 text-sm mt-auto font-['Tajawal']">
         <p>جميع الحقوق محفوظة &copy; 2025 منصة الدراسات الإسلامية</p>
         <span onclick="showAdminLogin()" class="cursor-pointer hover:text-teal-600 transition">الدخول للوحة التحكم</span>
     </footer>
 
     <script type="module">
-        // --- تهيئة Firebase (نفس الإعدادات الأصلية) ---
+        // --- تهيئة Firebase ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
           apiKey: "AIzaSyBxPO6RKsQ1Cq-mqlCpFTrCuIyxnYdB37U",
@@ -385,32 +368,52 @@
                 mcq: [{ q: "الكتاب الذي يُعد أصح التفاسير ويعتمد عليه المفسرون هو:", opts: ["تفسير الطبري", "تفسير السعدي", "تفسير الجلالين"], ans: 0 }, { q: "يتميز تفسير \"أضواء البيان\" للشنقيطي بـ:", opts: ["جمع الروايات الضعيفة", "العناية بالأحكام الفقهية وتفسير القرآن بالقرآن", "الاختصار الشديد"], ans: 1 }, { q: "مؤلف كتاب \"تفسير القرآن العظيم\" هو:", opts: ["جلال الدين السيوطي", "ابن كثير الدمشقي", "عبد الرحمن السعدي"], ans: 1 }],
                 tf: [{ q: "كتاب \"الدر المنثور\" للسيوطي يعتمد على التفسير بالرأي العقلي.", ans: false }, { q: "يتميز تفسير السعدي بذكر المعنى الإجمالي بأسلوب سهل وميسر.", ans: true }, { q: "منهج ابن كثير في التفسير يبدأ بذكر الأحاديث قبل الآيات المناسبة.", ans: false }]
             },
-            // ... تم اختصار بقية الدروس للإيجاز، ولكن الكود يدعمها جميعاً ...
+             // ... تم اختصار بقية الدروس للإيجاز، الكود يعمل للجميع ...
         ];
 
-        // --- منطق الاتصال بقاعدة البيانات ---
+        // --- الاتصال والتهيئة ---
+        function setConnectionStatus(online) {
+            const el = document.getElementById('connection-status');
+            if(online) {
+                el.classList.remove('bg-gray-300', 'bg-red-500');
+                el.classList.add('bg-green-500');
+                el.title = "متصل بالسحابة";
+            } else {
+                el.classList.remove('bg-gray-300', 'bg-green-500');
+                el.classList.add('bg-red-500');
+                el.title = "غير متصل (بيانات محلية)";
+            }
+        }
+
         async function initApp() {
             try {
-                await signInAnonymously(auth);
+                // التحقق من حالة الاتصال الحالية لتجنب التكرار
+                if (!auth.currentUser) {
+                    await signInAnonymously(auth);
+                }
+
                 const docRef = doc(firestoreDb, 'artifacts', appId, 'public', 'data', 'main', 'schoolData');
                 const snapshot = await getDoc(docRef);
+                
                 if (snapshot.exists()) {
                     const data = snapshot.data();
                     window.db.users = data.users || [];
                     window.db.lessons = (data.lessons && data.lessons.length > 0) ? data.lessons : JSON.parse(JSON.stringify(initialLessons));
                     window.db.adminPin = data.adminPin || "1234";
-                    console.log("تم تحميل البيانات من السحابة بنجاح");
+                    console.log("Data loaded from cloud");
+                    setConnectionStatus(true);
                 } else {
                     window.db.lessons = JSON.parse(JSON.stringify(initialLessons));
                     await setDoc(docRef, window.db);
-                    console.log("تم إنشاء قاعدة البيانات السحابية");
+                    setConnectionStatus(true);
                 }
                 isFirebaseReady = true;
             } catch (error) {
-                console.error("خطأ:", error);
-                alert("وضع غير متصل. لن يتم حفظ البيانات.");
+                console.warn("Offline Mode Active:", error.message);
+                // استخدام البيانات المحلية عند الفشل دون إزعاج المستخدم
                 window.db.lessons = JSON.parse(JSON.stringify(initialLessons));
                 isFirebaseReady = false;
+                setConnectionStatus(false);
             }
         }
 
@@ -419,7 +422,11 @@
                 try {
                     const docRef = doc(firestoreDb, 'artifacts', appId, 'public', 'data', 'main', 'schoolData');
                     await setDoc(docRef, window.db);
-                } catch(e) { console.error("فشل الحفظ", e); }
+                    setConnectionStatus(true);
+                } catch(e) { 
+                    console.error("Save failed", e);
+                    setConnectionStatus(false);
+                }
             }
         }
 
@@ -431,25 +438,25 @@
 
         document.getElementById('register-form').addEventListener('submit', function(e) {
             e.preventDefault();
-            if(!isFirebaseReady && window.db.users.length === 0) { alert("انتظر تحميل البيانات..."); return; }
+            if(!isFirebaseReady && window.db.users.length === 0) { alert("جارٍ الاتصال بالقاعدة... حاول بعد قليل"); return; }
             const username = document.getElementById('reg-username').value.trim();
-            if (window.db.users.find(u => u.username === username)) { alert("اسم المستخدم موجود"); return; }
+            if (window.db.users.find(u => u.username === username)) { alert("اسم المستخدم موجود مسبقاً"); return; }
             window.db.users.push({
                 username: username, password: document.getElementById('reg-password').value,
                 name: document.getElementById('reg-fullname').value, section: document.getElementById('reg-section').value,
                 progress: {} 
             });
-            saveDB(); alert("تم التسجيل"); toggleAuth('login');
+            saveDB(); alert("تم إنشاء الحساب بنجاح"); toggleAuth('login');
         });
 
         document.getElementById('login-form').addEventListener('submit', function(e) {
             e.preventDefault();
-            if(!isFirebaseReady && window.db.users.length === 0) { alert("انتظر تحميل البيانات..."); return; }
+            if(!isFirebaseReady && window.db.users.length === 0) { alert("جارٍ تحميل البيانات..."); return; }
             const u = document.getElementById('login-username').value.trim();
             const p = document.getElementById('login-password').value;
             const user = window.db.users.find(usr => usr.username === u && usr.password === p);
             if (user) { window.currentUser = user; if(!window.currentUser.progress) window.currentUser.progress = {}; showDashboard(); }
-            else { alert("بيانات خاطئة"); }
+            else { alert("بيانات الدخول غير صحيحة"); }
         });
 
         window.logout = function() { window.currentUser = null; showSection('auth-view'); }
@@ -508,21 +515,14 @@
             });
         }
 
-        // =========================================================
-        // === المنطق الجديد للدروس والاختبارات (مستوحى من dros.html) ===
-        // =========================================================
+        // --- منطق الدروس والاختبارات ---
 
         window.openTextLesson = function(id) {
             window.activeLessonId = id;
             const lesson = window.db.lessons.find(l => l.id === id);
-            
-            // تعبئة واجهة الدرس الجديدة
             document.getElementById('view-lesson-title').textContent = lesson.title;
-            // استخدام innerHTML لحقن الملخص (الذي يحتوي على ترويسة ونقاط)
-            // يمكن تحسين العرض بإضافة كلاسات Tailwind للمحتوى المحقون إذا لزم الأمر
             document.getElementById('lesson-read-area').innerHTML = lesson.summary;
-
-            // إذا كان الطالب قد اجتاز الدرس، نغير زر الاختبار
+            
             const prog = window.currentUser.progress[id];
             const startHint = document.getElementById('start-hint');
             if (prog && prog.score >= 50) {
@@ -530,24 +530,19 @@
             } else {
                 startHint.textContent = "عليك اجتياز الاختبار بنسبة 50% على الأقل";
             }
-
             showSection('lesson-view');
         }
 
         window.switchToQuizMode = function() {
             const lesson = window.db.lessons.find(l => l.id === window.activeLessonId);
-            
-            // إعداد واجهة الاختبار الجديدة
             document.getElementById('quiz-header-title').textContent = `اختبار: ${lesson.title}`;
             document.getElementById('quiz-reference-text').innerHTML = lesson.summary;
             
-            // تحضير الأسئلة بدمج النوعين
             let allQuestions = [];
             if(lesson.mcq) lesson.mcq.forEach((q, i) => allQuestions.push({...q, type: 'mcq', id: `mcq-${i}`, realIndex: i}));
             if(lesson.tf) lesson.tf.forEach((q, i) => allQuestions.push({...q, type: 'tf', id: `tf-${i}`, realIndex: i}));
             
             document.getElementById('quiz-q-count').textContent = `${allQuestions.length} أسئلة`;
-            
             renderQuestionsNewStyle(allQuestions);
             showSection('quiz-view');
         }
@@ -567,7 +562,6 @@
                 const optionsDiv = document.createElement('div');
                 optionsDiv.className = 'space-y-2';
 
-                // تحديد الخيارات بناء على النوع
                 let options = [];
                 if(q.type === 'mcq') {
                     options = q.opts.map((txt, idx) => ({txt, val: idx}));
@@ -581,7 +575,7 @@
                     
                     const input = document.createElement('input');
                     input.type = 'radio';
-                    input.name = q.id; // mcq-0 or tf-1
+                    input.name = q.id; 
                     input.value = opt.val;
                     input.required = true;
                     input.className = 'form-radio h-5 w-5 text-emerald-600 focus:ring-emerald-500 accent-emerald-600 ml-3';
@@ -605,47 +599,37 @@
             e.preventDefault();
             const lesson = window.db.lessons.find(l => l.id === window.activeLessonId);
             
-            // تحضير قاعدة بيانات مؤقتة للأسئلة لغرض التصحيح
             let questionsDB = [];
             if(lesson.mcq) lesson.mcq.forEach((q, i) => questionsDB.push({...q, type: 'mcq', id: `mcq-${i}`}));
             if(lesson.tf) lesson.tf.forEach((q, i) => questionsDB.push({...q, type: 'tf', id: `tf-${i}`}));
 
             let score = 0;
-            let userAnswers = {}; // لتخزين الإجابات وحفظها في قاعدة البيانات
+            let userAnswers = {};
 
             questionsDB.forEach(q => {
                 const selected = document.querySelector(`input[name="${q.id}"]:checked`);
                 if(selected) {
                     let val = selected.value;
                     if(q.type === 'mcq') val = parseInt(val);
-                    if(q.type === 'tf') val = (val === 'true'); // تحويل النص لقيمة منطقية
-
-                    // تخزين الإجابة للعرض لاحقاً
+                    if(q.type === 'tf') val = (val === 'true');
                     userAnswers[q.id] = val;
-
-                    // التصحيح
                     if(val === q.ans) score++;
                 }
             });
 
-            // حساب النسبة
             const total = questionsDB.length;
             const pct = Math.round((score / total) * 100);
             
-            // حفظ في قاعدة البيانات
             const uIdx = window.db.users.findIndex(u => u.username === window.currentUser.username);
-            // حفظ الإجابات والدرجة
             window.db.users[uIdx].progress[window.activeLessonId] = { score: pct, answers: userAnswers };
             window.currentUser = window.db.users[uIdx]; 
             saveDB();
 
-            // عرض النتائج (نمط dros.html)
             showResultsNewStyle(pct, score, total, questionsDB, userAnswers);
         });
 
         window.showResultsNewStyle = function(pct, score, total, questionsDB, userAnswers) {
             const passed = pct >= 50;
-            
             const scoreCard = document.getElementById('score-card');
             scoreCard.className = `bg-white rounded-xl shadow-md p-8 text-center mb-6 border-t-8 ${passed ? 'border-emerald-500' : 'border-red-500'}`;
             scoreCard.innerHTML = `
@@ -677,7 +661,6 @@
 
                 let statusIcon = isCorrect ? '<i class="fa-solid fa-check text-green-600"></i>' : '<i class="fa-solid fa-xmark text-red-600"></i>';
                 
-                // تحضير نص الإجابة للعرض
                 let userAnsText = "";
                 let correctAnsText = "";
 
@@ -685,7 +668,7 @@
                     userAnsText = (userAns !== undefined) ? q.opts[userAns] : "لم يتم الاختيار";
                     correctAnsText = q.opts[q.ans];
                 } else {
-                    userAnsText = (userAns === true) ? "صواب" : "خطأ";
+                    userAnsText = (userAns === true) ? "صواب" : (userAns === false ? "خطأ" : "لم يتم الاختيار");
                     correctAnsText = (q.ans === true) ? "صواب" : "خطأ";
                 }
 
@@ -713,7 +696,6 @@
                 itemDiv.innerHTML = htmlContent;
                 reviewContainer.appendChild(itemDiv);
             });
-
             showSection('results-view');
         }
 
@@ -765,7 +747,6 @@
             document.getElementById('admin-tab-content').style.display = tab==='content'?'block':'none';
             document.getElementById('btn-tab-students').className = tab==='students'?'old-style-btn':'old-style-btn bg-transparent text-teal-700 border border-teal-700';
             document.getElementById('btn-tab-content').className = tab==='content'?'old-style-btn':'old-style-btn bg-transparent text-teal-700 border border-teal-700';
-            
             if(tab === 'students') renderStudentsTable();
             if(tab === 'content') renderAdminLessonsList();
         }
@@ -897,4 +878,5 @@
     </script>
 </body>
 </html>
+
 
