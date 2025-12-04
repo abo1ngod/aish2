@@ -587,7 +587,7 @@
         };
 
         // منطق المصادقة والاتصال
-        let appInitialized = false;
+        // تم إزالة المتغير المحلي appInitialized واستبداله بالتحقق العام
 
         const initAuth = async () => {
             try {
@@ -597,14 +597,14 @@
                 console.error("Auth Error", e);
                 window.showToast("⚠️ فشل الاتصال بقاعدة البيانات", "error");
                 // تشغيل الوضع المحلي كخطة بديلة
-                if (!appInitialized) {
+                if (!window.appInitialized) {
                     window.initApp();
                 }
             }
         };
 
         onAuthStateChanged(auth, (user) => {
-            if (user && !appInitialized) {
+            if (user && !window.appInitialized) {
                 console.log("Connected as:", user.uid);
                 window.initApp(); // بدء التطبيق بعد التأكد من الاتصال
             }
@@ -612,7 +612,8 @@
 
         // مؤقت أمان
         setTimeout(() => {
-            if (!appInitialized) {
+            // التحقق من المتغير العام بدلاً من المحلي
+            if (!window.appInitialized) {
                 console.warn("Firebase timeout - forcing local mode");
                 window.showToast("⚠️ بطء في الاتصال - تم التحويل للوضع المحلي", "error");
                 window.initApp();
@@ -1300,5 +1301,6 @@
     </script>
 </body>
 </html>
+
 
 
