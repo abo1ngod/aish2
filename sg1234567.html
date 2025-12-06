@@ -3,16 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>مقياس الطلاقة القرائية - ثابت</title>
+    <title>مقياس الطلاقة القرائية - الإصدار الاحترافي</title>
     <style>
         :root {
             --primary: #2c3e50;
             --accent: #3498db;
             --success: #27ae60;
-            --highlight: #ffe600; /* أصفر واضح */
+            --warning: #f1c40f;
+            --danger: #e74c3c;
+            --highlight: #ffe600;
             --bg-color: #f8f9fa;
             --card-bg: #ffffff;
             --text-color: #2c3e50;
+            --dim-color: #bdc3c7;
         }
 
         * { box-sizing: border-box; }
@@ -58,19 +61,37 @@
         /* --- لوحة النصوص --- */
         .dashboard-container {
             width: 100%;
-            max-width: 800px;
+            max-width: 900px;
             padding: 20px;
             flex: 1;
             display: flex;
             flex-direction: column;
         }
 
+        .filter-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+        }
+        
+        .filter-btn {
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+        .filter-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+
         .texts-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             gap: 15px;
             width: 100%;
-            margin-top: 15px;
         }
 
         .text-card {
@@ -83,43 +104,36 @@
             transition: all 0.2s;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
-            height: 150px;
+            height: 180px;
+            position: relative;
         }
         .text-card:hover { transform: translateY(-3px); border-color: var(--accent); }
 
+        .level-badge {
+            position: absolute; top: 15px; left: 15px;
+            padding: 4px 10px; border-radius: 10px; font-size: 0.75rem; font-weight: bold; color: white;
+        }
+        .level-easy { background-color: var(--success); }
+        .level-medium { background-color: var(--warning); color: #856404; }
+        .level-hard { background-color: var(--danger); }
+
+        .text-title { font-weight: bold; margin-bottom: 10px; font-size: 1.1rem; color: var(--primary); padding-left: 60px; } /* padding for badge */
+
         .text-preview {
-            font-size: 1.1rem; /* خط أوضح */
-            color: #444;
-            line-height: 1.6;
-            overflow: hidden;
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
+            font-size: 0.95rem; color: #555; line-height: 1.5;
+            overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+            flex: 1;
         }
 
         .text-meta {
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px solid #eee;
-            font-size: 0.9rem;
-            color: #7f8c8d;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            margin-top: 10px; padding-top: 10px; border-top: 1px solid #eee;
+            font-size: 0.85rem; color: #95a5a6; display: flex; justify-content: space-between; align-items: center;
         }
 
         /* --- شاشة القراءة --- */
         .game-section {
-            display: none;
-            width: 100%;
-            height: 100vh;
-            position: fixed;
-            top: 0; left: 0;
-            background: var(--bg-color);
-            z-index: 200;
-            flex-direction: column;
-            align-items: center;
+            display: none; width: 100%; height: 100vh; position: fixed; top: 0; left: 0;
+            background: var(--bg-color); z-index: 200; flex-direction: column; align-items: center;
         }
 
         .game-header {
@@ -128,61 +142,41 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
 
-        /* حاوية النص - تحسينات الثبات */
+        /* أدوات التحكم العلوية */
+        .game-controls { display: flex; gap: 10px; }
+        .icon-btn { background: #f0f2f5; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; transition: background 0.2s; }
+        .icon-btn:hover { background: #e4e6eb; }
+        .icon-btn.active { background: var(--primary); color: white; }
+
         .text-reader-container {
-            flex: 1;
-            width: 95%;
-            max-width: 800px;
-            background: white;
-            margin: 15px 0;
-            border-radius: 15px;
-            padding: 30px;
-            font-size: 1.8rem; 
-            line-height: 2.8; /* تباعد أسطر مريح */
-            text-align: justify;
-            overflow-y: auto;
-            border: 1px solid #e0e0e0;
-            position: relative;
-            /* scroll-behavior: smooth; */ /* يمكن تفعيلها لتنعيم السكرول */
+            flex: 1; width: 95%; max-width: 900px; background: white; margin: 15px 0;
+            border-radius: 15px; padding: 30px;
+            font-size: 1.8rem; line-height: 2.8; text-align: justify;
+            overflow-y: auto; border: 1px solid #e0e0e0; position: relative;
+            transition: background-color 0.3s;
         }
 
-        /* تنسيق الكلمات */
+        /* وضع التركيز */
+        .focus-mode .word-span { opacity: 0.2; filter: blur(1px); transition: all 0.3s; }
+        .focus-mode .word-current { opacity: 1; filter: blur(0); transform: scale(1.15); }
+        .focus-mode .word-correct { opacity: 0.5; filter: blur(0); } /* الكلمات المقروءة تظهر بوضوح أقل */
+
         .word-span {
-            padding: 2px 4px;
-            border-radius: 4px;
-            margin: 0 1px; /* هامش ثابت صغير */
-            display: inline-block; /* لضمان احتواء الخلفية */
-            border-bottom: 2px solid transparent; /* حجز مكان للخط السفلي لتجنب القفز */
-            color: var(--text-color);
+            padding: 2px 4px; border-radius: 4px; margin: 0 1px; display: inline-block;
+            border-bottom: 2px solid transparent; color: var(--text-color); transition: all 0.2s;
         }
         
-        /* الكلمة الحالية: تغيير الخلفية فقط بدون تغيير الأبعاد */
-        .word-current {
-            background-color: var(--highlight);
-            color: #000;
-            border-bottom-color: #f39c12;
-            /* تم إزالة transform scale و font-weight bold لمنع اهتزاز النص */
-        }
-
-        .word-correct {
-            color: var(--success); 
-            font-weight: bold; /* هنا لا بأس بالخط العريض لأن الكلمة تمت قراءتها وتجاوزناها */
-        }
+        .word-current { background-color: var(--highlight); color: #000; border-bottom-color: #f39c12; }
+        .word-correct { color: var(--success); font-weight: bold; }
+        .word-missed { color: var(--danger); text-decoration: line-through; opacity: 0.6; } /* للاستخدام في التقرير */
 
         /* الشريط السفلي */
         .bottom-bar {
-            width: 100%;
-            background: white;
-            padding: 15px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            width: 100%; background: white; padding: 15px 20px;
+            display: flex; align-items: center; justify-content: space-between;
             box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
         }
-
         .timer-display { font-size: 1.5rem; font-weight: bold; color: var(--primary); display: flex; align-items: center; gap: 10px; }
-        .wpm-live { background: #ecf0f1; padding: 5px 15px; border-radius: 20px; font-size: 0.9rem; color: var(--accent); font-weight: bold; }
-
         .mic-indicator {
             width: 50px; height: 50px; background: #ecf0f1; border-radius: 50%;
             display: flex; align-items: center; justify-content: center; font-size: 1.5rem; transition: all 0.3s;
@@ -190,14 +184,23 @@
         .mic-active { background: #ffebee; color: #c0392b; animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% {box-shadow: 0 0 0 0 rgba(192, 57, 43, 0.4);} 70% {box-shadow: 0 0 0 10px rgba(192, 57, 43, 0);} 100% {box-shadow: 0 0 0 0 rgba(192, 57, 43, 0);} }
 
-        /* نوافذ */
+        /* نافذة النتيجة المتقدمة */
+        .result-summary-box {
+            max-height: 200px; overflow-y: auto; background: #f9f9f9; padding: 15px;
+            border-radius: 10px; border: 1px solid #eee; margin-top: 15px; text-align: justify;
+            font-size: 0.9rem; line-height: 1.8;
+        }
+
+        /* المودال */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 3000; justify-content: center; align-items: center; }
-        .modal-content { background: white; width: 90%; max-width: 450px; border-radius: 20px; padding: 30px; text-align: center; }
+        .modal-content { background: white; width: 95%; max-width: 500px; border-radius: 20px; padding: 30px; text-align: center; max-height: 90vh; overflow-y: auto; }
         .big-number { font-size: 4rem; font-weight: 800; color: var(--success); line-height: 1; }
         .btn-main { background: var(--accent); color: white; border: none; padding: 12px 30px; border-radius: 50px; font-size: 1.1rem; cursor: pointer; margin-top: 15px; }
         
-        textarea { width: 100%; height: 150px; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; margin-bottom: 10px; }
-        
+        /* الإدارة */
+        textarea { width: 100%; height: 100px; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; margin-bottom: 10px; }
+        input[type="text"], select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px; }
+
         .countdown-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); display: none; justify-content: center; align-items: center; z-index: 50; }
         .count-num { font-size: 8rem; color: var(--accent); font-weight: bold; }
 
@@ -206,7 +209,7 @@
 <body>
 
     <div class="header-area">
-        <div class="app-title">⏱️ مقياس الطلاقة القرائية</div>
+        <div class="app-title">⏱️ مقياس الطلاقة <span style="font-size:0.7em; background:var(--accent); color:white; padding:2px 6px; border-radius:4px; margin-right:5px;">Pro</span></div>
         <div style="display:flex; align-items:center; gap:10px;">
             <div class="best-score-badge">🏆 الأفضل: <span id="best-score-display">0</span></div>
             <button onclick="openAdmin()" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">⚙️</button>
@@ -215,9 +218,17 @@
 
     <!-- 1. الشاشة الرئيسية: مكتبة النصوص -->
     <div class="dashboard-container" id="dashboard">
-        <div style="background: #e3f2fd; padding: 15px; border-radius: 10px; color: #1565c0; font-size: 0.9rem;">
-            📖 اختر نصاً للبدء. سيتم حساب سرعتك خلال دقيقة واحدة.
+        <div style="background: #e3f2fd; padding: 15px; border-radius: 10px; color: #1565c0; font-size: 0.9rem; margin-bottom: 15px;">
+            📖 اختر نصاً يناسب مستواك. سيتم حساب سرعتك ودقتك خلال دقيقة واحدة.
         </div>
+        
+        <div class="filter-tabs">
+            <button class="filter-btn active" onclick="filterTexts('all', this)">الكل</button>
+            <button class="filter-btn" onclick="filterTexts('easy', this)">🟢 سهل</button>
+            <button class="filter-btn" onclick="filterTexts('medium', this)">🟡 متوسط</button>
+            <button class="filter-btn" onclick="filterTexts('hard', this)">🔴 صعب</button>
+        </div>
+
         <div class="texts-grid" id="texts-grid"></div>
     </div>
 
@@ -225,7 +236,12 @@
     <div class="game-section" id="game-section">
         <div class="game-header">
             <button onclick="exitGame()" style="background:none; border:none; font-size:1.5rem;">✕</button>
-            <div class="wpm-live">الكلمات: <span id="live-wpm">0</span></div>
+            
+            <div class="game-controls">
+                <button id="focus-btn" class="icon-btn" onclick="toggleFocusMode()" title="وضع التركيز">👁️</button>
+            </div>
+            
+            <div style="font-weight:bold; color:var(--success);">الكلمات: <span id="live-wpm">0</span></div>
         </div>
 
         <div class="text-reader-container" id="text-display"></div>
@@ -241,16 +257,27 @@
         </div>
     </div>
 
-    <!-- نافذة النتيجة -->
+    <!-- نافذة النتيجة المتقدمة -->
     <div id="result-modal" class="modal-overlay">
         <div class="modal-content">
-            <h2>⏱️ انتهى الوقت</h2>
-            <p>سرعتك:</p>
-            <div class="big-number" id="final-wpm">0</div>
-            <p style="color:#7f8c8d; font-weight:bold;">كلمة صحيحة / دقيقة</p>
-            <div style="margin-top:20px; padding-top:10px; border-top:1px solid #eee;">
-                <p style="font-size:0.9rem;">الدقة: <span id="accuracy-val" style="font-weight:bold;">0%</span></p>
+            <h2>📊 تقرير الأداء</h2>
+            
+            <div style="display:flex; justify-content:space-around; margin: 20px 0;">
+                <div>
+                    <div class="big-number" id="final-wpm">0</div>
+                    <div style="font-size:0.8rem; color:#7f8c8d;">كلمة/دقيقة</div>
+                </div>
+                <div>
+                    <div class="big-number" id="final-accuracy" style="color:var(--accent);">0%</div>
+                    <div style="font-size:0.8rem; color:#7f8c8d;">الدقة</div>
+                </div>
             </div>
+
+            <div style="text-align:right; font-weight:bold; font-size:0.9rem; margin-bottom:5px;">ملخص القراءة:</div>
+            <div class="result-summary-box" id="result-text-summary">
+                <!-- سيتم وضع النص هنا مع تلوين الكلمات -->
+            </div>
+
             <button class="btn-main" onclick="closeResult()">موافق</button>
         </div>
     </div>
@@ -265,35 +292,44 @@
         </div>
     </div>
 
-    <!-- لوحة التحكم -->
+    <!-- لوحة التحكم المتطورة -->
     <div id="admin-modal" class="modal-overlay">
         <div class="modal-content" style="max-width:600px; text-align:right;">
             <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
-                <h3 style="margin:0">⚙️ إدارة النصوص</h3>
+                <h3 style="margin:0">⚙️ إدارة المحتوى</h3>
                 <button onclick="document.getElementById('admin-modal').style.display='none'" style="color:red; background:none; border:none; font-size:1.2rem; cursor:pointer;">✕</button>
             </div>
 
             <div>
-                <textarea id="new-text-input" placeholder="اكتب أو الصق نصاً جديداً للقراءة هنا..."></textarea>
+                <input type="text" id="new-text-title" placeholder="عنوان النص (مثلاً: قصة النملة)">
+                <select id="new-text-level">
+                    <option value="easy">🟢 مستوى سهل</option>
+                    <option value="medium">🟡 مستوى متوسط</option>
+                    <option value="hard">🔴 مستوى صعب</option>
+                </select>
+                <textarea id="new-text-content" placeholder="اكتب أو الصق النص هنا..."></textarea>
                 <button onclick="addNewText()" class="btn-main" style="width:100%; margin-top:0; font-size:0.9rem;">إضافة للمكتبة</button>
                 
-                <h4 style="margin-top:20px; border-bottom:1px solid #eee; padding-bottom:5px;">النصوص الحالية:</h4>
+                <h4 style="margin-top:20px; border-bottom:1px solid #eee; padding-bottom:5px;">المكتبة الحالية:</h4>
                 <div id="admin-texts-list" style="max-height:200px; overflow-y:auto;"></div>
                 
                 <div style="margin-top:15px; display:flex; gap:10px;">
-                    <button onclick="restoreDefaultTexts()" style="flex:1; padding:8px; background:#95a5a6; color:white; border:none; border-radius:5px;">استعادة النصوص</button>
-                    <button onclick="resetBestScore()" style="flex:1; padding:8px; background:#e74c3c; color:white; border:none; border-radius:5px;">تصفير الرقم القياسي</button>
+                    <button onclick="restoreDefaultTexts()" style="flex:1; padding:8px; background:#95a5a6; color:white; border:none; border-radius:5px;">استعادة الافتراضي</button>
+                    <button onclick="resetBestScore()" style="flex:1; padding:8px; background:#e74c3c; color:white; border:none; border-radius:5px;">تصفير الأرقام</button>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // --- البيانات ---
+        // --- هيكلة البيانات الجديدة ---
+        // Text Object: { id, title, content, level }
         let texts = [];
         let bestScore = 0;
+        let currentFilter = 'all';
 
         // --- متغيرات اللعب ---
+        let currentTextObj = null;
         let currentTextWords = []; 
         let currentWordIndex = 0;
         let correctWordsCount = 0;
@@ -301,6 +337,7 @@
         let timerInterval = null;
         let recognition;
         let isRunning = false;
+        let focusMode = false;
 
         function init() {
             loadData();
@@ -308,9 +345,14 @@
         }
 
         function loadData() {
-            const tData = localStorage.getItem('fluency_texts_single_v2');
-            texts = tData ? JSON.parse(tData) : getDefaultTexts();
-            if(!tData) saveTexts();
+            // استخدام مفتاح جديد للإصدار الاحترافي v3 لتجنب تضارب البيانات القديمة
+            const tData = localStorage.getItem('fluency_texts_pro_v3');
+            if (tData) {
+                texts = JSON.parse(tData);
+            } else {
+                texts = getDefaultTexts();
+                saveTexts();
+            }
 
             const bData = localStorage.getItem('fluency_best_score_single');
             bestScore = bData ? parseInt(bData) : 0;
@@ -319,7 +361,7 @@
             renderDashboard();
         }
 
-        function saveTexts() { localStorage.setItem('fluency_texts_single_v2', JSON.stringify(texts)); }
+        function saveTexts() { localStorage.setItem('fluency_texts_pro_v3', JSON.stringify(texts)); }
         
         function saveBestScore(score) {
             if(score > bestScore) {
@@ -333,22 +375,60 @@
 
         function getDefaultTexts() {
             return [
-                "القراءة مفتاح المعرفة، وهي تنير العقل وتوسع المدارك. الكتاب خير جليس للإنسان، يعلمه ما لم يكن يعلم ويأخذه في رحلات ممتعة عبر الزمن ليتعرف على ثقافات الشعوب وتاريخ الأمم.",
-                "خرجت الأسرة في نزهة إلى الحديقة، كان الجو جميلاً والشمس مشرقة. لعب الأطفال بالكرة وتناولوا الطعام اللذيذ تحت ظل الأشجار، وشاهدوا العصافير تغرد فوق الأغصان بسعادة وفرح.",
-                "التعاون صفة حميدة، يساعد الناس بعضهم بعضاً لإنجاز الأعمال الصعبة. في الاتحاد قوة، وبالتعاون تبنى الأوطان وتزدهر المجتمعات، ويصبح الصعب سهلاً والمستحيل ممكناً."
+                {
+                    id: 1,
+                    title: "أهمية القراءة",
+                    level: "easy",
+                    content: "القراءة مفتاح المعرفة، وهي تنير العقل وتوسع المدارك. الكتاب خير جليس للإنسان، يعلمه ما لم يكن يعلم ويأخذه في رحلات ممتعة عبر الزمن."
+                },
+                {
+                    id: 2,
+                    title: "النزهة العائلية",
+                    level: "medium",
+                    content: "خرجت الأسرة في نزهة إلى الحديقة، كان الجو جميلاً والشمس مشرقة. لعب الأطفال بالكرة وتناولوا الطعام اللذيذ تحت ظل الأشجار، وشاهدوا العصافير تغرد فوق الأغصان بسعادة وفرح."
+                },
+                {
+                    id: 3,
+                    title: "قوة التعاون",
+                    level: "hard",
+                    content: "التعاون صفة حميدة، يساعد الناس بعضهم بعضاً لإنجاز الأعمال الصعبة. في الاتحاد قوة، وبالتعاون تبنى الأوطان وتزدهر المجتمعات، ويصبح الصعب سهلاً والمستحيل ممكناً."
+                }
             ];
+        }
+
+        // --- لوحة القيادة ---
+        function filterTexts(level, btn) {
+            currentFilter = level;
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderDashboard();
         }
 
         function renderDashboard() {
             const grid = document.getElementById('texts-grid');
             grid.innerHTML = "";
             
-            texts.forEach((txt, idx) => {
-                const wordCount = txt.trim().split(/\s+/).length;
-                const preview = txt.length > 80 ? txt.substring(0, 80) + "..." : txt;
+            const filteredTexts = currentFilter === 'all' ? texts : texts.filter(t => t.level === currentFilter);
+            
+            if(filteredTexts.length === 0) {
+                grid.innerHTML = `<div style="text-align:center; width:100%; grid-column:1/-1; color:#999;">لا توجد نصوص في هذا التصنيف.</div>`;
+                return;
+            }
+
+            filteredTexts.forEach((txt, idx) => {
+                const wordCount = txt.content.trim().split(/\s+/).length;
+                const preview = txt.content.length > 70 ? txt.content.substring(0, 70) + "..." : txt.content;
                 
+                let badgeClass = "level-easy";
+                let levelText = "سهل";
+                if(txt.level === 'medium') { badgeClass = "level-medium"; levelText = "متوسط"; }
+                if(txt.level === 'hard') { badgeClass = "level-hard"; levelText = "صعب"; }
+
+                // نمرر الـ ID بدلاً من الـ Index لضمان الدقة بعد الفلترة
                 grid.innerHTML += `
-                    <div class="text-card" onclick="prepareGame(${idx})">
+                    <div class="text-card" onclick="prepareGame(${txt.id})">
+                        <div class="level-badge ${badgeClass}">${levelText}</div>
+                        <div class="text-title">${txt.title}</div>
                         <div class="text-preview">"${preview}"</div>
                         <div class="text-meta">
                             <span>📝 ${wordCount} كلمة</span>
@@ -359,16 +439,21 @@
             });
         }
 
-        function prepareGame(textIdx) {
+        // --- منطق اللعبة ---
+        function prepareGame(textId) {
             document.getElementById('dashboard').style.display = 'none';
             document.getElementById('game-section').style.display = 'flex';
             
-            const rawText = texts[textIdx];
-            currentTextWords = rawText.trim().split(/\s+/);
+            // العثور على النص
+            currentTextObj = texts.find(t => t.id === textId);
+            currentTextWords = currentTextObj.content.trim().split(/\s+/);
             
             const displayArea = document.getElementById('text-display');
             displayArea.innerHTML = "";
-            
+            displayArea.classList.remove('focus-mode'); // إعادة تعيين وضع التركيز
+            document.getElementById('focus-btn').classList.remove('active');
+            focusMode = false;
+
             currentTextWords.forEach((word, i) => {
                 const span = document.createElement('span');
                 span.innerText = word;
@@ -388,8 +473,21 @@
             startCountdown();
         }
 
+        function toggleFocusMode() {
+            focusMode = !focusMode;
+            const container = document.getElementById('text-display');
+            const btn = document.getElementById('focus-btn');
+            
+            if (focusMode) {
+                container.classList.add('focus-mode');
+                btn.classList.add('active');
+            } else {
+                container.classList.remove('focus-mode');
+                btn.classList.remove('active');
+            }
+        }
+
         function highlightCurrentWord() {
-            // إزالة التمييز عن الجميع دون التأثير على الكلمات الصحيحة
             document.querySelectorAll('.word-span').forEach(el => {
                 if(!el.classList.contains('word-correct')) el.className = "word-span word-pending";
             });
@@ -399,7 +497,6 @@
                 if(el) {
                     el.classList.remove('word-pending');
                     el.classList.add('word-current');
-                    // التمرير الناعم (Nearest) يمنع القفز المزعج
                     el.scrollIntoView({behavior: "smooth", block: "nearest"});
                 }
             }
@@ -454,7 +551,7 @@
                     processInput(transcript);
                 };
             } else {
-                alert("المتصفح لا يدعم التعرف الصوتي. يرجى استخدام Chrome.");
+                alert("متصفحك لا يدعم التعرف الصوتي");
             }
         }
 
@@ -463,12 +560,12 @@
 
             const spokenClean = normalizeArabic(spoken);
             const targetRaw = currentTextWords[currentWordIndex];
-            const targetClean = normalizeArabic(targetRaw.replace(/[،.؛:!؟]/g, ''));
+            const targetClean = normalizeArabic(targetRaw.replace(/[،.؛:!؟"()]/g, ''));
 
+            // التحقق الذكي (Tolerant Check)
             if (spokenClean.includes(targetClean)) {
                 // إجابة صحيحة
                 const el = document.getElementById(`word-${currentWordIndex}`);
-                // التغيير هنا: الكلمة تصبح صحيحة وعريضة
                 el.className = "word-span word-correct";
                 
                 currentWordIndex++;
@@ -477,9 +574,7 @@
 
                 highlightCurrentWord();
 
-                if(currentWordIndex >= currentTextWords.length) {
-                    endGame();
-                }
+                if(currentWordIndex >= currentTextWords.length) endGame();
             }
         }
 
@@ -497,13 +592,39 @@
             recognition.stop();
 
             const wpm = correctWordsCount;
-            const accuracy = Math.round((correctWordsCount / (currentWordIndex || 1)) * 100);
+            // حساب الدقة: الكلمات الصحيحة مقسومة على الكلمات التي حاول قراءتها (وليس كل النص)
+            // إذا قرأ 5 كلمات ووصل للمؤشر رقم 5، الدقة 100%. 
+            // لكن هنا المؤشر لا يتقدم إلا بالصحيح، لذا الدقة ستكون دائماً 100% بالنسبة لما تم تجاوزه
+            // الأفضل: عرض نسبة إنجاز النص.
+            const totalAttempted = currentWordIndex; // وصلنا لهذه الكلمة
+            // بما أن نظامنا لا يسمح بتجاوز الكلمة إلا إذا كانت صحيحة، فالدقة هنا هي "نسبة إتمام النص"
+            const completionRate = Math.round((correctWordsCount / currentTextWords.length) * 100);
 
             document.getElementById('final-wpm').innerText = wpm;
-            document.getElementById('accuracy-val').innerText = accuracy + "%";
-            document.getElementById('result-modal').style.display = 'flex';
+            document.getElementById('final-accuracy').innerText = completionRate + "%";
+            
+            // توليد التقرير المرئي
+            generateVisualSummary();
 
+            document.getElementById('result-modal').style.display = 'flex';
             saveBestScore(wpm);
+        }
+
+        function generateVisualSummary() {
+            const summaryBox = document.getElementById('result-text-summary');
+            summaryBox.innerHTML = "";
+            
+            currentTextWords.forEach((word, i) => {
+                const span = document.createElement('span');
+                span.innerText = word + " ";
+                if (i < currentWordIndex) {
+                    span.style.color = "var(--success)";
+                    span.style.fontWeight = "bold";
+                } else {
+                    span.style.color = "#bdc3c7"; // باهت
+                }
+                summaryBox.appendChild(span);
+            });
         }
 
         function closeResult() {
@@ -517,8 +638,10 @@
             try { recognition.stop(); } catch(e) {}
             document.getElementById('game-section').style.display = 'none';
             document.getElementById('dashboard').style.display = 'flex';
+            renderDashboard();
         }
 
+        // --- الإدارة ---
         function openAdmin() { document.getElementById('pass-modal').style.display = 'flex'; document.getElementById('admin-pass').value = ''; }
         function checkPass() {
             if(document.getElementById('admin-pass').value === "1234") {
@@ -532,20 +655,56 @@
             const list = document.getElementById('admin-texts-list');
             list.innerHTML = "";
             texts.forEach((t, i) => {
+                let badge = t.level === 'easy' ? '🟢' : (t.level === 'medium' ? '🟡' : '🔴');
                 list.innerHTML += `
                     <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eee; align-items:center;">
-                        <div style="font-size:0.8rem; width:85%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${t}</div>
-                        <button onclick="deleteText(${i})" style="color:red; background:none; border:none; cursor:pointer;">✕</button>
+                        <div style="font-size:0.8rem; width:85%;">
+                            <span style="font-weight:bold;">${badge} ${t.title}</span><br>
+                            <span style="color:#777;">${t.content.substring(0,40)}...</span>
+                        </div>
+                        <button onclick="deleteText(${t.id})" style="color:red; background:none; border:none; cursor:pointer;">✕</button>
                     </div>`;
             });
         }
+        
         function addNewText() {
-            const t = document.getElementById('new-text-input').value;
-            if(t.trim()) { texts.push(t.trim()); saveTexts(); renderAdminTexts(); document.getElementById('new-text-input').value = ""; renderDashboard(); }
+            const title = document.getElementById('new-text-title').value.trim();
+            const content = document.getElementById('new-text-content').value.trim();
+            const level = document.getElementById('new-text-level').value;
+
+            if(title && content) {
+                const newId = Date.now();
+                texts.push({ id: newId, title: title, content: content, level: level });
+                saveTexts(); 
+                renderAdminTexts(); 
+                
+                // تنظيف الحقول
+                document.getElementById('new-text-title').value = "";
+                document.getElementById('new-text-content').value = "";
+                renderDashboard();
+            } else {
+                alert("الرجاء تعبئة العنوان والنص");
+            }
         }
-        function deleteText(i) { texts.splice(i,1); saveTexts(); renderAdminTexts(); renderDashboard(); }
-        function restoreDefaultTexts() { if(confirm("استعادة النصوص؟")) { texts = getDefaultTexts(); saveTexts(); renderAdminTexts(); renderDashboard(); } }
-        function resetBestScore() { if(confirm("تصفير الرقم القياسي؟")) { bestScore = 0; localStorage.setItem('fluency_best_score_single', 0); updateBestScoreUI(); } }
+
+        function deleteText(id) {
+            if(confirm("حذف النص؟")) {
+                texts = texts.filter(t => t.id !== id);
+                saveTexts(); renderAdminTexts(); renderDashboard();
+            }
+        }
+        
+        function restoreDefaultTexts() { 
+            if(confirm("استعادة النصوص الافتراضية؟")) { 
+                texts = getDefaultTexts(); saveTexts(); renderAdminTexts(); renderDashboard(); 
+            } 
+        }
+        
+        function resetBestScore() { 
+            if(confirm("تصفير الرقم القياسي؟")) { 
+                bestScore = 0; localStorage.setItem('fluency_best_score_single', 0); updateBestScoreUI(); 
+            } 
+        }
 
         init();
 
