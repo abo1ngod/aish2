@@ -3,226 +3,176 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>عدادات الأسماء - استماع صوتي</title>
+  <title>عدادات الأسماء بالصوت — استماع مستمر</title>
   <style>
-    body{font-family: "Segoe UI", Tahoma, Arial; background:#f7f7fb; color:#111; padding:24px}
-    .container{max-width:600px;margin:20px auto;background:#fff;border-radius:12px;padding:20px;box-shadow:0 6px 20px rgba(20,20,60,0.06)}
-    h1{text-align:center;margin-bottom:6px;font-size:20px}
-    p.sub{ text-align:center;color:#666;margin-top:0;margin-bottom:16px}
-    .row{display:flex;align-items:center;justify-content:space-between;padding:14px;border-radius:10px;border:1px solid #eef;margin-bottom:10px}
-    .info{display:flex;flex-direction:column;gap:6px}
-    .name{font-size:18px;font-weight:600}
-    .count{font-size:22px;font-weight:700;background:#f0f6ff;padding:6px 12px;border-radius:8px;min-width:64px;text-align:center}
-    .controls{display:flex;gap:8px;align-items:center}
-    button{padding:8px 12px;border-radius:8px;border:0;background:#0b5cff;color:#fff;cursor:pointer}
-    button.secondary{background:#6b7280}
-    #status{display:inline-block;margin-left:8px;font-weight:600}
-    .pulse{width:12px;height:12px;border-radius:50%;display:inline-block;vertical-align:middle;margin-left:8px}
-    .pulse.listening{background:#16a34a;box-shadow:0 0 8px rgba(22,163,74,0.6)}
-    .pulse.stopped{background:#cbd5e1}
-    .small{font-size:13px;color:#555;margin-top:8px}
-    .manual{background:#e6f0ff;color:#0b5cff;border:1px solid #cfe0ff}
-    footer{margin-top:12px;color:#666;font-size:13px;text-align:center}
+    body { font-family: Arial; background:#f5f6fa; padding:20px; }
+    .box {
+      max-width:700px; margin:0 auto; background:#fff; padding:20px;
+      border-radius:12px; box-shadow:0 4px 20px rgba(0,0,0,0.08);
+    }
+    h1 { text-align:center; }
+    .row {
+      display:flex; justify-content:space-between; align-items:center;
+      padding:12px; border:1px solid #eee; border-radius:10px; margin-bottom:10px;
+    }
+    .name { font-size:20px; font-weight:bold; }
+    .count {
+      background:#e8f0ff; padding:8px 14px; border-radius:10px;
+      font-size:22px; font-weight:bold;
+      min-width:60px; text-align:center;
+    }
+    button {
+      padding:10px 16px; border:0; border-radius:10px; cursor:pointer; font-size:16px;
+    }
+    .start { background:#007bff; color:white; }
+    .stop { background:#dc3545; color:white; }
+    .reset { background:#6c757d; color:white; }
+    #status { margin-top:15px; font-weight:bold; text-align:center; }
+    #error { margin-top:15px; color:#b00020; font-weight:bold; text-align:center; display:none; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>عدادات عند سماع الاسم صوتاً</h1>
-    <p class="sub">انطق أحد الأسماء: <strong>أحمد</strong> — <strong>محمد</strong> — <strong>سعيد</strong></p>
 
-    <div id="rows">
-      <div class="row" data-name="أحمد">
-        <div class="info">
-          <div class="name">أحمد</div>
-          <div class="small">يزداد عند سماع الاسم بصوت واضح</div>
-        </div>
-        <div class="controls">
-          <div class="count" id="count-أحمد">0</div>
-          <button class="manual" data-action="inc" data-target="أحمد">+ يدوي</button>
-        </div>
-      </div>
+<div class="box">
+  <h1>عدادات الأسماء بالصوت</h1>
 
-      <div class="row" data-name="محمد">
-        <div class="info">
-          <div class="name">محمد</div>
-          <div class="small">يزداد عند سماع الاسم بصوت واضح</div>
-        </div>
-        <div class="controls">
-          <div class="count" id="count-محمد">0</div>
-          <button class="manual" data-action="inc" data-target="محمد">+ يدوي</button>
-        </div>
-      </div>
-
-      <div class="row" data-name="سعيد">
-        <div class="info">
-          <div class="name">سعيد</div>
-          <div class="small">يزداد عند سماع الاسم بصوت واضح</div>
-        </div>
-        <div class="controls">
-          <div class="count" id="count-سعيد">0</div>
-          <button class="manual" data-action="inc" data-target="سعيد">+ يدوي</button>
-        </div>
-      </div>
-    </div>
-
-    <div style="display:flex;align-items:center;justify-content:center;margin-top:8px;gap:10px">
-      <button id="toggle">بدء الاستماع</button>
-      <button id="reset" class="secondary">إعادة الصفر</button>
-      <span id="status">متوقف</span>
-      <span class="pulse stopped" id="led"></span>
-    </div>
-
-    <p class="small" style="text-align:center;margin-top:12px;">
-      ملاحظة: اختبر في متصفح يدعم Web Speech API (Chrome). قد تحتاج سماح الميكروفون.
-    </p>
-
-    <footer>صُمّم للعمل باللغة العربية - يستخدم واجهة Web Speech</footer>
+  <div class="row">
+    <div class="name">أحمد</div>
+    <div class="count" id="count-أحمد">0</div>
   </div>
 
-  <script>
-    // --------- إعداد الأسماء والعدادات ----------
-    const names = ["أحمد","محمد","سعيد"];
-    const counters = { "أحمد":0, "محمد":0, "سعيد":0 };
+  <div class="row">
+    <div class="name">محمد</div>
+    <div class="count" id="count-محمد">0</div>
+  </div>
 
-    function updateUI(name){
-      const el = document.getElementById("count-" + name);
-      if(el) el.textContent = counters[name];
-      // لمسة صغيرة للصف عند التعرّف
-      const row = document.querySelector('.row[data-name="'+name+'"]');
-      if(row){
-        row.style.transition = "transform 150ms";
-        row.style.transform = "scale(1.03)";
-        setTimeout(()=> row.style.transform = "", 150);
-      }
+  <div class="row">
+    <div class="name">سعيد</div>
+    <div class="count" id="count-سعيد">0</div>
+  </div>
+
+  <div style="text-align:center; margin-top:15px;">
+    <button id="startBtn" class="start">بدء الاستماع</button>
+    <button id="resetBtn" class="reset">إعادة الصفر</button>
+  </div>
+
+  <div id="status">الحالة: متوقف</div>
+  <div id="error"></div>
+</div>
+
+<script>
+  const names = ["أحمد","محمد","سعيد"];
+  const counts = { "أحمد":0, "محمد":0, "سعيد":0 };
+  
+  function updateUI(name){
+    document.getElementById("count-"+name).textContent = counts[name];
+  }
+
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let recognition = null;
+  let keepListening = false;
+
+  // Normalizer
+  function normalize(text){
+    return text
+      .replace(/[\u064B-\u065F]/g, "")
+      .replace(/[أإآٱ]/g, "ا")
+      .replace(/ى/g, "ي")
+      .replace(/[ء]/g, "")
+      .replace(/[^\u0600-\u06FF\s]/g, "")
+      .trim()
+      .toLowerCase();
+  }
+
+  // Beep sound
+  function beep(){
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.frequency.value = 900;
+      gain.gain.value = 0.1;
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      setTimeout(()=>{ osc.stop(); ctx.close(); }, 120);
+    } catch {}
+  }
+
+  function startRecognition(){
+    const status = document.getElementById("status");
+    const errorBox = document.getElementById("error");
+    errorBox.style.display = "none";
+
+    if (!SpeechRecognition) {
+      errorBox.style.display = "block";
+      errorBox.textContent = "المتصفح لا يدعم التعرف على الكلام. استخدم Chrome.";
+      return;
     }
 
-    // play short beep via Web Audio
-    function beep(){
-      try{
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const o = ctx.createOscillator();
-        const g = ctx.createGain();
-        o.type = 'sine';
-        o.frequency.value = 880;
-        g.gain.value = 0.1;
-        o.connect(g); g.connect(ctx.destination);
-        o.start();
-        setTimeout(()=>{ o.stop(); ctx.close(); }, 120);
-      }catch(e){
-        // لا مشكلة إن فشل الصوت
+    recognition = new SpeechRecognition();
+    recognition.lang = "ar-SA";
+    recognition.continuous = true;
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 5;
+
+    recognition.onstart = () => {
+      status.textContent = "الحالة: يستمع...";
+    };
+
+    recognition.onerror = (e) => {
+      errorBox.style.display = "block";
+      errorBox.textContent = "خطأ: " + e.error;
+    };
+
+    recognition.onresult = (event) => {
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        if (!event.results[i].isFinal) continue;
+
+        const transcript = event.results[i][0].transcript;
+        const clean = normalize(transcript);
+
+        names.forEach(name => {
+          const n = normalize(name);
+          if (clean.includes(n)) {
+            counts[name]++;
+            updateUI(name);
+            beep();
+          }
+        });
       }
-    }
+    };
 
-    // زر يدوي للزيادة
-    document.querySelectorAll('button.manual').forEach(b=>{
-      b.addEventListener('click', ()=> {
-        const t = b.dataset.target;
-        counters[t] = (counters[t]||0) + 1;
-        updateUI(t);
-      });
-    });
+    // أهم جزء — الاستماع المستمر
+    recognition.onend = () => {
+      if (keepListening) recognition.start();
+    };
 
-    // زر إعادة الصفر
-    document.getElementById('reset').addEventListener('click', ()=>{
-      names.forEach(n=> { counters[n]=0; updateUI(n); });
-    });
+    recognition.start();
+  }
 
-    // ---------- إعداد التعرف على الكلام ----------
-    const statusEl = document.getElementById('status');
-    const led = document.getElementById('led');
-    const toggleBtn = document.getElementById('toggle');
-
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition || null;
-    let recognition = null;
-    let listening = false;
-
-    if(!SpeechRecognition){
-      statusEl.textContent = 'المتصفح لا يدعم Web Speech API';
-      toggleBtn.disabled = true;
-      toggleBtn.textContent = 'غير متاح';
+  document.getElementById("startBtn").onclick = () => {
+    if (!keepListening) {
+      keepListening = true;
+      startRecognition();
+      document.getElementById("startBtn").textContent = "إيقاف الاستماع";
+      document.getElementById("startBtn").className = "stop";
     } else {
-      recognition = new SpeechRecognition();
-      recognition.lang = 'ar-SA'; // اللغة العربية السعودية - مناسب للنطق العربي
-      recognition.interimResults = false;
-      recognition.continuous = true; // استمر في الاستماع
-      recognition.maxAlternatives = 3;
-
-      // Normalize Arabic text a bit (remove diacritics, punctuation, extra spaces)
-      function normalizeArabic(s){
-        return s.replace(/[\u064B-\u065F]/g,'') // remove tashkeel
-                .replace(/[ٱأإآ]/g,'ا') // normalize alef variants
-                .replace(/[ى]/g,'ي')
-                .replace(/[ء]/g,'')
-                .replace(/[^\u0600-\u06FF\s]/g,'') // remove non-Arabic chars
-                .replace(/\s+/g,' ').trim()
-                .toLowerCase();
-      }
-
-      recognition.addEventListener('result', (evt)=>{
-        // الأحداث قد تحتوي على نتائج متعددة
-        for(let i = evt.resultIndex; i < evt.results.length; i++){
-          if(!evt.results[i].isFinal) continue;
-          const transcript = evt.results[i][0].transcript;
-          const norm = normalizeArabic(transcript);
-          console.log('محلّل الصوت:', transcript, '=>', norm);
-          // نتحقق لكل اسم إذا ورد في النص
-          names.forEach(n => {
-            const normName = normalizeArabic(n);
-            // تحقق بسيط: وجود الاسم ككلمة منفصلة أو متصلة
-            // نتحقق بوجود المساحة أو بداية/نهاية النص أو بدونها
-            if(norm.includes(normName)){
-              counters[n] = (counters[n]||0) + 1;
-              updateUI(n);
-              beep();
-            }
-          });
-        }
-      });
-
-      recognition.addEventListener('start', ()=>{
-        listening = true;
-        statusEl.textContent = 'يستمع... تحدث الآن';
-        led.classList.remove('stopped'); led.classList.add('listening');
-        toggleBtn.textContent = 'إيقاف الاستماع';
-      });
-
-      recognition.addEventListener('end', ()=>{
-        // إذا لم نكن قد ضغطنا إيقاف يدوياً، الاستمرار (بعض المتصفحات تبطله)
-        listening = false;
-        statusEl.textContent = 'متوقف';
-        led.classList.remove('listening'); led.classList.add('stopped');
-        toggleBtn.textContent = 'بدء الاستماع';
-      });
-
-      recognition.addEventListener('error', (e)=>{
-        console.error('Speech error', e);
-        // عرض رسالة قصيرة للمستخدم
-        statusEl.textContent = 'خطأ في التعرف: ' + (e.error||'unknown');
-      });
+      keepListening = false;
+      if (recognition) recognition.stop();
+      document.getElementById("status").textContent = "الحالة: متوقف";
+      document.getElementById("startBtn").textContent = "بدء الاستماع";
+      document.getElementById("startBtn").className = "start";
     }
+  };
 
-    // زر التشغيل/الإيقاف
-    toggleBtn.addEventListener('click', ()=>{
-      if(!recognition) return;
-      if(!listening){
-        try{
-          recognition.start();
-          // بعض المتصفحات تلغي start() إن لم تطلب الإذن؛ التغيير على الحالة بالحدث start
-        }catch(err){
-          // قد يحدث خطأ لو نقرنا start مرتين
-          console.warn(err);
-        }
-      } else {
-        recognition.stop();
-        listening = false;
-        statusEl.textContent = 'متوقف';
-        led.classList.remove('listening'); led.classList.add('stopped');
-        toggleBtn.textContent = 'بدء الاستماع';
-      }
+  document.getElementById("resetBtn").onclick = () => {
+    names.forEach(n => {
+      counts[n] = 0;
+      updateUI(n);
     });
+  };
+</script>
 
-    // تهيئة واجهة القيم
-    names.forEach(n => updateUI(n));
-  </script>
 </body>
 </html>
