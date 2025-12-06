@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>نظام المسابقة الصوتي</title>
+    <title>نظام المسابقة الصوتي - نسخة ذكية</title>
     <style>
         :root {
             --primary: #2c3e50;
@@ -19,9 +19,8 @@
             background-color: var(--bg-color);
             margin: 0;
             padding: 0;
-            /* استخدام min-height بدلاً من height لتجنب مشاكل الجوال */
             min-height: 100vh;
-            padding-bottom: 80px; /* مساحة فارغة في الأسفل للشريط الثابت */
+            padding-bottom: 80px; 
         }
 
         /* --- منطقة العنوان والتنبيهات --- */
@@ -38,7 +37,6 @@
             font-size: 1.8rem;
         }
 
-        /* شاشة ماذا يسمع الجهاز (لحل مشكلة العداد) */
         .live-transcript {
             background: #ecf0f1;
             padding: 8px 15px;
@@ -69,8 +67,8 @@
             background: white;
             border-radius: 15px;
             padding: 20px;
-            width: 100%; /* كامل العرض في الجوال */
-            max-width: 280px; /* عرض محدد في الشاشات الأكبر */
+            width: 100%; 
+            max-width: 280px; 
             text-align: center;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             cursor: pointer;
@@ -79,7 +77,6 @@
             position: relative;
         }
 
-        /* عند الضغط على الكارت (التركيز) */
         .card.active-target {
             border-color: var(--focus-color);
             background-color: #eafaf1;
@@ -87,7 +84,6 @@
             box-shadow: 0 8px 15px rgba(39, 174, 96, 0.2);
         }
 
-        /* الكروت غير النشطة */
         .card.dimmed {
             opacity: 0.6;
             filter: grayscale(100%);
@@ -98,7 +94,7 @@
         .card .status-icon { font-size: 1.5rem; margin-bottom: 5px; opacity: 0; }
         .card.active-target .status-icon { opacity: 1; }
 
-        /* --- الشريط السفلي الثابت (Fixed Footer) --- */
+        /* --- الشريط السفلي الثابت --- */
         .fixed-footer {
             position: fixed;
             bottom: 0;
@@ -110,9 +106,9 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            z-index: 999; /* لضمان ظهوره فوق كل شيء */
+            z-index: 999;
             box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
-            height: 70px; /* ارتفاع ثابت */
+            height: 70px; 
         }
 
         .status-text { font-weight: bold; font-size: 0.9rem; }
@@ -129,7 +125,7 @@
             cursor: pointer;
         }
 
-        /* --- لوحة الإدارة (نفس السابق) --- */
+        /* --- لوحة الإدارة --- */
         #admin-panel {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.9); z-index: 1000; justify-content: center; align-items: center;
@@ -140,7 +136,6 @@
         }
         .close-btn { position: absolute; top: 10px; left: 10px; font-size: 1.5rem; border: none; background: none; cursor: pointer; }
         
-        /* تحسينات الجدول */
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         td, th { padding: 8px; border-bottom: 1px solid #eee; text-align: right; }
         input[type="text"] { width: 100%; padding: 5px; }
@@ -152,7 +147,6 @@
 </head>
 <body>
 
-    <!-- الرأس: العنوان + ماذا يسمع الجهاز -->
     <div class="header-area">
         <h1>🎙️ المسابقة التفاعلية</h1>
         <div class="live-transcript">
@@ -161,18 +155,15 @@
         <p style="font-size: 0.8rem; color: #7f8c8d; margin-top: 5px;">اضغط على اسم المتسابق لبدء العد له</p>
     </div>
 
-    <!-- منطقة البطاقات -->
     <div class="cards-container" id="cards-wrapper">
-        <!-- سيتم توليد البطاقات هنا بالجافاسكربت -->
+        <!-- البطاقات -->
     </div>
 
-    <!-- الشريط السفلي الثابت -->
     <div class="fixed-footer">
         <div id="footer-status" class="status-text status-idle">🔴 لم يتم اختيار أحد</div>
         <button class="admin-btn" onclick="openAdmin()">🔒 الإدارة</button>
     </div>
 
-    <!-- لوحة الإدارة -->
     <div id="admin-panel">
         <div class="panel-content">
             <button class="close-btn" onclick="closeAdmin()">✖</button>
@@ -192,31 +183,39 @@
     </div>
 
     <script>
-        // --- البيانات والتهيئة ---
         let people = [];
-        let activeId = null; // من هو الشخص المحدد حالياً؟
+        let activeId = null; 
 
-        // تحميل البيانات
+        // دالة تنظيف النص العربي وتوحيد الحروف (الهمزات والتاء المربوطة)
+        function normalizeArabic(text) {
+            if (!text) return "";
+            text = text.trim();
+            // استبدال أ إ آ بـ ا
+            text = text.replace(/[أإآ]/g, 'ا');
+            // استبدال ة بـ ه
+            text = text.replace(/ة/g, 'ه');
+            return text;
+        }
+
         function init() {
-            const saved = localStorage.getItem('voiceApp_v2');
+            const saved = localStorage.getItem('voiceApp_v3');
             if (saved) {
                 people = JSON.parse(saved);
             } else {
                 people = [
                     { id: 1, name: "أحمد", count: 0 },
                     { id: 2, name: "محمد", count: 0 },
-                    { id: 3, name: "سعيد", count: 0 }
+                    { id: 3, name: "فاطمة", count: 0 }
                 ];
             }
             renderUI();
         }
 
         function saveData() {
-            localStorage.setItem('voiceApp_v2', JSON.stringify(people));
+            localStorage.setItem('voiceApp_v3', JSON.stringify(people));
             renderUI();
         }
 
-        // --- الرسم (Render) ---
         function renderUI() {
             const wrapper = document.getElementById('cards-wrapper');
             const adminTable = document.getElementById('admin-table');
@@ -225,11 +224,10 @@
             adminTable.innerHTML = '';
 
             people.forEach((p, index) => {
-                // 1. رسم البطاقة الرئيسية
                 let cardClass = "card";
                 if (activeId !== null) {
-                    if (p.id === activeId) cardClass += " active-target"; // المحدد
-                    else cardClass += " dimmed"; // غير المحدد
+                    if (p.id === activeId) cardClass += " active-target"; 
+                    else cardClass += " dimmed"; 
                 }
 
                 wrapper.innerHTML += `
@@ -240,7 +238,6 @@
                     </div>
                 `;
 
-                // 2. رسم صف الإدارة
                 adminTable.innerHTML += `
                     <tr>
                         <td><input type="text" value="${p.name}" onchange="editName(${index}, this.value)"></td>
@@ -253,65 +250,53 @@
             });
         }
 
-        // --- منطق الاختيار (Selection Logic) ---
         function toggleSelect(id) {
             const statusDiv = document.getElementById('footer-status');
             
             if (activeId === id) {
-                // إلغاء التحديد
                 activeId = null;
                 stopMic();
                 statusDiv.innerText = "🔴 لم يتم اختيار أحد";
                 statusDiv.className = "status-text status-idle";
             } else {
-                // تحديد شخص جديد
                 activeId = id;
                 const person = people.find(p => p.id === id);
-                
-                // تشغيل الميكروفون
                 startMic();
-                
                 statusDiv.innerText = `🟢 جاري الاستماع لـ: ${person.name}`;
                 statusDiv.className = "status-text status-listening";
             }
             renderUI();
         }
 
-        // --- التعرف على الصوت (Speech Recognition) ---
         let recognition;
         let isRecRunning = false;
 
-        // التحقق من دعم المتصفح
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
             recognition = new SpeechAPI();
             recognition.lang = 'ar-SA';
-            recognition.continuous = false; // نجعلها false ونعيد تشغيلها يدوياً لأداء أفضل
+            recognition.continuous = false;
             recognition.interimResults = false;
 
             recognition.onstart = function() { isRecRunning = true; };
             
             recognition.onend = function() { 
                 isRecRunning = false;
-                // إذا كان هناك شخص محدد، أعد تشغيل المايك فوراً (Loop)
                 if (activeId !== null) {
                     try { recognition.start(); } catch(e) {}
                 }
             };
 
             recognition.onresult = function(event) {
-                const transcript = event.results[0][0].transcript.trim();
+                const transcript = event.results[0][0].transcript;
                 
-                // عرض النص للمستخدم للتشخيص
                 document.getElementById('debug-text').innerText = transcript;
 
-                // معالجة النص
                 processVoiceCommand(transcript);
             };
 
             recognition.onerror = function(event) {
                 console.log("Mic Error:", event.error);
-                // تحديث النص ليظهر الخطأ للمستخدم
                 if(event.error === 'not-allowed') {
                     document.getElementById('debug-text').innerText = "❌ الميكروفون محظور";
                 }
@@ -330,25 +315,29 @@
             if (recognition) recognition.stop();
         }
 
+        // --- التعديل الرئيسي هنا: استخدام دالة التطبيع ---
         function processVoiceCommand(text) {
             if (activeId === null) return;
 
-            // تنظيف النص قليلاً (إزالة التشكيل إذا لزم الأمر - اختياري)
-            // هنا نبحث ببساطة
             const target = people.find(p => p.id === activeId);
             
-            // التحقق: هل اسم الشخص موجود داخل الجملة التي قيلت؟
-            if (target && text.includes(target.name)) {
-                target.count++;
-                saveData(); // الحفظ وإعادة الرسم
+            if (target) {
+                // 1. تنظيف وتوحيد ما قاله المستخدم
+                const spokenNormalized = normalizeArabic(text);
+                // 2. تنظيف وتوحيد الاسم المخزن في النظام
+                const targetNameNormalized = normalizeArabic(target.name);
                 
-                // وميض أخضر سريع للملاحظة
-                document.getElementById('debug-text').style.color = "green";
-                setTimeout(() => document.getElementById('debug-text').style.color = "#d35400", 500);
+                // 3. المقارنة بين النسخ الموحدة
+                if (spokenNormalized.includes(targetNameNormalized)) {
+                    target.count++;
+                    saveData();
+                    
+                    document.getElementById('debug-text').style.color = "green";
+                    setTimeout(() => document.getElementById('debug-text').style.color = "#d35400", 500);
+                }
             }
         }
 
-        // --- دوال الإدارة ---
         function openAdmin() {
             if(prompt("رمز المرور (1234)") === "1234") {
                 document.getElementById('admin-panel').style.display = 'flex';
@@ -369,7 +358,6 @@
         function deletePerson(idx) { if(confirm("حذف؟")) { people.splice(idx, 1); saveData(); } }
         function resetAll() { if(confirm("تصفير الكل؟")) { people.forEach(p => p.count=0); saveData(); } }
 
-        // بدء التطبيق
         init();
 
     </script>
