@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>عداد الأسماء الصوتي</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            text-align: center;
+            background-color: #f4f4f9;
+            color: #333;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+        }
+        .container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            width: 200px;
+            transition: transform 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .name {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: block;
+        }
+        .counter {
+            font-size: 3rem;
+            color: #2980b9;
+            font-weight: bold;
+        }
+        .controls {
+            margin-top: 40px;
+        }
+        button {
+            padding: 10px 25px;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        #btn-start { background-color: #27ae60; color: white; }
+        #btn-stop { background-color: #c0392b; color: white; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        #status {
+            margin-top: 20px;
+            font-style: italic;
+            color: #7f8c8d;
+        }
+        #last-heard {
+            margin-top: 10px;
+            font-weight: bold;
+            color: #d35400;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>نظام عد الأسماء الصوتي</h1>
+    <p>انطق الاسم (أحمد، محمد، سعيد) لزيادة العداد</p>
+
+    <div class="container">
+        <div class="card" id="card-ahmed">
+            <span class="name">أحمد</span>
+            <div class="counter" id="count-ahmed">0</div>
+        </div>
+
+        <div class="card" id="card-mohamed">
+            <span class="name">محمد</span>
+            <div class="counter" id="count-mohamed">0</div>
+        </div>
+
+        <div class="card" id="card-saeed">
+            <span class="name">سعيد</span>
+            <div class="counter" id="count-saeed">0</div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button id="btn-start" onclick="startListening()">بدء الاستماع</button>
+        <button id="btn-stop" onclick="stopListening()" disabled>إيقاف</button>
+    </div>
+
+    <div id="status">الحالة: متوقف</div>
+    <div id="last-heard"></div>
+
+    <script>
+        // تعريف المتغيرات
+        let recognition;
+        let isRunning = false;
+        
+        // محاولة تهيئة التعرف على الصوت (يدعم كروم وإيدج)
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            
+            recognition.lang = 'ar-SA'; // اللغة العربية
+            recognition.continuous = false; // نجعلها false ونعيد التشغيل يدوياً لضمان الاستمرارية
+            recognition.interimResults = false; // النتائج النهائية فقط
+
+            // عند سماع جملة
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript.trim();
+                document.getElementById('last-heard').innerText = `سمعت: "${transcript}"`;
+                
+                checkName(transcript);
+            };
+
+            // عند بدء الاستماع الفعلي
+            recognition.onstart = function() {
+                document.getElementById('status').innerText = "الحالة: 🟢 يستمع الآن...";
+            };
+
+            // عند انتهاء جلسة الاستماع (هنا السر في الاستمرار)
+            recognition.onend = function() {
+                if (isRunning) {
+                    recognition.start(); // إعادة التشغيل فوراً
+                } else {
+                    document.getElementById('status').innerText = "الحالة: 🔴 متوقف";
+                }
+            };
+
+            // التعامل مع الأخطاء
+            recognition.onerror = function(event) {
+                console.error("Error:", event.error);
+                if (event.error === 'no-speech') {
+                    // تجاهل خطأ عدم وجود صوت واستمر
+                }
+            };
+
+        } else {
+            alert("عذراً، متصفحك لا يدعم خاصية التعرف على الصوت. يرجى استخدام Google Chrome.");
+        }
+
+        // دالة فحص النص وزيادة العداد
+        function checkName(text) {
+            // تنظيف النص قليلاً للبحث بمرونة
+            if (text.includes("أحمد") || text.includes("احمد")) {
+                increment("count-ahmed");
+                highlight("card-ahmed");
+            }
+            if (text.includes("محمد")) {
+                increment("count-mohamed");
+                highlight("card-mohamed");
+            }
+            if (text.includes("سعيد")) {
+                increment("count-saeed");
+                highlight("card-saeed");
+            }
+        }
+
+        // دالة زيادة الرقم
+        function increment(elementId) {
+            const el = document.getElementById(elementId);
+            let current = parseInt(el.innerText);
+            el.innerText = current + 1;
+        }
+
+        // تأثير بصري عند سماع الاسم
+        function highlight(cardId) {
+            const card = document.getElementById(cardId);
+            card.style.backgroundColor = "#dff9fb"; // لون وميض
+            setTimeout(() => {
+                card.style.backgroundColor = "white";
+            }, 500);
+        }
+
+        // زر البدء
+        function startListening() {
+            if (!recognition) return;
+            isRunning = true;
+            recognition.start();
+            
+            document.getElementById('btn-start').disabled = true;
+            document.getElementById('btn-stop').disabled = false;
+        }
+
+        // زر الإيقاف
+        function stopListening() {
+            isRunning = false;
+            recognition.stop();
+            
+            document.getElementById('btn-start').disabled = false;
+            document.getElementById('btn-stop').disabled = true;
+            document.getElementById('last-heard').innerText = "";
+        }
+    </script>
+</body>
+</html>
