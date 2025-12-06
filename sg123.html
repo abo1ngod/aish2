@@ -2,205 +2,604 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>عداد الأسماء الصوتي</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>مسابقة القراءة السريعة</title>
     <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #3498db;
+            --success: #27ae60;
+            --danger: #c0392b;
+            --bg-color: #f4f6f9;
+        }
+
+        * { box-sizing: border-box; }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            text-align: center;
-            background-color: #f4f4f9;
-            color: #333;
-            padding: 20px;
-        }
-        h1 {
-            color: #2c3e50;
-        }
-        .container {
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
             display: flex;
-            justify-content: center;
-            gap: 20px;
-            flex-wrap: wrap;
-            margin-top: 30px;
+            flex-direction: column;
+            align-items: center;
+            overflow: hidden;
         }
-        .card {
+
+        /* --- المنطقة العلوية: النقاط والعنوان --- */
+        .header-area {
+            width: 100%;
+            padding: 15px 20px;
             background: white;
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            width: 200px;
-            transition: transform 0.2s;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
         }
-        .card:hover {
-            transform: translateY(-5px);
-        }
-        .name {
+
+        .score-box {
             font-size: 1.5rem;
             font-weight: bold;
-            margin-bottom: 10px;
-            display: block;
+            color: var(--primary);
+            background: #ecf0f1;
+            padding: 5px 20px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
-        .counter {
-            font-size: 3rem;
-            color: #2980b9;
-            font-weight: bold;
+
+        .score-value { color: var(--accent); font-size: 1.8rem; }
+
+        /* --- منطقة اللعب الرئيسية --- */
+        .game-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            position: relative;
         }
-        .controls {
-            margin-top: 40px;
+
+        /* الكلمة المستهدفة */
+        .target-word {
+            font-size: 5rem;
+            font-weight: 800;
+            color: var(--primary);
+            text-align: center;
+            margin-bottom: 30px;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        button {
-            padding: 10px 25px;
-            font-size: 1.2rem;
-            border: none;
+
+        .target-word.visible {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* شريط التوقيت */
+        .timer-bar-container {
+            width: 80%;
+            max-width: 400px;
+            height: 10px;
+            background: #e0e0e0;
             border-radius: 5px;
-            cursor: pointer;
-            margin: 5px;
+            overflow: hidden;
+            display: none; /* مخفي افتراضياً */
         }
-        #btn-start { background-color: #27ae60; color: white; }
-        #btn-stop { background-color: #c0392b; color: white; }
-        button:disabled { opacity: 0.5; cursor: not-allowed; }
-        
-        #status {
+
+        .timer-bar {
+            height: 100%;
+            background: var(--accent);
+            width: 100%;
+            transform-origin: left;
+        }
+
+        /* رسائل التحفيز/الخطأ */
+        .feedback-msg {
+            font-size: 1.5rem;
+            height: 40px;
             margin-top: 20px;
-            font-style: italic;
-            color: #7f8c8d;
-        }
-        #last-heard {
-            margin-top: 10px;
             font-weight: bold;
-            color: #d35400;
         }
+        .feedback-success { color: var(--success); }
+        .feedback-error { color: var(--danger); }
+
+        /* زر البدء */
+        .start-btn {
+            background: var(--accent);
+            color: white;
+            font-size: 2rem;
+            padding: 20px 60px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(52, 152, 219, 0.3);
+            transition: transform 0.2s;
+            animation: pulse 2s infinite;
+        }
+
+        .start-btn:active { transform: scale(0.95); }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(52, 152, 219, 0.7); }
+            70% { box-shadow: 0 0 0 20px rgba(52, 152, 219, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(52, 152, 219, 0); }
+        }
+
+        /* --- الشريط السفلي --- */
+        .footer-controls {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 100;
+        }
+
+        .admin-btn {
+            background: rgba(44, 62, 80, 0.8);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        /* --- النوافذ المنبثقة (Modal) --- */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: white;
+            width: 90%;
+            max-width: 500px;
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            position: relative;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        .final-score { font-size: 4rem; color: var(--accent); font-weight: bold; margin: 10px 0; }
+        .final-msg { font-size: 1.5rem; color: var(--primary); margin-bottom: 20px; }
+        
+        /* تنسيقات جدول الإدارة */
+        .admin-table-container { max-height: 300px; overflow-y: auto; margin-top: 10px; border: 1px solid #eee; }
+        table { width: 100%; border-collapse: collapse; }
+        td, th { padding: 8px; border-bottom: 1px solid #eee; text-align: right; }
+        input[type="text"] { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        .btn-mini { padding: 4px 8px; border-radius: 4px; border: none; cursor: pointer; color: white; font-size: 0.8rem; }
+        .bg-red { background: var(--danger); }
+        .bg-green { background: var(--success); }
+
+        /* حالة الميكروفون */
+        .mic-status {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 2rem;
+            opacity: 0.2;
+            transition: opacity 0.3s;
+        }
+        .mic-active { opacity: 1; color: var(--danger); animation: blink 1s infinite; }
+        @keyframes blink { 50% { opacity: 0.5; } }
+
     </style>
 </head>
 <body>
 
-    <h1>نظام عد الأسماء الصوتي</h1>
-    <p>انطق الاسم (أحمد، محمد، سعيد) لزيادة العداد</p>
-
-    <div class="container">
-        <div class="card" id="card-ahmed">
-            <span class="name">أحمد</span>
-            <div class="counter" id="count-ahmed">0</div>
-        </div>
-
-        <div class="card" id="card-mohamed">
-            <span class="name">محمد</span>
-            <div class="counter" id="count-mohamed">0</div>
-        </div>
-
-        <div class="card" id="card-saeed">
-            <span class="name">سعيد</span>
-            <div class="counter" id="count-saeed">0</div>
+    <!-- رأس الصفحة -->
+    <div class="header-area">
+        <div style="font-weight: bold; color: var(--primary);">⏱️ القراءة السريعة</div>
+        <div class="score-box">
+            النقاط: <span id="score-display" class="score-value">0</span>
         </div>
     </div>
 
-    <div class="controls">
-        <button id="btn-start" onclick="startListening()">بدء الاستماع</button>
-        <button id="btn-stop" onclick="stopListening()" disabled>إيقاف</button>
+    <!-- مؤشر الميكروفون -->
+    <div id="mic-icon" class="mic-status">🎙️</div>
+
+    <!-- حاوية اللعبة -->
+    <div class="game-container">
+        
+        <!-- زر البدء (يختفي عند اللعب) -->
+        <button id="start-btn" class="start-btn" onclick="startGame()">ابدأ التحدي 🚀</button>
+
+        <!-- منطقة عرض الكلمة -->
+        <div id="word-display" class="target-word">مستعد؟</div>
+
+        <!-- شريط الوقت -->
+        <div class="timer-bar-container" id="timer-container">
+            <div class="timer-bar" id="timer-bar"></div>
+        </div>
+
+        <!-- رسالة النتيجة اللحظية -->
+        <div id="feedback" class="feedback-msg"></div>
+
+        <!-- عرض النص المسموع (للتتبع) -->
+        <div style="margin-top: 20px; color: #95a5a6; font-size: 0.9rem;">
+            سمعت: <span id="heard-text">...</span>
+        </div>
     </div>
 
-    <div id="status">الحالة: متوقف</div>
-    <div id="last-heard"></div>
+    <!-- أزرار التحكم السفلية -->
+    <div class="footer-controls">
+        <button class="admin-btn" onclick="openAdmin()">⚙️ كلمات السباق</button>
+    </div>
+
+    <!-- نافذة النهاية (النتيجة) -->
+    <div id="end-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2>🎉 انتهت الجولة!</h2>
+            <div class="final-msg" id="final-motivation">أداء رائع!</div>
+            <div class="final-score" id="final-score-val">0</div>
+            <p>نقاط من أصل 10</p>
+            <button class="start-btn" style="font-size: 1.2rem; padding: 10px 30px;" onclick="closeEndModal()">لعب مرة أخرى ↺</button>
+        </div>
+    </div>
+
+    <!-- نافذة الإدارة -->
+    <div id="admin-modal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 600px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3>🔠 بنك الكلمات (100 كلمة)</h3>
+                <button onclick="closeAdmin()" class="btn-mini bg-red" style="font-size: 1rem; width: 30px; height: 30px;">✕</button>
+            </div>
+            
+            <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+                <input type="text" id="new-word-input" placeholder="أضف كلمة جديدة..." maxlength="5">
+                <button onclick="addWord()" class="btn-mini bg-green" style="width: 60px;">إضافة</button>
+            </div>
+
+            <div class="admin-table-container">
+                <table id="words-table">
+                    <!-- سيتم تعبئته بالجافاسكربت -->
+                </table>
+            </div>
+            <div style="margin-top: 10px; font-size: 0.8rem; color: #7f8c8d; text-align: right;">
+                * يُفضل كلمات قصيرة (4-5 أحرف) لسهولة القراءة السريعة.
+            </div>
+            <button onclick="resetDefaultWords()" class="btn-mini bg-red" style="margin-top: 15px; padding: 8px;">استعادة الكلمات الافتراضية ⚠️</button>
+        </div>
+    </div>
 
     <script>
-        // تعريف المتغيرات
+        // --- البيانات الأساسية ---
+        let wordBank = [];
+        const TOTAL_ROUNDS = 10;
+        const WORD_TIME_MS = 3000; // 3 ثواني
+
+        // --- متغيرات الجلسة ---
+        let currentScore = 0;
+        let roundQueue = [];
+        let currentRoundIndex = 0;
+        let isGameRunning = false;
+        let timerInterval = null;
         let recognition;
-        let isRunning = false;
-        
-        // محاولة تهيئة التعرف على الصوت (يدعم كروم وإيدج)
-        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            recognition = new SpeechRecognition();
+        let isListening = false;
+        let currentTargetWord = "";
+
+        // --- تهيئة النظام ---
+        function init() {
+            loadWords();
+            setupSpeechRecognition();
+        }
+
+        // 1. إدارة البيانات (الكلمات)
+        function loadWords() {
+            const saved = localStorage.getItem('speedRead_words');
+            if (saved) {
+                wordBank = JSON.parse(saved);
+            } else {
+                generateDefaultWords();
+            }
+        }
+
+        function saveWords() {
+            localStorage.setItem('speedRead_words', JSON.stringify(wordBank));
+            renderAdminTable();
+        }
+
+        function generateDefaultWords() {
+            // توليد 100 كلمة (أسماء وحيوانات قصيرة)
+            const defaults = [
+                "أسد", "نمر", "فهد", "دب", "قطة", "كلب", "ذئب", "صقر", "نسر", "بطة",
+                "بحر", "نهر", "جبل", "قمر", "شمس", "نجم", "سماء", "أرض", "زرع", "ورد",
+                "أمل", "منى", "هند", "ريم", "مها", "جنى", "رنا", "دنا", "لمى", "سها",
+                "عمر", "علي", "سعد", "فهد", "حمد", "زيد", "بدر", "أنس", "حسن", "عمار",
+                "تفاح", "عنب", "تين", "موز", "كرز", "توت", "خوخ", "بلح", "لوز", "فول",
+                "بيت", "باب", "دار", "سور", "سقف", "غار", "بير", "دلو", "كأس", "صحن",
+                "قلم", "حبر", "كتب", "ورق", "علم", "درس", "صف", "لوح", "رسم", "خط",
+                "يد", "رجل", "عين", "أذن", "فم", "أنف", "سن", "وجه", "شعر", "قلب",
+                "خبز", "لحم", "ملح", "سكر", "زيت", "ماء", "بن", "هيل", "شاي", "تمر",
+                "جمل", "بقر", "غنم", "ماعز", "فيل", "ظبي", "مهر", "حوت", "ضبع", "ثعلب"
+            ];
+            // التأكد من أنها 100 كلمة أو تكرارها للوصول للعدد
+            wordBank = defaults; 
+            saveWords();
+        }
+
+        // 2. منطق التعرف الصوتي
+        function setupSpeechRecognition() {
+            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                const SpeechAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+                recognition = new SpeechAPI();
+                recognition.lang = 'ar-SA';
+                recognition.continuous = true; // نجعله مستمر طوال الجولة
+                recognition.interimResults = true; // نتائج فورية للسرعة
+
+                recognition.onstart = () => {
+                    isListening = true;
+                    document.getElementById('mic-icon').classList.add('mic-active');
+                };
+                recognition.onend = () => {
+                    isListening = false;
+                    document.getElementById('mic-icon').classList.remove('mic-active');
+                    // إعادة التشغيل تلقائياً إذا كانت اللعبة جارية
+                    if (isGameRunning) recognition.start();
+                };
+
+                recognition.onresult = (event) => {
+                    // نأخذ آخر نتيجة
+                    const resultIndex = event.results.length - 1;
+                    const transcript = event.results[resultIndex][0].transcript;
+                    const isFinal = event.results[resultIndex].isFinal;
+
+                    document.getElementById('heard-text').innerText = transcript;
+                    checkAnswer(transcript);
+                };
+
+                recognition.onerror = (e) => console.error("Mic Error", e);
+            } else {
+                alert("المتصفح غير مدعوم. يرجى استخدام Chrome.");
+            }
+        }
+
+        // 3. منطق اللعبة
+        function startGame() {
+            if (wordBank.length < 10) {
+                alert("يجب أن يكون هناك 10 كلمات على الأقل في البنك!");
+                return;
+            }
+
+            // إعداد الجلسة
+            currentScore = 0;
+            currentRoundIndex = 0;
+            updateScoreUI();
             
-            recognition.lang = 'ar-SA'; // اللغة العربية
-            recognition.continuous = false; // نجعلها false ونعيد التشغيل يدوياً لضمان الاستمرارية
-            recognition.interimResults = false; // النتائج النهائية فقط
+            // اختيار 10 كلمات عشوائية غير مكررة
+            const shuffled = [...wordBank].sort(() => 0.5 - Math.random());
+            roundQueue = shuffled.slice(0, TOTAL_ROUNDS);
 
-            // عند سماع جملة
-            recognition.onresult = function(event) {
-                const transcript = event.results[0][0].transcript.trim();
-                document.getElementById('last-heard').innerText = `سمعت: "${transcript}"`;
-                
-                checkName(transcript);
-            };
+            // واجهة المستخدم
+            document.getElementById('start-btn').style.display = 'none';
+            document.getElementById('timer-container').style.display = 'block';
+            document.getElementById('end-modal').style.display = 'none';
+            document.getElementById('heard-text').innerText = "...";
+            
+            isGameRunning = true;
+            
+            // تشغيل الميكروفون
+            try { recognition.start(); } catch(e) {}
 
-            // عند بدء الاستماع الفعلي
-            recognition.onstart = function() {
-                document.getElementById('status').innerText = "الحالة: 🟢 يستمع الآن...";
-            };
-
-            // عند انتهاء جلسة الاستماع (هنا السر في الاستمرار)
-            recognition.onend = function() {
-                if (isRunning) {
-                    recognition.start(); // إعادة التشغيل فوراً
-                } else {
-                    document.getElementById('status').innerText = "الحالة: 🔴 متوقف";
-                }
-            };
-
-            // التعامل مع الأخطاء
-            recognition.onerror = function(event) {
-                console.error("Error:", event.error);
-                if (event.error === 'no-speech') {
-                    // تجاهل خطأ عدم وجود صوت واستمر
-                }
-            };
-
-        } else {
-            alert("عذراً، متصفحك لا يدعم خاصية التعرف على الصوت. يرجى استخدام Google Chrome.");
+            nextRound();
         }
 
-        // دالة فحص النص وزيادة العداد
-        function checkName(text) {
-            // تنظيف النص قليلاً للبحث بمرونة
-            if (text.includes("أحمد") || text.includes("احمد")) {
-                increment("count-ahmed");
-                highlight("card-ahmed");
+        function nextRound() {
+            if (currentRoundIndex >= TOTAL_ROUNDS) {
+                endGame();
+                return;
             }
-            if (text.includes("محمد")) {
-                increment("count-mohamed");
-                highlight("card-mohamed");
-            }
-            if (text.includes("سعيد")) {
-                increment("count-saeed");
-                highlight("card-saeed");
-            }
-        }
 
-        // دالة زيادة الرقم
-        function increment(elementId) {
-            const el = document.getElementById(elementId);
-            let current = parseInt(el.innerText);
-            el.innerText = current + 1;
-        }
-
-        // تأثير بصري عند سماع الاسم
-        function highlight(cardId) {
-            const card = document.getElementById(cardId);
-            card.style.backgroundColor = "#dff9fb"; // لون وميض
+            const wordDisplay = document.getElementById('word-display');
+            const feedback = document.getElementById('feedback');
+            
+            // تنظيف الجولة السابقة
+            feedback.innerText = "";
+            wordDisplay.classList.remove('visible');
+            
+            // تأخير بسيط لظهور الكلمة الجديدة (جمالية)
             setTimeout(() => {
-                card.style.backgroundColor = "white";
+                currentTargetWord = roundQueue[currentRoundIndex];
+                wordDisplay.innerText = currentTargetWord;
+                wordDisplay.classList.add('visible');
+                
+                // بدء المؤقت
+                startTimer();
             }, 500);
         }
 
-        // زر البدء
-        function startListening() {
-            if (!recognition) return;
-            isRunning = true;
-            recognition.start();
+        function startTimer() {
+            const timerBar = document.getElementById('timer-bar');
+            timerBar.style.transition = 'none';
+            timerBar.style.width = '100%';
             
-            document.getElementById('btn-start').disabled = true;
-            document.getElementById('btn-stop').disabled = false;
+            // إجبار المتصفح على تطبيق الستايل قبل الانتقال (Reflow)
+            void timerBar.offsetWidth;
+
+            timerBar.style.transition = `width ${WORD_TIME_MS}ms linear`;
+            timerBar.style.width = '0%';
+
+            clearTimeout(timerInterval);
+            timerInterval = setTimeout(() => {
+                // انتهى الوقت ولم يجب
+                handleRoundResult(false);
+            }, WORD_TIME_MS);
         }
 
-        // زر الإيقاف
-        function stopListening() {
-            isRunning = false;
+        function checkAnswer(spokenText) {
+            if (!isGameRunning || !currentTargetWord) return;
+
+            const spoken = normalizeArabic(spokenText);
+            const target = normalizeArabic(currentTargetWord);
+
+            if (spoken.includes(target)) {
+                // إجابة صحيحة
+                clearTimeout(timerInterval);
+                handleRoundResult(true);
+            }
+        }
+
+        function handleRoundResult(isCorrect) {
+            // إيقاف المعالجة مؤقتاً لهذه الكلمة
+            currentTargetWord = null; 
+            
+            const feedback = document.getElementById('feedback');
+            
+            if (isCorrect) {
+                currentScore++;
+                feedback.innerHTML = getRandomMotivation();
+                feedback.className = "feedback-msg feedback-success";
+                playSound('success');
+            } else {
+                currentScore--; 
+                if(currentScore < 0) currentScore = 0; // لا ننزل تحت الصفر
+                feedback.innerText = "انتهى الوقت!";
+                feedback.className = "feedback-msg feedback-error";
+                playSound('fail');
+            }
+
+            updateScoreUI();
+            currentRoundIndex++;
+            
+            // الانتقال للكلمة التالية بعد ثانية واحدة
+            setTimeout(() => {
+                nextRound();
+            }, 1000);
+        }
+
+        function endGame() {
+            isGameRunning = false;
             recognition.stop();
             
-            document.getElementById('btn-start').disabled = false;
-            document.getElementById('btn-stop').disabled = true;
-            document.getElementById('last-heard').innerText = "";
+            document.getElementById('start-btn').style.display = 'block';
+            document.getElementById('timer-container').style.display = 'none';
+            document.getElementById('word-display').innerText = "انتهى!";
+            
+            showEndModal();
         }
+
+        // --- دوال مساعدة ---
+        function normalizeArabic(text) {
+            if (!text) return "";
+            text = text.trim();
+            text = text.replace(/[أإآ]/g, 'ا');
+            text = text.replace(/ة/g, 'ه');
+            text = text.replace(/ى/g, 'ي');
+            return text;
+        }
+
+        function getRandomMotivation() {
+            const phrases = ["ممتاز! 🌟", "رائع! 🚀", "مذهل! ⚡", "بطل! 🏆", "أحسنت! 👏"];
+            return phrases[Math.floor(Math.random() * phrases.length)];
+        }
+
+        function updateScoreUI() {
+            document.getElementById('score-display').innerText = currentScore;
+        }
+
+        function playSound(type) {
+            // يمكن إضافة أصوات حقيقية هنا، سنكتفي بتغيير الألوان كمؤشر
+            const body = document.body;
+            if(type === 'success') {
+                body.style.backgroundColor = "#eafaf1";
+                setTimeout(() => body.style.backgroundColor = "var(--bg-color)", 300);
+            } else {
+                body.style.backgroundColor = "#fdedec";
+                setTimeout(() => body.style.backgroundColor = "var(--bg-color)", 300);
+            }
+        }
+
+        // --- إدارة النوافذ ---
+        function showEndModal() {
+            const modal = document.getElementById('end-modal');
+            const scoreVal = document.getElementById('final-score-val');
+            const msg = document.getElementById('final-motivation');
+            
+            scoreVal.innerText = currentScore;
+            
+            if (currentScore >= 8) msg.innerText = "أداء أسطوري! أنت قارئ سريع جداً 🦅";
+            else if (currentScore >= 5) msg.innerText = "جيد جداً! استمر في التدريب 💪";
+            else msg.innerText = "حاول مرة أخرى، السرعة تأتي مع التدريب 🐢";
+            
+            modal.style.display = 'flex';
+        }
+
+        function closeEndModal() {
+            document.getElementById('end-modal').style.display = 'none';
+        }
+
+        // --- لوحة التحكم ---
+        function openAdmin() {
+            if(prompt("كلمة المرور (1234)") === "1234") {
+                renderAdminTable();
+                document.getElementById('admin-modal').style.display = 'flex';
+            }
+        }
+        function closeAdmin() { document.getElementById('admin-modal').style.display = 'none'; }
+
+        function renderAdminTable() {
+            const table = document.getElementById('words-table');
+            table.innerHTML = "";
+            wordBank.forEach((word, idx) => {
+                table.innerHTML += `
+                    <tr>
+                        <td><input type="text" value="${word}" onchange="editWord(${idx}, this.value)" maxlength="5"></td>
+                        <td style="width: 50px;"><button class="btn-mini bg-red" onclick="deleteWord(${idx})">حذف</button></td>
+                    </tr>
+                `;
+            });
+        }
+
+        function addWord() {
+            const input = document.getElementById('new-word-input');
+            const val = input.value.trim();
+            if (val && val.length <= 5) {
+                wordBank.unshift(val); // إضافة للأعلى
+                saveWords();
+                input.value = "";
+                input.focus();
+            } else {
+                alert("الرجاء إدخال كلمة (5 أحرف كحد أقصى)");
+            }
+        }
+
+        function editWord(idx, val) {
+            if(val) { wordBank[idx] = val; saveWords(); }
+        }
+
+        function deleteWord(idx) {
+            if(confirm("حذف الكلمة؟")) {
+                wordBank.splice(idx, 1);
+                saveWords();
+            }
+        }
+
+        function resetDefaultWords() {
+            if(confirm("هل أنت متأكد؟ سيتم حذف جميع الكلمات الحالية واستعادة الـ 100 كلمة الأصلية.")) {
+                generateDefaultWords();
+                renderAdminTable();
+            }
+        }
+
+        // بدء التشغيل
+        init();
+
     </script>
 </body>
 </html>
+
