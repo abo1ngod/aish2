@@ -325,6 +325,18 @@
         </div>
     </div>
 
+    <!-- نافذة إدخال كلمة المرور -->
+    <div id="password-modal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 320px;">
+            <h3 style="margin-top:0">🔒 الدخول للإدارة</h3>
+            <p style="margin-bottom: 5px; color: #7f8c8d;">أدخل الرمز (1234)</p>
+            <input type="password" id="admin-pass-input" placeholder="****" style="text-align:center; letter-spacing: 5px; font-size: 1.5rem; width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+            <div id="pass-error" style="color: var(--danger); font-size: 0.9rem; margin: 10px 0; min-height: 20px;"></div>
+            <button class="start-btn" style="font-size: 1rem; padding: 10px; width: 100%;" onclick="checkAdminPassword()">دخول</button>
+            <button class="btn-mini bg-red" onclick="closePasswordModal()" style="margin-top: 10px; width: 100%; padding: 8px;">إلغاء</button>
+        </div>
+    </div>
+
     <!-- نافذة الإدارة -->
     <div id="admin-modal" class="modal-overlay">
         <div class="modal-content" style="max-width: 600px;">
@@ -352,7 +364,7 @@
         // --- البيانات الأساسية ---
         let wordBank = [];
         const TOTAL_ROUNDS = 10;
-        let selectedTimeMs = 5000; // الافتراضي سريع
+        let selectedTimeMs = 5000; 
 
         // --- متغيرات الجلسة ---
         let currentScore = 0;
@@ -379,7 +391,8 @@
 
         // 1. إدارة البيانات (الكلمات)
         function loadWords() {
-            const saved = localStorage.getItem('speedRead_words_v2');
+            // استخدام مفتاح جديد لفرض تحميل الكلمات الجديدة
+            const saved = localStorage.getItem('speedRead_words_v4');
             if (saved) {
                 wordBank = JSON.parse(saved);
             } else {
@@ -388,33 +401,52 @@
         }
 
         function saveWords() {
-            localStorage.setItem('speedRead_words_v2', JSON.stringify(wordBank));
+            localStorage.setItem('speedRead_words_v4', JSON.stringify(wordBank));
             renderAdminTable();
         }
 
         function generateDefaultWords() {
-            // توليد 100 كلمة منقحة (3-5 أحرف، تناسب 7-12 سنة)
+            // 200 كلمة (3-5 أحرف) مناسبة للأطفال
             const defaults = [
-                // حيوانات وطيور
-                "أسد", "نمر", "فهد", "ذئب", "قطة", "كلب", "بطة", "ديك", "صقر", "نسر",
-                "بومة", "فيل", "جمل", "بقر", "غنم", "حوت", "سمك", "ضفدع", "نمل", "نحل",
-                // طبيعة
-                "شمس", "قمر", "نجم", "سماء", "أرض", "بحر", "نهر", "جبل", "رمل", "شجر",
-                "ورد", "زهر", "غيم", "مطر", "ثلج", "برق", "رعد", "كهف", "بير", "ليل",
-                // مدرسة وأدوات
-                "قلم", "كتاب", "ورق", "علم", "درس", "فصل", "لوح", "حبر", "رسم", "لون",
-                "شنطة", "مقعد", "جرس", "ساحة", "طالب", "معلم", "مدير", "نجاح", "فهم", "كتب",
-                // فواكه وطعام
-                "توت", "تين", "بلح", "عنب", "موز", "كرز", "خوخ", "لوز", "فول", "عدس",
-                "خبز", "لحم", "بيض", "جبن", "عسل", "سمن", "زيت", "ملح", "ماء", "لبن",
-                // جسم وإنسان
-                "رأس", "عين", "أذن", "أنف", "فم", "يد", "رجل", "قلب", "سن", "شعر",
-                "طفل", "أب", "أم", "أخ", "أخت", "عم", "خال", "جد", "وجه", "بطن",
-                // أماكن وأشياء
-                "بيت", "باب", "دار", "غرفة", "سقف", "جدار", "كرسي", "سرير", "كوب", "صحن",
-                "مسجد", "ملعب", "سوق", "شارع", "مدن", "قرى", "خيمة", "نار", "سيف", "درع"
+                // حيوانات وطيور (40 كلمة)
+                "أسد", "نمر", "فهد", "ذئب", "دب", "ثعلب", "كلب", "قطة", "فأر", "قرد",
+                "فيل", "جمل", "بقر", "غنم", "ماعز", "خيل", "حصان", "حمار", "أرنب", "ظبي",
+                "غزال", "بطة", "وزة", "ديك", "دجاج", "صقر", "نسر", "بومة", "غراب", "هدهد",
+                "عصفور", "بلبل", "حمامة", "يمامة", "سمك", "حوت", "قرش", "ضفدع", "سلحفاة", "نملة",
+                
+                // طبيعة وكون (30 كلمة)
+                "شمس", "قمر", "نجم", "سماء", "أرض", "بحر", "نهر", "جبل", "تل", "وادي",
+                "صخر", "حجر", "رمل", "تراب", "غيم", "سحاب", "مطر", "ثلج", "برد", "ريح",
+                "هواء", "نور", "ظلام", "ليل", "نهار", "فجر", "صبح", "عصر", "زهر", "ورد",
+
+                // جسم الإنسان (25 كلمة)
+                "رأس", "وجه", "شعر", "عين", "أذن", "أنف", "فم", "لسان", "سن", "ضرس",
+                "عنق", "كتف", "يد", "كف", "إصبع", "ظفر", "بطن", "ظهر", "قلب", "دم",
+                "عظم", "جلد", "رجل", "قدم", "ركبة",
+
+                // طعام وفواكه (35 كلمة)
+                "خبز", "لحم", "أرز", "سمك", "بيض", "جبن", "زبد", "عسل", "سمن", "زيت",
+                "ملح", "سكر", "ماء", "لبن", "حليب", "شاي", "بن", "تمر", "رطب", "عنب",
+                "تين", "توت", "كرز", "موز", "تفاح", "خوخ", "مشمش", "جزر", "بصل", "ثوم",
+                "فول", "عدس", "قمح", "ذرة", "فجل",
+
+                // مدرسة وأدوات (30 كلمة)
+                "قلم", "كتاب", "دفتر", "ورق", "شنطة", "فصل", "صف", "لوح", "درس", "علم",
+                "رسم", "لون", "حبر", "مسطرة", "ممحات", "براية", "مقعد", "طاولة", "كرسي", "جرس",
+                "ساحة", "طالب", "معلم", "مدير", "عدد", "رقم", "حرف", "كلمة", "سطر", "نجاح",
+
+                // منزل وأشياء (25 كلمة)
+                "بيت", "دار", "باب", "شباك", "جدار", "سقف", "غرفة", "مطبخ", "حمام", "سرير",
+                "فرش", "لحاف", "مخدة", "صندوق", "كوب", "صحن", "ملعقة", "شوكة", "ساعة", "مفتاح",
+                "قفل", "خيط", "إبرة", "ثوب", "قميص",
+
+                // أشخاص وأماكن (15 كلمة)
+                "أب", "أم", "أخ", "أخت", "جد", "جدة", "عم", "خال", "طفل", "ولد",
+                "بنت", "رجل", "مسجد", "سوق", "شارع"
             ];
-            wordBank = defaults; 
+            
+            // دمج وتصفية لضمان عدم التكرار والالتزام بالطول
+            wordBank = [...new Set(defaults)].filter(w => w.length >= 3 && w.length <= 5);
             saveWords();
         }
 
@@ -466,7 +498,6 @@
             const shuffled = [...wordBank].sort(() => 0.5 - Math.random());
             roundQueue = shuffled.slice(0, TOTAL_ROUNDS);
 
-            // تبديل الواجهة
             document.getElementById('start-panel').style.display = 'none';
             document.getElementById('game-elements').style.display = 'flex';
             document.getElementById('timer-container').style.display = 'block';
@@ -491,7 +522,7 @@
             
             feedback.innerText = "";
             wordDisplay.classList.remove('visible');
-            wordDisplay.innerText = ""; // تفريغ مؤقت
+            wordDisplay.innerText = "";
             
             setTimeout(() => {
                 currentTargetWord = roundQueue[currentRoundIndex];
@@ -548,7 +579,7 @@
 
             updateScoreUI();
             currentRoundIndex++;
-            updateProgressBar(); // تحديث الشريط بعد انتهاء الكلمة
+            updateProgressBar();
             
             setTimeout(() => {
                 nextRound();
@@ -559,11 +590,8 @@
             isGameRunning = false;
             recognition.stop();
             
-            // إخفاء عناصر اللعب وإظهار لوحة البداية في الخلفية (تحت المودال)
             document.getElementById('game-elements').style.display = 'none';
             document.getElementById('start-panel').style.display = 'flex';
-            
-            // تنظيف مكان الكلمة حتى لا تظهر "انتهى"
             document.getElementById('word-display').innerText = ""; 
             
             showEndModal();
@@ -623,13 +651,33 @@
             document.getElementById('end-modal').style.display = 'none';
         }
 
-        // --- لوحة التحكم ---
+        // --- لوحة التحكم وكلمة المرور ---
         function openAdmin() {
-            if(prompt("كلمة المرور (1234)") === "1234") {
+            document.getElementById('password-modal').style.display = 'flex';
+            document.getElementById('admin-pass-input').value = '';
+            document.getElementById('pass-error').innerText = '';
+            document.getElementById('admin-pass-input').focus();
+        }
+
+        function closePasswordModal() {
+            document.getElementById('password-modal').style.display = 'none';
+        }
+
+        function checkAdminPassword() {
+            const input = document.getElementById('admin-pass-input');
+            const errorDiv = document.getElementById('pass-error');
+            
+            if (input.value === "1234") {
+                closePasswordModal();
                 renderAdminTable();
                 document.getElementById('admin-modal').style.display = 'flex';
+            } else {
+                errorDiv.innerText = "كلمة المرور خاطئة!";
+                input.value = "";
+                input.focus();
             }
         }
+
         function closeAdmin() { document.getElementById('admin-modal').style.display = 'none'; }
 
         function renderAdminTable() {
