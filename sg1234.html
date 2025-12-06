@@ -2,392 +2,376 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام التركيز الصوتي</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>نظام المسابقة الصوتي</title>
     <style>
         :root {
-            --bg-color: #f0f4f8;
-            --card-bg: #ffffff;
             --primary: #2c3e50;
             --accent: #3498db;
-            --focus-color: #27ae60; /* لون التركيز الأخضر */
-            --highlight: #e74c3c;
+            --focus-color: #27ae60;
+            --bg-color: #f4f6f9;
         }
+
+        * { box-sizing: border-box; }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--bg-color);
             margin: 0;
             padding: 0;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
+            /* استخدام min-height بدلاً من height لتجنب مشاكل الجوال */
+            min-height: 100vh;
+            padding-bottom: 80px; /* مساحة فارغة في الأسفل للشريط الثابت */
         }
 
-        /* --- واجهة العرض للجمهور --- */
-        #display-view {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
+        /* --- منطقة العنوان والتنبيهات --- */
+        .header-area {
+            text-align: center;
             padding: 20px;
+            background: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
 
-        h1.main-title {
-            font-size: 2.2rem;
+        h1 {
+            margin: 0 0 10px 0;
             color: var(--primary);
-            margin-bottom: 20px;
-            flex-shrink: 0;
+            font-size: 1.8rem;
         }
 
-        .cards-grid {
+        /* شاشة ماذا يسمع الجهاز (لحل مشكلة العداد) */
+        .live-transcript {
+            background: #ecf0f1;
+            padding: 8px 15px;
+            border-radius: 20px;
+            display: inline-block;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            margin-top: 5px;
+            border: 1px solid #bdc3c7;
+            min-width: 200px;
+        }
+        .live-transcript span {
+            color: #d35400;
+            font-weight: bold;
+        }
+
+        /* --- شبكة البطاقات --- */
+        .cards-container {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 25px;
+            gap: 20px;
+            padding: 20px;
             width: 100%;
-            padding-bottom: 40px;
         }
 
-        .display-card {
-            background: var(--card-bg);
-            border-radius: 20px;
+        .card {
+            background: white;
+            border-radius: 15px;
             padding: 20px;
-            min-width: 240px;
+            width: 100%; /* كامل العرض في الجوال */
+            max-width: 280px; /* عرض محدد في الشاشات الأكبر */
             text-align: center;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-            border: 4px solid transparent; /* حدود شفافة للتحضير */
-            cursor: pointer; /* مؤشر اليد */
-            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            cursor: pointer;
+            border: 4px solid transparent;
+            transition: transform 0.2s, border-color 0.2s;
             position: relative;
         }
 
-        /* الحالة العادية (عند المرور) */
-        .display-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.12);
-        }
-
-        /* --- حالة التركيز (Active Focus) --- */
-        .display-card.focused {
+        /* عند الضغط على الكارت (التركيز) */
+        .card.active-target {
             border-color: var(--focus-color);
-            background-color: #e8f8f5;
-            transform: scale(1.05);
-            box-shadow: 0 0 25px rgba(39, 174, 96, 0.4);
-            z-index: 10;
+            background-color: #eafaf1;
+            transform: scale(1.02);
+            box-shadow: 0 8px 15px rgba(39, 174, 96, 0.2);
         }
 
-        /* أيقونة الميكروفون داخل الكارت */
-        .mic-icon {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            font-size: 1.5rem;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-        .display-card.focused .mic-icon {
-            opacity: 1;
-            animation: pulse-mic 1.5s infinite;
+        /* الكروت غير النشطة */
+        .card.dimmed {
+            opacity: 0.6;
+            filter: grayscale(100%);
         }
 
-        /* --- حالة عدم النشاط (بقية الكروت) --- */
-        .display-card.dimmed {
-            opacity: 0.5;
-            transform: scale(0.95);
-            filter: grayscale(80%);
-            pointer-events: none; /* منع النقر على الكروت الباهتة */
-        }
+        .card .name { font-size: 2rem; font-weight: bold; color: var(--primary); }
+        .card .count { font-size: 4rem; font-weight: 800; color: var(--accent); line-height: 1.1; }
+        .card .status-icon { font-size: 1.5rem; margin-bottom: 5px; opacity: 0; }
+        .card.active-target .status-icon { opacity: 1; }
 
-        @keyframes pulse-mic {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.2); }
-            100% { transform: scale(1); }
-        }
-
-        .display-card .name {
-            font-size: 2.2rem;
-            font-weight: bold;
-            color: var(--primary);
-            margin-bottom: 5px;
-            pointer-events: none; /* لضمان أن النقر يذهب للكارت */
-        }
-
-        .display-card .count {
-            font-size: 4.5rem;
-            font-weight: 800;
-            color: var(--accent);
-            line-height: 1;
-            pointer-events: none;
-        }
-        
-        .hint-text {
-            font-size: 0.9rem;
-            color: #7f8c8d;
-            margin-bottom: 20px;
-        }
-
-        /* --- الفوتر --- */
-        .footer-bar {
-            background: #dfe6e9;
-            padding: 15px;
-            text-align: center;
-            font-size: 0.9rem;
-            color: #636e72;
+        /* --- الشريط السفلي الثابت (Fixed Footer) --- */
+        .fixed-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: #ffffff;
+            border-top: 1px solid #ddd;
+            padding: 10px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding-left: 20px;
-            padding-right: 20px;
-            z-index: 20;
+            z-index: 999; /* لضمان ظهوره فوق كل شيء */
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            height: 70px; /* ارتفاع ثابت */
         }
-        .admin-trigger { cursor: pointer; opacity: 0.6; padding: 5px; }
-        .admin-trigger:hover { opacity: 1; color: var(--highlight); }
+
+        .status-text { font-weight: bold; font-size: 0.9rem; }
+        .status-idle { color: #e74c3c; }
+        .status-listening { color: #27ae60; }
+
+        .admin-btn {
+            background: #2c3e50;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
 
         /* --- لوحة الإدارة (نفس السابق) --- */
         #admin-panel {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center;
+            background: rgba(0,0,0,0.9); z-index: 1000; justify-content: center; align-items: center;
         }
         .panel-content {
-            background: white; width: 90%; max-width: 600px; border-radius: 10px; padding: 25px;
-            max-height: 85vh; overflow-y: auto; position: relative;
+            background: white; width: 90%; max-width: 500px; border-radius: 10px; padding: 20px;
+            max-height: 80vh; overflow-y: auto; position: relative;
         }
-        .close-panel {
-            position: absolute; top: 15px; left: 15px; font-size: 1.5rem; cursor: pointer;
-            background: none; border: none; color: #7f8c8d; padding: 10px;
-        }
-        .panel-section { margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { padding: 10px; text-align: right; border-bottom: 1px solid #eee; }
-        th { background: #f8f9fa; }
-        .btn { padding: 8px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin: 2px; }
-        .btn-primary { background: var(--accent); color: white; }
-        .btn-danger { background: var(--highlight); color: white; }
-        .btn-success { background: var(--focus-color); color: white; }
-        .btn-warning { background: #f1c40f; color: #333; }
-        input[type="text"] { padding: 8px; border: 1px solid #ddd; width: 65%; font-size: 1rem; }
+        .close-btn { position: absolute; top: 10px; left: 10px; font-size: 1.5rem; border: none; background: none; cursor: pointer; }
+        
+        /* تحسينات الجدول */
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        td, th { padding: 8px; border-bottom: 1px solid #eee; text-align: right; }
+        input[type="text"] { width: 100%; padding: 5px; }
+        .btn-action { padding: 5px 10px; border-radius: 4px; border: none; color: white; cursor: pointer; margin: 2px; }
+        .btn-red { background: #c0392b; }
+        .btn-blue { background: #2980b9; }
+
     </style>
 </head>
 <body>
 
-    <!-- واجهة العرض -->
-    <div id="display-view">
-        <h1 class="main-title">المسابقة التفاعلية</h1>
-        <p class="hint-text">اضغط على اسم المتسابق لبدء الاستماع له حصرياً</p>
-        
-        <div class="cards-grid" id="public-cards">
-            <!-- البطاقات تظهر هنا -->
+    <!-- الرأس: العنوان + ماذا يسمع الجهاز -->
+    <div class="header-area">
+        <h1>🎙️ المسابقة التفاعلية</h1>
+        <div class="live-transcript">
+            سمعت: <span id="debug-text">...</span>
         </div>
+        <p style="font-size: 0.8rem; color: #7f8c8d; margin-top: 5px;">اضغط على اسم المتسابق لبدء العد له</p>
     </div>
 
-    <!-- الفوتر -->
-    <div class="footer-bar">
-        <span id="listening-indicator">🔴 اختر متسابقاً للبدء</span>
-        <span class="admin-trigger" onclick="openAdmin()">🔒 الإدارة</span>
+    <!-- منطقة البطاقات -->
+    <div class="cards-container" id="cards-wrapper">
+        <!-- سيتم توليد البطاقات هنا بالجافاسكربت -->
     </div>
 
-    <!-- لوحة التحكم -->
+    <!-- الشريط السفلي الثابت -->
+    <div class="fixed-footer">
+        <div id="footer-status" class="status-text status-idle">🔴 لم يتم اختيار أحد</div>
+        <button class="admin-btn" onclick="openAdmin()">🔒 الإدارة</button>
+    </div>
+
+    <!-- لوحة الإدارة -->
     <div id="admin-panel">
         <div class="panel-content">
-            <button class="close-panel" onclick="closeAdmin()">✖</button>
-            <h2>⚙️ الإدارة</h2>
+            <button class="close-btn" onclick="closeAdmin()">✖</button>
+            <h3>⚙️ لوحة التحكم</h3>
             
-            <div class="panel-section" style="background: #e8f6f3; padding: 15px;">
-                <h3>حالة النظام</h3>
-                <div id="admin-mic-status">الميكروفون يعمل تلقائياً عند اختيار اسم.</div>
-                <div style="margin-top:10px; color:#7f8c8d;">آخر جملة: <span id="last-heard" style="color:#d35400;">-</span></div>
+            <div style="margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+                <input type="text" id="new-name-input" placeholder="اسم جديد..." style="width: 70%; padding: 8px;">
+                <button onclick="addNewPerson()" class="btn-action btn-blue" style="padding: 8px;">إضافة</button>
             </div>
 
-            <div class="panel-section">
-                <h3>إضافة جديد</h3>
-                <input type="text" id="new-name" placeholder="الاسم...">
-                <button class="btn btn-primary" onclick="addPerson()">إضافة</button>
-            </div>
+            <table id="admin-table">
+                <!-- جدول البيانات -->
+            </table>
 
-            <div class="panel-section">
-                <table id="admin-table">
-                    <thead><tr><th>الاسم</th><th>العدد</th><th>تحكم</th></tr></thead>
-                    <tbody></tbody>
-                </table>
-                <br>
-                <button class="btn btn-warning" onclick="resetAllCounts()" style="width:100%">تصفير الكل</button>
-            </div>
+            <button onclick="resetAll()" class="btn-action btn-red" style="width: 100%; margin-top: 15px; padding: 10px;">تصفير الكل ⚠️</button>
         </div>
     </div>
 
     <script>
-        // --- البيانات ---
+        // --- البيانات والتهيئة ---
         let people = [];
-        let activeTargetId = null; // المتغير الذي يحدد من يتم الاستماع إليه حالياً
+        let activeId = null; // من هو الشخص المحدد حالياً؟
 
-        function loadData() {
-            const saved = localStorage.getItem('voiceDataFocus');
-            people = saved ? JSON.parse(saved) : [
-                { id: 1, name: 'أحمد', count: 0 },
-                { id: 2, name: 'محمد', count: 0 },
-                { id: 3, name: 'سعيد', count: 0 }
-            ];
-            renderAll();
+        // تحميل البيانات
+        function init() {
+            const saved = localStorage.getItem('voiceApp_v2');
+            if (saved) {
+                people = JSON.parse(saved);
+            } else {
+                people = [
+                    { id: 1, name: "أحمد", count: 0 },
+                    { id: 2, name: "محمد", count: 0 },
+                    { id: 3, name: "سعيد", count: 0 }
+                ];
+            }
+            renderUI();
         }
 
         function saveData() {
-            localStorage.setItem('voiceDataFocus', JSON.stringify(people));
-            renderAll();
+            localStorage.setItem('voiceApp_v2', JSON.stringify(people));
+            renderUI();
         }
 
         // --- الرسم (Render) ---
-        function renderAll() {
-            renderPublicCards();
-            renderAdminTable();
-        }
-
-        function renderPublicCards() {
-            const container = document.getElementById('public-cards');
-            container.innerHTML = '';
+        function renderUI() {
+            const wrapper = document.getElementById('cards-wrapper');
+            const adminTable = document.getElementById('admin-table');
             
-            people.forEach(p => {
-                // تحديد الكلاسات بناءً على حالة التركيز
-                let cardClass = 'display-card';
-                if (activeTargetId !== null) {
-                    if (p.id === activeTargetId) {
-                        cardClass += ' focused';
-                    } else {
-                        cardClass += ' dimmed';
-                    }
+            wrapper.innerHTML = '';
+            adminTable.innerHTML = '';
+
+            people.forEach((p, index) => {
+                // 1. رسم البطاقة الرئيسية
+                let cardClass = "card";
+                if (activeId !== null) {
+                    if (p.id === activeId) cardClass += " active-target"; // المحدد
+                    else cardClass += " dimmed"; // غير المحدد
                 }
 
-                container.innerHTML += `
-                    <div class="${cardClass}" id="card-${p.id}" onclick="toggleFocus(${p.id})">
-                        <div class="mic-icon">🎙️</div>
+                wrapper.innerHTML += `
+                    <div class="${cardClass}" onclick="toggleSelect(${p.id})">
+                        <div class="status-icon">🎙️ يستمع...</div>
                         <div class="name">${p.name}</div>
                         <div class="count">${p.count}</div>
                     </div>
                 `;
-            });
-        }
 
-        function renderAdminTable() {
-            const tbody = document.querySelector('#admin-table tbody');
-            tbody.innerHTML = '';
-            people.forEach((p, index) => {
-                tbody.innerHTML += `
+                // 2. رسم صف الإدارة
+                adminTable.innerHTML += `
                     <tr>
-                        <td><input type="text" value="${p.name}" onchange="updateName(${index}, this.value)" style="width:70px"></td>
-                        <td><strong>${p.count}</strong></td>
+                        <td><input type="text" value="${p.name}" onchange="editName(${index}, this.value)"></td>
+                        <td><b>${p.count}</b></td>
                         <td>
-                            <button class="btn btn-danger btn-sm" onclick="deleteOne(${index})">حذف</button>
+                            <button class="btn-action btn-red" onclick="deletePerson(${index})">حذف</button>
                         </td>
                     </tr>
                 `;
             });
         }
 
-        // --- منطق التركيز (Focus Logic) ---
-        function toggleFocus(id) {
-            if (activeTargetId === id) {
-                // إذا ضغط على نفس الشخص، نلغي التحديد
-                activeTargetId = null;
-                stopListening(); // نوقف المايك عند إلغاء التحديد
-                updateStatusUI(false, "تم إيقاف الاختيار");
+        // --- منطق الاختيار (Selection Logic) ---
+        function toggleSelect(id) {
+            const statusDiv = document.getElementById('footer-status');
+            
+            if (activeId === id) {
+                // إلغاء التحديد
+                activeId = null;
+                stopMic();
+                statusDiv.innerText = "🔴 لم يتم اختيار أحد";
+                statusDiv.className = "status-text status-idle";
             } else {
                 // تحديد شخص جديد
-                activeTargetId = id;
-                startListening(); // نشغل المايك فوراً
+                activeId = id;
                 const person = people.find(p => p.id === id);
-                updateStatusUI(true, `جاري الاستماع لـ: ${person.name}`);
+                
+                // تشغيل الميكروفون
+                startMic();
+                
+                statusDiv.innerText = `🟢 جاري الاستماع لـ: ${person.name}`;
+                statusDiv.className = "status-text status-listening";
             }
-            renderPublicCards(); // إعادة رسم لتحديث الألوان
+            renderUI();
         }
 
-        // --- التحكم بالبيانات ---
-        function addPerson() {
-            const name = document.getElementById('new-name').value.trim();
-            if(name) {
-                people.push({id: Date.now(), name: name, count: 0});
-                document.getElementById('new-name').value = '';
-                saveData();
-            }
-        }
-        function updateName(idx, val) { if(val) { people[idx].name = val; saveData(); } }
-        function deleteOne(idx) { if(confirm('حذف؟')) { people.splice(idx,1); saveData(); } }
-        function resetAllCounts() { if(confirm('تصفير؟')) { people.forEach(p=>p.count=0); saveData(); } }
-
-        // --- الصوت (Speech) ---
+        // --- التعرف على الصوت (Speech Recognition) ---
         let recognition;
-        let isRunning = false;
+        let isRecRunning = false;
 
+        // التحقق من دعم المتصفح
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            recognition = new SpeechRecognition();
+            const SpeechAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechAPI();
             recognition.lang = 'ar-SA';
-            recognition.continuous = false;
+            recognition.continuous = false; // نجعلها false ونعيد تشغيلها يدوياً لأداء أفضل
             recognition.interimResults = false;
 
-            recognition.onstart = function() { isRunning = true; };
-            recognition.onend = function() {
-                // إذا كان هناك شخص محدد، نعيد تشغيل المايك
-                if (activeTargetId !== null) {
-                    recognition.start();
-                } else {
-                    isRunning = false;
+            recognition.onstart = function() { isRecRunning = true; };
+            
+            recognition.onend = function() { 
+                isRecRunning = false;
+                // إذا كان هناك شخص محدد، أعد تشغيل المايك فوراً (Loop)
+                if (activeId !== null) {
+                    try { recognition.start(); } catch(e) {}
                 }
             };
-            
+
             recognition.onresult = function(event) {
                 const transcript = event.results[0][0].transcript.trim();
-                document.getElementById('last-heard').innerText = transcript;
-                processSpeech(transcript);
+                
+                // عرض النص للمستخدم للتشخيص
+                document.getElementById('debug-text').innerText = transcript;
+
+                // معالجة النص
+                processVoiceCommand(transcript);
             };
+
+            recognition.onerror = function(event) {
+                console.log("Mic Error:", event.error);
+                // تحديث النص ليظهر الخطأ للمستخدم
+                if(event.error === 'not-allowed') {
+                    document.getElementById('debug-text').innerText = "❌ الميكروفون محظور";
+                }
+            };
+        } else {
+            alert("متصفحك لا يدعم هذه الميزة. الرجاء استخدام Google Chrome");
         }
 
-        function startListening() {
-            if (recognition && !isRunning) {
+        function startMic() {
+            if (recognition && !isRecRunning) {
                 try { recognition.start(); } catch(e) {}
             }
         }
 
-        function stopListening() {
-            if (recognition) {
-                recognition.stop();
-                isRunning = false;
-            }
+        function stopMic() {
+            if (recognition) recognition.stop();
         }
 
-        function processSpeech(text) {
-            // إذا لم يكن هناك أحد مختار، لا نفعل شيئاً
-            if (activeTargetId === null) return;
+        function processVoiceCommand(text) {
+            if (activeId === null) return;
 
-            // البحث عن الشخص المحدد فقط
-            const targetPerson = people.find(p => p.id === activeTargetId);
+            // تنظيف النص قليلاً (إزالة التشكيل إذا لزم الأمر - اختياري)
+            // هنا نبحث ببساطة
+            const target = people.find(p => p.id === activeId);
             
-            if (targetPerson && text.includes(targetPerson.name)) {
-                targetPerson.count++;
-                saveData(); // سيقوم الـ Save بإعادة الرسم وتحديث الرقم
+            // التحقق: هل اسم الشخص موجود داخل الجملة التي قيلت؟
+            if (target && text.includes(target.name)) {
+                target.count++;
+                saveData(); // الحفظ وإعادة الرسم
                 
-                // وميض إضافي للتأكيد
-                const card = document.getElementById(`card-${activeTargetId}`);
-                card.style.borderColor = "#e67e22"; // برتقالي للحظة
-                setTimeout(() => card.style.borderColor = "#27ae60", 300);
+                // وميض أخضر سريع للملاحظة
+                document.getElementById('debug-text').style.color = "green";
+                setTimeout(() => document.getElementById('debug-text').style.color = "#d35400", 500);
             }
         }
 
-        function updateStatusUI(active, text) {
-            const indicator = document.getElementById('listening-indicator');
-            indicator.innerText = active ? "🟢 " + text : "🔴 " + text;
-            indicator.style.color = active ? "#27ae60" : "#636e72";
-        }
-
-        // --- إدارة النوافذ ---
+        // --- دوال الإدارة ---
         function openAdmin() {
-            if(prompt("كلمة المرور (1234)") === "1234") document.getElementById('admin-panel').style.display = 'flex';
+            if(prompt("رمز المرور (1234)") === "1234") {
+                document.getElementById('admin-panel').style.display = 'flex';
+            }
         }
         function closeAdmin() { document.getElementById('admin-panel').style.display = 'none'; }
+        
+        function addNewPerson() {
+            const name = document.getElementById('new-name-input').value;
+            if(name) {
+                people.push({ id: Date.now(), name: name, count: 0 });
+                saveData();
+                document.getElementById('new-name-input').value = '';
+            }
+        }
+        
+        function editName(idx, val) { people[idx].name = val; saveData(); }
+        function deletePerson(idx) { if(confirm("حذف؟")) { people.splice(idx, 1); saveData(); } }
+        function resetAll() { if(confirm("تصفير الكل؟")) { people.forEach(p => p.count=0); saveData(); } }
 
-        loadData();
+        // بدء التطبيق
+        init();
+
     </script>
 </body>
 </html>
