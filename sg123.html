@@ -11,6 +11,7 @@
             --success: #27ae60;
             --danger: #c0392b;
             --bg-color: #f4f6f9;
+            --warning: #f39c12;
         }
 
         * { box-sizing: border-box; }
@@ -40,18 +41,35 @@
         }
 
         .score-box {
-            font-size: 1.5rem;
+            font-size: 1.2rem;
             font-weight: bold;
             color: var(--primary);
             background: #ecf0f1;
-            padding: 5px 20px;
+            padding: 5px 15px;
             border-radius: 20px;
             display: flex;
             align-items: center;
             gap: 10px;
         }
 
-        .score-value { color: var(--accent); font-size: 1.8rem; }
+        .score-value { color: var(--accent); font-size: 1.5rem; }
+
+        /* --- شريط تقدم الجولات (الكلمات المتبقية) --- */
+        .rounds-progress-container {
+            width: 100%;
+            height: 6px;
+            background: #ecf0f1;
+            position: absolute;
+            top: 70px; /* أسفل الهيدر مباشرة */
+            left: 0;
+            z-index: 9;
+        }
+        .rounds-progress-bar {
+            height: 100%;
+            background: var(--success);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
 
         /* --- منطقة اللعب الرئيسية --- */
         .game-container {
@@ -62,6 +80,7 @@
             align-items: center;
             width: 100%;
             position: relative;
+            padding-top: 20px;
         }
 
         /* الكلمة المستهدفة */
@@ -74,6 +93,10 @@
             opacity: 0;
             transform: scale(0.8);
             transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            min-height: 120px; /* حجز مكان ثابت */
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .target-word.visible {
@@ -81,7 +104,7 @@
             transform: scale(1);
         }
 
-        /* شريط التوقيت */
+        /* شريط التوقيت (العد التنازلي للكلمة) */
         .timer-bar-container {
             width: 80%;
             max-width: 400px;
@@ -89,7 +112,8 @@
             background: #e0e0e0;
             border-radius: 5px;
             overflow: hidden;
-            display: none; /* مخفي افتراضياً */
+            display: none; 
+            margin-bottom: 20px;
         }
 
         .timer-bar {
@@ -103,33 +127,67 @@
         .feedback-msg {
             font-size: 1.5rem;
             height: 40px;
-            margin-top: 20px;
+            margin-top: 10px;
             font-weight: bold;
         }
         .feedback-success { color: var(--success); }
         .feedback-error { color: var(--danger); }
 
+        /* --- منطقة البداية واختيار السرعة --- */
+        .start-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .speed-options {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .speed-btn {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #ddd;
+            background: white;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #7f8c8d;
+            transition: all 0.2s;
+        }
+
+        .speed-btn.selected {
+            border-color: var(--accent);
+            background: #ebf5fb;
+            color: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(52, 152, 219, 0.2);
+        }
+
         /* زر البدء */
         .start-btn {
             background: var(--accent);
             color: white;
-            font-size: 2rem;
-            padding: 20px 60px;
+            font-size: 1.5rem;
+            padding: 15px 40px;
             border: none;
             border-radius: 50px;
             cursor: pointer;
+            width: 100%;
             box-shadow: 0 10px 20px rgba(52, 152, 219, 0.3);
             transition: transform 0.2s;
-            animation: pulse 2s infinite;
         }
-
         .start-btn:active { transform: scale(0.95); }
-
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(52, 152, 219, 0.7); }
-            70% { box-shadow: 0 0 0 20px rgba(52, 152, 219, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(52, 152, 219, 0); }
-        }
 
         /* --- الشريط السفلي --- */
         .footer-controls {
@@ -177,7 +235,6 @@
         .final-score { font-size: 4rem; color: var(--accent); font-weight: bold; margin: 10px 0; }
         .final-msg { font-size: 1.5rem; color: var(--primary); margin-bottom: 20px; }
         
-        /* تنسيقات جدول الإدارة */
         .admin-table-container { max-height: 300px; overflow-y: auto; margin-top: 10px; border: 1px solid #eee; }
         table { width: 100%; border-collapse: collapse; }
         td, th { padding: 8px; border-bottom: 1px solid #eee; text-align: right; }
@@ -186,7 +243,6 @@
         .bg-red { background: var(--danger); }
         .bg-green { background: var(--success); }
 
-        /* حالة الميكروفون */
         .mic-status {
             position: absolute;
             top: 20px;
@@ -209,6 +265,11 @@
             النقاط: <span id="score-display" class="score-value">0</span>
         </div>
     </div>
+    
+    <!-- شريط تقدم الكلمات -->
+    <div class="rounds-progress-container">
+        <div id="rounds-progress" class="rounds-progress-bar"></div>
+    </div>
 
     <!-- مؤشر الميكروفون -->
     <div id="mic-icon" class="mic-status">🎙️</div>
@@ -216,29 +277,41 @@
     <!-- حاوية اللعبة -->
     <div class="game-container">
         
-        <!-- زر البدء (يختفي عند اللعب) -->
-        <button id="start-btn" class="start-btn" onclick="startGame()">ابدأ التحدي 🚀</button>
-
-        <!-- منطقة عرض الكلمة -->
-        <div id="word-display" class="target-word">مستعد؟</div>
-
-        <!-- شريط الوقت -->
-        <div class="timer-bar-container" id="timer-container">
-            <div class="timer-bar" id="timer-bar"></div>
+        <!-- واجهة البداية (تظهر فقط عند عدم اللعب) -->
+        <div id="start-panel" class="start-area">
+            <h3 style="margin:0; color:var(--primary)">اختر السرعة:</h3>
+            <div class="speed-options">
+                <button class="speed-btn" onclick="selectSpeed(7000, this)" id="btn-slow">بطيء<br><small>7 ثوان</small></button>
+                <button class="speed-btn selected" onclick="selectSpeed(5000, this)" id="btn-normal">سريع<br><small>5 ثوان</small></button>
+                <button class="speed-btn" onclick="selectSpeed(3000, this)" id="btn-fast">صاروخ<br><small>3 ثوان</small></button>
+            </div>
+            <button class="start-btn" onclick="startGame()">ابدأ التحدي 🚀</button>
         </div>
 
-        <!-- رسالة النتيجة اللحظية -->
-        <div id="feedback" class="feedback-msg"></div>
+        <!-- عناصر اللعب (مخفية في البداية) -->
+        <div id="game-elements" style="display: none; width: 100%; flex-direction: column; align-items: center;">
+            <!-- منطقة عرض الكلمة -->
+            <div id="word-display" class="target-word"></div>
 
-        <!-- عرض النص المسموع (للتتبع) -->
-        <div style="margin-top: 20px; color: #95a5a6; font-size: 0.9rem;">
-            سمعت: <span id="heard-text">...</span>
+            <!-- شريط الوقت -->
+            <div class="timer-bar-container" id="timer-container">
+                <div class="timer-bar" id="timer-bar"></div>
+            </div>
+
+            <!-- رسالة النتيجة اللحظية -->
+            <div id="feedback" class="feedback-msg"></div>
+
+            <!-- عرض النص المسموع -->
+            <div style="margin-top: 20px; color: #95a5a6; font-size: 0.9rem;">
+                سمعت: <span id="heard-text">...</span>
+            </div>
         </div>
+
     </div>
 
     <!-- أزرار التحكم السفلية -->
     <div class="footer-controls">
-        <button class="admin-btn" onclick="openAdmin()">⚙️ كلمات السباق</button>
+        <button class="admin-btn" onclick="openAdmin()">⚙️ الكلمات</button>
     </div>
 
     <!-- نافذة النهاية (النتيجة) -->
@@ -256,24 +329,22 @@
     <div id="admin-modal" class="modal-overlay">
         <div class="modal-content" style="max-width: 600px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <h3>🔠 بنك الكلمات (100 كلمة)</h3>
+                <h3>🔠 بنك الكلمات (3-5 أحرف)</h3>
                 <button onclick="closeAdmin()" class="btn-mini bg-red" style="font-size: 1rem; width: 30px; height: 30px;">✕</button>
             </div>
             
             <div style="display: flex; gap: 5px; margin-bottom: 10px;">
-                <input type="text" id="new-word-input" placeholder="أضف كلمة جديدة..." maxlength="5">
+                <input type="text" id="new-word-input" placeholder="كلمة جديدة (3-5 أحرف)..." maxlength="5">
                 <button onclick="addWord()" class="btn-mini bg-green" style="width: 60px;">إضافة</button>
             </div>
 
             <div class="admin-table-container">
-                <table id="words-table">
-                    <!-- سيتم تعبئته بالجافاسكربت -->
-                </table>
+                <table id="words-table"></table>
             </div>
             <div style="margin-top: 10px; font-size: 0.8rem; color: #7f8c8d; text-align: right;">
-                * يُفضل كلمات قصيرة (4-5 أحرف) لسهولة القراءة السريعة.
+                * الكلمات مناسبة للأعمار 7-12 سنة.
             </div>
-            <button onclick="resetDefaultWords()" class="btn-mini bg-red" style="margin-top: 15px; padding: 8px;">استعادة الكلمات الافتراضية ⚠️</button>
+            <button onclick="resetDefaultWords()" class="btn-mini bg-red" style="margin-top: 15px; padding: 8px;">استعادة القائمة الأصلية ⚠️</button>
         </div>
     </div>
 
@@ -281,7 +352,7 @@
         // --- البيانات الأساسية ---
         let wordBank = [];
         const TOTAL_ROUNDS = 10;
-        const WORD_TIME_MS = 3000; // 3 ثواني
+        let selectedTimeMs = 5000; // الافتراضي سريع
 
         // --- متغيرات الجلسة ---
         let currentScore = 0;
@@ -299,9 +370,16 @@
             setupSpeechRecognition();
         }
 
+        // اختيار السرعة
+        function selectSpeed(ms, btn) {
+            selectedTimeMs = ms;
+            document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+        }
+
         // 1. إدارة البيانات (الكلمات)
         function loadWords() {
-            const saved = localStorage.getItem('speedRead_words');
+            const saved = localStorage.getItem('speedRead_words_v2');
             if (saved) {
                 wordBank = JSON.parse(saved);
             } else {
@@ -310,25 +388,32 @@
         }
 
         function saveWords() {
-            localStorage.setItem('speedRead_words', JSON.stringify(wordBank));
+            localStorage.setItem('speedRead_words_v2', JSON.stringify(wordBank));
             renderAdminTable();
         }
 
         function generateDefaultWords() {
-            // توليد 100 كلمة (أسماء وحيوانات قصيرة)
+            // توليد 100 كلمة منقحة (3-5 أحرف، تناسب 7-12 سنة)
             const defaults = [
-                "أسد", "نمر", "فهد", "دب", "قطة", "كلب", "ذئب", "صقر", "نسر", "بطة",
-                "بحر", "نهر", "جبل", "قمر", "شمس", "نجم", "سماء", "أرض", "زرع", "ورد",
-                "أمل", "منى", "هند", "ريم", "مها", "جنى", "رنا", "دنا", "لمى", "سها",
-                "عمر", "علي", "سعد", "فهد", "حمد", "زيد", "بدر", "أنس", "حسن", "عمار",
-                "تفاح", "عنب", "تين", "موز", "كرز", "توت", "خوخ", "بلح", "لوز", "فول",
-                "بيت", "باب", "دار", "سور", "سقف", "غار", "بير", "دلو", "كأس", "صحن",
-                "قلم", "حبر", "كتب", "ورق", "علم", "درس", "صف", "لوح", "رسم", "خط",
-                "يد", "رجل", "عين", "أذن", "فم", "أنف", "سن", "وجه", "شعر", "قلب",
-                "خبز", "لحم", "ملح", "سكر", "زيت", "ماء", "بن", "هيل", "شاي", "تمر",
-                "جمل", "بقر", "غنم", "ماعز", "فيل", "ظبي", "مهر", "حوت", "ضبع", "ثعلب"
+                // حيوانات وطيور
+                "أسد", "نمر", "فهد", "ذئب", "قطة", "كلب", "بطة", "ديك", "صقر", "نسر",
+                "بومة", "فيل", "جمل", "بقر", "غنم", "حوت", "سمك", "ضفدع", "نمل", "نحل",
+                // طبيعة
+                "شمس", "قمر", "نجم", "سماء", "أرض", "بحر", "نهر", "جبل", "رمل", "شجر",
+                "ورد", "زهر", "غيم", "مطر", "ثلج", "برق", "رعد", "كهف", "بير", "ليل",
+                // مدرسة وأدوات
+                "قلم", "كتاب", "ورق", "علم", "درس", "فصل", "لوح", "حبر", "رسم", "لون",
+                "شنطة", "مقعد", "جرس", "ساحة", "طالب", "معلم", "مدير", "نجاح", "فهم", "كتب",
+                // فواكه وطعام
+                "توت", "تين", "بلح", "عنب", "موز", "كرز", "خوخ", "لوز", "فول", "عدس",
+                "خبز", "لحم", "بيض", "جبن", "عسل", "سمن", "زيت", "ملح", "ماء", "لبن",
+                // جسم وإنسان
+                "رأس", "عين", "أذن", "أنف", "فم", "يد", "رجل", "قلب", "سن", "شعر",
+                "طفل", "أب", "أم", "أخ", "أخت", "عم", "خال", "جد", "وجه", "بطن",
+                // أماكن وأشياء
+                "بيت", "باب", "دار", "غرفة", "سقف", "جدار", "كرسي", "سرير", "كوب", "صحن",
+                "مسجد", "ملعب", "سوق", "شارع", "مدن", "قرى", "خيمة", "نار", "سيف", "درع"
             ];
-            // التأكد من أنها 100 كلمة أو تكرارها للوصول للعدد
             wordBank = defaults; 
             saveWords();
         }
@@ -339,8 +424,8 @@
                 const SpeechAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
                 recognition = new SpeechAPI();
                 recognition.lang = 'ar-SA';
-                recognition.continuous = true; // نجعله مستمر طوال الجولة
-                recognition.interimResults = true; // نتائج فورية للسرعة
+                recognition.continuous = true; 
+                recognition.interimResults = true; 
 
                 recognition.onstart = () => {
                     isListening = true;
@@ -349,16 +434,13 @@
                 recognition.onend = () => {
                     isListening = false;
                     document.getElementById('mic-icon').classList.remove('mic-active');
-                    // إعادة التشغيل تلقائياً إذا كانت اللعبة جارية
                     if (isGameRunning) recognition.start();
                 };
 
                 recognition.onresult = (event) => {
-                    // نأخذ آخر نتيجة
                     const resultIndex = event.results.length - 1;
                     const transcript = event.results[resultIndex][0].transcript;
-                    const isFinal = event.results[resultIndex].isFinal;
-
+                    
                     document.getElementById('heard-text').innerText = transcript;
                     checkAnswer(transcript);
                 };
@@ -376,24 +458,22 @@
                 return;
             }
 
-            // إعداد الجلسة
             currentScore = 0;
             currentRoundIndex = 0;
             updateScoreUI();
+            updateProgressBar();
             
-            // اختيار 10 كلمات عشوائية غير مكررة
             const shuffled = [...wordBank].sort(() => 0.5 - Math.random());
             roundQueue = shuffled.slice(0, TOTAL_ROUNDS);
 
-            // واجهة المستخدم
-            document.getElementById('start-btn').style.display = 'none';
+            // تبديل الواجهة
+            document.getElementById('start-panel').style.display = 'none';
+            document.getElementById('game-elements').style.display = 'flex';
             document.getElementById('timer-container').style.display = 'block';
             document.getElementById('end-modal').style.display = 'none';
             document.getElementById('heard-text').innerText = "...";
             
             isGameRunning = true;
-            
-            // تشغيل الميكروفون
             try { recognition.start(); } catch(e) {}
 
             nextRound();
@@ -405,20 +485,18 @@
                 return;
             }
 
+            updateProgressBar();
             const wordDisplay = document.getElementById('word-display');
             const feedback = document.getElementById('feedback');
             
-            // تنظيف الجولة السابقة
             feedback.innerText = "";
             wordDisplay.classList.remove('visible');
+            wordDisplay.innerText = ""; // تفريغ مؤقت
             
-            // تأخير بسيط لظهور الكلمة الجديدة (جمالية)
             setTimeout(() => {
                 currentTargetWord = roundQueue[currentRoundIndex];
                 wordDisplay.innerText = currentTargetWord;
                 wordDisplay.classList.add('visible');
-                
-                // بدء المؤقت
                 startTimer();
             }, 500);
         }
@@ -428,17 +506,15 @@
             timerBar.style.transition = 'none';
             timerBar.style.width = '100%';
             
-            // إجبار المتصفح على تطبيق الستايل قبل الانتقال (Reflow)
-            void timerBar.offsetWidth;
+            void timerBar.offsetWidth; // Reflow
 
-            timerBar.style.transition = `width ${WORD_TIME_MS}ms linear`;
+            timerBar.style.transition = `width ${selectedTimeMs}ms linear`;
             timerBar.style.width = '0%';
 
             clearTimeout(timerInterval);
             timerInterval = setTimeout(() => {
-                // انتهى الوقت ولم يجب
                 handleRoundResult(false);
-            }, WORD_TIME_MS);
+            }, selectedTimeMs);
         }
 
         function checkAnswer(spokenText) {
@@ -448,16 +524,13 @@
             const target = normalizeArabic(currentTargetWord);
 
             if (spoken.includes(target)) {
-                // إجابة صحيحة
                 clearTimeout(timerInterval);
                 handleRoundResult(true);
             }
         }
 
         function handleRoundResult(isCorrect) {
-            // إيقاف المعالجة مؤقتاً لهذه الكلمة
             currentTargetWord = null; 
-            
             const feedback = document.getElementById('feedback');
             
             if (isCorrect) {
@@ -467,7 +540,7 @@
                 playSound('success');
             } else {
                 currentScore--; 
-                if(currentScore < 0) currentScore = 0; // لا ننزل تحت الصفر
+                if(currentScore < 0) currentScore = 0;
                 feedback.innerText = "انتهى الوقت!";
                 feedback.className = "feedback-msg feedback-error";
                 playSound('fail');
@@ -475,8 +548,8 @@
 
             updateScoreUI();
             currentRoundIndex++;
+            updateProgressBar(); // تحديث الشريط بعد انتهاء الكلمة
             
-            // الانتقال للكلمة التالية بعد ثانية واحدة
             setTimeout(() => {
                 nextRound();
             }, 1000);
@@ -486,14 +559,21 @@
             isGameRunning = false;
             recognition.stop();
             
-            document.getElementById('start-btn').style.display = 'block';
-            document.getElementById('timer-container').style.display = 'none';
-            document.getElementById('word-display').innerText = "انتهى!";
+            // إخفاء عناصر اللعب وإظهار لوحة البداية في الخلفية (تحت المودال)
+            document.getElementById('game-elements').style.display = 'none';
+            document.getElementById('start-panel').style.display = 'flex';
+            
+            // تنظيف مكان الكلمة حتى لا تظهر "انتهى"
+            document.getElementById('word-display').innerText = ""; 
             
             showEndModal();
         }
 
-        // --- دوال مساعدة ---
+        function updateProgressBar() {
+            const percent = (currentRoundIndex / TOTAL_ROUNDS) * 100;
+            document.getElementById('rounds-progress').style.width = `${percent}%`;
+        }
+
         function normalizeArabic(text) {
             if (!text) return "";
             text = text.trim();
@@ -513,7 +593,6 @@
         }
 
         function playSound(type) {
-            // يمكن إضافة أصوات حقيقية هنا، سنكتفي بتغيير الألوان كمؤشر
             const body = document.body;
             if(type === 'success') {
                 body.style.backgroundColor = "#eafaf1";
@@ -532,9 +611,10 @@
             
             scoreVal.innerText = currentScore;
             
-            if (currentScore >= 8) msg.innerText = "أداء أسطوري! أنت قارئ سريع جداً 🦅";
-            else if (currentScore >= 5) msg.innerText = "جيد جداً! استمر في التدريب 💪";
-            else msg.innerText = "حاول مرة أخرى، السرعة تأتي مع التدريب 🐢";
+            if (currentScore >= 9) msg.innerText = "أداء أسطوري! أنت قارئ محترف 🦅";
+            else if (currentScore >= 7) msg.innerText = "ممتاز جداً! سرعة رائعة 🚀";
+            else if (currentScore >= 5) msg.innerText = "جيد! واصل التدريب 💪";
+            else msg.innerText = "حاول مرة أخرى لتصبح أسرع 🐢";
             
             modal.style.display = 'flex';
         }
@@ -568,13 +648,13 @@
         function addWord() {
             const input = document.getElementById('new-word-input');
             const val = input.value.trim();
-            if (val && val.length <= 5) {
-                wordBank.unshift(val); // إضافة للأعلى
+            if (val && val.length >= 3 && val.length <= 5) {
+                wordBank.unshift(val);
                 saveWords();
                 input.value = "";
                 input.focus();
             } else {
-                alert("الرجاء إدخال كلمة (5 أحرف كحد أقصى)");
+                alert("الكلمة يجب أن تكون بين 3 و 5 أحرف");
             }
         }
 
@@ -590,13 +670,12 @@
         }
 
         function resetDefaultWords() {
-            if(confirm("هل أنت متأكد؟ سيتم حذف جميع الكلمات الحالية واستعادة الـ 100 كلمة الأصلية.")) {
+            if(confirm("استعادة الكلمات الافتراضية؟")) {
                 generateDefaultWords();
                 renderAdminTable();
             }
         }
 
-        // بدء التشغيل
         init();
 
     </script>
