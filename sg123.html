@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>مسابقة القراءة السريعة</title>
+    <title>مسابقة القراءة السريعة - الإصدار المطور</title>
     <style>
         :root {
             --primary: #2c3e50;
@@ -12,6 +12,7 @@
             --danger: #c0392b;
             --bg-color: #f4f6f9;
             --warning: #f39c12;
+            --streak-color: #e67e22;
         }
 
         * { box-sizing: border-box; }
@@ -26,12 +27,13 @@
             flex-direction: column;
             align-items: center;
             overflow: hidden;
+            user-select: none; /* منع تحديد النص بالخطأ */
         }
 
-        /* --- المنطقة العلوية: النقاط والعنوان --- */
+        /* --- المنطقة العلوية --- */
         .header-area {
             width: 100%;
-            padding: 15px 20px;
+            padding: 10px 20px;
             background: white;
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
             display: flex;
@@ -40,8 +42,14 @@
             z-index: 10;
         }
 
-        .score-box {
-            font-size: 1.2rem;
+        .stats-box {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .score-pill {
+            font-size: 1rem;
             font-weight: bold;
             color: var(--primary);
             background: #ecf0f1;
@@ -49,18 +57,35 @@
             border-radius: 20px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 5px;
         }
+        
+        .high-score-label { font-size: 0.8rem; color: #7f8c8d; }
+        .current-score-val { color: var(--accent); font-size: 1.4rem; }
 
-        .score-value { color: var(--accent); font-size: 1.5rem; }
+        /* أيقونة السلسلة (Streak) */
+        .streak-icon {
+            font-size: 1.5rem;
+            opacity: 0.3;
+            transition: all 0.3s;
+            filter: grayscale(100%);
+        }
+        .streak-active {
+            opacity: 1;
+            filter: grayscale(0%);
+            transform: scale(1.2);
+            animation: burn 0.5s infinite alternate;
+            text-shadow: 0 0 10px rgba(230, 126, 34, 0.8);
+        }
+        @keyframes burn { from { transform: scale(1.1); } to { transform: scale(1.3); } }
 
-        /* --- شريط تقدم الجولات (الكلمات المتبقية) --- */
+        /* --- شريط التقدم --- */
         .rounds-progress-container {
             width: 100%;
             height: 6px;
             background: #ecf0f1;
             position: absolute;
-            top: 70px; /* أسفل الهيدر مباشرة */
+            top: 60px; 
             left: 0;
             z-index: 9;
         }
@@ -71,7 +96,7 @@
             transition: width 0.3s ease;
         }
 
-        /* --- منطقة اللعب الرئيسية --- */
+        /* --- منطقة اللعب --- */
         .game-container {
             flex: 1;
             display: flex;
@@ -85,55 +110,67 @@
 
         /* الكلمة المستهدفة */
         .target-word {
-            font-size: 5rem;
+            font-size: 5.5rem;
             font-weight: 800;
             color: var(--primary);
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             opacity: 0;
-            transform: scale(0.8);
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            min-height: 120px; /* حجز مكان ثابت */
+            transform: scale(0.5);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s;
+            min-height: 140px; 
             display: flex;
             align-items: center;
             justify-content: center;
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.05);
         }
 
-        .target-word.visible {
-            opacity: 1;
-            transform: scale(1);
-        }
+        .target-word.visible { opacity: 1; transform: scale(1); }
+        
+        /* تأثيرات الإجابة */
+        .target-word.correct-anim { animation: popSuccess 0.4s ease-out; }
+        .target-word.wrong-anim { animation: shakeError 0.4s ease-in-out; }
+        
+        /* تأثير التلاشي للمستوى الصعب */
+        .target-word.fading-mode { animation: fadeOutText 2.8s forwards; }
 
-        /* شريط التوقيت (العد التنازلي للكلمة) */
+        @keyframes popSuccess { 0% {transform: scale(1);} 50% {transform: scale(1.3); color: var(--success);} 100% {transform: scale(1);} }
+        @keyframes shakeError { 0%, 100% {transform: translateX(0);} 20% {transform: translateX(-15px);} 40% {transform: translateX(15px);} 60% {transform: translateX(-10px);} 80% {transform: translateX(10px);} }
+        @keyframes fadeOutText { 0% { opacity: 1; } 70% { opacity: 0.3; filter: blur(2px); } 100% { opacity: 0; filter: blur(5px); } }
+
+        /* شريط التوقيت */
         .timer-bar-container {
             width: 80%;
             max-width: 400px;
-            height: 10px;
+            height: 12px;
             background: #e0e0e0;
-            border-radius: 5px;
+            border-radius: 6px;
             overflow: hidden;
             display: none; 
             margin-bottom: 20px;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
         }
 
         .timer-bar {
             height: 100%;
-            background: var(--accent);
+            background: linear-gradient(90deg, var(--accent), #2980b9);
             width: 100%;
             transform-origin: left;
+            border-radius: 6px;
         }
 
-        /* رسائل التحفيز/الخطأ */
+        /* رسائل التحفيز */
         .feedback-msg {
-            font-size: 1.5rem;
-            height: 40px;
-            margin-top: 10px;
+            font-size: 1.8rem;
+            height: 50px;
+            margin-top: 5px;
             font-weight: bold;
+            text-align: center;
         }
-        .feedback-success { color: var(--success); }
+        .feedback-success { color: var(--success); text-shadow: 0 2px 10px rgba(39, 174, 96, 0.3); }
         .feedback-error { color: var(--danger); }
 
-        /* --- منطقة البداية واختيار السرعة --- */
+        /* --- واجهة البداية --- */
         .start-area {
             display: flex;
             flex-direction: column;
@@ -141,10 +178,11 @@
             gap: 20px;
             background: white;
             padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border-radius: 25px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
             width: 90%;
             max-width: 400px;
+            border: 1px solid white;
         }
 
         .speed-options {
@@ -156,103 +194,140 @@
 
         .speed-btn {
             flex: 1;
-            padding: 10px;
-            border: 2px solid #ddd;
-            background: white;
-            border-radius: 10px;
+            padding: 15px 5px;
+            border: 2px solid #ecf0f1;
+            background: #f8f9fa;
+            border-radius: 12px;
             cursor: pointer;
             font-weight: bold;
             color: #7f8c8d;
             transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
+        .speed-btn small { font-size: 0.75rem; margin-top: 3px; font-weight: normal; }
 
         .speed-btn.selected {
             border-color: var(--accent);
             background: #ebf5fb;
             color: var(--accent);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(52, 152, 219, 0.2);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.2);
         }
 
-        /* زر البدء */
         .start-btn {
-            background: var(--accent);
+            background: linear-gradient(135deg, var(--accent), #2980b9);
             color: white;
-            font-size: 1.5rem;
-            padding: 15px 40px;
+            font-size: 1.6rem;
+            padding: 15px 50px;
             border: none;
             border-radius: 50px;
             cursor: pointer;
             width: 100%;
-            box-shadow: 0 10px 20px rgba(52, 152, 219, 0.3);
-            transition: transform 0.2s;
+            box-shadow: 0 8px 20px rgba(52, 152, 219, 0.4);
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 10px;
         }
-        .start-btn:active { transform: scale(0.95); }
+        .start-btn:active { transform: scale(0.96); box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3); }
 
-        /* --- الشريط السفلي --- */
-        .footer-controls {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            z-index: 100;
-        }
-
-        .admin-btn {
-            background: rgba(44, 62, 80, 0.8);
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.9rem;
-        }
-
-        /* --- النوافذ المنبثقة (Modal) --- */
+        /* --- المودال --- */
         .modal-overlay {
             display: none;
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85);
+            background: rgba(44, 62, 80, 0.9);
             z-index: 2000;
             justify-content: center;
             align-items: center;
-            backdrop-filter: blur(5px);
+            backdrop-filter: blur(8px);
         }
 
         .modal-content {
             background: white;
             width: 90%;
-            max-width: 500px;
-            border-radius: 20px;
+            max-width: 480px;
+            border-radius: 25px;
             padding: 30px;
             text-align: center;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            box-shadow: 0 25px 60px rgba(0,0,0,0.4);
             position: relative;
-            max-height: 85vh;
+            max-height: 90vh;
             overflow-y: auto;
+            border: 4px solid #ecf0f1;
         }
 
-        .final-score { font-size: 4rem; color: var(--accent); font-weight: bold; margin: 10px 0; }
-        .final-msg { font-size: 1.5rem; color: var(--primary); margin-bottom: 20px; }
+        .title-badge {
+            background: var(--warning);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            display: inline-block;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 10px rgba(243, 156, 18, 0.3);
+        }
+
+        .final-score { font-size: 5rem; color: var(--accent); font-weight: 800; line-height: 1; margin: 10px 0; }
+        .final-msg { font-size: 1.6rem; color: var(--primary); margin-bottom: 20px; font-weight: bold; }
         
-        .admin-table-container { max-height: 300px; overflow-y: auto; margin-top: 10px; border: 1px solid #eee; }
-        table { width: 100%; border-collapse: collapse; }
-        td, th { padding: 8px; border-bottom: 1px solid #eee; text-align: right; }
-        input[type="text"] { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
-        .btn-mini { padding: 4px 8px; border-radius: 4px; border: none; cursor: pointer; color: white; font-size: 0.8rem; }
-        .bg-red { background: var(--danger); }
-        .bg-green { background: var(--success); }
+        .missed-words-section {
+            background: #fff5f5;
+            border-radius: 15px;
+            padding: 15px;
+            margin: 20px 0;
+            border: 1px dashed #fab1a0;
+        }
+        .missed-words-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .missed-tag {
+            background: white;
+            color: var(--danger);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 1rem;
+            border: 1px solid #ffcccc;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            font-weight: bold;
+        }
+
+        /* --- عناصر تحكم أخرى --- */
+        .footer-controls { position: fixed; bottom: 20px; left: 20px; z-index: 100; }
+        .admin-btn {
+            background: rgba(255, 255, 255, 0.9);
+            color: var(--primary);
+            border: 1px solid #bdc3c7;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
 
         .mic-status {
             position: absolute;
             top: 20px;
             left: 20px;
-            font-size: 2rem;
+            font-size: 1.5rem;
             opacity: 0.2;
             transition: opacity 0.3s;
         }
-        .mic-active { opacity: 1; color: var(--danger); animation: blink 1s infinite; }
-        @keyframes blink { 50% { opacity: 0.5; } }
+        .mic-active { opacity: 1; color: var(--danger); animation: pulseMic 1.5s infinite; }
+        @keyframes pulseMic { 0% {opacity: 1;} 50% {opacity: 0.6;} 100% {opacity: 1;} }
+
+        /* نافذة الإدارة */
+        table { width: 100%; border-collapse: collapse; }
+        td, th { padding: 8px; border-bottom: 1px solid #eee; text-align: right; }
+        input[type="text"] { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px; }
+        .btn-mini { padding: 5px 10px; border-radius: 6px; border: none; cursor: pointer; color: white; font-size: 0.8rem; }
+        .bg-red { background: var(--danger); }
+        .bg-green { background: var(--success); }
+        .admin-table-container { max-height: 250px; overflow-y: auto; margin-top: 10px; border: 1px solid #eee; border-radius: 8px; }
 
     </style>
 </head>
@@ -260,9 +335,25 @@
 
     <!-- رأس الصفحة -->
     <div class="header-area">
-        <div style="font-weight: bold; color: var(--primary);">⏱️ القراءة السريعة</div>
-        <div class="score-box">
-            النقاط: <span id="score-display" class="score-value">0</span>
+        <div style="font-weight: bold; color: var(--primary); display:flex; align-items:center; gap:5px;">
+            <span>🚀</span> القراءة السريعة
+        </div>
+        
+        <div class="stats-box">
+            <!-- أفضل رقم -->
+            <div style="text-align: center; line-height: 1;">
+                <div class="high-score-label">الأفضل</div>
+                <div id="best-score-display" style="font-weight:bold; color:var(--primary);">0</div>
+            </div>
+
+            <!-- النتيجة الحالية -->
+            <div class="score-pill">
+                <span>⭐</span>
+                <span id="score-display" class="current-score-val">0</span>
+            </div>
+
+            <!-- الشعلة (Streak) -->
+            <div id="streak-indicator" class="streak-icon">🔥</div>
         </div>
     </div>
     
@@ -277,18 +368,26 @@
     <!-- حاوية اللعبة -->
     <div class="game-container">
         
-        <!-- واجهة البداية (تظهر فقط عند عدم اللعب) -->
+        <!-- واجهة البداية -->
         <div id="start-panel" class="start-area">
-            <h3 style="margin:0; color:var(--primary)">اختر السرعة:</h3>
+            <h2 style="margin:0 0 5px 0; color:var(--primary)">اختر التحدي</h2>
+            <p style="margin:0 0 20px 0; color:#7f8c8d; font-size:0.9rem">كلما كنت أسرع، زاد اللقب!</p>
+            
             <div class="speed-options">
-                <button class="speed-btn" onclick="selectSpeed(7000, this)" id="btn-slow">بطيء<br><small>7 ثوان</small></button>
-                <button class="speed-btn selected" onclick="selectSpeed(5000, this)" id="btn-normal">سريع<br><small>5 ثوان</small></button>
-                <button class="speed-btn" onclick="selectSpeed(3000, this)" id="btn-fast">صاروخ<br><small>3 ثوان</small></button>
+                <button class="speed-btn" onclick="selectSpeed(7000, this)" id="btn-slow">
+                    <span>🐢</span> عادي<small>7 ثوان</small>
+                </button>
+                <button class="speed-btn selected" onclick="selectSpeed(5000, this)" id="btn-normal">
+                    <span>🐇</span> سريع<small>5 ثوان</small>
+                </button>
+                <button class="speed-btn" onclick="selectSpeed(3000, this)" id="btn-fast">
+                    <span>🚀</span> صاروخ<small>3 ثوان</small>
+                </button>
             </div>
-            <button class="start-btn" onclick="startGame()">ابدأ التحدي 🚀</button>
+            <button class="start-btn" onclick="startGame()">ابدأ الآن</button>
         </div>
 
-        <!-- عناصر اللعب (مخفية في البداية) -->
+        <!-- عناصر اللعب -->
         <div id="game-elements" style="display: none; width: 100%; flex-direction: column; align-items: center;">
             <!-- منطقة عرض الكلمة -->
             <div id="word-display" class="target-word"></div>
@@ -302,14 +401,14 @@
             <div id="feedback" class="feedback-msg"></div>
 
             <!-- عرض النص المسموع -->
-            <div style="margin-top: 20px; color: #95a5a6; font-size: 0.9rem;">
+            <div style="margin-top: 30px; color: #bdc3c7; font-size: 0.85rem; border: 1px solid #ecf0f1; padding: 5px 15px; border-radius: 20px;">
                 سمعت: <span id="heard-text">...</span>
             </div>
         </div>
 
     </div>
 
-    <!-- أزرار التحكم السفلية -->
+    <!-- أزرار التحكم -->
     <div class="footer-controls">
         <button class="admin-btn" onclick="openAdmin()">⚙️ الكلمات</button>
     </div>
@@ -317,23 +416,33 @@
     <!-- نافذة النهاية (النتيجة) -->
     <div id="end-modal" class="modal-overlay">
         <div class="modal-content">
-            <h2>🎉 انتهت الجولة!</h2>
-            <div class="final-msg" id="final-motivation">أداء رائع!</div>
+            <div id="title-badge" class="title-badge">متدرب</div>
+            
+            <h2 style="margin:0; color:var(--primary);">نتيجة الجولة</h2>
             <div class="final-score" id="final-score-val">0</div>
-            <p>نقاط من أصل 10</p>
-            <button class="start-btn" style="font-size: 1.2rem; padding: 10px 30px;" onclick="closeEndModal()">لعب مرة أخرى ↺</button>
+            <div class="final-msg" id="final-motivation">بداية جيدة!</div>
+            
+            <!-- كلمات المراجعة -->
+            <div id="missed-words-section" class="missed-words-section" style="display:none;">
+                <p style="margin: 0; font-size: 0.9rem; color: #c0392b; font-weight:bold;">كلمات للمراجعة (اقرأها بهدوء):</p>
+                <div class="missed-words-container" id="missed-words-list"></div>
+            </div>
+
+            <button class="start-btn" style="font-size: 1.1rem; padding: 12px 30px; width:auto; margin-top:10px;" onclick="closeEndModal()">لعب مرة أخرى ↺</button>
         </div>
     </div>
 
-    <!-- نافذة إدخال كلمة المرور -->
+    <!-- نافذة كلمة المرور -->
     <div id="password-modal" class="modal-overlay">
-        <div class="modal-content" style="max-width: 320px;">
-            <h3 style="margin-top:0">🔒 الدخول للإدارة</h3>
+        <div class="modal-content" style="max-width: 320px; padding: 20px;">
+            <h3 style="margin-top:0">🔒 الإدارة</h3>
             <p style="margin-bottom: 5px; color: #7f8c8d;">أدخل الرمز (1234)</p>
-            <input type="password" id="admin-pass-input" placeholder="****" style="text-align:center; letter-spacing: 5px; font-size: 1.5rem; width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
-            <div id="pass-error" style="color: var(--danger); font-size: 0.9rem; margin: 10px 0; min-height: 20px;"></div>
-            <button class="start-btn" style="font-size: 1rem; padding: 10px; width: 100%;" onclick="checkAdminPassword()">دخول</button>
-            <button class="btn-mini bg-red" onclick="closePasswordModal()" style="margin-top: 10px; width: 100%; padding: 8px;">إلغاء</button>
+            <input type="password" id="admin-pass-input" placeholder="****" style="text-align:center; letter-spacing: 5px; font-size: 1.5rem; width: 100%; margin-bottom:10px;">
+            <div id="pass-error" style="color: var(--danger); font-size: 0.9rem; min-height: 20px;"></div>
+            <div style="display:flex; gap:10px; margin-top:10px;">
+                <button class="start-btn" style="font-size: 1rem; padding: 8px; margin:0; flex:1;" onclick="checkAdminPassword()">دخول</button>
+                <button class="btn-mini bg-red" style="font-size: 1rem; flex:1;" onclick="closePasswordModal()">إلغاء</button>
+            </div>
         </div>
     </div>
 
@@ -341,22 +450,22 @@
     <div id="admin-modal" class="modal-overlay">
         <div class="modal-content" style="max-width: 600px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <h3>🔠 بنك الكلمات (3-5 أحرف)</h3>
-                <button onclick="closeAdmin()" class="btn-mini bg-red" style="font-size: 1rem; width: 30px; height: 30px;">✕</button>
+                <h3>🔠 بنك الكلمات</h3>
+                <button onclick="closeAdmin()" class="btn-mini bg-red" style="width: 30px; height: 30px;">✕</button>
             </div>
             
             <div style="display: flex; gap: 5px; margin-bottom: 10px;">
-                <input type="text" id="new-word-input" placeholder="كلمة جديدة (3-5 أحرف)..." maxlength="5">
-                <button onclick="addWord()" class="btn-mini bg-green" style="width: 60px;">إضافة</button>
+                <input type="text" id="new-word-input" placeholder="كلمة جديدة..." maxlength="5">
+                <button onclick="addWord()" class="btn-mini bg-green" style="width: 70px;">إضافة</button>
             </div>
 
             <div class="admin-table-container">
                 <table id="words-table"></table>
             </div>
             <div style="margin-top: 10px; font-size: 0.8rem; color: #7f8c8d; text-align: right;">
-                * الكلمات مناسبة للأعمار 7-12 سنة.
+                * 3-5 أحرف للأعمار 7-12 سنة.
             </div>
-            <button onclick="resetDefaultWords()" class="btn-mini bg-red" style="margin-top: 15px; padding: 8px;">استعادة القائمة الأصلية ⚠️</button>
+            <button onclick="resetDefaultWords()" class="btn-mini bg-red" style="margin-top: 15px; padding: 8px; width:100%;">استعادة القائمة الأصلية</button>
         </div>
     </div>
 
@@ -365,9 +474,14 @@
         let wordBank = [];
         const TOTAL_ROUNDS = 10;
         let selectedTimeMs = 5000; 
+        
+        // --- ألوان الكلمات العشوائية ---
+        const wordColors = ["#2c3e50", "#c0392b", "#2980b9", "#8e44ad", "#d35400", "#16a085", "#27ae60"];
 
         // --- متغيرات الجلسة ---
         let currentScore = 0;
+        let bestScore = 0;
+        let currentStreak = 0; // عداد السلسلة
         let roundQueue = [];
         let currentRoundIndex = 0;
         let isGameRunning = false;
@@ -375,29 +489,40 @@
         let recognition;
         let isListening = false;
         let currentTargetWord = "";
+        let missedWords = [];
 
-        // --- تهيئة النظام ---
         function init() {
             loadWords();
+            loadBestScore(); // تحميل أفضل رقم
             setupSpeechRecognition();
         }
 
-        // اختيار السرعة
+        function loadBestScore() {
+            const savedBest = localStorage.getItem('speedRead_bestScore');
+            if (savedBest) {
+                bestScore = parseInt(savedBest);
+                document.getElementById('best-score-display').innerText = bestScore;
+            }
+        }
+
+        function updateBestScore() {
+            if (currentScore > bestScore) {
+                bestScore = currentScore;
+                localStorage.setItem('speedRead_bestScore', bestScore);
+                document.getElementById('best-score-display').innerText = bestScore;
+            }
+        }
+
         function selectSpeed(ms, btn) {
             selectedTimeMs = ms;
             document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('selected'));
             btn.classList.add('selected');
         }
 
-        // 1. إدارة البيانات (الكلمات)
         function loadWords() {
-            // استخدام مفتاح جديد لفرض تحميل الكلمات الجديدة
             const saved = localStorage.getItem('speedRead_words_v4');
-            if (saved) {
-                wordBank = JSON.parse(saved);
-            } else {
-                generateDefaultWords();
-            }
+            if (saved) wordBank = JSON.parse(saved);
+            else generateDefaultWords();
         }
 
         function saveWords() {
@@ -406,51 +531,34 @@
         }
 
         function generateDefaultWords() {
-            // 200 كلمة (3-5 أحرف) مناسبة للأطفال
             const defaults = [
-                // حيوانات وطيور (40 كلمة)
                 "أسد", "نمر", "فهد", "ذئب", "دب", "ثعلب", "كلب", "قطة", "فأر", "قرد",
                 "فيل", "جمل", "بقر", "غنم", "ماعز", "خيل", "حصان", "حمار", "أرنب", "ظبي",
                 "غزال", "بطة", "وزة", "ديك", "دجاج", "صقر", "نسر", "بومة", "غراب", "هدهد",
                 "عصفور", "بلبل", "حمامة", "يمامة", "سمك", "حوت", "قرش", "ضفدع", "سلحفاة", "نملة",
-                
-                // طبيعة وكون (30 كلمة)
                 "شمس", "قمر", "نجم", "سماء", "أرض", "بحر", "نهر", "جبل", "تل", "وادي",
                 "صخر", "حجر", "رمل", "تراب", "غيم", "سحاب", "مطر", "ثلج", "برد", "ريح",
                 "هواء", "نور", "ظلام", "ليل", "نهار", "فجر", "صبح", "عصر", "زهر", "ورد",
-
-                // جسم الإنسان (25 كلمة)
                 "رأس", "وجه", "شعر", "عين", "أذن", "أنف", "فم", "لسان", "سن", "ضرس",
                 "عنق", "كتف", "يد", "كف", "إصبع", "ظفر", "بطن", "ظهر", "قلب", "دم",
                 "عظم", "جلد", "رجل", "قدم", "ركبة",
-
-                // طعام وفواكه (35 كلمة)
                 "خبز", "لحم", "أرز", "سمك", "بيض", "جبن", "زبد", "عسل", "سمن", "زيت",
                 "ملح", "سكر", "ماء", "لبن", "حليب", "شاي", "بن", "تمر", "رطب", "عنب",
                 "تين", "توت", "كرز", "موز", "تفاح", "خوخ", "مشمش", "جزر", "بصل", "ثوم",
                 "فول", "عدس", "قمح", "ذرة", "فجل",
-
-                // مدرسة وأدوات (30 كلمة)
                 "قلم", "كتاب", "دفتر", "ورق", "شنطة", "فصل", "صف", "لوح", "درس", "علم",
                 "رسم", "لون", "حبر", "مسطرة", "ممحات", "براية", "مقعد", "طاولة", "كرسي", "جرس",
                 "ساحة", "طالب", "معلم", "مدير", "عدد", "رقم", "حرف", "كلمة", "سطر", "نجاح",
-
-                // منزل وأشياء (25 كلمة)
                 "بيت", "دار", "باب", "شباك", "جدار", "سقف", "غرفة", "مطبخ", "حمام", "سرير",
                 "فرش", "لحاف", "مخدة", "صندوق", "كوب", "صحن", "ملعقة", "شوكة", "ساعة", "مفتاح",
                 "قفل", "خيط", "إبرة", "ثوب", "قميص",
-
-                // أشخاص وأماكن (15 كلمة)
                 "أب", "أم", "أخ", "أخت", "جد", "جدة", "عم", "خال", "طفل", "ولد",
                 "بنت", "رجل", "مسجد", "سوق", "شارع"
             ];
-            
-            // دمج وتصفية لضمان عدم التكرار والالتزام بالطول
             wordBank = [...new Set(defaults)].filter(w => w.length >= 3 && w.length <= 5);
             saveWords();
         }
 
-        // 2. منطق التعرف الصوتي
         function setupSpeechRecognition() {
             if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
                 const SpeechAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -472,27 +580,25 @@
                 recognition.onresult = (event) => {
                     const resultIndex = event.results.length - 1;
                     const transcript = event.results[resultIndex][0].transcript;
-                    
                     document.getElementById('heard-text').innerText = transcript;
                     checkAnswer(transcript);
                 };
-
                 recognition.onerror = (e) => console.error("Mic Error", e);
             } else {
                 alert("المتصفح غير مدعوم. يرجى استخدام Chrome.");
             }
         }
 
-        // 3. منطق اللعبة
         function startGame() {
-            if (wordBank.length < 10) {
-                alert("يجب أن يكون هناك 10 كلمات على الأقل في البنك!");
-                return;
-            }
+            if (wordBank.length < 10) { alert("يجب أن يكون هناك 10 كلمات على الأقل!"); return; }
 
             currentScore = 0;
+            currentStreak = 0; // تصفير السلسلة
             currentRoundIndex = 0;
+            missedWords = [];
+            
             updateScoreUI();
+            updateStreakUI();
             updateProgressBar();
             
             const shuffled = [...wordBank].sort(() => 0.5 - Math.random());
@@ -511,23 +617,31 @@
         }
 
         function nextRound() {
-            if (currentRoundIndex >= TOTAL_ROUNDS) {
-                endGame();
-                return;
-            }
+            if (currentRoundIndex >= TOTAL_ROUNDS) { endGame(); return; }
 
             updateProgressBar();
             const wordDisplay = document.getElementById('word-display');
             const feedback = document.getElementById('feedback');
             
             feedback.innerText = "";
-            wordDisplay.classList.remove('visible');
+            // إزالة جميع فئات التأثيرات
+            wordDisplay.className = "target-word"; 
             wordDisplay.innerText = "";
             
             setTimeout(() => {
                 currentTargetWord = roundQueue[currentRoundIndex];
                 wordDisplay.innerText = currentTargetWord;
+                
+                // تلوين عشوائي
+                wordDisplay.style.color = wordColors[Math.floor(Math.random() * wordColors.length)];
+
                 wordDisplay.classList.add('visible');
+                
+                // إذا كان الوضع "صاروخ" (3000ms)، أضف تأثير التلاشي
+                if (selectedTimeMs === 3000) {
+                    wordDisplay.classList.add('fading-mode');
+                }
+
                 startTimer();
             }, 500);
         }
@@ -536,9 +650,7 @@
             const timerBar = document.getElementById('timer-bar');
             timerBar.style.transition = 'none';
             timerBar.style.width = '100%';
-            
-            void timerBar.offsetWidth; // Reflow
-
+            void timerBar.offsetWidth; 
             timerBar.style.transition = `width ${selectedTimeMs}ms linear`;
             timerBar.style.width = '0%';
 
@@ -561,34 +673,54 @@
         }
 
         function handleRoundResult(isCorrect) {
+            const currentWord = currentTargetWord;
             currentTargetWord = null; 
             const feedback = document.getElementById('feedback');
+            const wordDisplay = document.getElementById('word-display');
             
             if (isCorrect) {
-                currentScore++;
-                feedback.innerHTML = getRandomMotivation();
+                // منطق السلسلة: إذا وصلت 3، ضاعف النقاط
+                currentStreak++;
+                let pointsToAdd = 1;
+                
+                if (currentStreak >= 3) {
+                    pointsToAdd = 2; // مضاعفة
+                    feedback.innerHTML = "🔥🔥 شعلة! (+2)";
+                } else {
+                    feedback.innerHTML = getRandomMotivation();
+                }
+
+                currentScore += pointsToAdd;
+                
                 feedback.className = "feedback-msg feedback-success";
+                wordDisplay.classList.add('correct-anim');
                 playSound('success');
             } else {
-                currentScore--; 
-                if(currentScore < 0) currentScore = 0;
+                currentStreak = 0; // انقطعت السلسلة
+                
+                // لا ننقص نقاط ولكن لا نزيد، ونضيف لقائمة المراجعة
                 feedback.innerText = "انتهى الوقت!";
                 feedback.className = "feedback-msg feedback-error";
+                wordDisplay.classList.add('wrong-anim');
+                missedWords.push(currentWord);
                 playSound('fail');
             }
 
             updateScoreUI();
+            updateStreakUI(); // تحديث أيقونة الشعلة
+            
             currentRoundIndex++;
             updateProgressBar();
             
             setTimeout(() => {
                 nextRound();
-            }, 1000);
+            }, 1200); // زيادة الوقت قليلاً لرؤية التأثير
         }
 
         function endGame() {
             isGameRunning = false;
             recognition.stop();
+            updateBestScore(); // حفظ الرقم القياسي
             
             document.getElementById('game-elements').style.display = 'none';
             document.getElementById('start-panel').style.display = 'flex';
@@ -597,6 +729,70 @@
             showEndModal();
         }
 
+        // --- تحديثات الواجهة ---
+        function updateScoreUI() {
+            document.getElementById('score-display').innerText = currentScore;
+        }
+
+        function updateStreakUI() {
+            const streakIcon = document.getElementById('streak-indicator');
+            if (currentStreak >= 3) {
+                streakIcon.classList.add('streak-active');
+            } else {
+                streakIcon.classList.remove('streak-active');
+            }
+        }
+
+        function showEndModal() {
+            const modal = document.getElementById('end-modal');
+            const scoreVal = document.getElementById('final-score-val');
+            const msg = document.getElementById('final-motivation');
+            const titleBadge = document.getElementById('title-badge');
+            const missedSection = document.getElementById('missed-words-section');
+            const missedList = document.getElementById('missed-words-list');
+            
+            scoreVal.innerText = currentScore;
+
+            // منطق الألقاب
+            let titleText = "";
+            let titleColor = "";
+            
+            if (currentScore >= 15) { // لأن النقاط قد تتضاعف
+                titleText = "👑 ملك الكلمات"; titleColor = "#8e44ad";
+                msg.innerText = "لا أحد يستطيع مجاراتك!";
+            } else if (currentScore >= 8) {
+                titleText = "🚀 عبقري الكلمات"; titleColor = "#27ae60";
+                msg.innerText = "أداء مذهل وسرعة خيالية!";
+            } else if (currentScore >= 5) {
+                titleText = "✈️ قارئ نفاث"; titleColor = "#2980b9";
+                msg.innerText = "مستواك رائع، استمر!";
+            } else {
+                titleText = "🌱 متدرب واعد"; titleColor = "#f39c12";
+                msg.innerText = "بداية جيدة، التدريب يصنع المعجزات!";
+            }
+
+            titleBadge.innerText = titleText;
+            titleBadge.style.backgroundColor = titleColor;
+
+            // كلمات المراجعة
+            missedList.innerHTML = "";
+            if (missedWords.length > 0) {
+                missedSection.style.display = "block";
+                missedWords.forEach(word => {
+                    const tag = document.createElement("span");
+                    tag.className = "missed-tag";
+                    tag.innerText = word;
+                    missedList.appendChild(tag);
+                });
+            } else {
+                missedSection.style.display = "none";
+                if(currentScore > 0) msg.innerText += " (بدون أي أخطاء! 🎉)";
+            }
+
+            modal.style.display = 'flex';
+        }
+
+        // --- دوال مساعدة ---
         function updateProgressBar() {
             const percent = (currentRoundIndex / TOTAL_ROUNDS) * 100;
             document.getElementById('rounds-progress').style.width = `${percent}%`;
@@ -616,10 +812,6 @@
             return phrases[Math.floor(Math.random() * phrases.length)];
         }
 
-        function updateScoreUI() {
-            document.getElementById('score-display').innerText = currentScore;
-        }
-
         function playSound(type) {
             const body = document.body;
             if(type === 'success') {
@@ -631,98 +823,36 @@
             }
         }
 
-        // --- إدارة النوافذ ---
-        function showEndModal() {
-            const modal = document.getElementById('end-modal');
-            const scoreVal = document.getElementById('final-score-val');
-            const msg = document.getElementById('final-motivation');
-            
-            scoreVal.innerText = currentScore;
-            
-            if (currentScore >= 9) msg.innerText = "أداء أسطوري! أنت قارئ محترف 🦅";
-            else if (currentScore >= 7) msg.innerText = "ممتاز جداً! سرعة رائعة 🚀";
-            else if (currentScore >= 5) msg.innerText = "جيد! واصل التدريب 💪";
-            else msg.innerText = "حاول مرة أخرى لتصبح أسرع 🐢";
-            
-            modal.style.display = 'flex';
-        }
-
-        function closeEndModal() {
-            document.getElementById('end-modal').style.display = 'none';
-        }
-
-        // --- لوحة التحكم وكلمة المرور ---
+        function closeEndModal() { document.getElementById('end-modal').style.display = 'none'; }
+        
+        // إدارة
         function openAdmin() {
             document.getElementById('password-modal').style.display = 'flex';
             document.getElementById('admin-pass-input').value = '';
             document.getElementById('pass-error').innerText = '';
             document.getElementById('admin-pass-input').focus();
         }
-
-        function closePasswordModal() {
-            document.getElementById('password-modal').style.display = 'none';
-        }
-
+        function closePasswordModal() { document.getElementById('password-modal').style.display = 'none'; }
         function checkAdminPassword() {
-            const input = document.getElementById('admin-pass-input');
-            const errorDiv = document.getElementById('pass-error');
-            
-            if (input.value === "1234") {
-                closePasswordModal();
-                renderAdminTable();
-                document.getElementById('admin-modal').style.display = 'flex';
-            } else {
-                errorDiv.innerText = "كلمة المرور خاطئة!";
-                input.value = "";
-                input.focus();
-            }
+            if (document.getElementById('admin-pass-input').value === "1234") {
+                closePasswordModal(); renderAdminTable(); document.getElementById('admin-modal').style.display = 'flex';
+            } else { document.getElementById('pass-error').innerText = "خطأ!"; }
         }
-
         function closeAdmin() { document.getElementById('admin-modal').style.display = 'none'; }
-
+        
         function renderAdminTable() {
-            const table = document.getElementById('words-table');
-            table.innerHTML = "";
+            const table = document.getElementById('words-table'); table.innerHTML = "";
             wordBank.forEach((word, idx) => {
-                table.innerHTML += `
-                    <tr>
-                        <td><input type="text" value="${word}" onchange="editWord(${idx}, this.value)" maxlength="5"></td>
-                        <td style="width: 50px;"><button class="btn-mini bg-red" onclick="deleteWord(${idx})">حذف</button></td>
-                    </tr>
-                `;
+                table.innerHTML += `<tr><td><input type="text" value="${word}" onchange="editWord(${idx}, this.value)" maxlength="5"></td><td style="width:50px;"><button class="btn-mini bg-red" onclick="deleteWord(${idx})">حذف</button></td></tr>`;
             });
         }
-
         function addWord() {
-            const input = document.getElementById('new-word-input');
-            const val = input.value.trim();
-            if (val && val.length >= 3 && val.length <= 5) {
-                wordBank.unshift(val);
-                saveWords();
-                input.value = "";
-                input.focus();
-            } else {
-                alert("الكلمة يجب أن تكون بين 3 و 5 أحرف");
-            }
+            const val = document.getElementById('new-word-input').value.trim();
+            if (val && val.length >= 3 && val.length <= 5) { wordBank.unshift(val); saveWords(); document.getElementById('new-word-input').value = ""; }
         }
-
-        function editWord(idx, val) {
-            if(val) { wordBank[idx] = val; saveWords(); }
-        }
-
-        function deleteWord(idx) {
-            if(confirm("حذف الكلمة؟")) {
-                wordBank.splice(idx, 1);
-                saveWords();
-            }
-        }
-
-        function resetDefaultWords() {
-            if(confirm("استعادة الكلمات الافتراضية؟")) {
-                generateDefaultWords();
-                renderAdminTable();
-            }
-        }
+        function editWord(idx, val) { if(val) { wordBank[idx] = val; saveWords(); } }
+        function deleteWord(idx) { if(confirm("حذف؟")) { wordBank.splice(idx, 1); saveWords(); } }
+        function resetDefaultWords() { if(confirm("استعادة؟")) { generateDefaultWords(); renderAdminTable(); } }
 
         init();
 
