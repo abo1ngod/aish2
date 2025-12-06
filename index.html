@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>فهرس المستودع</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        body { font-family: 'Tajawal', sans-serif; }
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen">
+
+    <!-- Header Section -->
+    <div class="bg-indigo-700 text-white shadow-lg">
+        <div class="max-w-4xl mx-auto px-4 py-8 text-center">
+            <h1 class="text-3xl font-bold mb-2">مستكشف الملفات</h1>
+            <p class="text-indigo-200">استعرض جميع الصفحات المرفوعة على المستودع</p>
+            
+            <!-- Search Box -->
+            <div class="mt-6 max-w-lg mx-auto relative">
+                <input type="text" id="searchInput" placeholder="ابحث عن اسم صفحة..." 
+                    class="w-full px-5 py-3 rounded-full text-gray-800 shadow-lg focus:outline-none focus:ring-4 focus:ring-indigo-400 transition-all pl-10">
+                <i data-lucide="search" class="absolute left-4 top-3.5 text-gray-400 w-5 h-5"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto px-4 py-8">
+        
+        <!-- Loading State -->
+        <div id="loading" class="text-center py-12">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-700 mx-auto mb-4"></div>
+            <p class="text-gray-500">جاري الاتصال بـ GitHub لجلب القائمة...</p>
+        </div>
+
+        <!-- Error State -->
+        <div id="error" class="hidden bg-red-50 border-r-4 border-red-500 p-4 rounded mb-6 text-center">
+            <p class="text-red-700 font-bold">حدث خطأ!</p>
+            <p class="text-red-600 text-sm" id="errorMsg">تأكد من إعدادات اسم المستودع والمستخدم.</p>
+        </div>
+
+        <!-- Files Grid -->
+        <div id="fileGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Cards will be injected here via JavaScript -->
+        </div>
+
+        <!-- Empty State (No results) -->
+        <div id="emptyState" class="hidden text-center py-12">
+            <i data-lucide="folder-open" class="mx-auto h-16 w-16 text-gray-300 mb-2"></i>
+            <p class="text-gray-500">لا توجد ملفات HTML مطابقة.</p>
+        </div>
+    </main>
+
+    <footer class="text-center text-gray-400 text-sm py-6">
+        <p>GitHub Repository Indexer</p>
+    </footer>
+
+    <script>
+        // ==========================================
+        //  إعدادات المستودع (قم بتعديل هذا الجزء)
+        // ==========================================
+        const CONFIG = {
+            username: 'abo1ngod',  // اسم المستخدم في GitHub
+            repo: 'aish2',         // اسم المستودع
+            exclude: ['index.html', '404.html'] // ملفات لا تريد عرضها
+        };
+
+        // ==========================================
+        //  الكود البرمجي (لا تقم بتعديله)
+        // ==========================================
+        const fileGrid = document.getElementById('fileGrid');
+        const searchInput = document.getElementById('searchInput');
+        const loading = document.getElementById('loading');
+        const errorDiv = document.getElementById('error');
+        const emptyState = document.getElementById('emptyState');
+
+        // URL to fetch contents from GitHub API
+        const apiUrl = `https://api.github.com/repos/${CONFIG.username}/${CONFIG.repo}/contents`;
+        // Base URL for GitHub Pages
+        const pagesUrl = `https://${CONFIG.username}.github.io/${CONFIG.repo}/`;
+
+        let allFiles = [];
+
+        async function fetchFiles() {
+            try {
+                const response = await fetch(apiUrl);
+                if (!response.ok) throw new Error(`GitHub API Error: ${response.status}`);
+                
+                const data = await response.json();
+                
+                // Filter for HTML files only and exclude config items
+                allFiles = data.filter(item => 
+                    item.name.endsWith('.html') && 
+                    !CONFIG.exclude.includes(item.name)
+                );
+
+                renderFiles(allFiles);
+                loading.classList.add('hidden');
+            } catch (err) {
+                loading.classList.add('hidden');
+                errorDiv.classList.remove('hidden');
+                document.getElementById('errorMsg').innerText = `لم نتمكن من جلب الملفات. تأكد أن المستودع 'Public' وأن الاسم صحيح.\n(${err.message})`;
+                console.error(err);
+            }
+        }
+
+        function renderFiles(files) {
+            fileGrid.innerHTML = '';
+            
+            if (files.length === 0) {
+                emptyState.classList.remove('hidden');
+                return;
+            } else {
+                emptyState.classList.add('hidden');
+            }
+
+            files.forEach(file => {
+                const fileName = file.name.replace('.html', '');
+                // Construct the live page URL
+                const liveLink = `${pagesUrl}${file.name}`;
+                
+                const card = document.createElement('div');
+                card.className = 'glass-effect bg-white p-5 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 flex items-center justify-between group cursor-pointer';
+                card.onclick = () => window.open(liveLink, '_blank');
+
+                card.innerHTML = `
+                    <div class="flex items-center gap-4">
+                        <div class="bg-indigo-100 p-3 rounded-lg text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                            <i data-lucide="file-code" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-gray-800 text-lg group-hover:text-indigo-700 transition-colors">${fileName}</h3>
+                            <p class="text-xs text-gray-400 font-mono">${file.name}</p>
+                        </div>
+                    </div>
+                    <div class="text-gray-300 group-hover:text-indigo-500 transition-colors">
+                        <i data-lucide="external-link" class="w-5 h-5"></i>
+                    </div>
+                `;
+                fileGrid.appendChild(card);
+            });
+            
+            lucide.createIcons();
+        }
+
+        // Search Functionality
+        searchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const filtered = allFiles.filter(file => 
+                file.name.toLowerCase().includes(searchTerm)
+            );
+            renderFiles(filtered);
+        });
+
+        // Initialize
+        fetchFiles();
+    </script>
+</body>
+</html>
+
+
