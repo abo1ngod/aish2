@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>مقياس الطلاقة القرائية - ثابت</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #3498db;
+            --success: #27ae60;
+            --highlight: #ffe600; /* أصفر واضح */
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-color: #2c3e50;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            user-select: none;
+        }
+
+        /* --- الهيدر --- */
+        .header-area {
+            width: 100%;
+            padding: 15px 20px;
+            background: white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            position: sticky;
+            top: 0;
+        }
+
+        .app-title { font-size: 1.1rem; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 5px; }
+
+        .best-score-badge {
+            background: #fff3cd;
+            color: #856404;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            border: 1px solid #ffeeba;
+        }
+
+        /* --- لوحة النصوص --- */
+        .dashboard-container {
+            width: 100%;
+            max-width: 800px;
+            padding: 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .texts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+            width: 100%;
+            margin-top: 15px;
+        }
+
+        .text-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 150px;
+        }
+        .text-card:hover { transform: translateY(-3px); border-color: var(--accent); }
+
+        .text-preview {
+            font-size: 1.1rem; /* خط أوضح */
+            color: #444;
+            line-height: 1.6;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+        }
+
+        .text-meta {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* --- شاشة القراءة --- */
+        .game-section {
+            display: none;
+            width: 100%;
+            height: 100vh;
+            position: fixed;
+            top: 0; left: 0;
+            background: var(--bg-color);
+            z-index: 200;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .game-header {
+            width: 100%; padding: 10px 20px; background: white;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        /* حاوية النص - تحسينات الثبات */
+        .text-reader-container {
+            flex: 1;
+            width: 95%;
+            max-width: 800px;
+            background: white;
+            margin: 15px 0;
+            border-radius: 15px;
+            padding: 30px;
+            font-size: 1.8rem; 
+            line-height: 2.8; /* تباعد أسطر مريح */
+            text-align: justify;
+            overflow-y: auto;
+            border: 1px solid #e0e0e0;
+            position: relative;
+            /* scroll-behavior: smooth; */ /* يمكن تفعيلها لتنعيم السكرول */
+        }
+
+        /* تنسيق الكلمات */
+        .word-span {
+            padding: 2px 4px;
+            border-radius: 4px;
+            margin: 0 1px; /* هامش ثابت صغير */
+            display: inline-block; /* لضمان احتواء الخلفية */
+            border-bottom: 2px solid transparent; /* حجز مكان للخط السفلي لتجنب القفز */
+            color: var(--text-color);
+        }
+        
+        /* الكلمة الحالية: تغيير الخلفية فقط بدون تغيير الأبعاد */
+        .word-current {
+            background-color: var(--highlight);
+            color: #000;
+            border-bottom-color: #f39c12;
+            /* تم إزالة transform scale و font-weight bold لمنع اهتزاز النص */
+        }
+
+        .word-correct {
+            color: var(--success); 
+            font-weight: bold; /* هنا لا بأس بالخط العريض لأن الكلمة تمت قراءتها وتجاوزناها */
+        }
+
+        /* الشريط السفلي */
+        .bottom-bar {
+            width: 100%;
+            background: white;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+        }
+
+        .timer-display { font-size: 1.5rem; font-weight: bold; color: var(--primary); display: flex; align-items: center; gap: 10px; }
+        .wpm-live { background: #ecf0f1; padding: 5px 15px; border-radius: 20px; font-size: 0.9rem; color: var(--accent); font-weight: bold; }
+
+        .mic-indicator {
+            width: 50px; height: 50px; background: #ecf0f1; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; font-size: 1.5rem; transition: all 0.3s;
+        }
+        .mic-active { background: #ffebee; color: #c0392b; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% {box-shadow: 0 0 0 0 rgba(192, 57, 43, 0.4);} 70% {box-shadow: 0 0 0 10px rgba(192, 57, 43, 0);} 100% {box-shadow: 0 0 0 0 rgba(192, 57, 43, 0);} }
+
+        /* نوافذ */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 3000; justify-content: center; align-items: center; }
+        .modal-content { background: white; width: 90%; max-width: 450px; border-radius: 20px; padding: 30px; text-align: center; }
+        .big-number { font-size: 4rem; font-weight: 800; color: var(--success); line-height: 1; }
+        .btn-main { background: var(--accent); color: white; border: none; padding: 12px 30px; border-radius: 50px; font-size: 1.1rem; cursor: pointer; margin-top: 15px; }
+        
+        textarea { width: 100%; height: 150px; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; margin-bottom: 10px; }
+        
+        .countdown-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); display: none; justify-content: center; align-items: center; z-index: 50; }
+        .count-num { font-size: 8rem; color: var(--accent); font-weight: bold; }
+
+    </style>
+</head>
+<body>
+
+    <div class="header-area">
+        <div class="app-title">⏱️ مقياس الطلاقة القرائية</div>
+        <div style="display:flex; align-items:center; gap:10px;">
+            <div class="best-score-badge">🏆 الأفضل: <span id="best-score-display">0</span></div>
+            <button onclick="openAdmin()" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">⚙️</button>
+        </div>
+    </div>
+
+    <!-- 1. الشاشة الرئيسية: مكتبة النصوص -->
+    <div class="dashboard-container" id="dashboard">
+        <div style="background: #e3f2fd; padding: 15px; border-radius: 10px; color: #1565c0; font-size: 0.9rem;">
+            📖 اختر نصاً للبدء. سيتم حساب سرعتك خلال دقيقة واحدة.
+        </div>
+        <div class="texts-grid" id="texts-grid"></div>
+    </div>
+
+    <!-- 2. شاشة اللعبة -->
+    <div class="game-section" id="game-section">
+        <div class="game-header">
+            <button onclick="exitGame()" style="background:none; border:none; font-size:1.5rem;">✕</button>
+            <div class="wpm-live">الكلمات: <span id="live-wpm">0</span></div>
+        </div>
+
+        <div class="text-reader-container" id="text-display"></div>
+
+        <div class="bottom-bar">
+            <div class="timer-display"><span>⏳</span> <span id="timer-val">60</span> ث</div>
+            <div style="font-size:0.8rem; color:#95a5a6;">سمعت: <span id="debug-word">...</span></div>
+            <div id="mic-indicator" class="mic-indicator">🎙️</div>
+        </div>
+
+        <div id="countdown-layer" class="countdown-layer">
+            <div id="countdown-val" class="count-num">3</div>
+        </div>
+    </div>
+
+    <!-- نافذة النتيجة -->
+    <div id="result-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2>⏱️ انتهى الوقت</h2>
+            <p>سرعتك:</p>
+            <div class="big-number" id="final-wpm">0</div>
+            <p style="color:#7f8c8d; font-weight:bold;">كلمة صحيحة / دقيقة</p>
+            <div style="margin-top:20px; padding-top:10px; border-top:1px solid #eee;">
+                <p style="font-size:0.9rem;">الدقة: <span id="accuracy-val" style="font-weight:bold;">0%</span></p>
+            </div>
+            <button class="btn-main" onclick="closeResult()">موافق</button>
+        </div>
+    </div>
+
+    <!-- نافذة كلمة المرور -->
+    <div id="pass-modal" class="modal-overlay">
+        <div class="modal-content" style="max-width:300px;">
+            <h3>دخول المعلم</h3>
+            <input type="password" id="admin-pass" placeholder="1234" style="text-align:center; padding:10px; font-size:1.2rem; width:100%; margin:10px 0; border:1px solid #ddd; border-radius:8px;">
+            <button class="btn-main" onclick="checkPass()" style="width:100%;">دخول</button>
+            <button onclick="document.getElementById('pass-modal').style.display='none'" style="background:none; border:none; color:#7f8c8d; margin-top:10px; cursor:pointer;">إلغاء</button>
+        </div>
+    </div>
+
+    <!-- لوحة التحكم -->
+    <div id="admin-modal" class="modal-overlay">
+        <div class="modal-content" style="max-width:600px; text-align:right;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
+                <h3 style="margin:0">⚙️ إدارة النصوص</h3>
+                <button onclick="document.getElementById('admin-modal').style.display='none'" style="color:red; background:none; border:none; font-size:1.2rem; cursor:pointer;">✕</button>
+            </div>
+
+            <div>
+                <textarea id="new-text-input" placeholder="اكتب أو الصق نصاً جديداً للقراءة هنا..."></textarea>
+                <button onclick="addNewText()" class="btn-main" style="width:100%; margin-top:0; font-size:0.9rem;">إضافة للمكتبة</button>
+                
+                <h4 style="margin-top:20px; border-bottom:1px solid #eee; padding-bottom:5px;">النصوص الحالية:</h4>
+                <div id="admin-texts-list" style="max-height:200px; overflow-y:auto;"></div>
+                
+                <div style="margin-top:15px; display:flex; gap:10px;">
+                    <button onclick="restoreDefaultTexts()" style="flex:1; padding:8px; background:#95a5a6; color:white; border:none; border-radius:5px;">استعادة النصوص</button>
+                    <button onclick="resetBestScore()" style="flex:1; padding:8px; background:#e74c3c; color:white; border:none; border-radius:5px;">تصفير الرقم القياسي</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- البيانات ---
+        let texts = [];
+        let bestScore = 0;
+
+        // --- متغيرات اللعب ---
+        let currentTextWords = []; 
+        let currentWordIndex = 0;
+        let correctWordsCount = 0;
+        let timerSeconds = 60;
+        let timerInterval = null;
+        let recognition;
+        let isRunning = false;
+
+        function init() {
+            loadData();
+            setupSpeech();
+        }
+
+        function loadData() {
+            const tData = localStorage.getItem('fluency_texts_single_v2');
+            texts = tData ? JSON.parse(tData) : getDefaultTexts();
+            if(!tData) saveTexts();
+
+            const bData = localStorage.getItem('fluency_best_score_single');
+            bestScore = bData ? parseInt(bData) : 0;
+            updateBestScoreUI();
+
+            renderDashboard();
+        }
+
+        function saveTexts() { localStorage.setItem('fluency_texts_single_v2', JSON.stringify(texts)); }
+        
+        function saveBestScore(score) {
+            if(score > bestScore) {
+                bestScore = score;
+                localStorage.setItem('fluency_best_score_single', bestScore);
+                updateBestScoreUI();
+            }
+        }
+        
+        function updateBestScoreUI() { document.getElementById('best-score-display').innerText = bestScore; }
+
+        function getDefaultTexts() {
+            return [
+                "القراءة مفتاح المعرفة، وهي تنير العقل وتوسع المدارك. الكتاب خير جليس للإنسان، يعلمه ما لم يكن يعلم ويأخذه في رحلات ممتعة عبر الزمن ليتعرف على ثقافات الشعوب وتاريخ الأمم.",
+                "خرجت الأسرة في نزهة إلى الحديقة، كان الجو جميلاً والشمس مشرقة. لعب الأطفال بالكرة وتناولوا الطعام اللذيذ تحت ظل الأشجار، وشاهدوا العصافير تغرد فوق الأغصان بسعادة وفرح.",
+                "التعاون صفة حميدة، يساعد الناس بعضهم بعضاً لإنجاز الأعمال الصعبة. في الاتحاد قوة، وبالتعاون تبنى الأوطان وتزدهر المجتمعات، ويصبح الصعب سهلاً والمستحيل ممكناً."
+            ];
+        }
+
+        function renderDashboard() {
+            const grid = document.getElementById('texts-grid');
+            grid.innerHTML = "";
+            
+            texts.forEach((txt, idx) => {
+                const wordCount = txt.trim().split(/\s+/).length;
+                const preview = txt.length > 80 ? txt.substring(0, 80) + "..." : txt;
+                
+                grid.innerHTML += `
+                    <div class="text-card" onclick="prepareGame(${idx})">
+                        <div class="text-preview">"${preview}"</div>
+                        <div class="text-meta">
+                            <span>📝 ${wordCount} كلمة</span>
+                            <span class="play-icon">▶</span>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function prepareGame(textIdx) {
+            document.getElementById('dashboard').style.display = 'none';
+            document.getElementById('game-section').style.display = 'flex';
+            
+            const rawText = texts[textIdx];
+            currentTextWords = rawText.trim().split(/\s+/);
+            
+            const displayArea = document.getElementById('text-display');
+            displayArea.innerHTML = "";
+            
+            currentTextWords.forEach((word, i) => {
+                const span = document.createElement('span');
+                span.innerText = word;
+                span.className = "word-span word-pending";
+                span.id = `word-${i}`;
+                displayArea.appendChild(span);
+            });
+
+            currentWordIndex = 0;
+            correctWordsCount = 0;
+            timerSeconds = 60;
+            
+            document.getElementById('live-wpm').innerText = "0";
+            document.getElementById('timer-val').innerText = "60";
+            
+            highlightCurrentWord();
+            startCountdown();
+        }
+
+        function highlightCurrentWord() {
+            // إزالة التمييز عن الجميع دون التأثير على الكلمات الصحيحة
+            document.querySelectorAll('.word-span').forEach(el => {
+                if(!el.classList.contains('word-correct')) el.className = "word-span word-pending";
+            });
+            
+            if(currentWordIndex < currentTextWords.length) {
+                const el = document.getElementById(`word-${currentWordIndex}`);
+                if(el) {
+                    el.classList.remove('word-pending');
+                    el.classList.add('word-current');
+                    // التمرير الناعم (Nearest) يمنع القفز المزعج
+                    el.scrollIntoView({behavior: "smooth", block: "nearest"});
+                }
+            }
+        }
+
+        function startCountdown() {
+            const layer = document.getElementById('countdown-layer');
+            const num = document.getElementById('countdown-val');
+            layer.style.display = 'flex';
+            let count = 3;
+            num.innerText = count;
+
+            const iv = setInterval(() => {
+                count--;
+                if(count > 0) num.innerText = count;
+                else {
+                    clearInterval(iv);
+                    layer.style.display = 'none';
+                    startGame();
+                }
+            }, 1000);
+        }
+
+        function startGame() {
+            isRunning = true;
+            try { recognition.start(); } catch(e) {}
+            
+            timerInterval = setInterval(() => {
+                timerSeconds--;
+                document.getElementById('timer-val').innerText = timerSeconds;
+                if(timerSeconds <= 0) endGame();
+            }, 1000);
+        }
+
+        function setupSpeech() {
+            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                const SpeechAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+                recognition = new SpeechAPI();
+                recognition.lang = 'ar-SA';
+                recognition.continuous = true;
+                recognition.interimResults = true;
+
+                recognition.onstart = () => document.getElementById('mic-indicator').classList.add('mic-active');
+                recognition.onend = () => {
+                    document.getElementById('mic-indicator').classList.remove('mic-active');
+                    if (isRunning) recognition.start();
+                };
+                
+                recognition.onresult = (event) => {
+                    const transcript = event.results[event.results.length - 1][0].transcript;
+                    document.getElementById('debug-word').innerText = transcript;
+                    processInput(transcript);
+                };
+            } else {
+                alert("المتصفح لا يدعم التعرف الصوتي. يرجى استخدام Chrome.");
+            }
+        }
+
+        function processInput(spoken) {
+            if(!isRunning || currentWordIndex >= currentTextWords.length) return;
+
+            const spokenClean = normalizeArabic(spoken);
+            const targetRaw = currentTextWords[currentWordIndex];
+            const targetClean = normalizeArabic(targetRaw.replace(/[،.؛:!؟]/g, ''));
+
+            if (spokenClean.includes(targetClean)) {
+                // إجابة صحيحة
+                const el = document.getElementById(`word-${currentWordIndex}`);
+                // التغيير هنا: الكلمة تصبح صحيحة وعريضة
+                el.className = "word-span word-correct";
+                
+                currentWordIndex++;
+                correctWordsCount++;
+                document.getElementById('live-wpm').innerText = correctWordsCount;
+
+                highlightCurrentWord();
+
+                if(currentWordIndex >= currentTextWords.length) {
+                    endGame();
+                }
+            }
+        }
+
+        function normalizeArabic(text) {
+            return text.trim()
+                .replace(/[أإآ]/g, 'ا')
+                .replace(/ة/g, 'ه')
+                .replace(/ى/g, 'ي')
+                .replace(/[ًٌٍَُِّْ]/g, ''); 
+        }
+
+        function endGame() {
+            isRunning = false;
+            clearInterval(timerInterval);
+            recognition.stop();
+
+            const wpm = correctWordsCount;
+            const accuracy = Math.round((correctWordsCount / (currentWordIndex || 1)) * 100);
+
+            document.getElementById('final-wpm').innerText = wpm;
+            document.getElementById('accuracy-val').innerText = accuracy + "%";
+            document.getElementById('result-modal').style.display = 'flex';
+
+            saveBestScore(wpm);
+        }
+
+        function closeResult() {
+            document.getElementById('result-modal').style.display = 'none';
+            exitGame();
+        }
+
+        function exitGame() {
+            isRunning = false;
+            clearInterval(timerInterval);
+            try { recognition.stop(); } catch(e) {}
+            document.getElementById('game-section').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'flex';
+        }
+
+        function openAdmin() { document.getElementById('pass-modal').style.display = 'flex'; document.getElementById('admin-pass').value = ''; }
+        function checkPass() {
+            if(document.getElementById('admin-pass').value === "1234") {
+                document.getElementById('pass-modal').style.display = 'none';
+                renderAdminTexts();
+                document.getElementById('admin-modal').style.display = 'block';
+            } else alert("خطأ في الرمز");
+        }
+
+        function renderAdminTexts() {
+            const list = document.getElementById('admin-texts-list');
+            list.innerHTML = "";
+            texts.forEach((t, i) => {
+                list.innerHTML += `
+                    <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eee; align-items:center;">
+                        <div style="font-size:0.8rem; width:85%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${t}</div>
+                        <button onclick="deleteText(${i})" style="color:red; background:none; border:none; cursor:pointer;">✕</button>
+                    </div>`;
+            });
+        }
+        function addNewText() {
+            const t = document.getElementById('new-text-input').value;
+            if(t.trim()) { texts.push(t.trim()); saveTexts(); renderAdminTexts(); document.getElementById('new-text-input').value = ""; renderDashboard(); }
+        }
+        function deleteText(i) { texts.splice(i,1); saveTexts(); renderAdminTexts(); renderDashboard(); }
+        function restoreDefaultTexts() { if(confirm("استعادة النصوص؟")) { texts = getDefaultTexts(); saveTexts(); renderAdminTexts(); renderDashboard(); } }
+        function resetBestScore() { if(confirm("تصفير الرقم القياسي؟")) { bestScore = 0; localStorage.setItem('fluency_best_score_single', 0); updateBestScoreUI(); } }
+
+        init();
+
+    </script>
+</body>
+</html>
+
