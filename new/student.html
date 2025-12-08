@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المنارة - لوحة الطالب</title>
+    <!-- Libraries -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+
+    <!-- Firebase Configuration -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, onSnapshot, setDoc, addDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBxPO6RKsQ1Cq-mqlCpFTrCuIyxnYdB37U",
+            authDomain: "studentsystem-c1ab1.firebaseapp.com",
+            databaseURL: "https://studentsystem-c1ab1-default-rtdb.firebaseio.com",
+            projectId: "studentsystem-c1ab1",
+            storageBucket: "studentsystem-c1ab1.firebasestorage.app",
+            messagingSenderId: "112215023848",
+            appId: "1:112215023848:web:0adba326a527ee7e37e95d"
+        };
+        const app = initializeApp(firebaseConfig);
+        window.db = getFirestore(app);
+        window.auth = getAuth(app);
+        window.signInAnonymously = signInAnonymously;
+        window.collection = collection;
+        window.doc = doc;
+        window.onSnapshot = onSnapshot;
+        window.updateDoc = updateDoc;
+        window.addDoc = addDoc;
+        window.isFirebaseReady = true;
+    </script>
+    <style>
+        body { font-family: 'Tajawal', sans-serif; background-color: #f8fafc; }
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .flip-card { perspective: 1000px; }
+        .flip-card-inner { transition: transform 0.6s; transform-style: preserve-3d; }
+        .flip-card.flipped .flip-card-inner { transform: rotateY(180deg); }
+        .flip-card-front, .flip-card-back { backface-visibility: hidden; position: absolute; top:0; left:0; width:100%; height:100%; }
+        .flip-card-back { transform: rotateY(180deg); }
+        .cert-pattern { background-image: radial-gradient(#fbbf24 1px, transparent 1px); background-size: 20px 20px; }
+    </style>
+    <script>tailwind.config = { theme: { extend: { colors: { primary: '#2563eb', gold: '#fbbf24' } } } }</script>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const getLevelName = (l) => l>=10?"عالم 👑":l>=5?"بروفيسور 🎓":l>=3?"خبير 🌟":"مبتدئ 🌱";
+        const shuffle = (array) => array.sort(() => Math.random() - 0.5);
+
+        // Safe navigation helper
+        const safeNavigate = (url) => {
+            try {
+                window.location.href = url;
+            } catch (e) {
+                console.warn("Navigation prevented by environment:", e);
+                // Return false to indicate navigation failed
+                return false;
+            }
+            return true;
+        };
+
+        const App = () => {
+            const [user, setUser] = useState(null);
+            const [lessons, setLessons] = useState([]);
+            const [view, setView] = useState('dash');
+            const [activeLesson, setActiveLesson] = useState(null);
+            const [mode, setMode] = useState('take');
+            const [loading, setLoading] = useState(true);
+            const [authError, setAuthError] = useState(false);
+
+            useEffect(() => {
+                const init = async () => {
+                    const storedNid = localStorage.getItem('almanara_current_nid');
+                    
+                    if(!storedNid) { 
+                        // Try to navigate, if fails (preview env), show auth error screen
+                        if(!safeNavigate('index.html')) {
+                            setAuthError(true);
+                            setLoading(false);
+                        }
+                        return; 
+                    }
+
+                    if(window.isFirebaseReady) {
+                        await window.signInAnonymously(window.auth);
+                        
+                        // Listen to Lessons
+                        window.onSnapshot(window.collection(window.db, 'artifacts', 'almanara_v1', 'lessons'), (snap) => {
+                            setLessons(snap.docs.map(d => ({id:d.id, ...d.data()})));
+                        });
+
+                        // Listen to User
+                        if(storedNid === 'guest') {
+                            setUser({ name: "زائر", role: "guest", xp: 0, level: 1 });
+                            setLoading(false);
+                        } else {
+                            window.onSnapshot(window.doc(window.db, 'artifacts', 'almanara_v1', 'students', storedNid), (doc) => {
+                                if(doc.exists()) {
+                                    setUser({...doc.data(), nid: doc.id, role: 'student'});
+                                } else { 
+                                    alert("حساب محذوف"); 
+                                    if(!safeNavigate('index.html')) setAuthError(true);
+                                }
+                                setLoading(false);
+                            });
+                        }
+                    }
+                };
+                const interval = setInterval(() => { if(window.isFirebaseReady) { clearInterval(interval); init(); } }, 100);
+            }, []);
+
+            const handleLogout = () => {
+                localStorage.removeItem('almanara_current_nid');
+                if(!safeNavigate('index.html')) {
+                    setAuthError(true); // Show fallback if nav fails
+                    setUser(null);
+                }
+            };
+
+            const simulateGuestLogin = () => {
+                localStorage.setItem('almanara_current_nid', 'guest');
+                window.location.reload();
+            };
+
+            const sendMsg = async (text) => {
+                if(!text) return;
+                await window.addDoc(window.collection(window.db, 'artifacts', 'almanara_v1', 'guest_messages'), {
+                    sender: user.name, text, date: new Date().toLocaleDateString()
+                });
+                alert("تم الإرسال");
+            };
+
+            // Game Logic
+            const updateUser = async (lessonId, score, newMistakes) => {
+                if(user.role === 'guest') return;
+                const newXP = (user.xp || 0) + score;
+                const newLevel = Math.floor(newXP / 200) + 1;
+                const newHistory = [...(user.history||[]), { lessonId, score, date: new Date().toLocaleDateString() }];
+                
+                // SRS Logic
+                let newSrs = [...(user.srsQueue||[])];
+                const lesson = lessons.find(l => l.id === lessonId);
+                const correctQs = lesson.questions.filter(q => !newMistakes.find(m => m.text === q.text));
+                correctQs.forEach(q => {
+                    if(!newSrs.find(sq => sq.text === q.text)) newSrs.push({ ...q, nextReview: Date.now() + 86400000, stage: 1 });
+                });
+
+                // Update DB
+                await window.updateDoc(window.doc(window.db, 'artifacts', 'almanara_v1', 'students', user.nid), {
+                    xp: newXP, level: newLevel, history: newHistory, srsQueue: newSrs,
+                    mistakes: [...(user.mistakes||[]), ...newMistakes.filter(m => !user.mistakes?.find(x=>x.text===m.text))]
+                });
+            };
+
+            const handleReview = async (q, remembered) => {
+                if(user.role === 'guest') return;
+                let newSrs = user.srsQueue.filter(x => x.text !== q.text);
+                if(remembered) {
+                    const stage = (q.stage || 1) + 1;
+                    newSrs.push({...q, stage, nextReview: Date.now() + (stage===2?7:30)*86400000});
+                    await window.updateDoc(window.doc(window.db, 'artifacts', 'almanara_v1', 'students', user.nid), {srsQueue: newSrs, xp: user.xp+15});
+                } else {
+                    newSrs.push({...q, stage: 1, nextReview: Date.now() + 86400000});
+                    await window.updateDoc(window.doc(window.db, 'artifacts', 'almanara_v1', 'students', user.nid), {srsQueue: newSrs});
+                }
+            };
+
+            const solveMistake = async (id) => {
+                await window.updateDoc(window.doc(window.db, 'artifacts', 'almanara_v1', 'students', user.nid), {
+                    mistakes: user.mistakes.filter(m => m.id !== id), xp: user.xp+15
+                });
+                confetti();
+            };
+
+            if(authError) return (
+                <div className="h-screen flex flex-col items-center justify-center text-slate-600 p-4 text-center">
+                    <i className="fas fa-lock text-6xl mb-4 text-slate-300"></i>
+                    <h2 className="text-2xl font-bold mb-2">يتطلب تسجيل دخول</h2>
+                    <p className="mb-6 max-w-md">لم يتم العثور على بيانات الطالب. في الوضع الطبيعي، سيتم تحويلك للصفحة الرئيسية، ولكن بيئة المعاينة تمنع ذلك.</p>
+                    <button onClick={simulateGuestLogin} className="bg-primary text-white px-6 py-3 rounded-xl font-bold hover:shadow-lg transition">
+                        دخول تجريبي كزائر (Test Mode)
+                    </button>
+                    <p className="mt-4 text-xs text-slate-400">للدخول كطالب حقيقي، يرجى البدء من ملف index.html</p>
+                </div>
+            );
+
+            if(loading) return <div className="h-screen flex items-center justify-center text-primary"><i className="fas fa-circle-notch fa-spin text-4xl"></i></div>;
+
+            return (
+                <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col">
+                    <nav className="bg-white sticky top-0 z-50 px-4 py-3 shadow-sm flex justify-between items-center">
+                        <div className="flex items-center gap-2">
+                            <div className="w-10 h-10 bg-primary rounded-lg text-white flex items-center justify-center font-bold text-xl"><i className="fas fa-lightbulb"></i></div>
+                            <span className="font-bold hidden md:inline">المنارة</span>
+                        </div>
+                        <div className="flex gap-3 items-center">
+                            <div className="flex items-center gap-2 bg-slate-100 px-3 py-1 rounded-full">
+                                {user.avatar ? <img src={user.avatar} className="w-6 h-6 rounded-full object-cover"/> : <i className="fas fa-user"></i>}
+                                <span className="text-sm font-bold">{user.name}</span>
+                                {user.role !== 'guest' && <span className="text-xs text-gold font-bold"><i className="fas fa-star"></i> {user.xp}</span>}
+                            </div>
+                            <button onClick={handleLogout} className="text-red-500 hover:bg-red-50 p-2 rounded"><i className="fas fa-sign-out-alt"></i></button>
+                        </div>
+                    </nav>
+
+                    <main className="flex-grow container mx-auto p-4 max-w-5xl">
+                        {view === 'dash' && <Dashboard user={user} lessons={lessons} setView={setView} setLesson={setActiveLesson} setMode={setMode} sendMsg={sendMsg} />}
+                        {view === 'lesson' && <LessonRunner lesson={activeLesson} mode={mode} user={user} onFinish={updateUser} onBack={()=>setView('dash')} />}
+                        {view === 'flashcards' && <Flashcards lesson={activeLesson} onBack={()=>setView('dash')} />}
+                        {view === 'srs' && <SRSView user={user} onReview={handleReview} onBack={()=>setView('dash')} />}
+                        {view === 'mistakes' && <MistakesView user={user} onSolve={solveMistake} onBack={()=>setView('dash')} />}
+                        {view === 'cert' && <Certificate user={user} onBack={()=>setView('dash')} />}
+                    </main>
+                </div>
+            );
+        };
+
+        const Dashboard = ({ user, lessons, setView, setLesson, setMode, sendMsg }) => {
+            const visible = lessons.filter(l => l.isVisible);
+            const getStatus = (id) => {
+                if(user.role === 'guest') return {s:'new', score:0};
+                const h = user.history?.filter(x => x.lessonId === id) || [];
+                const max = h.length ? Math.max(...h.map(x=>x.score)) : 0;
+                return {s: max>=50?'pass':'fail', score: max};
+            };
+            
+            return (
+                <div className="grid lg:grid-cols-3 gap-6 fade-in">
+                    <div className="lg:col-span-1">
+                        <div className="bg-white p-6 rounded-3xl shadow-sm text-center sticky top-20">
+                            <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-blue-500 to-blue-300 flex items-center justify-center text-4xl text-white mb-4 border-4 border-white shadow-lg overflow-hidden">
+                                {user.avatar ? <img src={user.avatar} className="w-full h-full object-cover"/> : (user.role==='guest'?'G':user.level)}
+                            </div>
+                            <h2 className="font-bold text-xl mb-1">{user.role==='guest'?'زائر':getLevelName(user.level)}</h2>
+                            
+                            {user.role === 'student' && (
+                                <div className="grid grid-cols-2 gap-2 mt-6">
+                                    <button onClick={()=>setView('srs')} className="bg-orange-50 text-orange-600 p-3 rounded-xl font-bold text-sm hover:bg-orange-100">🧠 مراجعة</button>
+                                    <button onClick={()=>setView('mistakes')} className="bg-red-50 text-red-600 p-3 rounded-xl font-bold text-sm hover:bg-red-100">🐞 أخطائي</button>
+                                    <button onClick={()=>setView('cert')} className="col-span-2 bg-slate-800 text-white p-3 rounded-xl font-bold text-sm hover:bg-slate-900">🎓 شهادتي</button>
+                                </div>
+                            )}
+                            {user.role === 'guest' && (
+                                <button onClick={()=>sendMsg(prompt("رسالتك:"))} className="mt-4 w-full bg-blue-50 text-blue-600 p-3 rounded-xl font-bold">📩 راسل المعلم</button>
+                            )}
+                        </div>
+                    </div>
+                    <div className="lg:col-span-2 space-y-4">
+                        <h3 className="font-bold text-xl mb-2">الدروس المتاحة</h3>
+                        {visible.map(l => {
+                            const st = getStatus(l.id);
+                            return (
+                                <div key={l.id} className="bg-white p-5 rounded-2xl shadow-sm border flex justify-between items-center hover:shadow-md transition">
+                                    <div>
+                                        <h4 className="font-bold">{l.title}</h4>
+                                        {user.role!=='guest' && <span className={`text-xs px-2 py-1 rounded ${st.s==='pass'?'bg-green-100 text-green-700':'bg-slate-100'}`}>{st.s==='pass'?`منجز ${st.score}%`:'جديد'}</span>}
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <button onClick={()=>{setLesson(l); setMode('take'); setView('lesson')}} className="bg-primary text-white px-4 py-2 rounded-lg font-bold text-sm">ابدأ</button>
+                                        <button onClick={()=>{setLesson(l); setView('flashcards')}} className="bg-purple-50 text-purple-600 px-4 py-2 rounded-lg font-bold text-sm">بطاقات</button>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            );
+        };
+
+        const LessonRunner = ({ lesson, mode, user, onFinish, onBack }) => {
+            if(!lesson) return null;
+            const [qs, setQs] = useState([]);
+            const [answers, setAnswers] = useState({});
+            const [res, setRes] = useState(null);
+
+            useEffect(() => {
+                const qRaw = lesson.questions || [];
+                setQs(shuffle([...qRaw])); 
+            }, [lesson]);
+
+            const submit = () => {
+                if(user.role === 'guest') return alert("خاص بالطلاب المسجلين");
+                let correct=0, mistakes=[];
+                qs.forEach(q => {
+                    if(String(answers[q.id]).toLowerCase() === String(q.answer).toLowerCase()) correct++;
+                    else mistakes.push(q);
+                });
+                const score = Math.round((correct/qs.length)*100);
+                setRes({score, passed: score>=50});
+                onFinish(lesson.id, score, mistakes);
+                if(score>=50) confetti();
+            };
+
+            if(res) return (
+                <div className="text-center py-20 bg-white rounded-3xl shadow-xl fade-in">
+                    <div className="text-6xl mb-4">{res.passed ? '🎉' : '💪'}</div>
+                    <h2 className="text-3xl font-bold mb-2">{res.passed ? 'أحسنت!' : 'حاول مرة أخرى'}</h2>
+                    <p className={`text-5xl font-black mb-8 ${res.passed?'text-green-500':'text-red-500'}`}>{res.score}%</p>
+                    <button onClick={onBack} className="bg-slate-800 text-white px-8 py-3 rounded-xl font-bold">عودة للرئيسية</button>
+                </div>
+            );
+
+            return (
+                <div className="max-w-3xl mx-auto bg-white p-8 rounded-3xl shadow-xl fade-in">
+                    <button onClick={onBack} className="text-slate-400 mb-4 font-bold">عودة</button>
+                    <h2 className="text-2xl font-bold mb-4">{lesson.title}</h2>
+                    <div className="bg-slate-50 p-5 rounded-xl mb-8 leading-loose text-lg">{lesson.content}</div>
+                    
+                    <div className="space-y-6">
+                        {qs.map((q, i) => (
+                            <div key={i} className="p-4 border rounded-xl">
+                                <p className="font-bold text-lg mb-3">{q.text}</p>
+                                {q.type === 'mcq' ? (
+                                    <div className="space-y-2">
+                                        {q.options.map(o => (
+                                            <label key={o} className={`flex items-center gap-2 p-3 border rounded cursor-pointer hover:bg-slate-50 ${answers[q.id]===o?'bg-blue-50 border-primary':''}`}>
+                                                <input type="radio" name={q.id} onChange={()=>setAnswers({...answers, [q.id]:o})} className="accent-primary"/> {o}
+                                            </label>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="flex gap-4">
+                                        <button onClick={()=>setAnswers({...answers, [q.id]:'true'})} className={`flex-1 p-3 border rounded font-bold ${answers[q.id]==='true'?'bg-green-100 border-green-500':''}`}>صح</button>
+                                        <button onClick={()=>setAnswers({...answers, [q.id]:'false'})} className={`flex-1 p-3 border rounded font-bold ${answers[q.id]==='false'?'bg-red-100 border-red-500':''}`}>خطأ</button>
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                    {user.role !== 'guest' && <button onClick={submit} className="w-full mt-8 bg-primary text-white py-4 rounded-xl font-bold text-lg shadow-lg">تسليم الإجابة</button>}
+                </div>
+            );
+        };
+
+        const Flashcards = ({ lesson, onBack }) => {
+            const [i, setI] = useState(0); const [f, setF] = useState(false);
+            const cards = lesson?.flashcards || [];
+            if(!cards.length) return <div className="text-center py-20">لا توجد بطاقات <button onClick={onBack}>عودة</button></div>;
+            return (
+                <div className="max-w-md mx-auto text-center pt-10 fade-in">
+                    <div className="h-64 cursor-pointer perspective-1000 mb-6" onClick={()=>setF(!f)}>
+                         <div className={`relative w-full h-full transition-transform duration-500 transform-style-3d ${f?'rotate-y-180':''}`}>
+                            <div className="absolute w-full h-full bg-white border-2 flex items-center justify-center rounded-3xl shadow-xl text-2xl font-bold backface-hidden">{cards[i].front}</div>
+                            <div className="absolute w-full h-full bg-blue-600 text-white flex items-center justify-center rounded-3xl shadow-xl text-xl font-bold backface-hidden rotate-y-180">{cards[i].back}</div>
+                         </div>
+                    </div>
+                    <div className="flex justify-between px-8">
+                        <button onClick={()=>{setF(false); setI(Math.max(0,i-1))}} className="p-4 bg-white shadow rounded-full">⬅️</button>
+                        <span className="font-bold text-slate-400 mt-2">{i+1}/{cards.length}</span>
+                        <button onClick={()=>{setF(false); setI(Math.min(cards.length-1,i+1))}} className="p-4 bg-white shadow rounded-full">➡️</button>
+                    </div>
+                    <button onClick={onBack} className="mt-8 text-slate-400 font-bold">عودة</button>
+                </div>
+            );
+        };
+
+        const SRSView = ({ user, onReview, onBack }) => {
+            const q = user.srsQueue?.find(x => x.nextReview <= Date.now());
+            const [show, setShow] = useState(false);
+            if(!q) return <div className="text-center py-20 bg-white rounded-3xl shadow">🎉 لا توجد مراجعات!<br/><button onClick={onBack} className="mt-4 bg-slate-800 text-white px-4 py-2 rounded">عودة</button></div>;
+            return (
+                <div className="max-w-xl mx-auto bg-white p-10 rounded-3xl shadow-xl text-center fade-in">
+                    <h2 className="text-xl font-bold mb-8">{q.text}</h2>
+                    {!show ? <button onClick={()=>setShow(true)} className="bg-blue-100 text-blue-600 px-8 py-3 rounded-xl font-bold">إظهار الإجابة</button>
+                    : <div><p className="text-2xl font-bold text-green-600 mb-6">{q.answer}</p><div className="flex gap-4 justify-center"><button onClick={()=>onReview(q, false)} className="bg-red-50 text-red-600 px-6 py-3 rounded-xl font-bold">نسيت</button><button onClick={()=>onReview(q, true)} className="bg-green-50 text-green-600 px-6 py-3 rounded-xl font-bold">تذكرت</button></div></div>}
+                </div>
+            );
+        };
+
+        const MistakesView = ({ user, onSolve, onBack }) => {
+            const m = user.mistakes?.[0];
+            if(!m) return <div className="text-center py-20 bg-white rounded-3xl shadow">✨ سجلك نظيف!<br/><button onClick={onBack} className="mt-4 bg-slate-800 text-white px-4 py-2 rounded">عودة</button></div>;
+            return (
+                <div className="max-w-xl mx-auto bg-white p-8 rounded-3xl shadow-lg text-center fade-in">
+                    <h2 className="text-red-600 font-bold mb-4">خطأ سابق</h2>
+                    <p className="text-xl font-bold mb-6">{m.text}</p>
+                    <p className="bg-yellow-50 p-4 rounded mb-6 text-sm">{m.explanation}</p>
+                    <button onClick={()=>onSolve(m.id)} className="bg-slate-900 text-white px-8 py-3 rounded-xl font-bold">فهمت</button>
+                </div>
+            );
+        };
+
+        const Certificate = ({ user, onBack }) => (
+            <div className="text-center pt-5">
+                <div id="cert" className="bg-white p-10 border-8 border-double border-slate-800 max-w-lg mx-auto relative cert-pattern shadow-2xl">
+                    <i className="fas fa-graduation-cap text-6xl text-slate-800 mb-4"></i>
+                    <h1 className="text-4xl font-bold mb-2" style={{fontFamily:'Amiri'}}>شهادة تفوق</h1>
+                    <h2 className="text-3xl text-primary font-bold mb-6 border-b-2 inline-block pb-2" style={{fontFamily:'Amiri'}}>{user.name}</h2>
+                    <p className="text-lg">لاجتيازه المستوى {getLevelName(user.level)} بنجاح</p>
+                    <div className="mt-8 pt-4 border-t border-slate-200 flex justify-between text-xs text-slate-400">
+                        <span>{new Date().toLocaleDateString()}</span>
+                        <span>إدارة المنارة</span>
+                    </div>
+                </div>
+                <button onClick={onBack} className="mt-6 text-slate-400 font-bold">عودة</button>
+            </div>
+        );
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

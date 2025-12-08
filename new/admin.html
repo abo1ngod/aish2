@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المنارة - المعلم</title>
+    <!-- Libraries -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Firebase -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, onSnapshot, setDoc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBxPO6RKsQ1Cq-mqlCpFTrCuIyxnYdB37U",
+            authDomain: "studentsystem-c1ab1.firebaseapp.com",
+            databaseURL: "https://studentsystem-c1ab1-default-rtdb.firebaseio.com",
+            projectId: "studentsystem-c1ab1",
+            storageBucket: "studentsystem-c1ab1.firebasestorage.app",
+            messagingSenderId: "112215023848",
+            appId: "1:112215023848:web:0adba326a527ee7e37e95d"
+        };
+        const app = initializeApp(firebaseConfig);
+        window.db = getFirestore(app);
+        window.auth = getAuth(app);
+        window.signInAnonymously = signInAnonymously;
+        window.collection = collection;
+        window.doc = doc;
+        window.setDoc = setDoc;
+        window.deleteDoc = deleteDoc;
+        window.updateDoc = updateDoc;
+        window.onSnapshot = onSnapshot;
+        window.isFirebaseReady = true;
+    </script>
+    <style>body { font-family: 'Tajawal', sans-serif; background-color: #f8fafc; }</style>
+    <script>tailwind.config = { theme: { extend: { colors: { primary: '#2563eb' } } } }</script>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const App = () => {
+            const [locked, setLocked] = useState(true);
+            const [pass, setPass] = useState('');
+            const [lessons, setLessons] = useState([]);
+            const [students, setStudents] = useState([]);
+            const [msgs, setMsgs] = useState([]);
+            const [tab, setTab] = useState('lessons');
+            const [apiKey, setApiKey] = useState(localStorage.getItem('gemini_key') || '');
+            const [serverPass, setServerPass] = useState('1234');
+
+            // Form States
+            const [lesson, setLesson] = useState({title:'', content:'', questions:[]});
+            const [newStd, setNewStd] = useState({name:'', nid:''});
+
+            useEffect(() => {
+                const init = async () => {
+                    if(window.isFirebaseReady) {
+                        await window.signInAnonymously(window.auth);
+                        const c = 'almanara_v1';
+                        window.onSnapshot(window.collection(window.db, 'artifacts', c, 'lessons'), s => setLessons(s.docs.map(d=>({id:d.id, ...d.data()}))));
+                        window.onSnapshot(window.collection(window.db, 'artifacts', c, 'students'), s => setStudents(s.docs.map(d=>({nid:d.id, ...d.data()}))));
+                        window.onSnapshot(window.collection(window.db, 'artifacts', c, 'guest_messages'), s => setMsgs(s.docs.map(d=>({id:d.id, ...d.data()}))));
+                        window.onSnapshot(window.doc(window.db, 'artifacts', c, 'settings', 'config'), d => {if(d.exists()) setServerPass(d.data().adminPassword)});
+                    }
+                };
+                const i = setInterval(() => { if(window.isFirebaseReady) { clearInterval(i); init(); } }, 100);
+            }, []);
+
+            const checkPass = () => { if(pass === serverPass) setLocked(false); else alert("كلمة المرور خاطئة"); };
+            const saveKey = (k) => { setApiKey(k); localStorage.setItem('gemini_key', k); };
+
+            // Actions
+            const addLesson = async () => {
+                if(!lesson.title) return alert("عنوان مطلوب");
+                const id = String(Date.now());
+                await window.setDoc(window.doc(window.db, 'artifacts', 'almanara_v1', 'lessons', id), {...lesson, isVisible: true, views:0});
+                setLesson({title:'', content:'', questions:[]});
+                alert("تم النشر");
+            };
+            const delLesson = async (id) => { if(confirm("حذف؟")) await window.deleteDoc(window.doc(window.db, 'artifacts', 'almanara_v1', 'lessons', id)); };
+            
+            const addStudent = async () => {
+                if(!newStd.nid) return;
+                await window.setDoc(window.doc(window.db, 'artifacts', 'almanara_v1', 'students', newStd.nid), {...newStd, xp:0, level:1, password: newStd.nid});
+                setNewStd({name:'', nid:''});
+            };
+            const delStudent = async (nid) => { if(confirm("حذف؟")) await window.deleteDoc(window.doc(window.db, 'artifacts', 'almanara_v1', 'students', nid)); };
+
+            const generateAI = async () => {
+                if(!apiKey) return alert("أدخل API Key أولاً");
+                try {
+                    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+                        method: 'POST', headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ contents: [{ parts: [{ text: `Generate 3 MCQ questions in JSON format for: ${lesson.content}. JSON structure: [{"type":"mcq","text":"?","options":["A","B"],"answer":"A","explanation":".."}]` }] }] })
+                    });
+                    const data = await res.json();
+                    const txt = data.candidates[0].content.parts[0].text.replace(/```json|```/g, '');
+                    const qs = JSON.parse(txt).map((q,i)=>({...q, id:Date.now()+i}));
+                    setLesson({...lesson, questions: qs});
+                } catch(e) { alert("فشل التوليد: " + e.message); }
+            };
+
+            if(locked) return (
+                <div className="h-screen flex items-center justify-center bg-slate-100">
+                    <div className="bg-white p-8 rounded-2xl shadow-xl text-center">
+                        <h2 className="text-xl font-bold mb-4">دخول المعلم</h2>
+                        <input className="border p-2 rounded mb-4 w-full text-center" type="password" value={pass} onChange={e=>setPass(e.target.value)} placeholder="كلمة المرور" />
+                        <button onClick={checkPass} className="bg-primary text-white px-6 py-2 rounded-lg font-bold w-full">دخول</button>
+                        <a href="index.html" className="block mt-4 text-sm text-slate-400">عودة</a>
+                    </div>
+                </div>
+            );
+
+            return (
+                <div className="min-h-screen bg-slate-50 flex flex-col">
+                    <nav className="bg-white px-6 py-3 border-b flex justify-between items-center">
+                        <h1 className="font-bold text-lg">لوحة المعلم</h1>
+                        <a href="index.html" className="text-red-500 font-bold text-sm">خروج</a>
+                    </nav>
+
+                    <main className="container mx-auto p-6 grid lg:grid-cols-4 gap-6">
+                        <div className="lg:col-span-1 bg-white p-4 rounded-xl h-fit">
+                            <button onClick={()=>setTab('lessons')} className={`w-full text-right p-3 rounded font-bold mb-2 ${tab==='lessons'?'bg-blue-50 text-blue-600':''}`}>📚 الدروس</button>
+                            <button onClick={()=>setTab('students')} className={`w-full text-right p-3 rounded font-bold mb-2 ${tab==='students'?'bg-green-50 text-green-600':''}`}>👨‍🎓 الطلاب</button>
+                            <button onClick={()=>setTab('msgs')} className={`w-full text-right p-3 rounded font-bold mb-2 ${tab==='msgs'?'bg-orange-50 text-orange-600':''}`}>📩 الرسائل</button>
+                            <hr className="my-4"/>
+                            <input className="w-full p-2 border rounded text-xs" type="password" placeholder="Gemini API Key" value={apiKey} onChange={e=>saveKey(e.target.value)} />
+                        </div>
+
+                        <div className="lg:col-span-3 bg-white p-6 rounded-xl border">
+                            {tab === 'lessons' && (
+                                <div>
+                                    <h2 className="font-bold text-xl mb-4">إضافة درس</h2>
+                                    <input className="w-full p-3 border rounded mb-2" placeholder="العنوان" value={lesson.title} onChange={e=>setLesson({...lesson, title:e.target.value})} />
+                                    <textarea className="w-full p-3 border rounded mb-2 h-32" placeholder="المحتوى" value={lesson.content} onChange={e=>setLesson({...lesson, content:e.target.value})}></textarea>
+                                    <div className="flex gap-2 mb-6">
+                                        <button onClick={generateAI} className="bg-purple-600 text-white px-4 py-2 rounded font-bold">✨ توليد أسئلة</button>
+                                        <button onClick={addLesson} className="bg-green-600 text-white px-4 py-2 rounded font-bold">نشر</button>
+                                    </div>
+                                    <div className="space-y-2">
+                                        {lessons.map(l => (
+                                            <div key={l.id} className="flex justify-between p-3 border rounded bg-slate-50">
+                                                <b>{l.title}</b>
+                                                <button onClick={()=>delLesson(l.id)} className="text-red-500"><i className="fas fa-trash"></i></button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {tab === 'students' && (
+                                <div>
+                                    <div className="flex gap-2 mb-4">
+                                        <input className="border p-2 rounded" placeholder="الاسم" value={newStd.name} onChange={e=>setNewStd({...newStd, name:e.target.value})} />
+                                        <input className="border p-2 rounded" placeholder="السجل" value={newStd.nid} onChange={e=>setNewStd({...newStd, nid:e.target.value})} />
+                                        <button onClick={addStudent} className="bg-blue-600 text-white px-4 rounded font-bold">إضافة</button>
+                                    </div>
+                                    <table className="w-full text-sm text-right">
+                                        <thead className="bg-slate-100"><tr><th className="p-2">الاسم</th><th className="p-2">XP</th><th className="p-2">حذف</th></tr></thead>
+                                        <tbody>
+                                            {students.map(s => (
+                                                <tr key={s.nid} className="border-b">
+                                                    <td className="p-2">{s.name} <span className="text-xs text-slate-400">({s.nid})</span></td>
+                                                    <td className="p-2 font-bold text-gold">{s.xp}</td>
+                                                    <td className="p-2"><button onClick={()=>delStudent(s.nid)} className="text-red-500"><i className="fas fa-trash"></i></button></td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+
+                            {tab === 'msgs' && (
+                                <div className="space-y-2">
+                                    {msgs.map(m => (
+                                        <div key={m.id} className="p-3 bg-slate-50 rounded border">
+                                            <div className="font-bold text-primary">{m.sender} <span className="text-xs text-slate-400">({m.date})</span></div>
+                                            <p>{m.text}</p>
+                                        </div>
+                                    ))}
+                                    {!msgs.length && <p className="text-center text-slate-400">لا توجد رسائل</p>}
+                                </div>
+                            )}
+                        </div>
+                    </main>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

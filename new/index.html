@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المنارة - الرئيسية</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Firebase -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, getDocs, doc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBxPO6RKsQ1Cq-mqlCpFTrCuIyxnYdB37U",
+            authDomain: "studentsystem-c1ab1.firebaseapp.com",
+            databaseURL: "https://studentsystem-c1ab1-default-rtdb.firebaseio.com",
+            projectId: "studentsystem-c1ab1",
+            storageBucket: "studentsystem-c1ab1.firebasestorage.app",
+            messagingSenderId: "112215023848",
+            appId: "1:112215023848:web:0adba326a527ee7e37e95d"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        window.db = getFirestore(app);
+        window.auth = getAuth(app);
+        window.signInAnonymously = signInAnonymously;
+        window.collection = collection;
+        window.getDocs = getDocs;
+        window.doc = doc;
+        window.setDoc = setDoc;
+        window.updateDoc = updateDoc;
+        window.isFirebaseReady = true;
+    </script>
+    <style>body { font-family: 'Tajawal', sans-serif; background-color: #f8fafc; } .fade-in { animation: fadeIn 0.4s ease-out; } @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }</style>
+    <script>tailwind.config = { theme: { extend: { colors: { primary: '#2563eb', gold: '#fbbf24' } } } }</script>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // --- Shared Helper for Image Compression ---
+        const processImage = (file) => {
+            return new Promise((resolve, reject) => {
+                if (!file) return reject("No file");
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        const MAX_SIZE = 300;
+                        let width = img.width; let height = img.height;
+                        if (width > height) { if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; } } 
+                        else { if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; } }
+                        canvas.width = width; canvas.height = height;
+                        ctx.drawImage(img, 0, 0, width, height);
+                        resolve(canvas.toDataURL('image/jpeg', 0.7));
+                    };
+                };
+            });
+        };
+
+        const App = () => {
+            const [view, setView] = useState('landing');
+            const [loading, setLoading] = useState(true);
+            const [students, setStudents] = useState([]);
+
+            useEffect(() => {
+                const init = async () => {
+                    if(window.isFirebaseReady) {
+                        await window.signInAnonymously(window.auth);
+                        const snap = await window.getDocs(window.collection(window.db, 'artifacts', 'almanara_v1', 'students'));
+                        setStudents(snap.docs.map(d => ({...d.data(), nid: d.id})));
+                        setLoading(false);
+                    }
+                };
+                const interval = setInterval(() => { if(window.isFirebaseReady) { clearInterval(interval); init(); } }, 100);
+            }, []);
+
+            const handleLogin = (student) => {
+                // حفظ هوية الطالب للانتقال للصفحة التالية
+                localStorage.setItem('almanara_current_nid', student.nid);
+                window.location.href = 'student.html';
+            };
+
+            const handleGuest = () => {
+                localStorage.setItem('almanara_current_nid', 'guest');
+                window.location.href = 'student.html';
+            };
+
+            const handleTeacher = () => {
+                window.location.href = 'admin.html';
+            };
+
+            if(loading) return <div className="h-screen flex items-center justify-center text-primary"><i className="fas fa-circle-notch fa-spin text-4xl"></i></div>;
+
+            return (
+                <div className="min-h-screen flex flex-col">
+                    <nav className="bg-white/90 backdrop-blur sticky top-0 z-50 border-b px-6 py-3 flex justify-between items-center">
+                        <div className="flex items-center gap-2 cursor-pointer" onClick={()=>setView('landing')}>
+                            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white font-bold text-xl"><i className="fas fa-lightbulb"></i></div>
+                            <h1 className="font-bold text-lg hidden md:block">المنارة التعليمية</h1>
+                        </div>
+                        <button onClick={handleTeacher} className="text-primary hover:bg-blue-50 px-4 py-2 rounded-lg font-bold transition text-sm">
+                            <i className="fas fa-chalkboard-teacher ml-2"></i> المعلم
+                        </button>
+                    </nav>
+
+                    <main className="flex-grow container mx-auto p-4 flex items-center justify-center">
+                        {view === 'landing' ? (
+                            <div className="text-center fade-in max-w-lg">
+                                <h1 className="text-5xl font-extrabold mb-6 text-slate-900">التعليم <span className="text-primary">الذكي</span></h1>
+                                <p className="text-xl text-slate-500 mb-10">منصة متكاملة: تكرار متباعد، ذكاء اصطناعي، وإدارة شاملة.</p>
+                                <div className="space-y-3">
+                                    <button onClick={() => setView('login')} className="w-full bg-primary text-white py-4 rounded-xl font-bold shadow-lg hover:scale-105 transition">دخول الطالب</button>
+                                    <button onClick={handleGuest} className="w-full bg-white border-2 border-slate-200 text-slate-700 py-4 rounded-xl font-bold hover:bg-slate-50 transition">تصفح كزائر</button>
+                                </div>
+                            </div>
+                        ) : (
+                            <StudentLoginForm students={students} onLogin={handleLogin} onBack={()=>setView('landing')} />
+                        )}
+                    </main>
+                </div>
+            );
+        };
+
+        const StudentLoginForm = ({ students, onLogin, onBack }) => {
+            const [nid, setNid] = useState('');
+            const [step, setStep] = useState('check');
+            const [student, setStudent] = useState(null);
+            const [password, setPassword] = useState('');
+            
+            // Setup States
+            const [newPass, setNewPass] = useState('');
+            const [mobile, setMobile] = useState('');
+            const [avatar, setAvatar] = useState(null);
+
+            const checkNid = () => {
+                const s = students.find(x => x.nid === nid);
+                if(!s) return alert("السجل المدني غير موجود");
+                setStudent(s);
+                setStep(s.hasCompletedSetup ? 'login' : 'setup');
+            };
+
+            const doSetup = async () => {
+                if(!newPass) return alert("كلمة المرور مطلوبة");
+                const updated = { ...student, password: newPass, mobile, avatar: avatar || student.avatar, hasCompletedSetup: true };
+                await window.updateDoc(window.doc(window.db, 'artifacts', 'almanara_v1', 'students', student.nid), updated);
+                onLogin(updated);
+            };
+
+            const doLogin = () => {
+                if(password === student.password) onLogin(student);
+                else alert("كلمة المرور خطأ");
+            };
+
+            const handleFile = async (e) => {
+                try { setAvatar(await processImage(e.target.files[0])); } catch(err){}
+            };
+
+            return (
+                <div className="bg-white p-8 rounded-3xl shadow-xl w-full max-w-md text-center fade-in border">
+                    <button onClick={onBack} className="mb-4 text-slate-400 text-sm">عودة</button>
+                    <h2 className="text-2xl font-bold mb-6">بوابة الطالب</h2>
+                    
+                    {step === 'check' && (
+                        <>
+                            <input className="w-full p-4 bg-slate-50 rounded-xl mb-4 text-center border font-mono font-bold" placeholder="السجل المدني" value={nid} onChange={e=>setNid(e.target.value)} />
+                            <button onClick={checkNid} className="w-full bg-primary text-white py-3 rounded-xl font-bold">التالي</button>
+                        </>
+                    )}
+
+                    {step === 'setup' && (
+                        <div className="text-right">
+                            <p className="text-sm text-center mb-4 text-blue-600 font-bold">مرحباً {student.name}! أكمل بياناتك.</p>
+                            <input className="w-full p-3 border rounded-lg mb-2" type="password" placeholder="كلمة مرور جديدة" value={newPass} onChange={e=>setNewPass(e.target.value)} />
+                            <input className="w-full p-3 border rounded-lg mb-2" placeholder="رقم الجوال" value={mobile} onChange={e=>setMobile(e.target.value)} />
+                            <input type="file" className="w-full mb-4 text-xs" onChange={handleFile} />
+                            <button onClick={doSetup} className="w-full bg-green-600 text-white py-3 rounded-xl font-bold">حفظ ودخول</button>
+                        </div>
+                    )}
+
+                    {step === 'login' && (
+                        <>
+                            {student.avatar && <img src={student.avatar} className="w-20 h-20 rounded-full mx-auto mb-4 object-cover shadow" />}
+                            <h3 className="font-bold mb-4">{student.name}</h3>
+                            <input className="w-full p-3 border rounded-lg mb-4 text-center" type="password" placeholder="كلمة المرور" value={password} onChange={e=>setPassword(e.target.value)} />
+                            <button onClick={doLogin} className="w-full bg-primary text-white py-3 rounded-xl font-bold">دخول</button>
+                        </>
+                    )}
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
