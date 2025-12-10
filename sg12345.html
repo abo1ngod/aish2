@@ -556,26 +556,30 @@
             const grid = document.getElementById('players-grid');
             grid.innerHTML = "";
 
-            // الترتيب: إذا كان هناك على الأقل لاعب بنقاط > 0، رتب حسب النقاط تنازلياً
-            // وإلا رتب أبجدياً حسب الاسم
-            const anyScores = players.some(p => p.totalScore && p.totalScore !== 0);
-            let sortedPlayers = [];
-            if (anyScores) {
-                sortedPlayers = [...players].sort((a,b) => b.totalScore - a.totalScore || a.name.localeCompare(b.name, 'ar'));
-            } else {
-                sortedPlayers = [...players].sort((a,b) => a.name.localeCompare(b.name, 'ar'));
-            }
+            // الترتيب: النقاط تنازلياً أولاً، ثم الاسم أبجدياً (في حالة التعادل أو النقاط 0)
+            const sortedPlayers = [...players].sort((a, b) => {
+                // الفرق في النقاط (لترتيب تنازلي)
+                const scoreDiff = b.totalScore - a.totalScore;
+                if (scoreDiff !== 0) return scoreDiff;
+                
+                // إذا تساوت النقاط، رتب حسب الاسم أبجدياً
+                return a.name.localeCompare(b.name, 'ar');
+            });
 
-            players.forEach((player, index) => {
-                // إيجاد الترتيب حسب sortedPlayers
-                const rank = sortedPlayers.findIndex(p => p.id === player.id) + 1;
+            sortedPlayers.forEach((player) => {
+                // تحديد الفهرس الأصلي للاعب في المصفوفة الرئيسية لاستخدامه في selectPlayer
+                const originalIndex = players.findIndex(p => p.id === player.id);
+                
+                // حساب الرتبة بناءً على القائمة المرتبة
+                const rank = sortedPlayers.indexOf(player) + 1;
+
                 let rankClass = "";
                 if (rank === 1) rankClass = "rank-1";
                 else if (rank === 2) rankClass = "rank-2";
                 else if (rank === 3) rankClass = "rank-3";
 
                 grid.innerHTML += `
-                    <div class="player-card" onclick="selectPlayer(${index})">
+                    <div class="player-card" onclick="selectPlayer(${originalIndex})">
                         ${rank <= 3 ? `<div class="player-rank ${rankClass}">${rank}</div>` : ''}
                         <div style="font-size:3rem;">👤</div>
                         <div class="player-name">${player.name}</div>
