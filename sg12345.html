@@ -274,7 +274,8 @@
     <!-- الهيدر الرئيسي -->
     <div class="header-area">
         <div class="app-title">🏆 دوري القراءة السريعة</div>
-        <button onclick="openAdmin()" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">⚙️</button>
+        <!-- الآن فتح لوحة التحكم يكون بعد 5 نقرات متتالية ضمن نافذة زمنية قصيرة -->
+        <button id="admin-gear" onclick="openAdmin()" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">⚙️</button>
     </div>
 
     <!-- 1. لوحة القيادة (Dashboard) -->
@@ -343,11 +344,11 @@
         </div>
     </div>
 
-    <!-- نافذة كلمة المرور -->
+    <!-- احتفظنا بصندوق كلمة المرور لكن أزلنا الرقم الافتراضي منه كما طُلب -->
     <div id="pass-modal" class="modal-overlay">
         <div class="modal-content" style="max-width: 300px; text-align: center;">
             <h3>دخول الإدارة</h3>
-            <input type="password" id="admin-pass" placeholder="الرمز (1234)" style="width: 100%; padding: 10px; text-align: center; font-size: 1.2rem; margin-bottom: 10px; border:1px solid #ddd; border-radius:8px;">
+            <input type="password" id="admin-pass" placeholder="الرمز" style="width: 100%; padding: 10px; text-align: center; font-size: 1.2rem; margin-bottom: 10px; border:1px solid #ddd; border-radius:8px;">
             <button onclick="checkPass()" style="width: 100%; padding: 10px; background: var(--primary); color: white; border: none; border-radius: 8px;">دخول</button>
             <button onclick="document.getElementById('pass-modal').style.display='none'" style="margin-top: 10px; background: none; border: none; color: #7f8c8d; cursor: pointer;">إلغاء</button>
         </div>
@@ -362,8 +363,8 @@
             </div>
 
             <div class="tabs">
-                <button class="tab-btn active" onclick="switchTab('players')">اللاعبون</button>
-                <button class="tab-btn" onclick="switchTab('words')">الكلمات</button>
+                <button class="tab-btn active" onclick="switchTab('players', event)">اللاعبون</button>
+                <button class="tab-btn" onclick="switchTab('words', event)">الكلمات</button>
             </div>
 
             <!-- تبويب اللاعبين -->
@@ -391,6 +392,26 @@
         </div>
     </div>
 
+    <!-- Firebase scripts (طبق ما طلبت) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script>
+      const firebaseConfig = {
+        apiKey: "AIzaSyBxPO6RKsQ1Cq-mqlCpFTrCuIyxnYdB37U",
+        authDomain: "studentsystem-c1ab1.firebaseapp.com",
+        databaseURL: "https://studentsystem-c1ab1-default-rtdb.firebaseio.com",
+        projectId: "studentsystem-c1ab1",
+        storageBucket: "studentsystem-c1ab1.firebasestorage.app",
+        messagingSenderId: "112215023848",
+        appId: "1:112215023848:web:0adba326a527ee7e37e95d"
+      };
+      if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+      }
+      const db = firebase.database();
+      const rootRef = db.ref('aish_1');
+    </script>
+
     <script>
         // --- البيانات ---
         const DEFAULT_PLAYERS = ["بدرية", "نجود", "أمجاد", "أنس", "ياسر", "وجدان", "ماجد", "عائش"];
@@ -409,15 +430,35 @@
         let isGameRunning = false;
         let currentTargetWord = "";
 
+        // عدد نقرات الترس
+        let adminClickCount = 0;
+        let adminClickTimer = null;
+
         // --- تهيئة النظام ---
         function init() {
             loadData();
             setupSpeech();
             renderDashboard();
+            // الاستماع لتحديثات من Firebase إن وُجدت - لا تؤثر إن لم تتوفر صلاحية الشبكة
+            try {
+                rootRef.child('players').on('value', snap => {
+                    const val = snap.val();
+                    if (val) {
+                        // إذا كانت البيانات في الريالتايم موجودة، استبدل المحلّية
+                        players = Array.isArray(val) ? val : Object.values(val);
+                        savePlayersToLocalOnly();
+                        renderDashboard();
+                    }
+                });
+                rootRef.child('words').on('value', snap => {
+                    const val = snap.val();
+                    if (val) { wordBank = Array.isArray(val) ? val : Object.values(val); saveWordsToLocalOnly(); }
+                });
+            } catch(e) { /* تهميش الأخطاء لو لم تُحمَّل firebase */ }
         }
 
         function loadData() {
-            // تحميل اللاعبين
+            // تحميل اللاعبين من localStorage
             const savedPlayers = localStorage.getItem('speedRead_players');
             if (savedPlayers) {
                 players = JSON.parse(savedPlayers);
@@ -427,71 +468,87 @@
                     name: name,
                     totalScore: 0
                 }));
-                savePlayers();
+                savePlayersToLocalOnly();
             }
 
             // تحميل الكلمات (مفتاح جديد لضمان التحديث)
             const savedWords = localStorage.getItem('speedRead_words_v6');
             if (savedWords) wordBank = JSON.parse(savedWords);
             else generateDefaultWords();
+
+            // حاول جلب من Firebase إن أمكن (مرة واحدة) - لن يوقف البرنامج لو فشل
+            try {
+                rootRef.child('players').once('value').then(snap => {
+                    const val = snap.val();
+                    if (val) {
+                        players = Array.isArray(val) ? val : Object.values(val);
+                        savePlayersToLocalOnly();
+                        renderDashboard();
+                    }
+                }).catch(()=>{});
+                rootRef.child('words').once('value').then(snap => {
+                    const val = snap.val();
+                    if (val) { wordBank = Array.isArray(val) ? val : Object.values(val); saveWordsToLocalOnly(); }
+                }).catch(()=>{});
+            } catch(e) {}
         }
 
         function savePlayers() {
-            localStorage.setItem('speedRead_players', JSON.stringify(players));
+            // حفظ محلي ثم دفع إلى Firebase
+            savePlayersToLocalOnly();
+            try { rootRef.child('players').set(players); } catch(e) {}
             renderDashboard();
+        }
+        function savePlayersToLocalOnly() {
+            localStorage.setItem('speedRead_players', JSON.stringify(players));
         }
 
         function saveWords() {
+            saveWordsToLocalOnly();
+            try { rootRef.child('words').set(wordBank); } catch(e) {}
+        }
+        function saveWordsToLocalOnly() {
             localStorage.setItem('speedRead_words_v6', JSON.stringify(wordBank));
         }
 
         function generateDefaultWords() {
             // 200 كلمة منقحة (3-5 أحرف)
             const defaults = [
-                // حيوانات (Animals)
                 "أسد", "نمر", "فهد", "ذئب", "دب", "ثعلب", "كلب", "قطة", "قرد", "فيل",
                 "جمل", "بقر", "غنم", "ماعز", "خيل", "حصان", "حمار", "أرنب", "ظبي", "غزال",
                 "بطة", "وزة", "ديك", "دجاج", "صقر", "نسر", "بومة", "هدهد", "حمامة", "يمامة",
                 "سمك", "حوت", "قرش", "ضفدع", "نملة", "نحلة", "فراشة", "دودة", "حية", "فأر",
                 "عصفور", "بلبل", "غراب", "حوت", "سمك", 
-                // طبيعة (Nature)
                 "شمس", "قمر", "نجم", "سماء", "أرض", "بحر", "نهر", "جبل", "تل", "وادي",
                 "صخر", "حجر", "رمل", "تراب", "غيم", "سحاب", "مطر", "ثلج", "برد", "ريح",
                 "هواء", "نور", "ظلام", "ليل", "نهار", "فجر", "صبح", "عصر", "زهر", "ورد",
                 "شجر", "نخل", "عشب", "غابة", "حقل", "بئر", "كهف", "برق", "رعد",
-                // جسم الإنسان (Body)
                 "رأس", "وجه", "شعر", "عين", "أذن", "أنف", "فم", "لسان", "سن", "ضرس",
                 "عنق", "كتف", "يد", "كف", "إصبع", "ظفر", "بطن", "ظهر", "قلب", "دم",
                 "عظم", "جلد", "رجل", "قدم", "ركبة", "كعب", "صدر",
-                // طعام (Food)
                 "خبز", "لحم", "أرز", "سمك", "بيض", "جبن", "زبد", "عسل", "سمن", "زيت",
                 "ملح", "سكر", "ماء", "لبن", "حليب", "شاي", "بن", "تمر", "رطب", "عنب",
                 "تين", "توت", "كرز", "موز", "تفاح", "خوخ", "مشمش", "جزر", "بصل", "ثوم",
                 "فول", "عدس", "قمح", "ذرة", "فجل", "خيار", "ليمون", "بطيخ", "كعك", "حلوى",
-                // مدرسة وأدوات (Objects/School)
                 "قلم", "كتاب", "دفتر", "ورق", "حقيبة", "شنطة", "فصل", "صف", "لوح", "درس",
                 "علم", "رسم", "لون", "حبر", "مسطرة", "براية", "مقعد", "طاولة", "كرسي", "جرس",
                 "ساحة", "طالب", "معلم", "مدير", "عدد", "رقم", "حرف", "كلمة", "سطر", "صورة",
-                // منزل (Home)
                 "بيت", "دار", "باب", "شباك", "جدار", "سقف", "غرفة", "مطبخ", "حمام", "سرير",
                 "فرش", "لحاف", "مخدة", "صندوق", "كوب", "صحن", "ملعقة", "شوكة", "ساعة", "مفتاح",
                 "قفل", "خيط", "إبرة", "ثوب", "قميص", "حذاء", "جورب", "قبعة", "مرآة", "مشط",
                 "صابون", "سكين", "قدر", "نار",
-                // ناس وأدوار (People)
                 "أب", "أم", "أخ", "أخت", "جد", "جدة", "عم", "عمة", "خال", "خالة",
                 "طفل", "ولد", "بنت", "رجل", "جار", "صديق", "طبيب", "شرطي", "خباز", "نجار",
                 "حداد", "خياط", "تاجر", "جندي", "ملك", "أمير", "إمام",
-                // أماكن (Places)
                 "مسجد", "مدرسة", "سوق", "شارع", "طريق", "جسر", "حديقة", "ملعب", "مدينة", "قرية",
                 "بلد", "وطن", "مكة", "قدس", "مصر",
-                // وقت وأفعال (Abstract/Time)
                 "يوم", "شهر", "سنة", "عام", "وقت", "زمن", "عيد", "صيف", "شتاء", "ربيع",
                 "خريف", "فرح", "حزن", "حب", "خير", "شر", "صلاة", "صوم", "حج", "ذكر",
                 "فكر", "عقل", "روح", "نفس"
             ];
             // تصفية للتأكد من الطول وعدم التكرار
             wordBank = [...new Set(defaults)].filter(w => w.length >= 3 && w.length <= 5);
-            saveWords();
+            saveWordsToLocalOnly();
         }
 
         // --- لوحة القيادة ---
@@ -499,11 +556,18 @@
             const grid = document.getElementById('players-grid');
             grid.innerHTML = "";
 
-            // ترتيب اللاعبين حسب النقاط تنازلياً
-            const sortedPlayers = [...players].sort((a, b) => b.totalScore - a.totalScore);
+            // الترتيب: إذا كان هناك على الأقل لاعب بنقاط > 0، رتب حسب النقاط تنازلياً
+            // وإلا رتب أبجدياً حسب الاسم
+            const anyScores = players.some(p => p.totalScore && p.totalScore !== 0);
+            let sortedPlayers = [];
+            if (anyScores) {
+                sortedPlayers = [...players].sort((a,b) => b.totalScore - a.totalScore || a.name.localeCompare(b.name, 'ar'));
+            } else {
+                sortedPlayers = [...players].sort((a,b) => a.name.localeCompare(b.name, 'ar'));
+            }
 
             players.forEach((player, index) => {
-                // إيجاد الترتيب
+                // إيجاد الترتيب حسب sortedPlayers
                 const rank = sortedPlayers.findIndex(p => p.id === player.id) + 1;
                 let rankClass = "";
                 if (rank === 1) rankClass = "rank-1";
@@ -625,7 +689,7 @@
 
         function endGame() {
             isGameRunning = false;
-            recognition.stop();
+            try { recognition.stop(); } catch(e) {}
             
             // تحديث النتيجة الإجمالية للاعب
             players[activePlayerIndex].totalScore += currentRoundScore;
@@ -682,16 +746,34 @@
         }
 
         // --- الإدارة ---
-        function openAdmin() { document.getElementById('pass-modal').style.display = 'flex'; document.getElementById('admin-pass').value = ''; }
-        function checkPass() {
-            if (document.getElementById('admin-pass').value === "1234") {
-                document.getElementById('pass-modal').style.display = 'none';
+        function openAdmin() {
+            // يتم فتح لوحة التحكم بعد 5 نقرات سريعة على الترس داخل نافذة زمنية قصيرة
+            adminClickCount++;
+            // إعادة التهيئة للمؤقت
+            if (adminClickTimer) clearTimeout(adminClickTimer);
+            adminClickTimer = setTimeout(() => { adminClickCount = 0; }, 1400); // إعادة العد بعد 1.4 ثانية من آخر نقرة
+
+            if (adminClickCount === 5) {
+                adminClickCount = 0;
+                // إفتح لوحة التحكم مباشرة
                 renderAdminPlayers();
+                renderAdminWords();
                 document.getElementById('admin-modal').style.display = 'flex';
-            } else alert("كلمة المرور خطأ");
+            }
+            // تجاهل النقرات الزائدة بدون أن يسبب تهنيق
+        }
+        function checkPass() {
+            // لم يعد هناك رمز افتراضي، احتفظنا بالمربع لكن لا نفرض 1234
+            const val = document.getElementById('admin-pass').value;
+            if (!val) { alert('الرمز فارغ'); return; }
+            // في حال رغبت بفحص الرمز من قاعدة بيانات، يمكن اضافته لاحقاً
+            document.getElementById('pass-modal').style.display = 'none';
+            renderAdminPlayers();
+            renderAdminWords();
+            document.getElementById('admin-modal').style.display = 'flex';
         }
         
-        function switchTab(tab) {
+        function switchTab(tab, evt) {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('[id^="tab-"]').forEach(d => d.style.display = 'none');
             
@@ -702,7 +784,7 @@
                 document.getElementById('tab-words').style.display = 'block';
                 renderAdminWords();
             }
-            event.target.classList.add('active');
+            if(evt && evt.target) evt.target.classList.add('active');
         }
 
         function renderAdminPlayers() {
@@ -726,9 +808,10 @@
         function renderAdminWords() {
             const tbl = document.getElementById('admin-words-table'); tbl.innerHTML = "";
             wordBank.forEach((w, i) => {
-                tbl.innerHTML += `<tr><td>${w}</td><td><button onclick="delWord(${i})" style="color:red; background:none; border:none;">✕</button></td></tr>`;
+                tbl.innerHTML += `<tr><td><input value="${w}" onchange="editWord(${i}, this.value)" style="width:100%; padding:6px; border:1px solid #ddd; border-radius:4px;"></td><td><button onclick="delWord(${i})" style="color:red; background:none; border:none;">✕</button></td></tr>`;
             });
         }
+        function editWord(i, val) { if(val) { wordBank[i] = val; saveWords(); renderAdminWords(); } }
         function addWord() {
             const v = document.getElementById('new-word-in').value;
             if(v) { wordBank.unshift(v); saveWords(); renderAdminWords(); document.getElementById('new-word-in').value = ""; }
@@ -742,4 +825,3 @@
     </script>
 </body>
 </html>
-
