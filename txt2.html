@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>عائلة المنافسين - القارئ الذكي</title>
+    <title>عائلة المنافسين - الشامل</title>
     <!-- استدعاء الخطوط -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -26,12 +26,9 @@
             --text-color: #1F2937;
             --header-transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
             
-            /* ألوان القارئ */
-            --reader-bg: #ffffff;
-            --word-pending: #374151;
-            --word-current: #F59E0B; /* برتقالي للكلمة الحالية */
-            --word-correct: #10B981; /* أخضر للصحيح */
-            --word-wrong: #EF4444;   /* أحمر للخطأ */
+            /* ألوان خاصة بالألعاب */
+            --game-bg: #1e1b4b;
+            --word-bg: #ffffff;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
@@ -135,52 +132,88 @@
         .content-header { border-bottom: 2px solid #f0f0f0; padding-bottom: 20px; margin-bottom: 20px; color: var(--primary-color); }
         .db-item { background: #f9fafb; border-right: 4px solid var(--primary-color); padding: 15px; margin-bottom: 15px; border-radius: 8px; }
 
-        /* --- شاشة القراءة التفاعلية (المود الشامل) --- */
+        /* --- شاشة الأذكار (جديد) --- */
+        .athkar-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;
+        }
+        .thikr-btn {
+            background: white; border: 2px solid #eee; border-radius: 20px; padding: 25px;
+            text-align: center; cursor: pointer; transition: 0.3s; position: relative;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05); display: flex; flex-direction: column; align-items: center; justify-content: center;
+            min-height: 180px;
+        }
+        .thikr-btn:hover { border-color: var(--primary-color); transform: translateY(-5px); }
+        .thikr-btn.listening { border-color: var(--accent-color); background: #FFFBEB; animation: breathe 2s infinite; }
+        .thikr-btn.success { border-color: var(--success-color); background: #ECFDF5; }
+
+        @keyframes breathe { 0% {box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4);} 70% {box-shadow: 0 0 0 10px rgba(245, 158, 11, 0);} 100% {box-shadow: 0 0 0 0 rgba(245, 158, 11, 0);} }
+
+        .thikr-text { font-size: 1.3rem; font-weight: bold; margin-bottom: 15px; color: #374151; }
+        
+        .thikr-stats {
+            display: flex; width: 100%; justify-content: space-around; font-size: 0.85rem; color: #666;
+            background: #f8fafc; padding: 8px; border-radius: 10px; margin-top: 10px;
+        }
+        .stat-item { display: flex; flex-direction: column; align-items: center; }
+        .stat-item b { font-size: 1.1rem; color: var(--primary-color); }
+        .session-badge {
+            background: var(--accent-color); color: white; padding: 2px 10px; border-radius: 10px;
+            font-size: 0.8rem; position: absolute; top: 10px; left: 10px;
+        }
+
+        /* --- شاشة القراءة التفاعلية (المقالات) --- */
         #readerOverlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: white; z-index: 3000; display: none; flex-direction: column;
         }
-        
         .reader-header {
             padding: 15px 20px; background: white; box-shadow: 0 4px 10px rgba(0,0,0,0.05);
             display: flex; justify-content: space-between; align-items: center; z-index: 10;
         }
-        .reader-timer { font-size: 1.5rem; font-weight: bold; color: var(--primary-color); }
-        
         .reader-body {
             flex: 1; padding: 40px; overflow-y: auto; text-align: justify;
             display: flex; justify-content: center; align-items: flex-start;
         }
-        
         .reader-text-container {
             font-size: 2.5rem; line-height: 2.2; max-width: 900px; width: 100%;
             color: var(--text-color); direction: rtl;
         }
-
-        .word-span {
-            display: inline-block; padding: 0 5px; margin: 2px;
-            border-radius: 6px; transition: all 0.2s; border-bottom: 3px solid transparent;
-        }
-        .word-current { 
-            background-color: #FEF3C7; color: #000; 
-            border-bottom-color: var(--accent-color); transform: scale(1.1); 
-        }
+        .word-span { display: inline-block; padding: 0 5px; margin: 2px; border-radius: 6px; transition: all 0.2s; border-bottom: 3px solid transparent; }
+        .word-current { background-color: #FEF3C7; color: #000; border-bottom-color: var(--accent-color); transform: scale(1.1); }
         .word-correct { color: var(--success-color); opacity: 0.6; }
         .word-wrong { color: var(--danger-color); text-decoration: line-through; opacity: 0.5; }
-
-        .reader-footer {
-            padding: 20px; background: white; border-top: 1px solid #eee;
-            display: flex; justify-content: center; align-items: center; gap: 20px;
-        }
-        .mic-status {
-            width: 60px; height: 60px; border-radius: 50%; background: #eee;
-            display: flex; align-items: center; justify-content: center; font-size: 1.5rem;
-            transition: all 0.3s;
-        }
+        .reader-footer { padding: 20px; background: white; border-top: 1px solid #eee; display: flex; justify-content: center; align-items: center; gap: 20px; }
+        .mic-status { width: 60px; height: 60px; border-radius: 50%; background: #eee; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; transition: all 0.3s; }
         .mic-active { background: #FEE2E2; color: var(--danger-color); animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% {box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);} 70% {box-shadow: 0 0 0 15px rgba(239, 68, 68, 0);} 100% {box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);} }
 
-        /* --- شاشة النتائج --- */
+        /* --- شاشة لعبة سرعة الكلمات --- */
+        #wordGameOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #1e1b4b, #312e81);
+            z-index: 3100; display: none; flex-direction: column; align-items: center; justify-content: center;
+            color: white;
+        }
+        .game-top-bar {
+            position: absolute; top: 20px; left: 0; width: 100%; padding: 0 20px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .game-score { font-size: 1.5rem; font-weight: bold; color: var(--accent-color); background: rgba(255,255,255,0.1); padding: 5px 20px; border-radius: 20px; }
+        
+        .word-display-box {
+            font-size: 5rem; font-weight: bold; background: white; color: #1e1b4b;
+            padding: 40px 60px; border-radius: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            margin-bottom: 30px; min-width: 300px; text-align: center;
+            animation: zoomIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes zoomIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        .timer-bar-container { width: 80%; max-width: 500px; height: 10px; background: rgba(255,255,255,0.2); border-radius: 5px; overflow: hidden; }
+        .timer-bar { height: 100%; background: var(--accent-color); width: 100%; transition: width 0.1s linear; }
+        
+        .feedback-msg { font-size: 2rem; height: 50px; margin-top: 20px; font-weight: bold; color: var(--success-color); text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+
+        /* --- شاشة النتائج (مشتركة) --- */
         #resultOverlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.9); z-index: 3500; display: none;
@@ -188,24 +221,16 @@
         }
         .result-card {
             background: white; width: 100%; max-width: 500px; border-radius: 25px;
-            padding: 40px; text-align: center; animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            padding: 40px; text-align: center; animation: popIn 0.5s;
         }
         @keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        
         .result-badge { font-size: 4rem; margin-bottom: 10px; display: block; }
         .motivation-text { font-size: 1.5rem; font-weight: bold; color: var(--primary-color); margin-bottom: 20px; }
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
         .stat-box { background: #f9fafb; padding: 15px; border-radius: 15px; border: 1px solid #eee; }
         .stat-val { font-size: 2rem; font-weight: bold; color: var(--accent-color); display: block; }
-        .stat-label { font-size: 0.9rem; color: #6b7280; }
-        .missed-words-box {
-            background: #FEF2F2; padding: 15px; border-radius: 10px; margin-bottom: 20px;
-            text-align: right; max-height: 100px; overflow-y: auto; display: none;
-        }
-        .missed-words-box h4 { color: var(--danger-color); font-size: 0.9rem; margin-bottom: 5px; }
-        .missed-word-tag { display: inline-block; background: white; padding: 2px 8px; border-radius: 4px; border: 1px solid #fab1a0; margin: 2px; font-size: 0.85rem; color: #c0392b; }
 
-        /* --- عناصر المكتبة (مشتركة) --- */
+        /* --- عناصر المكتبة --- */
         .texts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 15px; width: 100%; }
         .text-card {
             background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);
@@ -216,7 +241,7 @@
         .level-easy { background: var(--success-color); } .level-medium { background: var(--accent-color); } .level-hard { background: var(--danger-color); }
         .text-title { font-weight: bold; margin-bottom: 10px; font-size: 1.1rem; color: var(--primary-color); padding-left: 60px; }
         .text-preview { font-size: 0.9rem; color: #555; line-height: 1.5; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; flex: 1; }
-        
+
         /* Modal Styles */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -224,25 +249,26 @@
             z-index: 2000; display: none; align-items: center; justify-content: center;
         }
         .modal-active { display: flex; }
-        .modal-box { background: white; width: 90%; max-width: 500px; padding: 30px; border-radius: 20px; position: relative; max-height: 85vh; overflow-y: auto; }
+        .modal-box { background: white; width: 90%; max-width: 600px; padding: 30px; border-radius: 20px; position: relative; max-height: 85vh; overflow-y: auto; }
         .close-btn { position: absolute; top: 15px; left: 15px; background: #f3f4f6; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; }
         
-        /* أزرار الفلترة */
+        /* Filter Tabs */
         .filter-tabs { display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 5px; }
         .filter-btn { padding: 8px 16px; border-radius: 20px; border: 1px solid #ddd; background: white; cursor: pointer; transition: 0.3s; white-space: nowrap; }
         .filter-btn.active { background: var(--primary-color); color: white; border-color: var(--primary-color); }
 
-        /* نافذة بيانات المستخدم */
+        /* Profile Popup */
         .profile-popup { position: absolute; top: 70px; right: 20px; background: white; width: 250px; padding: 20px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); display: none; z-index: 1500; text-align: center; }
         .profile-popup.active { display: block; animation: fadeIn 0.2s; }
-        
-        /* إدارة (Admin) */
-        .admin-tabs { display: flex; gap: 10px; margin-bottom: 15px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
-        .admin-tab-btn { background: none; border: none; padding: 10px 20px; cursor: pointer; font-weight: bold; color: #777; border-bottom: 3px solid transparent; }
+
+        /* Admin Styles */
+        .admin-tabs { display: flex; gap: 10px; margin-bottom: 15px; border-bottom: 2px solid #eee; padding-bottom: 10px; overflow-x: auto; }
+        .admin-tab-btn { background: none; border: none; padding: 10px 20px; cursor: pointer; font-weight: bold; color: #777; border-bottom: 3px solid transparent; white-space: nowrap; }
         .admin-tab-btn.active { color: var(--primary-color); border-bottom-color: var(--primary-color); }
         .admin-section { display: none; }
         .admin-section.active { display: block; }
         .form-control { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 8px; }
+        .ai-panel { background: #EEF2FF; padding: 15px; border-radius: 10px; border: 1px solid #C7D2FE; margin-bottom: 20px; }
 
     </style>
 </head>
@@ -305,7 +331,7 @@
         </div>
     </main>
 
-    <!-- صفحة المحتوى العادية -->
+    <!-- صفحة المحتوى (عامة) -->
     <section id="contentSection" class="content-page">
         <div class="content-header">
             <h2 id="pageTitle">عنوان الصفحة</h2>
@@ -313,17 +339,32 @@
         <div id="dynamicContent" class="content-body"></div>
     </section>
 
-    <!-- شاشة القراءة الكاملة (جديد) -->
+    <!-- شاشة لعبة سرعة الكلمات (Overlay) -->
+    <div id="wordGameOverlay">
+        <div class="game-top-bar">
+            <button onclick="endWordGame(true)" style="background:rgba(255,255,255,0.2); color:white; border:none; padding:8px 15px; border-radius:15px; cursor:pointer;">✕ خروج</button>
+            <div class="game-score">نقاط: <span id="gameScoreVal">0</span></div>
+        </div>
+        <div style="font-size:1.2rem; color:#bbb; margin-bottom:10px;">اقرأ الكلمة بسرعة!</div>
+        <div class="word-display-box" id="activeWordDisplay">...</div>
+        <div class="timer-bar-container">
+            <div class="timer-bar" id="wordTimerBar"></div>
+        </div>
+        <div class="feedback-msg" id="wordFeedback"></div>
+        <div style="margin-top:20px; color:rgba(255,255,255,0.5); font-size:0.9rem;">
+            الميكروفون يعمل تلقائياً عند ظهور الكلمة 🎙️
+        </div>
+    </div>
+
+    <!-- شاشة القراءة التفاعلية (للمقالات) -->
     <div id="readerOverlay">
         <div class="reader-header">
             <div class="reader-timer" id="readerTimer">00:00</div>
             <button onclick="closeReader()" style="background:none; border:none; font-size:1.2rem; cursor:pointer; color:#777;">✕ خروج</button>
         </div>
-        
         <div class="reader-body">
             <div id="readerTextContainer" class="reader-text-container"></div>
         </div>
-        
         <div class="reader-footer">
             <div id="micIcon" class="mic-status">🎙️</div>
             <div style="font-size:0.9rem; color:#666;">اقرأ النص بصوت واضح...</div>
@@ -331,29 +372,13 @@
         </div>
     </div>
 
-    <!-- شاشة النتائج (جديد) -->
+    <!-- شاشة النتائج (عامة) -->
     <div id="resultOverlay">
         <div class="result-card">
             <span class="result-badge" id="resultEmoji">🏆</span>
             <div class="motivation-text" id="motivationText">أحسنت يا بطل!</div>
-            
-            <div class="stats-grid">
-                <div class="stat-box">
-                    <span class="stat-val" id="resWPM">0</span>
-                    <span class="stat-label">كلمة/دقيقة</span>
-                </div>
-                <div class="stat-box">
-                    <span class="stat-val" id="resAcc">0%</span>
-                    <span class="stat-label">الدقة</span>
-                </div>
-            </div>
-
-            <div id="missedWordsContainer" class="missed-words-box">
-                <h4>كلمات تحتاج تدريب:</h4>
-                <div id="missedWordsList"></div>
-            </div>
-
-            <button onclick="closeResult()" style="background:var(--primary-color); color:white; width:100%; padding:15px; border-radius:15px; border:none; font-size:1.1rem; cursor:pointer; margin-top:10px;">استمرار</button>
+            <div id="resultStatsContent"></div> <!-- محتوى متغير حسب نوع اللعبة -->
+            <button onclick="closeResult()" style="background:var(--primary-color); color:white; width:100%; padding:15px; border-radius:15px; border:none; font-size:1.1rem; cursor:pointer; margin-top:10px;">إغلاق</button>
         </div>
     </div>
 
@@ -372,8 +397,12 @@
             <div class="panel-header"><h2>لوحة التحكم</h2></div>
             <div class="admin-tabs">
                 <button class="admin-tab-btn active" onclick="switchAdminTab('users')">المتنافسون</button>
-                <button class="admin-tab-btn" onclick="switchAdminTab('content')">إدارة المحتوى</button>
+                <button class="admin-tab-btn" onclick="switchAdminTab('content')">المقالات</button>
+                <button class="admin-tab-btn" onclick="switchAdminTab('words')">كلمات السرعة</button>
+                <button class="admin-tab-btn" onclick="switchAdminTab('athkar')">إدارة الأذكار</button>
             </div>
+            
+            <!-- قسم المستخدمين -->
             <div id="adminUsersSection" class="admin-section active">
                 <div class="admin-form">
                     <input type="hidden" id="compId">
@@ -383,18 +412,61 @@
                 </div>
                 <div id="competitorsList"></div>
             </div>
+            
+            <!-- قسم المقالات -->
             <div id="adminContentSection" class="admin-section">
+                <div class="ai-panel">
+                    <div class="ai-title">توليد مقالات (AI)</div>
+                    <div style="display:flex; gap:10px;">
+                        <input type="number" id="ai-count" class="form-control" placeholder="العدد" value="3" style="margin:0;">
+                        <select id="ai-level" class="form-control" style="margin:0;">
+                            <option value="easy">🟢 سهل</option>
+                            <option value="medium">🟡 متوسط</option>
+                            <option value="hard">🔴 صعب</option>
+                        </select>
+                        <button onclick="generateAIArticles()" style="padding:10px 15px; background:var(--accent-color); color:white; border:none; border-radius:8px; cursor:pointer; white-space:nowrap;">توليد</button>
+                    </div>
+                </div>
                 <div class="admin-form">
-                    <input type="text" id="new-text-title" class="form-control" placeholder="العنوان">
+                    <input type="hidden" id="edit-article-key">
+                    <input type="text" id="new-text-title" class="form-control" placeholder="عنوان المقال">
                     <select id="new-text-level" class="form-control">
                         <option value="easy">🟢 سهل</option>
                         <option value="medium">🟡 متوسط</option>
                         <option value="hard">🔴 صعب</option>
                     </select>
-                    <textarea id="new-text-content" class="form-control" style="height:100px" placeholder="النص..."></textarea>
-                    <button onclick="addNewArticle()" style="width:100%; padding:10px; background:var(--secondary-color); color:white; border:none; border-radius:8px; cursor:pointer;">نشر</button>
+                    <textarea id="new-text-content" class="form-control" style="height:100px" placeholder="نص المقال..."></textarea>
+                    <button onclick="saveArticle()" id="saveArticleBtn" style="width:100%; padding:10px; background:var(--secondary-color); color:white; border:none; border-radius:8px; cursor:pointer;">نشر يدوي</button>
                 </div>
                 <div id="articlesList" style="margin-top:15px; max-height:200px; overflow-y:auto;"></div>
+            </div>
+
+            <!-- قسم إدارة الكلمات -->
+            <div id="adminWordsSection" class="admin-section">
+                <div class="ai-panel">
+                    <div class="ai-title">توليد 100 كلمة تلقائياً</div>
+                    <p style="font-size:0.8rem; color:#666; margin-bottom:10px;">سيتم استبدال القائمة الحالية بـ 100 اسم وحيوان (4-5 أحرف).</p>
+                    <button onclick="generateWordsList()" style="width:100%; padding:10px; background:var(--accent-color); color:white; border:none; border-radius:8px; cursor:pointer;">توليد وحفظ القائمة</button>
+                </div>
+                <div class="admin-form">
+                    <label style="font-weight:bold; font-size:0.9rem;">قائمة الكلمات (افصل بفاصلة أو سطر جديد):</label>
+                    <textarea id="wordsListInput" class="form-control" style="height:150px; font-family:monospace;"></textarea>
+                    <button onclick="saveWordsList()" style="width:100%; padding:10px; background:var(--secondary-color); color:white; border:none; border-radius:8px; cursor:pointer;">حفظ التعديلات</button>
+                </div>
+            </div>
+
+            <!-- قسم إدارة الأذكار (جديد) -->
+            <div id="adminAthkarSection" class="admin-section">
+                <div class="ai-panel">
+                    <div class="ai-title">إعدادات سريعة</div>
+                    <button onclick="restoreDefaultAthkar()" style="width:100%; padding:10px; background:var(--accent-color); color:white; border:none; border-radius:8px; cursor:pointer;">استعادة الأذكار الافتراضية</button>
+                </div>
+                <div class="admin-form">
+                    <input type="hidden" id="thikrId">
+                    <input type="text" id="thikrText" class="form-control" placeholder="نص الذكر" required>
+                    <button onclick="saveThikr()" id="saveThikrBtn" style="width:100%; padding:10px; background:var(--primary-color); color:white; border:none; border-radius:8px; cursor:pointer;">إضافة ذكر</button>
+                </div>
+                <div id="athkarListAdmin" style="margin-top:15px; max-height:200px; overflow-y:auto;"></div>
             </div>
         </div>
     </div>
@@ -415,37 +487,32 @@
         const rootRef = db.ref('aish_2');
         const competitorsRef = rootRef.child('competitors');
         const articlesRef = rootRef.child('articles');
+        const wordsRef = rootRef.child('word_speed_words'); 
+        const athkarRef = rootRef.child('athkar_list');
 
         let currentUser = null;
         let articlesData = [];
 
-        // --- متغيرات القارئ الذكي ---
-        let reader = {
-            active: false,
-            words: [],
-            currentIndex: 0,
-            startTime: 0,
-            timerInterval: null,
-            recognition: null,
-            attempts: 0,
-            missedWords: [],
-            correctCount: 0
-        };
+        // متغيرات الألعاب
+        let reader = { active: false, words: [], currentIndex: 0, startTime: 0, timerInterval: null, recognition: null, attempts: 0, missedWords: [], correctCount: 0 };
+        let wordGame = { active: false, wordsList: [], currentWord: "", currentIndex: 0, score: 0, timer: null, recognition: null };
+        
+        // متغيرات الأذكار
+        let athkarSessionCounts = {}; // تخزين محلي لجلسة الأذكار
 
-        // 2. User Logic
+        // 2. User & Profile
         function openLoginModal() {
             document.getElementById('loginOverlay').classList.add('modal-active');
             competitorsRef.once('value').then((snapshot) => {
-                const list = document.getElementById('loginList');
-                list.innerHTML = '';
+                const list = document.getElementById('loginList'); list.innerHTML = '';
                 const data = snapshot.val();
-                if (!data) { list.innerHTML = '<p style="text-align:center;">لا يوجد متنافسين.</p>'; return; }
+                if (!data) { list.innerHTML = '<p style="text-align:center;">لا يوجد بيانات.</p>'; return; }
                 Object.keys(data).forEach(key => {
-                    const comp = data[key];
+                    const c = data[key];
                     const div = document.createElement('div');
                     div.style.cssText = "display:flex; justify-content:space-between; padding:15px; margin-bottom:10px; border:2px solid #eee; border-radius:12px; cursor:pointer;";
-                    div.innerHTML = `<div style="display:flex; align-items:center;"><div style="width:40px;height:40px;background:var(--secondary-color);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-left:10px;">${comp.name.charAt(0)}</div><span style="font-weight:bold;">${comp.name}</span></div><span style="color:var(--primary-color);">دخول ←</span>`;
-                    div.onclick = () => loginUser(key, comp);
+                    div.innerHTML = `<div style="display:flex; align-items:center;"><div style="width:40px;height:40px;background:var(--secondary-color);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-left:10px;">${c.name.charAt(0)}</div><span style="font-weight:bold;">${c.name}</span></div><span style="color:var(--primary-color);">دخول ←</span>`;
+                    div.onclick = () => loginUser(key, c);
                     list.appendChild(div);
                 });
             });
@@ -456,323 +523,418 @@
             closeLoginModal();
             document.getElementById('cardsGrid').style.display = 'grid';
             document.getElementById('userProfileIcon').style.display = 'flex';
-            const ha = document.getElementById('headerActions');
-            ha.style.opacity = '0'; ha.style.pointerEvents = 'none'; ha.style.maxHeight = '0';
+            document.getElementById('headerActions').style.opacity = '0'; 
+            document.getElementById('headerActions').style.pointerEvents = 'none';
             document.getElementById('welcomeName').innerText = user.name;
             document.getElementById('welcomeMessage').style.opacity = '1';
-            updateProfileUI();
+            updateProfileUI(user.name, user.points);
+            competitorsRef.child(key).on('value', (snap) => { const val = snap.val(); if(val) updateProfileUI(val.name, val.points); });
         }
-        function updateProfileUI() {
-            if(!currentUser) return;
-            document.getElementById('popupName').innerText = currentUser.name;
-            document.getElementById('popupScore').innerText = currentUser.points;
-            document.getElementById('popupAvatar').innerText = currentUser.name.charAt(0);
+        function updateProfileUI(name, points) {
+            document.getElementById('popupName').innerText = name;
+            document.getElementById('popupScore').innerText = points;
+            document.getElementById('popupAvatar').innerText = name ? name.charAt(0) : '?';
         }
         function toggleProfilePopup() { document.getElementById('profilePopup').classList.toggle('active'); }
         function logoutUser() {
+            if(currentUser) competitorsRef.child(currentUser.key).off();
             currentUser = null;
+            athkarSessionCounts = {}; // تصفير عداد الجلسة
             document.getElementById('profilePopup').classList.remove('active');
             document.getElementById('cardsGrid').style.display = 'none';
             document.getElementById('userProfileIcon').style.display = 'none';
-            const ha = document.getElementById('headerActions');
-            ha.style.opacity = '1'; ha.style.pointerEvents = 'all'; ha.style.maxHeight = '100px';
+            document.getElementById('headerActions').style.opacity = '1'; 
+            document.getElementById('headerActions').style.pointerEvents = 'all';
             document.getElementById('welcomeMessage').style.opacity = '0';
             goHome();
         }
 
         // 3. Navigation
-        function openContent(title, dbPathKey) {
+        function openContent(title, key) {
             document.body.classList.add('content-mode');
             document.getElementById('pageTitle').innerText = title;
             const container = document.getElementById('dynamicContent');
             container.innerHTML = '<div style="text-align:center; padding:20px;">جاري التحميل...</div>';
             window.scrollTo(0,0);
 
-            if (dbPathKey === 'articles') {
-                loadArticlesLibrary(container);
-            } else {
-                rootRef.child(dbPathKey).once('value')
-                    .then(snapshot => renderGenericData(snapshot.val(), container))
-                    .catch(err => container.innerHTML = 'خطأ: ' + err.message);
+            if (key === 'articles') loadArticlesLibrary(container);
+            else if (key === 'word_speed') loadWordSpeedStartScreen(container);
+            else if (key === 'athkar') loadAthkarContent(container); // جديد
+            else {
+                rootRef.child(key).once('value').then(snap => renderGenericData(snap.val(), container));
             }
         }
-        function goHome() { document.body.classList.remove('content-mode'); }
-
+        function goHome() { 
+            document.body.classList.remove('content-mode'); 
+            athkarSessionCounts = {}; // تصفير عداد الجلسة عند الخروج
+            if(window.athkarRec) window.athkarRec.stop();
+        }
         function renderGenericData(data, container) {
             container.innerHTML = '';
             if (!data) { container.innerHTML = '<p style="text-align:center; color:#777;">لا توجد بيانات.</p>'; return; }
-            if (typeof data === 'string' || typeof data === 'number') {
-                container.innerHTML = `<div class="db-item"><p>${data}</p></div>`;
-            } else if (typeof data === 'object') {
+            if (typeof data === 'string') container.innerHTML = `<div class="db-item"><p>${data}</p></div>`;
+            else Object.keys(data).forEach(k => {
+                const i = data[k];
+                const t = (typeof i === 'object') ? (i.title || k) : k;
+                const b = (typeof i === 'object') ? (i.content || JSON.stringify(i)) : i;
+                container.innerHTML += `<div class="db-item"><h4>${t}</h4><p>${b}</p></div>`;
+            });
+        }
+
+        // --- نظام الأذكار التفاعلي ---
+        function loadAthkarContent(container) {
+            container.innerHTML = '<div id="athkarGrid" class="athkar-grid"></div>';
+            const grid = document.getElementById('athkarGrid');
+
+            athkarRef.once('value').then(snap => {
+                const data = snap.val();
+                if(!data) {
+                    grid.innerHTML = '<div style="text-align:center;width:100%;grid-column:1/-1;">لا توجد أذكار. أضفها من لوحة التحكم أو استعد الافتراضي.</div>';
+                    return;
+                }
+
                 Object.keys(data).forEach(key => {
                     const item = data[key];
-                    const body = (typeof item === 'object') ? (item.content || JSON.stringify(item)) : item;
-                    const title = (typeof item === 'object') ? (item.title || key) : key;
-                    const div = document.createElement('div');
-                    div.className = 'db-item';
-                    div.innerHTML = `<h4>${title}</h4><p>${body}</p>`;
-                    container.appendChild(div);
+                    // إعداد العدادات
+                    if(!athkarSessionCounts[key]) athkarSessionCounts[key] = 0;
+                    
+                    // جلب البيانات الشخصية (يومي وتراكمي)
+                    let daily = 0;
+                    let total = 0;
+                    if(currentUser) {
+                        const userStats = (currentUser.athkar_stats && currentUser.athkar_stats[key]) || {};
+                        total = userStats.total || 0;
+                        
+                        // التحقق من اليوم
+                        const todayStr = new Date().toDateString(); // يعيد "Thu Dec 11 2025" مثلاً، يكفي لتمييز اليوم
+                        if (userStats.lastDate === todayStr) {
+                            daily = userStats.daily || 0;
+                        } else {
+                            daily = 0; // يوم جديد
+                        }
+                    }
+
+                    const btn = document.createElement('div');
+                    btn.className = 'thikr-btn';
+                    btn.id = `btn-${key}`;
+                    btn.onclick = () => activateThikrMic(key, item.text);
+                    btn.innerHTML = `
+                        <div class="session-badge" id="sess-${key}">الجلسة: ${athkarSessionCounts[key]}</div>
+                        <div class="thikr-text">${item.text}</div>
+                        <div style="font-size:0.8rem; color:#999; margin-bottom:5px;">اضغط للقراءة 🎙️</div>
+                        <div class="thikr-stats">
+                            <div class="stat-item"><span>يومي</span><b id="day-${key}">${daily}</b></div>
+                            <div class="stat-item"><span>مجموع</span><b id="tot-${key}">${total}</b></div>
+                        </div>
+                    `;
+                    grid.appendChild(btn);
+                });
+            });
+        }
+
+        function activateThikrMic(key, text) {
+            if(!('webkitSpeechRecognition' in window)) return alert("المتصفح لا يدعم");
+            
+            // إيقاف أي تعرف سابق
+            if(window.athkarRec) window.athkarRec.stop();
+            
+            // تفعيل الستايل
+            document.querySelectorAll('.thikr-btn').forEach(b => b.classList.remove('listening'));
+            const btn = document.getElementById(`btn-${key}`);
+            btn.classList.add('listening');
+
+            const rec = new webkitSpeechRecognition();
+            rec.lang = 'ar-SA';
+            rec.continuous = false;
+            rec.interimResults = false;
+
+            rec.onend = () => {
+                if(btn) btn.classList.remove('listening');
+            };
+
+            rec.onresult = (e) => {
+                const spoken = e.results[0][0].transcript;
+                if(normalizeText(spoken).includes(normalizeText(text))) {
+                    // نجاح
+                    handleThikrSuccess(key);
+                } else {
+                    // فشل بسيط (يمكن إضافة اهتزاز)
+                    btn.style.borderColor = 'red';
+                    setTimeout(() => btn.style.borderColor = '', 500);
+                }
+            };
+
+            rec.start();
+            window.athkarRec = rec;
+        }
+
+        function handleThikrSuccess(key) {
+            const btn = document.getElementById(`btn-${key}`);
+            
+            // تأثير بصري
+            btn.classList.remove('listening');
+            btn.classList.add('success');
+            setTimeout(() => btn.classList.remove('success'), 1000);
+
+            // تحديث عداد الجلسة
+            athkarSessionCounts[key]++;
+            document.getElementById(`sess-${key}`).innerText = `الجلسة: ${athkarSessionCounts[key]}`;
+
+            // تحديث Firebase (يومي وتراكمي)
+            if(currentUser) {
+                const todayStr = new Date().toDateString();
+                const path = `competitors/${currentUser.key}/athkar_stats/${key}`;
+                
+                competitorsRef.child(currentUser.key).child('athkar_stats').child(key).transaction((current) => {
+                    if(!current) return { total: 1, daily: 1, lastDate: todayStr };
+                    
+                    let newDaily = 1;
+                    if(current.lastDate === todayStr) {
+                        newDaily = (current.daily || 0) + 1;
+                    }
+                    
+                    return {
+                        total: (current.total || 0) + 1,
+                        daily: newDaily,
+                        lastDate: todayStr
+                    };
+                }, (err, committed, snap) => {
+                    if(committed) {
+                        const val = snap.val();
+                        document.getElementById(`day-${key}`).innerText = val.daily;
+                        document.getElementById(`tot-${key}`).innerText = val.total;
+                    }
                 });
             }
         }
 
-        // 4. Articles Library
+
+        // 4. Articles Section
         function loadArticlesLibrary(container) {
-            container.innerHTML = `
-                <div class="filter-tabs">
-                    <button class="filter-btn active" onclick="filterArticles('all', this)">الكل</button>
-                    <button class="filter-btn" onclick="filterArticles('easy', this)">🟢 سهل</button>
-                    <button class="filter-btn" onclick="filterArticles('medium', this)">🟡 متوسط</button>
-                    <button class="filter-btn" onclick="filterArticles('hard', this)">🔴 صعب</button>
-                </div>
-                <div id="libraryGrid" class="texts-grid"><p style="width:100%; text-align:center;">تحميل...</p></div>
-            `;
+            container.innerHTML = `<div class="filter-tabs"><button class="filter-btn active" onclick="filterArticles('all',this)">الكل</button><button class="filter-btn" onclick="filterArticles('easy',this)">🟢 سهل</button><button class="filter-btn" onclick="filterArticles('medium',this)">🟡 متوسط</button><button class="filter-btn" onclick="filterArticles('hard',this)">🔴 صعب</button></div><div id="libraryGrid" class="texts-grid"></div>`;
             articlesRef.once('value').then(snap => {
-                const data = snap.val();
-                articlesData = [];
+                const data = snap.val(); articlesData = [];
                 if (data) Object.keys(data).forEach(k => articlesData.push({id: k, ...data[k]}));
-                else articlesData = [
-                    {title:"تجربة القراءة", level:"easy", content:"مرحباً بكم في مسابقة القراءة الذكية. اقرأ هذا النص بصوت عال لتجربة النظام."}
-                ];
                 renderArticlesGrid('all');
             });
         }
-
         function filterArticles(lvl, btn) {
             document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             renderArticlesGrid(lvl);
         }
-
         function renderArticlesGrid(lvl) {
-            const grid = document.getElementById('libraryGrid');
-            grid.innerHTML = '';
-            const filtered = lvl === 'all' ? articlesData : articlesData.filter(a => a.level === lvl);
-            if (filtered.length === 0) { grid.innerHTML = '<p style="text-align:center;width:100%;">لا يوجد مقالات</p>'; return; }
-
-            filtered.forEach(art => {
-                let badge = "level-easy", txt = "سهل";
-                if(art.level === 'medium') { badge = "level-medium"; txt = "متوسط"; }
-                if(art.level === 'hard') { badge = "level-hard"; txt = "صعب"; }
-
-                const div = document.createElement('div');
-                div.className = 'text-card';
-                div.onclick = () => startReadingSession(art); // تشغيل القارئ
-                div.innerHTML = `
-                    <div class="level-badge ${badge}">${txt}</div>
-                    <div class="text-title">${art.title}</div>
-                    <div class="text-preview">${art.content}</div>
-                    <div class="text-meta"><span>🎙️ اقرأ الآن</span><span style="color:var(--primary-color);">ابدأ</span></div>
-                `;
+            const grid = document.getElementById('libraryGrid'); grid.innerHTML = '';
+            const flt = lvl === 'all' ? articlesData : articlesData.filter(a => a.level === lvl);
+            if (flt.length === 0) { grid.innerHTML = '<p style="text-align:center;width:100%;">لا يوجد مقالات</p>'; return; }
+            flt.forEach(art => {
+                const div = document.createElement('div'); div.className = 'text-card';
+                div.onclick = () => startReadingSession(art);
+                div.innerHTML = `<div class="level-badge level-${art.level}">${art.level==='easy'?'سهل':(art.level==='medium'?'متوسط':'صعب')}</div><div class="text-title">${art.title}</div><div class="text-preview">${art.content}</div><div class="text-meta"><span>🎙️ اقرأ</span><span style="color:var(--primary-color);">بدء</span></div>`;
                 grid.appendChild(div);
             });
         }
 
-        // --- 5. منطق القارئ الذكي (Reading Logic) ---
+        // 5. Article Reader Logic
         function startReadingSession(article) {
-            // تهيئة المتغيرات
             reader.words = article.content.trim().split(/\s+/);
-            reader.currentIndex = 0;
-            reader.attempts = 0;
-            reader.missedWords = [];
-            reader.correctCount = 0;
-            reader.active = true;
-
-            // تحضير الواجهة
-            const container = document.getElementById('readerTextContainer');
-            container.innerHTML = '';
-            reader.words.forEach((word, idx) => {
-                const span = document.createElement('span');
-                span.id = `r-word-${idx}`;
-                span.className = 'word-span';
-                span.innerText = word;
-                container.appendChild(span);
-            });
-
+            reader.currentIndex = 0; reader.attempts = 0; reader.correctCount = 0; reader.missedWords = []; reader.active = true;
+            const con = document.getElementById('readerTextContainer'); con.innerHTML = '';
+            reader.words.forEach((w, i) => { const s = document.createElement('span'); s.id = `r-word-${i}`; s.className = 'word-span'; s.innerText = w; con.appendChild(s); });
             document.getElementById('readerOverlay').style.display = 'flex';
             highlightCurrentWord();
-            
-            // بدء التوقيت
             reader.startTime = Date.now();
-            if(reader.timerInterval) clearInterval(reader.timerInterval);
-            reader.timerInterval = setInterval(updateReaderTimer, 1000);
-
-            // تشغيل المايك
-            setupSpeechRecognition();
+            if (reader.timerInterval) clearInterval(reader.timerInterval);
+            reader.timerInterval = setInterval(() => {
+                const d = Math.floor((Date.now() - reader.startTime) / 1000);
+                document.getElementById('readerTimer').innerText = `${Math.floor(d/60).toString().padStart(2,'0')}:${(d%60).toString().padStart(2,'0')}`;
+            }, 1000);
+            setupReaderSpeech();
         }
-
         function highlightCurrentWord() {
-            document.querySelectorAll('.word-span').forEach(el => {
-                if(!el.classList.contains('word-correct') && !el.classList.contains('word-wrong')) {
-                    el.className = 'word-span'; // reset pending
-                }
-            });
             if(reader.currentIndex < reader.words.length) {
                 const el = document.getElementById(`r-word-${reader.currentIndex}`);
-                if(el) {
-                    el.classList.add('word-current');
-                    el.scrollIntoView({ behavior: "smooth", block: "center" });
-                }
+                if(el) { el.classList.add('word-current'); el.scrollIntoView({behavior:"smooth",block:"center"}); }
             }
         }
-
-        function updateReaderTimer() {
-            const diff = Math.floor((Date.now() - reader.startTime) / 1000);
-            const m = Math.floor(diff / 60).toString().padStart(2, '0');
-            const s = (diff % 60).toString().padStart(2, '0');
-            document.getElementById('readerTimer').innerText = `${m}:${s}`;
-        }
-
-        function setupSpeechRecognition() {
-            if (!('webkitSpeechRecognition' in window)) { alert("متصفحك لا يدعم التعرف الصوتي"); return; }
-            
+        function setupReaderSpeech() {
+            if(!('webkitSpeechRecognition' in window)) return alert("المتصفح لا يدعم الصوت");
             reader.recognition = new webkitSpeechRecognition();
-            reader.recognition.lang = 'ar-SA';
-            reader.recognition.continuous = true;
-            reader.recognition.interimResults = true;
-
+            reader.recognition.lang = 'ar-SA'; reader.recognition.continuous = true; reader.recognition.interimResults = true;
             reader.recognition.onstart = () => document.getElementById('micIcon').classList.add('mic-active');
-            reader.recognition.onend = () => {
-                document.getElementById('micIcon').classList.remove('mic-active');
-                if(reader.active && reader.currentIndex < reader.words.length) reader.recognition.start();
-            };
-
-            reader.recognition.onresult = (event) => {
+            reader.recognition.onend = () => { document.getElementById('micIcon').classList.remove('mic-active'); if(reader.active && reader.currentIndex < reader.words.length) reader.recognition.start(); };
+            reader.recognition.onresult = (e) => {
                 if(!reader.active) return;
-                const transcript = event.results[event.results.length - 1][0].transcript;
-                checkWord(transcript);
+                checkWord(e.results[e.results.length-1][0].transcript);
             };
-
             reader.recognition.start();
         }
-
-        function normalizeText(text) {
-            return text.trim()
-                .replace(/[^\u0600-\u06FF\s]/g, '') // إبقاء الحروف العربية والمسافات فقط
-                .replace(/[أإآ]/g, 'ا')
-                .replace(/ة/g, 'ه')
-                .replace(/ى/g, 'ي')
-                .replace(/[ًٌٍَُِّْ]/g, ''); 
-        }
-
         function checkWord(spoken) {
             if(reader.currentIndex >= reader.words.length) return;
-
-            const targetRaw = reader.words[reader.currentIndex];
-            const targetNorm = normalizeText(targetRaw);
-            const spokenNorm = normalizeText(spoken);
-
-            // السماح بتطابق جزئي إذا كانت الكلمة تحتوي على الكلمة المستهدفة
-            if (spokenNorm.includes(targetNorm)) {
-                // صحيح
-                const el = document.getElementById(`r-word-${reader.currentIndex}`);
-                el.className = 'word-span word-correct';
-                reader.correctCount++;
-                reader.currentIndex++;
-                reader.attempts = 0;
+            const target = normalizeText(reader.words[reader.currentIndex]);
+            if(normalizeText(spoken).includes(target)) {
+                document.getElementById(`r-word-${reader.currentIndex}`).className = 'word-span word-correct';
+                reader.correctCount++; reader.currentIndex++; reader.attempts = 0;
                 highlightCurrentWord();
-                
                 if(reader.currentIndex >= reader.words.length) finishReading();
             } else {
-                // خطأ - لا نفعل شيئاً إلا زيادة العداد
                 reader.attempts++;
-                // قاعدة الـ 5 محاولات
                 if(reader.attempts >= 5) {
-                    const el = document.getElementById(`r-word-${reader.currentIndex}`);
-                    el.className = 'word-span word-wrong'; // تمييز بالاحمر
-                    reader.missedWords.push(targetRaw);
-                    
-                    reader.currentIndex++; // تجاوز
-                    reader.attempts = 0;
-                    highlightCurrentWord();
+                    document.getElementById(`r-word-${reader.currentIndex}`).className = 'word-span word-wrong';
+                    reader.missedWords.push(reader.words[reader.currentIndex]);
+                    reader.currentIndex++; reader.attempts = 0; highlightCurrentWord();
                     if(reader.currentIndex >= reader.words.length) finishReading();
                 }
             }
         }
-
-        function closeReader() {
-            reader.active = false;
-            clearInterval(reader.timerInterval);
-            if(reader.recognition) reader.recognition.stop();
-            document.getElementById('readerOverlay').style.display = 'none';
-        }
-
         function finishReading() {
-            reader.active = false;
-            clearInterval(reader.timerInterval);
-            if(reader.recognition) reader.recognition.stop();
+            reader.active = false; clearInterval(reader.timerInterval); if(reader.recognition) reader.recognition.stop();
             document.getElementById('readerOverlay').style.display = 'none';
-            showResults();
+            const acc = Math.round((reader.correctCount / reader.words.length) * 100);
+            const wpm = Math.round(reader.correctCount / ((Date.now() - reader.startTime)/60000 || 1));
+            showResultGeneric("🌟 أداء رائع!", `
+                <div class="stats-grid">
+                    <div class="stat-box"><span class="stat-val">${wpm}</span><span class="stat-label">كلمة/دقيقة</span></div>
+                    <div class="stat-box"><span class="stat-val">${acc}%</span><span class="stat-label">الدقة</span></div>
+                </div>`);
+        }
+        function closeReader() { reader.active = false; clearInterval(reader.timerInterval); if(reader.recognition) reader.recognition.stop(); document.getElementById('readerOverlay').style.display = 'none'; }
+
+        // --- 6. Word Speed Game ---
+        function loadWordSpeedStartScreen(container) {
+            container.innerHTML = `
+                <div style="text-align:center; padding:40px;">
+                    <div style="font-size:4rem; margin-bottom:20px;">⚡</div>
+                    <h3>تحدي سرعة الكلمات</h3>
+                    <p style="color:#666; max-width:400px; margin:0 auto 20px;">ستظهر لك 10 كلمات عشوائية. لديك 5 ثوانٍ فقط لقراءة كل كلمة.</p>
+                    <button onclick="initWordGame()" style="background:var(--primary-color); color:white; border:none; padding:15px 40px; border-radius:50px; font-size:1.2rem; cursor:pointer; font-weight:bold; box-shadow:0 10px 20px rgba(79, 70, 229, 0.3);">ابدأ التحدي</button>
+                </div>
+            `;
         }
 
-        function showResults() {
-            const timeMin = (Date.now() - reader.startTime) / 60000;
-            const wpm = Math.round(reader.correctCount / (timeMin || 1));
-            const accuracy = Math.round((reader.correctCount / reader.words.length) * 100);
+        function initWordGame() {
+            wordsRef.once('value').then(snap => {
+                const val = snap.val();
+                let allWords = [];
+                if (val && val.list) {
+                    allWords = val.list.split(/[\n,]+/).map(w => w.trim()).filter(w => w.length > 0);
+                }
+                
+                if (allWords.length < 10) allWords = ["أسد", "نمر", "صقر", "جمل", "بحر", "قمر", "شمس", "نجم", "ورده", "كتب"];
 
-            document.getElementById('resWPM').innerText = wpm;
-            document.getElementById('resAcc').innerText = accuracy + '%';
+                wordGame.wordsList = allWords.sort(() => 0.5 - Math.random()).slice(0, 10);
+                wordGame.currentIndex = 0; wordGame.score = 0; wordGame.active = true;
 
-            // تحفيز
-            const emojiEl = document.getElementById('resultEmoji');
-            const motivEl = document.getElementById('motivationText');
-            if(accuracy >= 90) { emojiEl.innerText = "🌟"; motivEl.innerText = "أداء مذهل يا عبقري!"; }
-            else if(accuracy >= 70) { emojiEl.innerText = "👏"; motivEl.innerText = "عمل رائع، استمر!"; }
-            else { emojiEl.innerText = "💪"; motivEl.innerText = "محاولة جيدة، تدرب أكثر!"; }
+                document.getElementById('wordGameOverlay').style.display = 'flex';
+                document.getElementById('gameScoreVal').innerText = "0";
+                nextGameWord();
+            });
+        }
 
-            // الكلمات الخاطئة
-            const missedContainer = document.getElementById('missedWordsContainer');
-            const missedList = document.getElementById('missedWordsList');
-            missedList.innerHTML = '';
+        function nextGameWord() {
+            if (!wordGame.active) return;
+            if (wordGame.currentIndex >= 10) { endWordGame(false); return; }
+
+            wordGame.currentWord = wordGame.wordsList[wordGame.currentIndex];
+            const display = document.getElementById('activeWordDisplay');
+            const timerBar = document.getElementById('wordTimerBar');
+
+            display.innerText = wordGame.currentWord; display.style.color = "#1e1b4b";
+            document.getElementById('wordFeedback').innerText = "";
+            timerBar.style.width = "100%"; timerBar.style.transition = "none";
             
-            if(reader.missedWords.length > 0) {
-                missedContainer.style.display = 'block';
-                reader.missedWords.forEach(w => {
-                    const sp = document.createElement('span');
-                    sp.className = 'missed-word-tag';
-                    sp.innerText = w;
-                    missedList.appendChild(sp);
-                });
-            } else {
-                missedContainer.style.display = 'none';
-            }
+            setTimeout(() => { timerBar.style.transition = "width 5s linear"; timerBar.style.width = "0%"; }, 50);
+            setupWordGameSpeech();
 
+            if(wordGame.timer) clearTimeout(wordGame.timer);
+            wordGame.timer = setTimeout(() => { handleWordFail(); }, 5000);
+        }
+
+        function setupWordGameSpeech() {
+            if(wordGame.recognition) wordGame.recognition.stop();
+            wordGame.recognition = new webkitSpeechRecognition();
+            wordGame.recognition.lang = 'ar-SA'; wordGame.recognition.continuous = false; wordGame.recognition.interimResults = true;
+            
+            wordGame.recognition.onresult = (e) => {
+                const spoken = e.results[0][0].transcript;
+                if (normalizeText(spoken) === normalizeText(wordGame.currentWord)) handleWordSuccess();
+            };
+            try { wordGame.recognition.start(); } catch(e){}
+        }
+
+        function handleWordSuccess() {
+            if(wordGame.timer) clearTimeout(wordGame.timer);
+            if(wordGame.recognition) wordGame.recognition.stop();
+            wordGame.score++;
+            document.getElementById('gameScoreVal').innerText = wordGame.score;
+            document.getElementById('activeWordDisplay').style.color = "var(--success-color)";
+            document.getElementById('wordFeedback').innerText = "ممتاز! 🌟";
+            setTimeout(() => { wordGame.currentIndex++; nextGameWord(); }, 1000);
+        }
+
+        function handleWordFail() {
+            if(wordGame.timer) clearTimeout(wordGame.timer);
+            if(wordGame.recognition) wordGame.recognition.stop();
+            wordGame.score--;
+            document.getElementById('gameScoreVal').innerText = wordGame.score;
+            document.getElementById('activeWordDisplay').style.color = "var(--danger-color)";
+            document.getElementById('wordFeedback').innerText = "انتهى الوقت!";
+            setTimeout(() => { wordGame.currentIndex++; nextGameWord(); }, 1000);
+        }
+
+        function endWordGame(canceled) {
+            wordGame.active = false;
+            if(wordGame.timer) clearTimeout(wordGame.timer);
+            if(wordGame.recognition) wordGame.recognition.stop();
+            document.getElementById('wordGameOverlay').style.display = 'none';
+            if (!canceled && currentUser) {
+                const newScore = parseInt(currentUser.points) + wordGame.score;
+                competitorsRef.child(currentUser.key).update({ points: newScore });
+                showResultGeneric(wordGame.score > 5 ? "رائع!" : "حاول مجدداً", `<div style="font-size:3rem; font-weight:bold; color:var(--accent-color);">${wordGame.score} / 10</div>`);
+            }
+        }
+
+        // --- Utils ---
+        function normalizeText(t) {
+            return t.trim().replace(/[^\u0600-\u06FF\s]/g, '') // حذف التشكيل والرموز
+                    .replace(/[أإآ]/g, 'ا')
+                    .replace(/ة/g, 'ه')
+                    .replace(/ى/g, 'ي')
+                    .replace(/\s+/g, ' '); // توحيد المسافات
+        }
+
+        function showResultGeneric(title, contentHtml) {
+            document.getElementById('motivationText').innerText = title;
+            document.getElementById('resultStatsContent').innerHTML = contentHtml;
             document.getElementById('resultOverlay').style.display = 'flex';
         }
+        function closeResult() { document.getElementById('resultOverlay').style.display = 'none'; }
 
-        function closeResult() {
-            document.getElementById('resultOverlay').style.display = 'none';
-        }
-
-
-        // 6. Admin Panel
-        function openAdminPanel() {
-            document.getElementById('adminOverlay').classList.add('modal-active');
-            loadCompetitorsList();
-            loadArticlesListAdmin();
-        }
-        function closeAdminPanel() { document.getElementById('adminOverlay').classList.remove('modal-active'); resetForm(); }
+        // --- Admin Functions ---
+        function openAdminPanel() { document.getElementById('adminOverlay').classList.add('modal-active'); loadCompetitorsList(); loadArticlesListAdmin(); loadWordsListAdmin(); loadAthkarListAdmin(); }
+        function closeAdminPanel() { document.getElementById('adminOverlay').classList.remove('modal-active'); }
         function switchAdminTab(t) {
             document.querySelectorAll('.admin-tab-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
-            if(t==='users') {
-                document.querySelector('.admin-tab-btn:nth-child(1)').classList.add('active');
-                document.getElementById('adminUsersSection').classList.add('active');
-            } else {
-                document.querySelector('.admin-tab-btn:nth-child(2)').classList.add('active');
-                document.getElementById('adminContentSection').classList.add('active');
-            }
+            if(t==='users') { document.querySelector('.admin-tab-btn:nth-child(1)').classList.add('active'); document.getElementById('adminUsersSection').classList.add('active'); }
+            else if(t==='content') { document.querySelector('.admin-tab-btn:nth-child(2)').classList.add('active'); document.getElementById('adminContentSection').classList.add('active'); }
+            else if(t==='words') { document.querySelector('.admin-tab-btn:nth-child(3)').classList.add('active'); document.getElementById('adminWordsSection').classList.add('active'); }
+            else { document.querySelector('.admin-tab-btn:nth-child(4)').classList.add('active'); document.getElementById('adminAthkarSection').classList.add('active'); }
         }
+
+        // Admin: Users
         function saveCompetitor() {
-            const n = document.getElementById('compName').value, s = document.getElementById('compScore').value;
-            if(!n || !s) return alert("أكمل البيانات");
-            const id = document.getElementById('compId').value;
+            const n=document.getElementById('compName').value, s=document.getElementById('compScore').value, id=document.getElementById('compId').value;
+            if(!n||!s) return;
             if(id) competitorsRef.child(id).update({name:n,points:s}).then(resetForm);
             else competitorsRef.push({name:n,points:s}).then(resetForm);
         }
         function resetForm() {
             document.getElementById('compId').value=''; document.getElementById('compName').value=''; document.getElementById('compScore').value='';
             document.getElementById('saveBtn').innerText="إضافة";
+            document.getElementById('edit-article-key').value=''; document.getElementById('new-text-title').value=''; document.getElementById('new-text-content').value='';
+            document.getElementById('saveArticleBtn').innerText="نشر";
+            document.getElementById('thikrId').value=''; document.getElementById('thikrText').value=''; document.getElementById('saveThikrBtn').innerText="إضافة ذكر";
         }
         function loadCompetitorsList() {
             competitorsRef.on('value', snap => {
@@ -780,23 +942,20 @@
                 const d = snap.val(); if(!d) return;
                 Object.keys(d).forEach(k => {
                     const c = d[k];
-                    const div = document.createElement('div');
-                    div.style.cssText="display:flex;justify-content:space-between;padding:10px;background:#f9f9f9;margin-bottom:5px;border-radius:5px;";
-                    div.innerHTML=`<span>${c.name} (${c.points})</span><div><button onclick="editComp('${k}','${c.name}','${c.points}')" style="margin-left:5px;">✏️</button><button onclick="deleteComp('${k}')" style="color:red;">✕</button></div>`;
-                    l.appendChild(div);
+                    l.innerHTML += `<div style="display:flex;justify-content:space-between;padding:10px;background:#f9f9f9;margin-bottom:5px;border-radius:5px;"><span>${c.name} (${c.points})</span><div><button onclick="editComp('${k}','${c.name}','${c.points}')" style="margin-left:5px;">✏️</button><button onclick="deleteComp('${k}')" style="color:red;">✕</button></div></div>`;
                 });
             });
         }
         function deleteComp(k) { if(confirm('حذف؟')) competitorsRef.child(k).remove(); }
-        function editComp(k,n,p) {
-            document.getElementById('compId').value=k; document.getElementById('compName').value=n; document.getElementById('compScore').value=p; document.getElementById('saveBtn').innerText="حفظ";
-        }
-        function addNewArticle() {
-            const t = document.getElementById('new-text-title').value, c = document.getElementById('new-text-content').value, l = document.getElementById('new-text-level').value;
-            if(!t || !c) return alert("البيانات ناقصة");
-            articlesRef.push({title:t,content:c,level:l}).then(()=>{
-                document.getElementById('new-text-title').value=''; document.getElementById('new-text-content').value=''; loadArticlesListAdmin();
-            });
+        function editComp(k,n,p) { document.getElementById('compId').value=k; document.getElementById('compName').value=n; document.getElementById('compScore').value=p; document.getElementById('saveBtn').innerText="حفظ"; }
+
+        // Admin: Articles
+        function saveArticle() {
+            const k=document.getElementById('edit-article-key').value, t=document.getElementById('new-text-title').value, c=document.getElementById('new-text-content').value, l=document.getElementById('new-text-level').value;
+            if(!t||!c) return;
+            if(k) articlesRef.child(k).update({title:t,content:c,level:l}).then(resetForm);
+            else articlesRef.push({title:t,content:c,level:l}).then(resetForm);
+            loadArticlesListAdmin();
         }
         function loadArticlesListAdmin() {
             articlesRef.once('value').then(snap => {
@@ -804,14 +963,60 @@
                 const d = snap.val(); if(!d) return;
                 Object.keys(d).forEach(k => {
                     const i = d[k];
-                    const div = document.createElement('div');
-                    div.style.cssText="display:flex;justify-content:space-between;padding:10px;border-bottom:1px solid #eee;";
-                    div.innerHTML=`<div style="font-size:0.8rem"><b>${i.title}</b><br>${i.content.substring(0,30)}...</div><button onclick="deleteArticle('${k}')" style="color:red;border:none;background:none;cursor:pointer;">✕</button>`;
-                    l.appendChild(div);
+                    l.innerHTML += `<div style="display:flex;justify-content:space-between;padding:10px;border-bottom:1px solid #eee;align-items:center;"><div style="font-size:0.8rem;width:70%;"><b>${i.title}</b> (${i.level})</div><div><button onclick="editArticle('${k}','${i.title}','${i.level}', \`${i.content}\`)" style="cursor:pointer;margin-left:5px;">✏️</button><button onclick="deleteArticle('${k}')" style="color:red;border:none;background:none;cursor:pointer;">✕</button></div></div>`;
                 });
             });
         }
+        function editArticle(k,t,l,c) { document.getElementById('edit-article-key').value=k; document.getElementById('new-text-title').value=t; document.getElementById('new-text-level').value=l; document.getElementById('new-text-content').value=c; document.getElementById('saveArticleBtn').innerText="حفظ التعديلات"; }
         function deleteArticle(k) { if(confirm('حذف؟')) articlesRef.child(k).remove().then(loadArticlesListAdmin); }
+        function generateAIArticles() {
+            const count=document.getElementById('ai-count').value, level=document.getElementById('ai-level').value;
+            for(let i=0;i<count;i++) articlesRef.push({title:`مقال آلي ${i+1}`,content:`هذا نص تم توليده تلقائياً لمستوى ${level} لاختبار القراءة.`,level:level});
+            alert('تم التوليد'); loadArticlesListAdmin();
+        }
+
+        // Admin: Words
+        function loadWordsListAdmin() {
+            wordsRef.once('value').then(snap => { const val = snap.val(); if(val && val.list) document.getElementById('wordsListInput').value = val.list; });
+        }
+        function saveWordsList() { wordsRef.set({list: document.getElementById('wordsListInput').value}).then(() => alert("تم الحفظ")); }
+        function generateWordsList() {
+            const words = ["أحمد", "محمد", "سعيد", "خالد", "عمر", "علي", "نمر", "أسد", "فهد", "ذئب", "دب", "قط", "كلب", "فيل", "جمل", "بقر", "صقر", "نسر", "بوم", "بطة", "بحر", "نهر", "جبل", "رمل", "شجر", "ورد", "زهر", "قلم", "كتب", "ورق", "علم", "فهم", "يد", "رجل", "عين", "أذن", "فم", "شمس", "قمر", "نجم", "ليل", "صبح", "أبيض", "أحمر", "أخضر", "أزرق", "بيت", "باب", "شباك", "سقف"];
+            document.getElementById('wordsListInput').value = words.join('\n'); saveWordsList();
+        }
+
+        // Admin: Athkar
+        function restoreDefaultAthkar() {
+            if(confirm("سيتم استبدال القائمة الحالية. متابعة؟")) {
+                const list = [
+                    "سبحان الله", "الحمد لله", "الله أكبر", "لا إله إلا الله", "استغفر الله",
+                    "لا حول ولا قوة إلا بالله", "اللهم صل وسلم على نبينا محمد",
+                    "سبحان الله وبحمده سبحان الله العظيم"
+                ];
+                athkarRef.remove().then(() => {
+                    list.forEach(t => athkarRef.push({text: t}));
+                    alert("تمت الاستعادة"); loadAthkarListAdmin();
+                });
+            }
+        }
+        function loadAthkarListAdmin() {
+            athkarRef.once('value').then(snap => {
+                const l = document.getElementById('athkarListAdmin'); l.innerHTML='';
+                const d = snap.val(); if(!d) return;
+                Object.keys(d).forEach(k => {
+                    l.innerHTML += `<div style="display:flex;justify-content:space-between;padding:10px;border-bottom:1px solid #eee;"><span>${d[k].text}</span><div><button onclick="editThikr('${k}','${d[k].text}')">✏️</button><button onclick="deleteThikr('${k}')" style="color:red;">✕</button></div></div>`;
+                });
+            });
+        }
+        function saveThikr() {
+            const t = document.getElementById('thikrText').value, id = document.getElementById('thikrId').value;
+            if(!t) return;
+            if(id) athkarRef.child(id).update({text:t}).then(resetForm);
+            else athkarRef.push({text:t}).then(resetForm);
+            loadAthkarListAdmin();
+        }
+        function deleteThikr(k) { if(confirm('حذف؟')) athkarRef.child(k).remove().then(loadAthkarListAdmin); }
+        function editThikr(k,t) { document.getElementById('thikrId').value=k; document.getElementById('thikrText').value=t; document.getElementById('saveThikrBtn').innerText="حفظ"; }
 
     </script>
 </body>
