@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>عائلة المنافسين - القارئ الذكي</title>
+    <!-- استدعاء الخطوط -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Rakkas&display=swap" rel="stylesheet">
+    
+    <!-- مكتبات Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <style>
+        /* --- المتغيرات والتنسيق الأساسي --- */
+        :root {
+            --primary-color: #4F46E5;
+            --secondary-color: #818CF8;
+            --accent-color: #F59E0B;
+            --danger-color: #EF4444;
+            --success-color: #10B981;
+            --bg-color: #F3F4F6;
+            --card-bg: #ffffff;
+            --text-color: #1F2937;
+            --header-transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            
+            /* ألوان القارئ */
+            --reader-bg: #ffffff;
+            --word-pending: #374151;
+            --word-current: #F59E0B; /* برتقالي للكلمة الحالية */
+            --word-correct: #10B981; /* أخضر للصحيح */
+            --word-wrong: #EF4444;   /* أحمر للخطأ */
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            overflow-x: hidden;
+            transition: background-color 0.3s;
+        }
+
+        /* --- تنسيق الهيدر --- */
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 3rem 1.5rem 5rem;
+            border-bottom-left-radius: 50px;
+            border-bottom-right-radius: 50px;
+            position: relative;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(79, 70, 229, 0.2);
+            transition: all var(--header-transition);
+            z-index: 100;
+        }
+
+        body.content-mode header { padding: 1rem 1.5rem; border-radius: 0 0 20px 20px; }
+
+        .settings-icon, .user-icon {
+            position: absolute; top: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px; border-radius: 50%;
+            cursor: pointer; transition: all 0.3s; z-index: 1000;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .settings-icon { left: 20px; }
+        .user-icon { right: 20px; display: none; padding: 8px; }
+
+        .settings-icon:hover, .user-icon:hover { background: rgba(255, 255, 255, 0.4); }
+        .settings-icon svg, .user-icon svg { width: 24px; height: 24px; stroke: white; }
+
+        body.content-mode .settings-icon, body.content-mode .user-icon { opacity: 0; pointer-events: none; }
+
+        .family-title {
+            font-family: 'Rakkas', serif; font-size: 3.5rem; margin-bottom: 1.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            transition: all var(--header-transition); cursor: pointer; user-select: none;
+        }
+        body.content-mode .family-title { font-size: 2rem; margin-bottom: 0; margin-top: 5px; }
+
+        .header-actions {
+            display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;
+            margin-top: 20px; transition: all 0.3s; max-height: 100px; opacity: 1;
+        }
+        .btn-header {
+            background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(5px);
+            border: 2px solid rgba(255, 255, 255, 0.5); color: white; padding: 12px 30px;
+            border-radius: 50px; font-size: 1.1rem; font-weight: 600; cursor: pointer;
+            transition: all 0.3s ease; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;
+        }
+        body.content-mode .header-actions { opacity: 0; pointer-events: none; max-height: 0; margin: 0; overflow: hidden; }
+
+        /* --- القسم الرئيسي --- */
+        main {
+            max-width: 1000px; margin: -40px auto 50px; padding: 0 20px;
+            display: none;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px; position: relative; z-index: 10;
+            transition: opacity 0.5s ease, transform 0.5s ease;
+            opacity: 0; animation: slideUp 0.8s forwards;
+        }
+        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        body.content-mode main { opacity: 0; pointer-events: none; display: none; }
+
+        .card {
+            background: var(--card-bg); border-radius: 20px; padding: 30px 20px;
+            text-align: center; box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            transition: all 0.4s; cursor: pointer; border: 1px solid rgba(0,0,0,0.02);
+            display: flex; flex-direction: column; align-items: center; gap: 15px;
+        }
+        .card:hover { transform: translateY(-10px); box-shadow: 0 15px 30px rgba(79, 70, 229, 0.15); border-color: var(--secondary-color); }
+        .card-icon {
+            width: 60px; height: 60px; background: #EEF2FF; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; margin-bottom: 5px;
+        }
+        .card:nth-child(1) .card-icon { color: #10B981; background: #D1FAE5; }
+        .card:nth-child(2) .card-icon { color: #3B82F6; background: #DBEAFE; }
+        .card:nth-child(3) .card-icon { color: #F59E0B; background: #FEF3C7; }
+        .card:nth-child(4) .card-icon { color: #8B5CF6; background: #EDE9FE; }
+        .card svg { width: 32px; height: 32px; stroke-width: 2; }
+
+        /* --- صفحة المحتوى (العادية) --- */
+        .content-page {
+            display: none; max-width: 900px; margin: 20px auto; background: white;
+            min-height: 80vh; border-radius: 20px; padding: 40px;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.05); opacity: 0;
+            transform: translateY(20px); transition: opacity 0.5s ease 0.2s, transform 0.5s ease 0.2s;
+        }
+        body.content-mode .content-page { display: block; opacity: 1; transform: translateY(0); }
+        .content-header { border-bottom: 2px solid #f0f0f0; padding-bottom: 20px; margin-bottom: 20px; color: var(--primary-color); }
+        .db-item { background: #f9fafb; border-right: 4px solid var(--primary-color); padding: 15px; margin-bottom: 15px; border-radius: 8px; }
+
+        /* --- شاشة القراءة التفاعلية (المود الشامل) --- */
+        #readerOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: white; z-index: 3000; display: none; flex-direction: column;
+        }
+        
+        .reader-header {
+            padding: 15px 20px; background: white; box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            display: flex; justify-content: space-between; align-items: center; z-index: 10;
+        }
+        .reader-timer { font-size: 1.5rem; font-weight: bold; color: var(--primary-color); }
+        
+        .reader-body {
+            flex: 1; padding: 40px; overflow-y: auto; text-align: justify;
+            display: flex; justify-content: center; align-items: flex-start;
+        }
+        
+        .reader-text-container {
+            font-size: 2.5rem; line-height: 2.2; max-width: 900px; width: 100%;
+            color: var(--text-color); direction: rtl;
+        }
+
+        .word-span {
+            display: inline-block; padding: 0 5px; margin: 2px;
+            border-radius: 6px; transition: all 0.2s; border-bottom: 3px solid transparent;
+        }
+        .word-current { 
+            background-color: #FEF3C7; color: #000; 
+            border-bottom-color: var(--accent-color); transform: scale(1.1); 
+        }
+        .word-correct { color: var(--success-color); opacity: 0.6; }
+        .word-wrong { color: var(--danger-color); text-decoration: line-through; opacity: 0.5; }
+
+        .reader-footer {
+            padding: 20px; background: white; border-top: 1px solid #eee;
+            display: flex; justify-content: center; align-items: center; gap: 20px;
+        }
+        .mic-status {
+            width: 60px; height: 60px; border-radius: 50%; background: #eee;
+            display: flex; align-items: center; justify-content: center; font-size: 1.5rem;
+            transition: all 0.3s;
+        }
+        .mic-active { background: #FEE2E2; color: var(--danger-color); animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% {box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);} 70% {box-shadow: 0 0 0 15px rgba(239, 68, 68, 0);} 100% {box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);} }
+
+        /* --- شاشة النتائج --- */
+        #resultOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); z-index: 3500; display: none;
+            justify-content: center; align-items: center; padding: 20px;
+        }
+        .result-card {
+            background: white; width: 100%; max-width: 500px; border-radius: 25px;
+            padding: 40px; text-align: center; animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        
+        .result-badge { font-size: 4rem; margin-bottom: 10px; display: block; }
+        .motivation-text { font-size: 1.5rem; font-weight: bold; color: var(--primary-color); margin-bottom: 20px; }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .stat-box { background: #f9fafb; padding: 15px; border-radius: 15px; border: 1px solid #eee; }
+        .stat-val { font-size: 2rem; font-weight: bold; color: var(--accent-color); display: block; }
+        .stat-label { font-size: 0.9rem; color: #6b7280; }
+        .missed-words-box {
+            background: #FEF2F2; padding: 15px; border-radius: 10px; margin-bottom: 20px;
+            text-align: right; max-height: 100px; overflow-y: auto; display: none;
+        }
+        .missed-words-box h4 { color: var(--danger-color); font-size: 0.9rem; margin-bottom: 5px; }
+        .missed-word-tag { display: inline-block; background: white; padding: 2px 8px; border-radius: 4px; border: 1px solid #fab1a0; margin: 2px; font-size: 0.85rem; color: #c0392b; }
+
+        /* --- عناصر المكتبة (مشتركة) --- */
+        .texts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 15px; width: 100%; }
+        .text-card {
+            background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            cursor: pointer; border: 2px solid transparent; transition: all 0.2s; position: relative; display: flex; flex-direction: column; min-height: 160px;
+        }
+        .text-card:hover { transform: translateY(-3px); border-color: var(--primary-color); }
+        .level-badge { position: absolute; top: 15px; left: 15px; padding: 4px 10px; border-radius: 10px; font-size: 0.75rem; font-weight: bold; color: white; }
+        .level-easy { background: var(--success-color); } .level-medium { background: var(--accent-color); } .level-hard { background: var(--danger-color); }
+        .text-title { font-weight: bold; margin-bottom: 10px; font-size: 1.1rem; color: var(--primary-color); padding-left: 60px; }
+        .text-preview { font-size: 0.9rem; color: #555; line-height: 1.5; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; flex: 1; }
+        
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(5px);
+            z-index: 2000; display: none; align-items: center; justify-content: center;
+        }
+        .modal-active { display: flex; }
+        .modal-box { background: white; width: 90%; max-width: 500px; padding: 30px; border-radius: 20px; position: relative; max-height: 85vh; overflow-y: auto; }
+        .close-btn { position: absolute; top: 15px; left: 15px; background: #f3f4f6; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; }
+        
+        /* أزرار الفلترة */
+        .filter-tabs { display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 5px; }
+        .filter-btn { padding: 8px 16px; border-radius: 20px; border: 1px solid #ddd; background: white; cursor: pointer; transition: 0.3s; white-space: nowrap; }
+        .filter-btn.active { background: var(--primary-color); color: white; border-color: var(--primary-color); }
+
+        /* نافذة بيانات المستخدم */
+        .profile-popup { position: absolute; top: 70px; right: 20px; background: white; width: 250px; padding: 20px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); display: none; z-index: 1500; text-align: center; }
+        .profile-popup.active { display: block; animation: fadeIn 0.2s; }
+        
+        /* إدارة (Admin) */
+        .admin-tabs { display: flex; gap: 10px; margin-bottom: 15px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .admin-tab-btn { background: none; border: none; padding: 10px 20px; cursor: pointer; font-weight: bold; color: #777; border-bottom: 3px solid transparent; }
+        .admin-tab-btn.active { color: var(--primary-color); border-bottom-color: var(--primary-color); }
+        .admin-section { display: none; }
+        .admin-section.active { display: block; }
+        .form-control { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 8px; }
+
+    </style>
+</head>
+<body>
+
+    <!-- الهيدر -->
+    <header id="mainHeader">
+        <div class="settings-icon" onclick="openAdminPanel()" title="لوحة التحكم">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        </div>
+
+        <div id="userProfileIcon" class="user-icon" onclick="toggleProfilePopup()" title="بياناتي">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+        </div>
+
+        <div id="profilePopup" class="profile-popup">
+            <div class="profile-info">
+                <div style="margin: 0 auto 10px; width: 60px; height: 60px; background:var(--secondary-color); color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.5rem;" id="popupAvatar">?</div>
+                <h3 id="popupName">اسم المستخدم</h3>
+                <span>رصيدك الحالي</span>
+                <span class="score" id="popupScore">0</span>
+            </div>
+            <button class="btn-logout" onclick="logoutUser()">تسجيل الخروج</button>
+        </div>
+
+        <h1 class="family-title" onclick="goHome()" title="عودة للرئيسية">عائلة المنافسين</h1>
+
+        <div class="header-actions" id="headerActions">
+            <a href="#" class="btn-header" onclick="openLoginModal()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                المتنافسون (دخول)
+            </a>
+            <a href="#" class="btn-header">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                رسائل هادفة
+            </a>
+        </div>
+        
+        <p id="welcomeMessage">أهلاً بك يا <span id="welcomeName" style="font-weight:bold; color:var(--accent-color);"></span></p>
+
+    </header>
+
+    <!-- المحتوى الرئيسي -->
+    <main id="cardsGrid">
+        <div class="card" onclick="openContent('سرعة الكلمات', 'word_speed')">
+            <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg></div>
+            <h3>سرعة الكلمات</h3>
+        </div>
+        <div class="card" onclick="openContent('سرعة القراءة', 'reading_speed')">
+            <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg></div>
+            <h3>سرعة القراءة</h3>
+        </div>
+        <div class="card" onclick="openContent('مقالات', 'articles')">
+            <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg></div>
+            <h3>مقالات (المكتبة)</h3>
+        </div>
+        <div class="card" onclick="openContent('أذكار', 'athkar')">
+            <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></div>
+            <h3>أذكار</h3>
+        </div>
+    </main>
+
+    <!-- صفحة المحتوى العادية -->
+    <section id="contentSection" class="content-page">
+        <div class="content-header">
+            <h2 id="pageTitle">عنوان الصفحة</h2>
+        </div>
+        <div id="dynamicContent" class="content-body"></div>
+    </section>
+
+    <!-- شاشة القراءة الكاملة (جديد) -->
+    <div id="readerOverlay">
+        <div class="reader-header">
+            <div class="reader-timer" id="readerTimer">00:00</div>
+            <button onclick="closeReader()" style="background:none; border:none; font-size:1.2rem; cursor:pointer; color:#777;">✕ خروج</button>
+        </div>
+        
+        <div class="reader-body">
+            <div id="readerTextContainer" class="reader-text-container"></div>
+        </div>
+        
+        <div class="reader-footer">
+            <div id="micIcon" class="mic-status">🎙️</div>
+            <div style="font-size:0.9rem; color:#666;">اقرأ النص بصوت واضح...</div>
+            <button onclick="finishReading()" style="background:var(--success-color); color:white; border:none; padding:10px 25px; border-radius:50px; cursor:pointer; font-weight:bold;">إنهاء</button>
+        </div>
+    </div>
+
+    <!-- شاشة النتائج (جديد) -->
+    <div id="resultOverlay">
+        <div class="result-card">
+            <span class="result-badge" id="resultEmoji">🏆</span>
+            <div class="motivation-text" id="motivationText">أحسنت يا بطل!</div>
+            
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <span class="stat-val" id="resWPM">0</span>
+                    <span class="stat-label">كلمة/دقيقة</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-val" id="resAcc">0%</span>
+                    <span class="stat-label">الدقة</span>
+                </div>
+            </div>
+
+            <div id="missedWordsContainer" class="missed-words-box">
+                <h4>كلمات تحتاج تدريب:</h4>
+                <div id="missedWordsList"></div>
+            </div>
+
+            <button onclick="closeResult()" style="background:var(--primary-color); color:white; width:100%; padding:15px; border-radius:15px; border:none; font-size:1.1rem; cursor:pointer; margin-top:10px;">استمرار</button>
+        </div>
+    </div>
+
+    <!-- النوافذ المنبثقة الأخرى -->
+    <div id="loginOverlay" class="modal-overlay">
+        <div class="modal-box">
+            <button class="close-btn" onclick="closeLoginModal()">✕</button>
+            <h2 style="text-align:center; color:var(--primary-color); margin-bottom:20px;">من أنت؟</h2>
+            <div id="loginList"><p style="text-align:center;">جاري التحميل...</p></div>
+        </div>
+    </div>
+
+    <div id="adminOverlay" class="modal-overlay">
+        <div class="modal-box admin-panel">
+            <button class="close-btn" onclick="closeAdminPanel()">✕</button>
+            <div class="panel-header"><h2>لوحة التحكم</h2></div>
+            <div class="admin-tabs">
+                <button class="admin-tab-btn active" onclick="switchAdminTab('users')">المتنافسون</button>
+                <button class="admin-tab-btn" onclick="switchAdminTab('content')">إدارة المحتوى</button>
+            </div>
+            <div id="adminUsersSection" class="admin-section active">
+                <div class="admin-form">
+                    <input type="hidden" id="compId">
+                    <input type="text" id="compName" class="form-control" placeholder="اسم المتنافس" required>
+                    <input type="number" id="compScore" class="form-control" placeholder="النقاط" required>
+                    <button onclick="saveCompetitor()" id="saveBtn" style="width:100%; padding:10px; background:var(--primary-color); color:white; border:none; border-radius:8px; cursor:pointer;">إضافة متنافس</button>
+                </div>
+                <div id="competitorsList"></div>
+            </div>
+            <div id="adminContentSection" class="admin-section">
+                <div class="admin-form">
+                    <input type="text" id="new-text-title" class="form-control" placeholder="العنوان">
+                    <select id="new-text-level" class="form-control">
+                        <option value="easy">🟢 سهل</option>
+                        <option value="medium">🟡 متوسط</option>
+                        <option value="hard">🔴 صعب</option>
+                    </select>
+                    <textarea id="new-text-content" class="form-control" style="height:100px" placeholder="النص..."></textarea>
+                    <button onclick="addNewArticle()" style="width:100%; padding:10px; background:var(--secondary-color); color:white; border:none; border-radius:8px; cursor:pointer;">نشر</button>
+                </div>
+                <div id="articlesList" style="margin-top:15px; max-height:200px; overflow-y:auto;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 1. Firebase Setup
+        const firebaseConfig = {
+            apiKey: "AIzaSyBxPO6RKsQ1Cq-mqlCpFTrCuIyxnYdB37U",
+            authDomain: "studentsystem-c1ab1.firebaseapp.com",
+            databaseURL: "https://studentsystem-c1ab1-default-rtdb.firebaseio.com",
+            projectId: "studentsystem-c1ab1",
+            storageBucket: "studentsystem-c1ab1.firebasestorage.app",
+            messagingSenderId: "112215023848",
+            appId: "1:112215023848:web:0adba326a527ee7e37e95d"
+        };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const rootRef = db.ref('aish_2');
+        const competitorsRef = rootRef.child('competitors');
+        const articlesRef = rootRef.child('articles');
+
+        let currentUser = null;
+        let articlesData = [];
+
+        // --- متغيرات القارئ الذكي ---
+        let reader = {
+            active: false,
+            words: [],
+            currentIndex: 0,
+            startTime: 0,
+            timerInterval: null,
+            recognition: null,
+            attempts: 0,
+            missedWords: [],
+            correctCount: 0
+        };
+
+        // 2. User Logic
+        function openLoginModal() {
+            document.getElementById('loginOverlay').classList.add('modal-active');
+            competitorsRef.once('value').then((snapshot) => {
+                const list = document.getElementById('loginList');
+                list.innerHTML = '';
+                const data = snapshot.val();
+                if (!data) { list.innerHTML = '<p style="text-align:center;">لا يوجد متنافسين.</p>'; return; }
+                Object.keys(data).forEach(key => {
+                    const comp = data[key];
+                    const div = document.createElement('div');
+                    div.style.cssText = "display:flex; justify-content:space-between; padding:15px; margin-bottom:10px; border:2px solid #eee; border-radius:12px; cursor:pointer;";
+                    div.innerHTML = `<div style="display:flex; align-items:center;"><div style="width:40px;height:40px;background:var(--secondary-color);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-left:10px;">${comp.name.charAt(0)}</div><span style="font-weight:bold;">${comp.name}</span></div><span style="color:var(--primary-color);">دخول ←</span>`;
+                    div.onclick = () => loginUser(key, comp);
+                    list.appendChild(div);
+                });
+            });
+        }
+        function closeLoginModal() { document.getElementById('loginOverlay').classList.remove('modal-active'); }
+        function loginUser(key, user) {
+            currentUser = { key, ...user };
+            closeLoginModal();
+            document.getElementById('cardsGrid').style.display = 'grid';
+            document.getElementById('userProfileIcon').style.display = 'flex';
+            const ha = document.getElementById('headerActions');
+            ha.style.opacity = '0'; ha.style.pointerEvents = 'none'; ha.style.maxHeight = '0';
+            document.getElementById('welcomeName').innerText = user.name;
+            document.getElementById('welcomeMessage').style.opacity = '1';
+            updateProfileUI();
+        }
+        function updateProfileUI() {
+            if(!currentUser) return;
+            document.getElementById('popupName').innerText = currentUser.name;
+            document.getElementById('popupScore').innerText = currentUser.points;
+            document.getElementById('popupAvatar').innerText = currentUser.name.charAt(0);
+        }
+        function toggleProfilePopup() { document.getElementById('profilePopup').classList.toggle('active'); }
+        function logoutUser() {
+            currentUser = null;
+            document.getElementById('profilePopup').classList.remove('active');
+            document.getElementById('cardsGrid').style.display = 'none';
+            document.getElementById('userProfileIcon').style.display = 'none';
+            const ha = document.getElementById('headerActions');
+            ha.style.opacity = '1'; ha.style.pointerEvents = 'all'; ha.style.maxHeight = '100px';
+            document.getElementById('welcomeMessage').style.opacity = '0';
+            goHome();
+        }
+
+        // 3. Navigation
+        function openContent(title, dbPathKey) {
+            document.body.classList.add('content-mode');
+            document.getElementById('pageTitle').innerText = title;
+            const container = document.getElementById('dynamicContent');
+            container.innerHTML = '<div style="text-align:center; padding:20px;">جاري التحميل...</div>';
+            window.scrollTo(0,0);
+
+            if (dbPathKey === 'articles') {
+                loadArticlesLibrary(container);
+            } else {
+                rootRef.child(dbPathKey).once('value')
+                    .then(snapshot => renderGenericData(snapshot.val(), container))
+                    .catch(err => container.innerHTML = 'خطأ: ' + err.message);
+            }
+        }
+        function goHome() { document.body.classList.remove('content-mode'); }
+
+        function renderGenericData(data, container) {
+            container.innerHTML = '';
+            if (!data) { container.innerHTML = '<p style="text-align:center; color:#777;">لا توجد بيانات.</p>'; return; }
+            if (typeof data === 'string' || typeof data === 'number') {
+                container.innerHTML = `<div class="db-item"><p>${data}</p></div>`;
+            } else if (typeof data === 'object') {
+                Object.keys(data).forEach(key => {
+                    const item = data[key];
+                    const body = (typeof item === 'object') ? (item.content || JSON.stringify(item)) : item;
+                    const title = (typeof item === 'object') ? (item.title || key) : key;
+                    const div = document.createElement('div');
+                    div.className = 'db-item';
+                    div.innerHTML = `<h4>${title}</h4><p>${body}</p>`;
+                    container.appendChild(div);
+                });
+            }
+        }
+
+        // 4. Articles Library
+        function loadArticlesLibrary(container) {
+            container.innerHTML = `
+                <div class="filter-tabs">
+                    <button class="filter-btn active" onclick="filterArticles('all', this)">الكل</button>
+                    <button class="filter-btn" onclick="filterArticles('easy', this)">🟢 سهل</button>
+                    <button class="filter-btn" onclick="filterArticles('medium', this)">🟡 متوسط</button>
+                    <button class="filter-btn" onclick="filterArticles('hard', this)">🔴 صعب</button>
+                </div>
+                <div id="libraryGrid" class="texts-grid"><p style="width:100%; text-align:center;">تحميل...</p></div>
+            `;
+            articlesRef.once('value').then(snap => {
+                const data = snap.val();
+                articlesData = [];
+                if (data) Object.keys(data).forEach(k => articlesData.push({id: k, ...data[k]}));
+                else articlesData = [
+                    {title:"تجربة القراءة", level:"easy", content:"مرحباً بكم في مسابقة القراءة الذكية. اقرأ هذا النص بصوت عال لتجربة النظام."}
+                ];
+                renderArticlesGrid('all');
+            });
+        }
+
+        function filterArticles(lvl, btn) {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderArticlesGrid(lvl);
+        }
+
+        function renderArticlesGrid(lvl) {
+            const grid = document.getElementById('libraryGrid');
+            grid.innerHTML = '';
+            const filtered = lvl === 'all' ? articlesData : articlesData.filter(a => a.level === lvl);
+            if (filtered.length === 0) { grid.innerHTML = '<p style="text-align:center;width:100%;">لا يوجد مقالات</p>'; return; }
+
+            filtered.forEach(art => {
+                let badge = "level-easy", txt = "سهل";
+                if(art.level === 'medium') { badge = "level-medium"; txt = "متوسط"; }
+                if(art.level === 'hard') { badge = "level-hard"; txt = "صعب"; }
+
+                const div = document.createElement('div');
+                div.className = 'text-card';
+                div.onclick = () => startReadingSession(art); // تشغيل القارئ
+                div.innerHTML = `
+                    <div class="level-badge ${badge}">${txt}</div>
+                    <div class="text-title">${art.title}</div>
+                    <div class="text-preview">${art.content}</div>
+                    <div class="text-meta"><span>🎙️ اقرأ الآن</span><span style="color:var(--primary-color);">ابدأ</span></div>
+                `;
+                grid.appendChild(div);
+            });
+        }
+
+        // --- 5. منطق القارئ الذكي (Reading Logic) ---
+        function startReadingSession(article) {
+            // تهيئة المتغيرات
+            reader.words = article.content.trim().split(/\s+/);
+            reader.currentIndex = 0;
+            reader.attempts = 0;
+            reader.missedWords = [];
+            reader.correctCount = 0;
+            reader.active = true;
+
+            // تحضير الواجهة
+            const container = document.getElementById('readerTextContainer');
+            container.innerHTML = '';
+            reader.words.forEach((word, idx) => {
+                const span = document.createElement('span');
+                span.id = `r-word-${idx}`;
+                span.className = 'word-span';
+                span.innerText = word;
+                container.appendChild(span);
+            });
+
+            document.getElementById('readerOverlay').style.display = 'flex';
+            highlightCurrentWord();
+            
+            // بدء التوقيت
+            reader.startTime = Date.now();
+            if(reader.timerInterval) clearInterval(reader.timerInterval);
+            reader.timerInterval = setInterval(updateReaderTimer, 1000);
+
+            // تشغيل المايك
+            setupSpeechRecognition();
+        }
+
+        function highlightCurrentWord() {
+            document.querySelectorAll('.word-span').forEach(el => {
+                if(!el.classList.contains('word-correct') && !el.classList.contains('word-wrong')) {
+                    el.className = 'word-span'; // reset pending
+                }
+            });
+            if(reader.currentIndex < reader.words.length) {
+                const el = document.getElementById(`r-word-${reader.currentIndex}`);
+                if(el) {
+                    el.classList.add('word-current');
+                    el.scrollIntoView({ behavior: "smooth", block: "center" });
+                }
+            }
+        }
+
+        function updateReaderTimer() {
+            const diff = Math.floor((Date.now() - reader.startTime) / 1000);
+            const m = Math.floor(diff / 60).toString().padStart(2, '0');
+            const s = (diff % 60).toString().padStart(2, '0');
+            document.getElementById('readerTimer').innerText = `${m}:${s}`;
+        }
+
+        function setupSpeechRecognition() {
+            if (!('webkitSpeechRecognition' in window)) { alert("متصفحك لا يدعم التعرف الصوتي"); return; }
+            
+            reader.recognition = new webkitSpeechRecognition();
+            reader.recognition.lang = 'ar-SA';
+            reader.recognition.continuous = true;
+            reader.recognition.interimResults = true;
+
+            reader.recognition.onstart = () => document.getElementById('micIcon').classList.add('mic-active');
+            reader.recognition.onend = () => {
+                document.getElementById('micIcon').classList.remove('mic-active');
+                if(reader.active && reader.currentIndex < reader.words.length) reader.recognition.start();
+            };
+
+            reader.recognition.onresult = (event) => {
+                if(!reader.active) return;
+                const transcript = event.results[event.results.length - 1][0].transcript;
+                checkWord(transcript);
+            };
+
+            reader.recognition.start();
+        }
+
+        function normalizeText(text) {
+            return text.trim()
+                .replace(/[^\u0600-\u06FF\s]/g, '') // إبقاء الحروف العربية والمسافات فقط
+                .replace(/[أإآ]/g, 'ا')
+                .replace(/ة/g, 'ه')
+                .replace(/ى/g, 'ي')
+                .replace(/[ًٌٍَُِّْ]/g, ''); 
+        }
+
+        function checkWord(spoken) {
+            if(reader.currentIndex >= reader.words.length) return;
+
+            const targetRaw = reader.words[reader.currentIndex];
+            const targetNorm = normalizeText(targetRaw);
+            const spokenNorm = normalizeText(spoken);
+
+            // السماح بتطابق جزئي إذا كانت الكلمة تحتوي على الكلمة المستهدفة
+            if (spokenNorm.includes(targetNorm)) {
+                // صحيح
+                const el = document.getElementById(`r-word-${reader.currentIndex}`);
+                el.className = 'word-span word-correct';
+                reader.correctCount++;
+                reader.currentIndex++;
+                reader.attempts = 0;
+                highlightCurrentWord();
+                
+                if(reader.currentIndex >= reader.words.length) finishReading();
+            } else {
+                // خطأ - لا نفعل شيئاً إلا زيادة العداد
+                reader.attempts++;
+                // قاعدة الـ 5 محاولات
+                if(reader.attempts >= 5) {
+                    const el = document.getElementById(`r-word-${reader.currentIndex}`);
+                    el.className = 'word-span word-wrong'; // تمييز بالاحمر
+                    reader.missedWords.push(targetRaw);
+                    
+                    reader.currentIndex++; // تجاوز
+                    reader.attempts = 0;
+                    highlightCurrentWord();
+                    if(reader.currentIndex >= reader.words.length) finishReading();
+                }
+            }
+        }
+
+        function closeReader() {
+            reader.active = false;
+            clearInterval(reader.timerInterval);
+            if(reader.recognition) reader.recognition.stop();
+            document.getElementById('readerOverlay').style.display = 'none';
+        }
+
+        function finishReading() {
+            reader.active = false;
+            clearInterval(reader.timerInterval);
+            if(reader.recognition) reader.recognition.stop();
+            document.getElementById('readerOverlay').style.display = 'none';
+            showResults();
+        }
+
+        function showResults() {
+            const timeMin = (Date.now() - reader.startTime) / 60000;
+            const wpm = Math.round(reader.correctCount / (timeMin || 1));
+            const accuracy = Math.round((reader.correctCount / reader.words.length) * 100);
+
+            document.getElementById('resWPM').innerText = wpm;
+            document.getElementById('resAcc').innerText = accuracy + '%';
+
+            // تحفيز
+            const emojiEl = document.getElementById('resultEmoji');
+            const motivEl = document.getElementById('motivationText');
+            if(accuracy >= 90) { emojiEl.innerText = "🌟"; motivEl.innerText = "أداء مذهل يا عبقري!"; }
+            else if(accuracy >= 70) { emojiEl.innerText = "👏"; motivEl.innerText = "عمل رائع، استمر!"; }
+            else { emojiEl.innerText = "💪"; motivEl.innerText = "محاولة جيدة، تدرب أكثر!"; }
+
+            // الكلمات الخاطئة
+            const missedContainer = document.getElementById('missedWordsContainer');
+            const missedList = document.getElementById('missedWordsList');
+            missedList.innerHTML = '';
+            
+            if(reader.missedWords.length > 0) {
+                missedContainer.style.display = 'block';
+                reader.missedWords.forEach(w => {
+                    const sp = document.createElement('span');
+                    sp.className = 'missed-word-tag';
+                    sp.innerText = w;
+                    missedList.appendChild(sp);
+                });
+            } else {
+                missedContainer.style.display = 'none';
+            }
+
+            document.getElementById('resultOverlay').style.display = 'flex';
+        }
+
+        function closeResult() {
+            document.getElementById('resultOverlay').style.display = 'none';
+        }
+
+
+        // 6. Admin Panel
+        function openAdminPanel() {
+            document.getElementById('adminOverlay').classList.add('modal-active');
+            loadCompetitorsList();
+            loadArticlesListAdmin();
+        }
+        function closeAdminPanel() { document.getElementById('adminOverlay').classList.remove('modal-active'); resetForm(); }
+        function switchAdminTab(t) {
+            document.querySelectorAll('.admin-tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+            if(t==='users') {
+                document.querySelector('.admin-tab-btn:nth-child(1)').classList.add('active');
+                document.getElementById('adminUsersSection').classList.add('active');
+            } else {
+                document.querySelector('.admin-tab-btn:nth-child(2)').classList.add('active');
+                document.getElementById('adminContentSection').classList.add('active');
+            }
+        }
+        function saveCompetitor() {
+            const n = document.getElementById('compName').value, s = document.getElementById('compScore').value;
+            if(!n || !s) return alert("أكمل البيانات");
+            const id = document.getElementById('compId').value;
+            if(id) competitorsRef.child(id).update({name:n,points:s}).then(resetForm);
+            else competitorsRef.push({name:n,points:s}).then(resetForm);
+        }
+        function resetForm() {
+            document.getElementById('compId').value=''; document.getElementById('compName').value=''; document.getElementById('compScore').value='';
+            document.getElementById('saveBtn').innerText="إضافة";
+        }
+        function loadCompetitorsList() {
+            competitorsRef.on('value', snap => {
+                const l = document.getElementById('competitorsList'); l.innerHTML='';
+                const d = snap.val(); if(!d) return;
+                Object.keys(d).forEach(k => {
+                    const c = d[k];
+                    const div = document.createElement('div');
+                    div.style.cssText="display:flex;justify-content:space-between;padding:10px;background:#f9f9f9;margin-bottom:5px;border-radius:5px;";
+                    div.innerHTML=`<span>${c.name} (${c.points})</span><div><button onclick="editComp('${k}','${c.name}','${c.points}')" style="margin-left:5px;">✏️</button><button onclick="deleteComp('${k}')" style="color:red;">✕</button></div>`;
+                    l.appendChild(div);
+                });
+            });
+        }
+        function deleteComp(k) { if(confirm('حذف؟')) competitorsRef.child(k).remove(); }
+        function editComp(k,n,p) {
+            document.getElementById('compId').value=k; document.getElementById('compName').value=n; document.getElementById('compScore').value=p; document.getElementById('saveBtn').innerText="حفظ";
+        }
+        function addNewArticle() {
+            const t = document.getElementById('new-text-title').value, c = document.getElementById('new-text-content').value, l = document.getElementById('new-text-level').value;
+            if(!t || !c) return alert("البيانات ناقصة");
+            articlesRef.push({title:t,content:c,level:l}).then(()=>{
+                document.getElementById('new-text-title').value=''; document.getElementById('new-text-content').value=''; loadArticlesListAdmin();
+            });
+        }
+        function loadArticlesListAdmin() {
+            articlesRef.once('value').then(snap => {
+                const l = document.getElementById('articlesList'); l.innerHTML='';
+                const d = snap.val(); if(!d) return;
+                Object.keys(d).forEach(k => {
+                    const i = d[k];
+                    const div = document.createElement('div');
+                    div.style.cssText="display:flex;justify-content:space-between;padding:10px;border-bottom:1px solid #eee;";
+                    div.innerHTML=`<div style="font-size:0.8rem"><b>${i.title}</b><br>${i.content.substring(0,30)}...</div><button onclick="deleteArticle('${k}')" style="color:red;border:none;background:none;cursor:pointer;">✕</button>`;
+                    l.appendChild(div);
+                });
+            });
+        }
+        function deleteArticle(k) { if(confirm('حذف؟')) articlesRef.child(k).remove().then(loadArticlesListAdmin); }
+
+    </script>
+</body>
+</html>
