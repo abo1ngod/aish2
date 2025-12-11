@@ -25,10 +25,6 @@
             --card-bg: #ffffff;
             --text-color: #1F2937;
             --header-transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            
-            /* ألوان خاصة بالألعاب */
-            --game-bg: #1e1b4b;
-            --word-bg: #ffffff;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
@@ -94,7 +90,7 @@
         /* --- القسم الرئيسي --- */
         main {
             max-width: 1000px; margin: -40px auto 50px; padding: 0 20px;
-            display: none;
+            display: none; /* يتم التحكم به عبر JS */
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 20px; position: relative; z-index: 10;
             transition: opacity 0.5s ease, transform 0.5s ease;
@@ -102,7 +98,7 @@
         }
         @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-        body.content-mode main { opacity: 0; pointer-events: none; display: none; }
+        /* body.content-mode main { display: none; } تم نقله للـ JS لضمان الاختفاء التام */
 
         .card {
             background: var(--card-bg); border-radius: 20px; padding: 30px 20px;
@@ -132,7 +128,7 @@
         .content-header { border-bottom: 2px solid #f0f0f0; padding-bottom: 20px; margin-bottom: 20px; color: var(--primary-color); }
         .db-item { background: #f9fafb; border-right: 4px solid var(--primary-color); padding: 15px; margin-bottom: 15px; border-radius: 8px; }
 
-        /* --- شاشة الأذكار (جديد) --- */
+        /* --- شاشة الأذكار --- */
         .athkar-grid {
             display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;
         }
@@ -160,6 +156,14 @@
             background: var(--accent-color); color: white; padding: 2px 10px; border-radius: 10px;
             font-size: 0.8rem; position: absolute; top: 10px; left: 10px;
         }
+        
+        /* مؤشر حالة الميكروفون في الأذكار */
+        .thikr-mic-status {
+            font-size: 0.8rem; color: #999; margin-bottom: 5px; display: flex; align-items: center; gap: 5px;
+        }
+        .listening .thikr-mic-status { color: var(--accent-color); font-weight: bold; }
+        .listening .thikr-mic-status::before { content: '🔴'; animation: pulse 1s infinite; }
+
 
         /* --- شاشة القراءة التفاعلية (المقالات) --- */
         #readerOverlay {
@@ -213,7 +217,7 @@
         
         .feedback-msg { font-size: 2rem; height: 50px; margin-top: 20px; font-weight: bold; color: var(--success-color); text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
 
-        /* --- شاشة النتائج (مشتركة) --- */
+        /* --- شاشة النتائج --- */
         #resultOverlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.9); z-index: 3500; display: none;
@@ -257,9 +261,12 @@
         .filter-btn { padding: 8px 16px; border-radius: 20px; border: 1px solid #ddd; background: white; cursor: pointer; transition: 0.3s; white-space: nowrap; }
         .filter-btn.active { background: var(--primary-color); color: white; border-color: var(--primary-color); }
 
-        /* Profile Popup */
-        .profile-popup { position: absolute; top: 70px; right: 20px; background: white; width: 250px; padding: 20px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); display: none; z-index: 1500; text-align: center; }
+        /* Profile Popup (Fixed) */
+        .profile-popup { position: absolute; top: 70px; right: 20px; background: white; width: 280px; padding: 25px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); display: none; z-index: 1500; text-align: center; }
         .profile-popup.active { display: block; animation: fadeIn 0.2s; }
+        .profile-row { display: flex; justify-content: space-between; border-bottom: 1px solid #eee; padding: 8px 0; font-size: 0.9rem; }
+        .profile-row span:first-child { color: #666; }
+        .profile-row span:last-child { font-weight: bold; color: var(--primary-color); }
 
         /* Admin Styles */
         .admin-tabs { display: flex; gap: 10px; margin-bottom: 15px; border-bottom: 2px solid #eee; padding-bottom: 10px; overflow-x: auto; }
@@ -284,13 +291,20 @@
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
         </div>
 
+        <!-- نافذة بيانات المستخدم (محسنة) -->
         <div id="profilePopup" class="profile-popup">
-            <div class="profile-info">
-                <div style="margin: 0 auto 10px; width: 60px; height: 60px; background:var(--secondary-color); color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.5rem;" id="popupAvatar">?</div>
-                <h3 id="popupName">اسم المستخدم</h3>
-                <span>رصيدك الحالي</span>
-                <span class="score" id="popupScore">0</span>
+            <div style="margin: 0 auto 15px; width: 70px; height: 70px; background:var(--secondary-color); color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:2rem; font-weight:bold;" id="popupAvatar">?</div>
+            <h3 id="popupName" style="color:var(--primary-color); margin-bottom:15px;">اسم المستخدم</h3>
+            
+            <div class="profile-row">
+                <span>النقاط العامة:</span>
+                <span id="popupScore">0</span>
             </div>
+            <div class="profile-row">
+                <span>مجموع الأذكار:</span>
+                <span id="popupAthkarTotal">0</span>
+            </div>
+            
             <button class="btn-logout" onclick="logoutUser()">تسجيل الخروج</button>
         </div>
 
@@ -455,7 +469,7 @@
                 </div>
             </div>
 
-            <!-- قسم إدارة الأذكار (جديد) -->
+            <!-- قسم إدارة الأذكار -->
             <div id="adminAthkarSection" class="admin-section">
                 <div class="ai-panel">
                     <div class="ai-title">إعدادات سريعة</div>
@@ -496,9 +510,7 @@
         // متغيرات الألعاب
         let reader = { active: false, words: [], currentIndex: 0, startTime: 0, timerInterval: null, recognition: null, attempts: 0, missedWords: [], correctCount: 0 };
         let wordGame = { active: false, wordsList: [], currentWord: "", currentIndex: 0, score: 0, timer: null, recognition: null };
-        
-        // متغيرات الأذكار
-        let athkarSessionCounts = {}; // تخزين محلي لجلسة الأذكار
+        let athkarSessionCounts = {};
 
         // 2. User & Profile
         function openLoginModal() {
@@ -527,19 +539,37 @@
             document.getElementById('headerActions').style.pointerEvents = 'none';
             document.getElementById('welcomeName').innerText = user.name;
             document.getElementById('welcomeMessage').style.opacity = '1';
-            updateProfileUI(user.name, user.points);
-            competitorsRef.child(key).on('value', (snap) => { const val = snap.val(); if(val) updateProfileUI(val.name, val.points); });
+            
+            updateProfileUI(user);
+            competitorsRef.child(key).on('value', (snap) => { 
+                const val = snap.val(); 
+                if(val) {
+                    currentUser = { key, ...val }; // تحديث الكائن المحلي
+                    updateProfileUI(val); 
+                }
+            });
         }
-        function updateProfileUI(name, points) {
-            document.getElementById('popupName').innerText = name;
-            document.getElementById('popupScore').innerText = points;
-            document.getElementById('popupAvatar').innerText = name ? name.charAt(0) : '?';
+        
+        function updateProfileUI(user) {
+            document.getElementById('popupName').innerText = user.name;
+            document.getElementById('popupScore').innerText = user.points || 0;
+            document.getElementById('popupAvatar').innerText = user.name ? user.name.charAt(0) : '?';
+            
+            // حساب مجموع الأذكار
+            let totalAthkar = 0;
+            if(user.athkar_stats) {
+                Object.values(user.athkar_stats).forEach(stat => {
+                    totalAthkar += (stat.total || 0);
+                });
+            }
+            document.getElementById('popupAthkarTotal').innerText = totalAthkar;
         }
+
         function toggleProfilePopup() { document.getElementById('profilePopup').classList.toggle('active'); }
         function logoutUser() {
             if(currentUser) competitorsRef.child(currentUser.key).off();
             currentUser = null;
-            athkarSessionCounts = {}; // تصفير عداد الجلسة
+            athkarSessionCounts = {};
             document.getElementById('profilePopup').classList.remove('active');
             document.getElementById('cardsGrid').style.display = 'none';
             document.getElementById('userProfileIcon').style.display = 'none';
@@ -552,6 +582,9 @@
         // 3. Navigation
         function openContent(title, key) {
             document.body.classList.add('content-mode');
+            // إخفاء التبويبات الرئيسية تماماً
+            document.getElementById('cardsGrid').style.display = 'none';
+            
             document.getElementById('pageTitle').innerText = title;
             const container = document.getElementById('dynamicContent');
             container.innerHTML = '<div style="text-align:center; padding:20px;">جاري التحميل...</div>';
@@ -559,14 +592,17 @@
 
             if (key === 'articles') loadArticlesLibrary(container);
             else if (key === 'word_speed') loadWordSpeedStartScreen(container);
-            else if (key === 'athkar') loadAthkarContent(container); // جديد
+            else if (key === 'athkar') loadAthkarContent(container);
             else {
                 rootRef.child(key).once('value').then(snap => renderGenericData(snap.val(), container));
             }
         }
         function goHome() { 
             document.body.classList.remove('content-mode'); 
-            athkarSessionCounts = {}; // تصفير عداد الجلسة عند الخروج
+            // إظهار التبويبات الرئيسية
+            if(currentUser) document.getElementById('cardsGrid').style.display = 'grid';
+            
+            athkarSessionCounts = {}; 
             if(window.athkarRec) window.athkarRec.stop();
         }
         function renderGenericData(data, container) {
@@ -589,29 +625,21 @@
             athkarRef.once('value').then(snap => {
                 const data = snap.val();
                 if(!data) {
-                    grid.innerHTML = '<div style="text-align:center;width:100%;grid-column:1/-1;">لا توجد أذكار. أضفها من لوحة التحكم أو استعد الافتراضي.</div>';
+                    grid.innerHTML = '<div style="text-align:center;width:100%;grid-column:1/-1;">لا توجد أذكار.</div>';
                     return;
                 }
 
                 Object.keys(data).forEach(key => {
                     const item = data[key];
-                    // إعداد العدادات
                     if(!athkarSessionCounts[key]) athkarSessionCounts[key] = 0;
                     
-                    // جلب البيانات الشخصية (يومي وتراكمي)
                     let daily = 0;
                     let total = 0;
                     if(currentUser) {
                         const userStats = (currentUser.athkar_stats && currentUser.athkar_stats[key]) || {};
                         total = userStats.total || 0;
-                        
-                        // التحقق من اليوم
-                        const todayStr = new Date().toDateString(); // يعيد "Thu Dec 11 2025" مثلاً، يكفي لتمييز اليوم
-                        if (userStats.lastDate === todayStr) {
-                            daily = userStats.daily || 0;
-                        } else {
-                            daily = 0; // يوم جديد
-                        }
+                        const todayStr = new Date().toDateString();
+                        if (userStats.lastDate === todayStr) daily = userStats.daily || 0;
                     }
 
                     const btn = document.createElement('div');
@@ -621,7 +649,7 @@
                     btn.innerHTML = `
                         <div class="session-badge" id="sess-${key}">الجلسة: ${athkarSessionCounts[key]}</div>
                         <div class="thikr-text">${item.text}</div>
-                        <div style="font-size:0.8rem; color:#999; margin-bottom:5px;">اضغط للقراءة 🎙️</div>
+                        <div class="thikr-mic-status" id="mic-status-${key}">اضغط للقراءة 🎙️</div>
                         <div class="thikr-stats">
                             <div class="stat-item"><span>يومي</span><b id="day-${key}">${daily}</b></div>
                             <div class="stat-item"><span>مجموع</span><b id="tot-${key}">${total}</b></div>
@@ -635,32 +663,43 @@
         function activateThikrMic(key, text) {
             if(!('webkitSpeechRecognition' in window)) return alert("المتصفح لا يدعم");
             
-            // إيقاف أي تعرف سابق
+            // إذا ضغط على نفس الزر وهو يعمل، نوقفه (اختياري، أو نتركه يعمل)
+            // هنا سنعيد تشغيله لضمان الاستمرارية أو التبديل
             if(window.athkarRec) window.athkarRec.stop();
             
-            // تفعيل الستايل
-            document.querySelectorAll('.thikr-btn').forEach(b => b.classList.remove('listening'));
+            document.querySelectorAll('.thikr-btn').forEach(b => {
+                b.classList.remove('listening');
+                // إعادة النص الافتراضي للميكروفون في باقي الأزرار
+                const statusEl = b.querySelector('.thikr-mic-status');
+                if(statusEl) statusEl.innerText = "اضغط للقراءة 🎙️";
+            });
+
             const btn = document.getElementById(`btn-${key}`);
             btn.classList.add('listening');
+            document.getElementById(`mic-status-${key}`).innerText = "يستمع...";
 
             const rec = new webkitSpeechRecognition();
             rec.lang = 'ar-SA';
-            rec.continuous = false;
+            rec.continuous = true; // تعديل: البقاء مستمراً
             rec.interimResults = false;
 
             rec.onend = () => {
-                if(btn) btn.classList.remove('listening');
+                // إذا كان لا يزال الزر نشطاً (لم يضغط المستخدم زر آخر)، نعد التشغيل
+                if(btn.classList.contains('listening') && document.body.classList.contains('content-mode')) {
+                    rec.start();
+                } else {
+                    btn.classList.remove('listening');
+                    document.getElementById(`mic-status-${key}`).innerText = "اضغط للقراءة 🎙️";
+                }
             };
 
             rec.onresult = (e) => {
-                const spoken = e.results[0][0].transcript;
+                // نأخذ آخر نتيجة لأن continuous = true
+                const lastIdx = e.results.length - 1;
+                const spoken = e.results[lastIdx][0].transcript;
+                
                 if(normalizeText(spoken).includes(normalizeText(text))) {
-                    // نجاح
                     handleThikrSuccess(key);
-                } else {
-                    // فشل بسيط (يمكن إضافة اهتزاز)
-                    btn.style.borderColor = 'red';
-                    setTimeout(() => btn.style.borderColor = '', 500);
                 }
             };
 
@@ -671,33 +710,19 @@
         function handleThikrSuccess(key) {
             const btn = document.getElementById(`btn-${key}`);
             
-            // تأثير بصري
-            btn.classList.remove('listening');
             btn.classList.add('success');
-            setTimeout(() => btn.classList.remove('success'), 1000);
+            setTimeout(() => btn.classList.remove('success'), 500);
 
-            // تحديث عداد الجلسة
             athkarSessionCounts[key]++;
             document.getElementById(`sess-${key}`).innerText = `الجلسة: ${athkarSessionCounts[key]}`;
 
-            // تحديث Firebase (يومي وتراكمي)
             if(currentUser) {
                 const todayStr = new Date().toDateString();
-                const path = `competitors/${currentUser.key}/athkar_stats/${key}`;
-                
                 competitorsRef.child(currentUser.key).child('athkar_stats').child(key).transaction((current) => {
                     if(!current) return { total: 1, daily: 1, lastDate: todayStr };
-                    
                     let newDaily = 1;
-                    if(current.lastDate === todayStr) {
-                        newDaily = (current.daily || 0) + 1;
-                    }
-                    
-                    return {
-                        total: (current.total || 0) + 1,
-                        daily: newDaily,
-                        lastDate: todayStr
-                    };
+                    if(current.lastDate === todayStr) newDaily = (current.daily || 0) + 1;
+                    return { total: (current.total || 0) + 1, daily: newDaily, lastDate: todayStr };
                 }, (err, committed, snap) => {
                     if(committed) {
                         const val = snap.val();
@@ -707,7 +732,6 @@
                 });
             }
         }
-
 
         // 4. Articles Section
         function loadArticlesLibrary(container) {
@@ -765,7 +789,8 @@
             reader.recognition.onend = () => { document.getElementById('micIcon').classList.remove('mic-active'); if(reader.active && reader.currentIndex < reader.words.length) reader.recognition.start(); };
             reader.recognition.onresult = (e) => {
                 if(!reader.active) return;
-                checkWord(e.results[e.results.length-1][0].transcript);
+                const transcript = e.results[e.results.length - 1][0].transcript;
+                checkWord(transcript);
             };
             reader.recognition.start();
         }
@@ -819,7 +844,6 @@
                 if (val && val.list) {
                     allWords = val.list.split(/[\n,]+/).map(w => w.trim()).filter(w => w.length > 0);
                 }
-                
                 if (allWords.length < 10) allWords = ["أسد", "نمر", "صقر", "جمل", "بحر", "قمر", "شمس", "نجم", "ورده", "كتب"];
 
                 wordGame.wordsList = allWords.sort(() => 0.5 - Math.random()).slice(0, 10);
@@ -853,11 +877,18 @@
         function setupWordGameSpeech() {
             if(wordGame.recognition) wordGame.recognition.stop();
             wordGame.recognition = new webkitSpeechRecognition();
-            wordGame.recognition.lang = 'ar-SA'; wordGame.recognition.continuous = false; wordGame.recognition.interimResults = true;
+            wordGame.recognition.lang = 'ar-SA'; 
+            wordGame.recognition.continuous = true; // تعديل: البقاء للاستماع للتصحيحات
+            wordGame.recognition.interimResults = true;
             
             wordGame.recognition.onresult = (e) => {
-                const spoken = e.results[0][0].transcript;
-                if (normalizeText(spoken) === normalizeText(wordGame.currentWord)) handleWordSuccess();
+                // نأخذ آخر نتيجة
+                const lastIdx = e.results.length - 1;
+                const spoken = e.results[lastIdx][0].transcript;
+                
+                if (normalizeText(spoken).includes(normalizeText(wordGame.currentWord))) {
+                    handleWordSuccess();
+                }
             };
             try { wordGame.recognition.start(); } catch(e){}
         }
@@ -875,7 +906,10 @@
         function handleWordFail() {
             if(wordGame.timer) clearTimeout(wordGame.timer);
             if(wordGame.recognition) wordGame.recognition.stop();
-            wordGame.score--;
+            
+            // تعديل: عدم النزول تحت الصفر
+            if (wordGame.score > 0) wordGame.score--;
+            
             document.getElementById('gameScoreVal').innerText = wordGame.score;
             document.getElementById('activeWordDisplay').style.color = "var(--danger-color)";
             document.getElementById('wordFeedback').innerText = "انتهى الوقت!";
@@ -896,11 +930,11 @@
 
         // --- Utils ---
         function normalizeText(t) {
-            return t.trim().replace(/[^\u0600-\u06FF\s]/g, '') // حذف التشكيل والرموز
+            return t.trim().replace(/[^\u0600-\u06FF\s]/g, '')
                     .replace(/[أإآ]/g, 'ا')
                     .replace(/ة/g, 'ه')
                     .replace(/ى/g, 'ي')
-                    .replace(/\s+/g, ' '); // توحيد المسافات
+                    .replace(/\s+/g, ' ');
         }
 
         function showResultGeneric(title, contentHtml) {
@@ -922,7 +956,6 @@
             else { document.querySelector('.admin-tab-btn:nth-child(4)').classList.add('active'); document.getElementById('adminAthkarSection').classList.add('active'); }
         }
 
-        // Admin: Users
         function saveCompetitor() {
             const n=document.getElementById('compName').value, s=document.getElementById('compScore').value, id=document.getElementById('compId').value;
             if(!n||!s) return;
@@ -949,7 +982,6 @@
         function deleteComp(k) { if(confirm('حذف؟')) competitorsRef.child(k).remove(); }
         function editComp(k,n,p) { document.getElementById('compId').value=k; document.getElementById('compName').value=n; document.getElementById('compScore').value=p; document.getElementById('saveBtn').innerText="حفظ"; }
 
-        // Admin: Articles
         function saveArticle() {
             const k=document.getElementById('edit-article-key').value, t=document.getElementById('new-text-title').value, c=document.getElementById('new-text-content').value, l=document.getElementById('new-text-level').value;
             if(!t||!c) return;
@@ -975,28 +1007,17 @@
             alert('تم التوليد'); loadArticlesListAdmin();
         }
 
-        // Admin: Words
-        function loadWordsListAdmin() {
-            wordsRef.once('value').then(snap => { const val = snap.val(); if(val && val.list) document.getElementById('wordsListInput').value = val.list; });
-        }
+        function loadWordsListAdmin() { wordsRef.once('value').then(snap => { const val = snap.val(); if(val && val.list) document.getElementById('wordsListInput').value = val.list; }); }
         function saveWordsList() { wordsRef.set({list: document.getElementById('wordsListInput').value}).then(() => alert("تم الحفظ")); }
         function generateWordsList() {
             const words = ["أحمد", "محمد", "سعيد", "خالد", "عمر", "علي", "نمر", "أسد", "فهد", "ذئب", "دب", "قط", "كلب", "فيل", "جمل", "بقر", "صقر", "نسر", "بوم", "بطة", "بحر", "نهر", "جبل", "رمل", "شجر", "ورد", "زهر", "قلم", "كتب", "ورق", "علم", "فهم", "يد", "رجل", "عين", "أذن", "فم", "شمس", "قمر", "نجم", "ليل", "صبح", "أبيض", "أحمر", "أخضر", "أزرق", "بيت", "باب", "شباك", "سقف"];
             document.getElementById('wordsListInput').value = words.join('\n'); saveWordsList();
         }
 
-        // Admin: Athkar
         function restoreDefaultAthkar() {
             if(confirm("سيتم استبدال القائمة الحالية. متابعة؟")) {
-                const list = [
-                    "سبحان الله", "الحمد لله", "الله أكبر", "لا إله إلا الله", "استغفر الله",
-                    "لا حول ولا قوة إلا بالله", "اللهم صل وسلم على نبينا محمد",
-                    "سبحان الله وبحمده سبحان الله العظيم"
-                ];
-                athkarRef.remove().then(() => {
-                    list.forEach(t => athkarRef.push({text: t}));
-                    alert("تمت الاستعادة"); loadAthkarListAdmin();
-                });
+                const list = ["سبحان الله", "الحمد لله", "الله أكبر", "لا إله إلا الله", "استغفر الله", "لا حول ولا قوة إلا بالله", "اللهم صل وسلم على نبينا محمد", "سبحان الله وبحمده سبحان الله العظيم"];
+                athkarRef.remove().then(() => { list.forEach(t => athkarRef.push({text: t})); alert("تمت الاستعادة"); loadAthkarListAdmin(); });
             }
         }
         function loadAthkarListAdmin() {
