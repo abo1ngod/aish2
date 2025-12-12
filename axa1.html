@@ -1,0 +1,203 @@
+import React, { useState, useEffect } from 'react';
+import { initializeApp } from 'firebase/app';
+import { 
+  getDatabase, 
+  ref, 
+  onValue, 
+  push, 
+  set 
+} from 'firebase/database';
+import { User, Plus, GraduationCap, Loader2, Search, Database, FolderTree } from 'lucide-react';
+
+// 1. إعدادات Firebase
+const firebaseConfig = {
+  apiKey: "AIzaSyBxPO6RKsQ1Cq-mqlCpFTrCuIyxnYdB37U",
+  authDomain: "studentsystem-c1ab1.firebaseapp.com",
+  databaseURL: "https://studentsystem-c1ab1-default-rtdb.firebaseio.com",
+  projectId: "studentsystem-c1ab1",
+  storageBucket: "studentsystem-c1ab1.firebasestorage.app",
+  messagingSenderId: "112215023848",
+  appId: "1:112215023848:web:0adba326a527ee7e37e95d"
+};
+
+// تهيئة التطبيق
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+export default function App() {
+  const [students, setStudents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [newStudentName, setNewStudentName] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isAdding, setIsAdding] = useState(false);
+  const [error, setError] = useState(null);
+
+  // 2. تحديث المسار حسب طلبك
+  const dbPath = 'artifacts/almanara_lms/public/data/students';
+
+  useEffect(() => {
+    const studentsRef = ref(db, dbPath);
+
+    // الاستماع للبيانات في المسار المحدد
+    const unsubscribe = onValue(studentsRef, (snapshot) => {
+      const data = snapshot.val();
+      
+      if (data) {
+        // تحويل البيانات القادمة من JSON Object إلى Array
+        const studentsList = Object.keys(data).map(key => ({
+          id: key,
+          ...data[key]
+        }));
+        // عكس الترتيب ليظهر الأحدث أولاً (اختياري)
+        setStudents(studentsList.reverse());
+      } else {
+        setStudents([]);
+      }
+      setLoading(false);
+      setError(null);
+    }, (error) => {
+      console.error("Error reading data:", error);
+      setError("لا يمكن الوصول للبيانات. تأكد من قواعد الأمان (Rules) في Realtime Database.");
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // إضافة طالب
+  const handleAddStudent = async (e) => {
+    e.preventDefault();
+    if (!newStudentName.trim()) return;
+
+    setIsAdding(true);
+    try {
+      const studentsRef = ref(db, dbPath);
+      const newStudentRef = push(studentsRef); 
+      
+      await set(newStudentRef, {
+        name: newStudentName,
+        createdAt: Date.now()
+      });
+      
+      setNewStudentName('');
+    } catch (err) {
+      console.error("Error adding student:", err);
+      alert("فشل الحفظ. تأكد من أن قواعد الأمان تسمح بالكتابة في هذا المسار.");
+    } finally {
+      setIsAdding(false);
+    }
+  };
+
+  const filteredStudents = students.filter(student => 
+    student.name?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  return (
+    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans" dir="rtl">
+      
+      {/* Header */}
+      <header className="bg-white shadow-sm border-b border-slate-200 sticky top-0 z-10">
+        <div className="max-w-3xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-3">
+              <div className="bg-emerald-600 p-2 rounded-lg text-white shadow-emerald-200 shadow-md">
+                <Database size={24} />
+              </div>
+              <h1 className="text-xl font-bold text-slate-800">بيانات الطلاب</h1>
+            </div>
+            <div className="text-sm text-slate-500 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
+              العدد: {students.length}
+            </div>
+          </div>
+          
+          {/* Path Indicator */}
+          <div className="flex items-center gap-2 text-[10px] sm:text-xs text-slate-400 font-mono bg-slate-50 p-2 rounded border border-slate-100 overflow-x-auto whitespace-nowrap">
+            <FolderTree size={14} className="flex-shrink-0" />
+            <span>{dbPath}</span>
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-3xl mx-auto px-4 py-6">
+        
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-600 p-4 rounded-lg mb-6 text-sm">
+            {error}
+          </div>
+        )}
+
+        {/* Add Form */}
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5 mb-6">
+          <h2 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
+            <Plus size={18} className="text-emerald-600" />
+            إضافة سجل جديد
+          </h2>
+          <form onSubmit={handleAddStudent} className="flex gap-2">
+            <input
+              type="text"
+              value={newStudentName}
+              onChange={(e) => setNewStudentName(e.target.value)}
+              placeholder="اكتب اسم الطالب..."
+              className="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all text-sm"
+              disabled={isAdding}
+            />
+            <button 
+              type="submit" 
+              disabled={isAdding || !newStudentName.trim()}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 flex items-center gap-2 shadow-sm"
+            >
+              {isAdding ? <Loader2 className="animate-spin" size={18} /> : 'إضافة'}
+            </button>
+          </form>
+        </div>
+
+        {/* Search */}
+        <div className="relative mb-4 group">
+          <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" size={18} />
+          <input 
+            type="text" 
+            placeholder="بحث بالاسم..." 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-4 pr-10 py-3 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all text-sm shadow-sm"
+          />
+        </div>
+
+        {/* List */}
+        {loading ? (
+          <div className="text-center py-12">
+            <Loader2 className="animate-spin mx-auto mb-3 text-emerald-600" size={28} />
+            <p className="text-slate-400 text-sm">جاري تحميل البيانات...</p>
+          </div>
+        ) : filteredStudents.length > 0 ? (
+          <div className="space-y-2">
+            {filteredStudents.map((student) => (
+              <div 
+                key={student.id} 
+                className="bg-white p-3.5 rounded-lg border border-slate-200 shadow-sm hover:border-emerald-300 hover:shadow-md transition-all flex items-center gap-3"
+              >
+                <div className="h-9 w-9 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-600 flex-shrink-0">
+                  <User size={18} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-medium text-slate-800 truncate">{student.name}</h3>
+                  {student.createdAt && (
+                    <p className="text-[10px] text-slate-400 mt-0.5">
+                      {new Date(student.createdAt).toLocaleString('ar-SA')}
+                    </p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-16 bg-white rounded-lg border border-slate-200 border-dashed">
+            <GraduationCap className="mx-auto text-slate-300 mb-3" size={40} />
+            <p className="text-slate-500 text-sm">القائمة فارغة</p>
+            <p className="text-xs text-slate-400 mt-1">تأكد من وجود بيانات في المسار المحدد</p>
+          </div>
+        )}
+      </main>
+    </div>
+  );
+}
