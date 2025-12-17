@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منصة التفسير | بنك الأسئلة المعتمد</title>
+    <title>منصة التفسير | بنك الأسئلة الشامل</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -13,8 +13,8 @@
         .correct { background-color: #10b981 !important; color: white !important; border-color: #059669 !important; }
         .wrong { background-color: #ef4444 !important; color: white !important; border-color: #dc2626 !important; }
         .timer-bar { transition: width 1s linear; }
-        .option-btn:hover:not(:disabled) { transform: translateX(-5px); border-color: #6366f1; }
-        .lesson-card:hover { transform: translateY(-5px); border-color: #6366f1; }
+        .option-btn:hover:not(:disabled) { transform: translateX(-5px); border-color: #6366f1; background-color: #f8fafc; }
+        .lesson-card:hover { transform: translateY(-5px); border-color: #6366f1; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
     </style>
 </head>
 <body class="min-h-screen text-slate-800">
@@ -23,16 +23,16 @@
     <audio id="audioCorrect" src="sounds/correct.mp3" preload="auto"></audio>
     <audio id="audioWrong" src="sounds/wrong.mp3" preload="auto"></audio>
 
-    <!-- Nav -->
+    <!-- Header -->
     <nav class="bg-white border-b sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-bold text-xl">ت</div>
-                <h1 class="text-xl font-extrabold">بنك أسئلة التفسير</h1>
+                <h1 class="text-xl font-extrabold text-slate-900">بنك التفسير التفاعلي</h1>
             </div>
-            <div class="text-left">
-                <p class="text-[10px] text-slate-400 font-bold uppercase">النقاط المكتسبة</p>
-                <p id="navScore" class="text-indigo-600 font-black">0</p>
+            <div class="flex flex-col items-end">
+                <span class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">إجمالي النقاط</span>
+                <span id="navScore" class="text-indigo-600 font-black text-lg">0</span>
             </div>
         </div>
     </nav>
@@ -41,18 +41,28 @@
         
         <!-- Home View -->
         <div id="homeView">
-            <div class="bg-gradient-to-br from-indigo-700 to-indigo-500 rounded-[2.5rem] p-8 md:p-12 text-white shadow-2xl mb-12 relative overflow-hidden">
-                <div class="relative z-10">
-                    <h2 class="text-4xl md:text-5xl font-black mb-4">مرحباً بك في تحدي التفسير 🌟</h2>
-                    <p class="text-indigo-100 text-lg mb-8 max-w-xl">اختبر معلوماتك في 16 درساً من مقرر التفسير بأسئلة دقيقة من المنهج.</p>
+            <div class="bg-gradient-to-br from-indigo-700 to-blue-600 rounded-[2.5rem] p-8 md:p-12 text-white shadow-2xl mb-12 relative overflow-hidden">
+                <div class="relative z-10 max-w-2xl">
+                    <h2 class="text-4xl md:text-5xl font-black mb-6">مرحباً بك في تحدي التفسير 🌟</h2>
+                    <p class="text-indigo-100 text-lg mb-8 leading-relaxed">منصة تعليمية ذكية تغطي 16 درساً بأسئلة دقيقة مستخرجة من المحتوى المعتمد. اختر نمط الاختبار المفضل لديك وابدأ رحلة العلم.</p>
                     <button onclick="openTourModal()" class="bg-white text-indigo-700 px-10 py-4 rounded-2xl font-black text-xl shadow-xl hover:scale-105 transition-all">
                         بدء جولة في جميع الدروس
                     </button>
                 </div>
+                <div class="absolute -left-10 -bottom-10 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
             </div>
 
-            <h3 class="text-2xl font-black mb-8 flex items-center gap-3">قائمة الدروس المتاحة</h3>
-            <div id="lessonsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"></div>
+            <div class="flex items-center justify-between mb-8">
+                <h3 class="text-2xl font-black flex items-center gap-3">
+                    <span class="w-2 h-8 bg-indigo-600 rounded-full"></span>
+                    اختر درساً للتحدي
+                </h3>
+                <button onclick="resetData()" class="text-sm text-slate-400 hover:text-red-500 underline font-medium">إعادة ضبط كافة البيانات</button>
+            </div>
+
+            <div id="lessonsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Lessons Injected via JS -->
+            </div>
         </div>
 
         <!-- Quiz View -->
@@ -65,18 +75,27 @@
                 <div class="p-8 md:p-12">
                     <div class="flex justify-between items-start mb-8">
                         <div>
-                            <span id="quizBadge" class="bg-indigo-100 text-indigo-700 px-4 py-1 rounded-full text-xs font-bold uppercase"></span>
-                            <h4 id="lessonName" class="text-slate-500 mt-3 font-bold text-sm"></h4>
+                            <span id="quizTypeBadge" class="bg-indigo-100 text-indigo-700 px-4 py-1 rounded-full text-xs font-bold uppercase"></span>
+                            <h4 id="currentLessonTitle" class="text-slate-500 mt-3 font-bold text-sm"></h4>
                         </div>
-                        <button onclick="abortQuiz()" class="bg-slate-100 text-slate-400 hover:text-red-500 p-3 rounded-2xl transition-all shadow-sm">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                        <button onclick="abortQuiz()" class="bg-slate-100 text-slate-400 hover:bg-red-50 hover:text-red-500 p-3 rounded-2xl transition-all shadow-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
                         </button>
                     </div>
 
-                    <div class="mb-6"><span id="qIdxText" class="text-slate-300 font-black text-3xl">01/06</span></div>
-                    <h3 id="qText" class="text-2xl md:text-3xl font-bold mb-10 text-slate-800 leading-tight"></h3>
-                    <div id="optionsGrid" class="grid gap-4"></div>
-                    <div id="feedback" class="mt-8 p-5 rounded-[2rem] text-center font-bold text-lg hidden"></div>
+                    <div class="flex justify-between items-center mb-6">
+                        <span id="questionCountText" class="text-slate-300 font-black text-3xl">01/10</span>
+                    </div>
+
+                    <h3 id="questionText" class="text-2xl md:text-3xl font-bold mb-10 text-slate-800 leading-tight"></h3>
+
+                    <div id="optionsGrid" class="grid gap-4">
+                        <!-- Options Injected -->
+                    </div>
+
+                    <div id="feedbackPanel" class="mt-8 p-5 rounded-[2rem] text-center font-bold text-lg hidden animate-pulse"></div>
                 </div>
             </div>
         </div>
@@ -84,36 +103,39 @@
         <!-- Result View -->
         <div id="resultView" class="hidden text-center py-20">
             <div class="text-[120px] mb-8">🎖️</div>
-            <h2 class="text-5xl font-black mb-4">أنهيت التحدي!</h2>
-            <p id="resultSummary" class="text-2xl text-slate-500 mb-12"></p>
-            <button onclick="location.reload()" class="bg-indigo-600 text-white px-12 py-5 rounded-[2rem] font-black text-xl shadow-2xl transition-all">العودة للرئيسية</button>
+            <h2 class="text-5xl font-black mb-4">أنهيت التحدي بنجاح!</h2>
+            <p id="resultText" class="text-2xl text-slate-500 mb-12"></p>
+            <button onclick="location.reload()" class="bg-indigo-600 text-white px-12 py-5 rounded-[2rem] font-black text-xl shadow-2xl hover:scale-105 transition-all">العودة للرئيسية</button>
         </div>
 
     </main>
 
     <!-- Tour Modal -->
     <div id="tourModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden items-center justify-center p-4">
-        <div class="bg-white w-full max-w-md rounded-[3rem] p-10 shadow-2xl">
-            <h3 class="text-2xl font-black mb-8 text-center">إعدادات الجولة ⚙️</h3>
+        <div class="bg-white w-full max-w-md rounded-[3rem] p-10 shadow-2xl scale-up-center">
+            <h3 class="text-2xl font-black mb-8">إعدادات الجولة الشاملة ⚙️</h3>
+            
             <div class="space-y-8">
                 <div>
-                    <label class="block text-sm font-bold text-slate-400 mb-4">عدد الأسئلة:</label>
+                    <label class="block text-sm font-bold text-slate-400 mb-4">كم سؤالاً تريد في هذه الجولة؟</label>
                     <div class="grid grid-cols-3 gap-3">
-                        <button onclick="setTourQ(10)" class="q-b bg-indigo-600 text-white p-4 rounded-2xl font-bold transition-all shadow-md">10</button>
-                        <button onclick="setTourQ(20)" class="q-b bg-slate-100 text-slate-500 p-4 rounded-2xl font-bold transition-all">20</button>
-                        <button onclick="setTourQ(50)" class="q-b bg-slate-100 text-slate-500 p-4 rounded-2xl font-bold transition-all">50</button>
+                        <button onclick="setTourQCount(10)" class="q-btn bg-indigo-600 text-white p-4 rounded-2xl font-bold transition-all shadow-md">10</button>
+                        <button onclick="setTourQCount(20)" class="q-btn bg-slate-100 text-slate-500 p-4 rounded-2xl font-bold transition-all">20</button>
+                        <button onclick="setTourQCount(50)" class="q-btn bg-slate-100 text-slate-500 p-4 rounded-2xl font-bold transition-all">50</button>
                     </div>
                 </div>
+
                 <div>
-                    <label class="block text-sm font-bold text-slate-400 mb-4">وقت التفكير (ثانية):</label>
+                    <label class="block text-sm font-bold text-slate-400 mb-4">وقت التفكير لكل سؤال (ثانية):</label>
                     <div class="grid grid-cols-3 gap-3">
-                        <button onclick="setTourT(15)" class="t-b bg-slate-100 text-slate-500 p-4 rounded-2xl font-bold transition-all">15</button>
-                        <button onclick="setTourT(30)" class="t-b bg-indigo-600 text-white p-4 rounded-2xl font-bold transition-all shadow-md">30</button>
-                        <button onclick="setTourT(60)" class="t-b bg-slate-100 text-slate-500 p-4 rounded-2xl font-bold transition-all">60</button>
+                        <button onclick="setTourTimer(15)" class="t-btn bg-slate-100 text-slate-500 p-4 rounded-2xl font-bold transition-all">15</button>
+                        <button onclick="setTourTimer(30)" class="t-btn bg-indigo-600 text-white p-4 rounded-2xl font-bold transition-all shadow-md">30</button>
+                        <button onclick="setTourTimer(60)" class="t-btn bg-slate-100 text-slate-500 p-4 rounded-2xl font-bold transition-all">60</button>
                     </div>
                 </div>
+
                 <div class="flex gap-4 pt-4">
-                    <button onclick="startTour()" class="flex-1 bg-indigo-600 text-white py-5 rounded-[2rem] font-black text-lg shadow-xl hover:bg-indigo-700">ابدأ الجولة</button>
+                    <button onclick="startTourMode()" class="flex-1 bg-indigo-600 text-white py-5 rounded-[2rem] font-black text-lg shadow-xl hover:bg-indigo-700">انطلق الآن</button>
                     <button onclick="closeTourModal()" class="px-8 bg-slate-100 text-slate-400 py-5 rounded-[2rem] font-bold">إلغاء</button>
                 </div>
             </div>
@@ -121,279 +143,490 @@
     </div>
 
     <script>
-        // --- DATA FROM FILE (Full 16 Lessons, exactly as provided) ---
-        const bank = [
-            { id: 1, title: "التعريف بعلم التفسير ونشأته", questions: [
-                { q: "أعلى طرق التفسير منزلة هو التفسير بـ:", options: ["الرأي المحمود", "المأثور", "اللغة العربية"], correct: 1, type: "mcq" },
-                { q: "كان الصحابة لا يتجاوزون ... آيات حتى يتعلموا ما فيها:", options: ["خمس", "عشر", "عشرين"], correct: 1, type: "mcq" },
-                { q: "من أبرز علماء مرحلة استقلال التفسير وتدوينه كعلم مستقل:", options: ["ابن جرير الطبري", "سفيان بن عيينة", "ابن مسعود"], correct: 0, type: "mcq" },
-                { q: "بدأ تدوين التفسير مستقلاً عن الحديث منذ عهد النبي ﷺ.", correct: false, type: "tf" },
-                { q: "التفسير بالرأي المحمود هو الاجتهاد الصادر عن هوى وجهل.", correct: false, type: "tf" },
-                { q: "تميز تفسير الصحابة بأنهم أهل اللسان العربي وشهدوا التنزيل.", correct: true, type: "tf" }
-            ]},
-            { id: 2, title: "أهمية علم التفسير وضوابطه", questions: [
-                { q: "أصح طرق التفسير التي يجب أن يبدأ بها المفسر هي:", options: ["تفسير القرآن بالسنة", "تفسير القرآن بالقرآن", "تفسير القرآن بالرأي"], correct: 1, type: "mcq" },
-                { q: "قوله تعالى {ذُقْ إِنَّكَ أَنتَ الْعَزِيزُ الْكَرِيمُ} سياقها يدل على:", options: ["المدح والثناء", "التحقير والتهكم", "الوصف الحقيقي"], correct: 1, type: "mcq" },
-                { q: "من ضوابط المفسر التي تحميه من حمل الألفاظ على هواه:", options: ["سلامة العقيدة", "كثرة الحفظ", "جمال الخط"], correct: 0, type: "mcq" },
-                { q: "يجوز لمن يتقن اللغة العربية فقط أن يفسر القرآن دون الرجوع للسنة.", correct: false, type: "tf" },
-                { q: "تفسير القرآن بأقوال الصحابة مقدم على تفسيره بأقوال التابعين.", correct: true, type: "tf" },
-                { q: "مراعاة السياق ضروري لفهم مراد الله في الآيات.", correct: true, type: "tf" }
-            ]},
-            { id: 3, title: "أبرز المؤلفات الموثوقة في التفسير", questions: [
-                { q: "الكتاب الذي يُعد أصح التفاسير ويعتمد عليه المفسرون هو:", options: ["تفسير الطبري", "تفسير السعدي", "تفسير الجلالين"], correct: 0, type: "mcq" },
-                { q: "يتميز تفسير 'أضواء البيان' للشنقيطي بـ:", options: ["جمع الروايات الضعيفة", "العناية بالأحكام الفقهية وتفسير القرآن بالقرآن", "الاختصار الشديد"], correct: 1, type: "mcq" },
-                { q: "مؤلف كتاب 'تفسير القرآن العظيم' هو:", options: ["جلال الدين السيوطي", "ابن كثير الدمشقي", "عبد الرحمن السعدي"], correct: 1, type: "mcq" },
-                { q: "كتاب 'الدر المنثور' للسيوطي يعتمد على التفسير بالرأي العقلي.", correct: false, type: "tf" },
-                { q: "يتميز تفسير السعدي بذكر المعنى الإجمالي بأسلوب سهل وميسر.", correct: true, type: "tf" },
-                { q: "منهج ابن كثير في التفسير يبدأ بذكر الأحاديث قبل الآيات المناسبة.", correct: false, type: "tf" }
-            ]},
-            { id: 4, title: "التقنية في خدمة القرآن الكريم وتفسيره", questions: [
-                { q: "التطبيق الذي يتيح للطالب حل الواجبات وإرسال التسجيل الصوتي للمعلم هو:", options: ["آيات", "مصحف مدرستي", "الباحث القرآني"], correct: 1, type: "mcq" },
-                { q: "الجهة المشرفة على تطبيق وبرنامج 'آيات' هي:", options: ["وزارة التعليم", "جامعة الملك سعود", "مجمع الملك فهد"], correct: 1, type: "mcq" },
-                { q: "عدد المواقع المتخصصة التي أنشأها مجمع الملك فهد لخدمة القرآن:", options: ["10 مواقع", "16 موقعاً", "5 مواقع"], correct: 1, type: "mcq" },
-                { q: "جميع تطبيقات القرآن الموجودة في متاجر الهواتف موثوقة وصحيحة.", correct: false, type: "tf" },
-                { q: "يقدم مجمع الملك فهد خدمات رقمية تشمل ترجمات معاني القرآن.", correct: true, type: "tf" },
-                { q: "تتيح التقنية الحديثة الوصول السريع لكتب التفسير المعتمدة.", correct: true, type: "tf" }
-            ]},
-            { id: 5, title: "تفسير سورة الفاتحة", questions: [
-                { q: "المقصود بـ (يوم الدين) في السورة:", options: ["يوم الجمعة", "يوم الجزاء والحساب", "يوم العيد"], correct: 1, type: "mcq" },
-                { q: "الذين عرفوا الحق ولم يتبعوه وصفهم الله بـ:", options: ["المغضوب عليهم", "الضالين", "المنعم عليهم"], correct: 0, type: "mcq" },
-                { q: "قدم الله 'العبادة' على 'الاستعانة' في الآية لأن:", options: ["الاستعانة أهم", "العبادة هي الغاية والمقصود", "السياق اللفظي"], correct: 1, type: "mcq" },
-                { q: "سورة الفاتحة هي أول سورة نزلت كاملة في القرآن.", correct: true, type: "tf" },
-                { q: " (الضالون) هم الذين تركوا الحق عن عمد وعناد.", correct: false, type: "tf" },
-                { q: "قراءة الفاتحة ركن من أركان الصلاة لا تصح إلا بها.", correct: true, type: "tf" }
-            ]},
-            { id: 6, title: "تفسير سورة يونس (3-10)", questions: [
-                { q: "الحكمة من تقدير منازل القمر كما ذكرت الآيات:", options: ["للإنارة ليلاً فقط", "لتعلموا عدد السنين والحساب", "لزينة السماء"], correct: 1, type: "mcq" },
-                { q: "وصف الله الذين لا يرجون لقاءه بأنهم:", options: ["رضوا بالحياة الدنيا واطمأنوا بها", "يجاهدون في سبيله", "يتفكرون في الخلق"], correct: 0, type: "mcq" },
-                { q: "آخر دعاء أهل الجنة هو:", options: ["سبحانك اللهم", "الحمد لله رب العالمين", "سلام عليكم"], correct: 1, type: "mcq" },
-                { q: "خلق الله السماوات والأرض في ثمانية أيام.", correct: false, type: "tf" },
-                { q: "الشفاعة يوم القيامة تكون مفتوحة للجميع دون إذن.", correct: false, type: "tf" },
-                { q: "الركون إلى الدنيا والغفلة عن آيات الله سبب لدخول النار.", correct: true, type: "tf" }
-            ]},
-            { id: 7, title: "تفسير سورة يونس (26-33)", questions: [
-                { q: "المقصود بـ (الزيادة) في قوله تعالى {لِّلَّذِينَ أَحْسَنُوا الْحُسْنَىٰ وَزيَادَةٌ}:", options: ["القصور والحور العين", "النظر إلى وجه الله الكريم", "طول العمر في الجنة"], correct: 1, type: "mcq" },
-                { q: "معنى كلمة (قتر) في الآيات:", options: ["سواد وغبار", "نور وضياء", "حزن وبكاء"], correct: 0, type: "mcq" },
-                { q: "احتج الله على المشركين لإثبات توحيد الألوهية بإقرارهم بـ:", options: ["توحيد الأسماء والصفات", "توحيد الربوبية", "الإيمان بالكتب"], correct: 1, type: "mcq" },
-                { q: "الشركاء (الأصنام) سيدافعون عن المشركين يوم القيامة.", correct: false, type: "tf" },
-                { q: "الله يضاعف الحسنات ويجازي السيئة بمثلها عدلاً منه.", correct: true, type: "tf" },
-                { q: "الآيات تثبت أن المشركين كانوا ينكرون وجود الله تماماً.", correct: false, type: "tf" }
-            ]},
-            { id: 8, title: "تفسير سورة يونس (62-70)", questions: [
-                { q: " 'أولياء الله' كما عرفتهم الآيات هم:", options: ["الذين تركوا الدنيا واعتزلوا الناس", "الذين آمنوا وكانوا يتقون", "أصحاب الكرامات الخارقة"], correct: 1, type: "mcq" },
-                { q: "الحكمة من جعل الله الليل كما ورد في الآيات:", options: ["للعمل والكسب", "للسكن والراحة", "للخوف والوحشة"], correct: 1, type: "mcq" },
-                { q: "وصف الله قول المشركين 'اتخذ الله ولداً' بأنه:", options: ["اجتهاد مقبول", "افتراء وكذب بلا سلطان", "تعظيم لله"], correct: 1, type: "mcq" },
-                { q: "الخوف والحزن منفيان عن أولياء الله في الدنيا والآخرة.", correct: true, type: "tf" },
-                { q: "يجوز الحزن الشديد الذي يؤدي لليأس بسبب قول المكذبين.", correct: false, type: "tf" },
-                { q: "الحجة العلمية والدليل سماه الله في الآيات 'سلطاناً'.", correct: true, type: "tf" }
-            ]},
-            { id: 9, title: "تفسير سورة هود (96-108)", questions: [
-                { q: "معنى قوله تعالى (الورد المورود) في سياق قصة فرعون:", options: ["الماء العذب", "مدخل النار", "قصور الجنة"], correct: 1, type: "mcq" },
-                { q: "وصف الله يوم القيامة في الآيات بأنه يوم:", options: ["قصير", "مشهود", "مظلم"], correct: 1, type: "mcq" },
-                { q: "معنى كلمة (غير مجذوذ) في وصف عطاء أهل الجنة:", options: ["غير مقطوع", "غير كثير", "غير معلوم"], correct: 0, type: "mcq" },
-                { q: "قاد فرعون قومه إلى النجاة في الدنيا والآخرة.", correct: false, type: "tf" },
-                { q: "الأصنام دفعت العذاب عن عابديها لما نزل بهم.", correct: false, type: "tf" },
-                { q: "يوم القيامة لا تتكلم فيه نفس إلا بإذن الرحمن.", correct: true, type: "tf" }
-            ]},
-            { id: 10, title: "تفسير سورة هود (112-123)", questions: [
-                { q: "معنى قوله تعالى (لا تركنوا) إلى الذين ظلموا:", options: ["لا تحاربوهم", "لا تميلوا إليهم", "لا تدعوهم"], correct: 1, type: "mcq" },
-                { q: "القاعدة الشرعية المستنبطة من قوله (إن الحسنات يذهبن السيئات) هي:", options: ["الطاعات تكفر الذنوب", "الذنوب تبطل الطاعات", "السيئة تمحو الحسنة"], correct: 0, type: "mcq" },
-                { q: "الغاية من ذكر قصص الرسل للنبي ﷺ كما في الآيات:", options: ["معرفة الأنساب", "تثبيت فؤاده", "التسلية والترفيه"], correct: 1, type: "mcq" },
-                { q: "الاستقامة تعني الثبات على الدين وموافقة الأمر الشرعي دون غلو.", correct: true, type: "tf" },
-                { q: "يجوز للمسلم أن يميل بقلبه للظالمين ويرضى بفعالهم.", correct: false, type: "tf" },
-                { q: "الصلاة تعتبر من أكبر الحسنات الماحية للخطايا.", correct: true, type: "tf" }
-            ]},
-            { id: 11, title: "تفسير سورة يوسف (46-57)", questions: [
-                { q: "الوصف الذي وصف به يوسف نفسه لطلب تولي الخزائن:", options: ["قوي أمين", "حفيظ عليم", "غني كريم"], correct: 1, type: "mcq" },
-                { q: "معنى كلمة (حصـحص) في قوله (الآن حصحص الحق):", options: ["ضاع واختفى", "ظهر وانكشف", "التبس وغمض"], correct: 1, type: "mcq" },
-                { q: "الخطة التي وضعها يوسف عليه السلام لمواجهة القحط اعتمدت على:", options: ["زيادة الضرائب", "الادخار وحفظ النعمة", "طلب المساعدات الخارجية"], correct: 1, type: "mcq" },
-                { q: "خرج يوسف من السجن فوراً بمجرد أن طلبه الملك.", correct: false, type: "tf" },
-                { q: "يجوز طلب الولاية (المنصب) لمن علم من نفسه القدرة والأمانة.", correct: true, type: "tf" },
-                { q: "النفس البشرية أمارة بالسوء إلا ما رحم الله وعصم.", correct: true, type: "tf" }
-            ]},
-            { id: 12, title: "تفسير سورة يوسف (102-111)", questions: [
-                { q: "الشرط الأساسي للدعوة إلى الله كما في قوله (أدعو إلى الله على ...):", options: ["مال", "بصيرة وعلم", "قوة وسلطة"], correct: 1, type: "mcq" },
-                { q: "معنى قوله تعالى (استيأس الرسل):", options: ["فقدوا الأمل في إيمان أقوامهم", "يئسوا من رحمة الله", "ماتوا جميعاً"], correct: 0, type: "mcq" },
-                { q: "وصف الله قصص القرآن في ختام السورة بأنها:", options: ["عبرة لأولي الألباب", "أساطير الأولين", "تسلية للناس"], correct: 0, type: "mcq" },
-                { q: "توحيد الربوبية يكفي لدخول الجنة دون توحيد الألوهية.", correct: false, type: "tf" },
-                { q: "القرآن الكريم مصدق لما بين يديه من الكتب السماوية ومهيمن عليها.", correct: true, type: "tf" },
-                { q: "الأمن من مكر الله وعذابه صفة مذمومة حذرت منها الآيات.", correct: true, type: "tf" }
-            ]},
-            { id: 13, title: "تفسير سورة الرعد (8-15)", questions: [
-                { q: "معنى (المعقبات) في قوله تعالى (له معقبات من بين يديه):", options: ["الشياطين", "الملائكة الحفظة", "النجوم"], correct: 1, type: "mcq" },
-                { q: "القانون الإلهي في تغيير النعم مرتبط بـ:", options: ["تغير ما في نفوس الناس", "تغير الزمان", "تغير المكان"], correct: 0, type: "mcq" },
-                { q: "تسبيح الرعد بحمد الله هو تسبيح:", options: ["حقيقي دال على الخضوع", "مجازي", "خيالي"], correct: 0, type: "mcq" },
-                { q: "الله يعلم ما تغيض الأرحام وما تزداد.", correct: true, type: "tf" },
-                { q: "دعاء غير الله كمن يبسط كفيه إلى الماء ليبلغ فاه فلا يبلغه.", correct: true, type: "tf" },
-                { q: "الكافر لا يسجد لله مطلقاً لا طوعاً ولا كرهاً.", correct: false, type: "tf" }
-            ]},
-            { id: 14, title: "تفسير سورة الرعد (19-29)", questions: [
-                { q: "معنى (جنات عدن):", options: ["جنات إقامة دائمة", "بساتين مؤقتة", "حدائق الدنيا"], correct: 0, type: "mcq" },
-                { q: "قوله تعالى (يدرؤون بالحسنة السيئة) يعني:", options: ["يدفعون السيئة بالإحسان", "يردون السيئة بمثلها", "ينسون السيئة"], correct: 0, type: "mcq" },
-                { q: "تطمئن القلوب وتسكن بـ:", options: ["جمع المال", "ذكر الله", "السفر والترحال"], correct: 1, type: "mcq" },
-                { q: "العمى الحقيقي المذكور في القرآن هو عمى البصر.", correct: false, type: "tf" },
-                { q: "صلة الرحم والوفاء بالعهد من صفات أولي الألباب.", correct: true, type: "tf" },
-                { q: "بسط الرزق وتضييقه خاضع لمشيئة الله وحكمته.", correct: true, type: "tf" }
-            ]},
-            { id: 15, title: "تفسير سورة إبراهيم (24-31)", questions: [
-                { q: "شبه الله 'الكلمة الطيبة' في الآيات بـ:", options: ["شجرة طيبة أصلها ثابت", "شجرة خبيثة اجتثت", "جبل راسخ"], correct: 0, type: "mcq" },
-                { q: "المقصود بـ (دار البوار) التي أحل الكفار قومهم فيها:", options: ["الدنيا", "جهنم", "القبر"], correct: 1, type: "mcq" },
-                { q: " (لَئِن شَكَرْتُمْ لَأَزِيدَنَّكُمْ) تدل على أن الشكر سبب لـ:", options: ["بقاء النعمة وزيادتها", "زوال النعمة", "ثبات النعمة دون زيادة"], correct: 0, type: "mcq" },
-                { q: "الكلمة الخبيثة (الكفر) لها أصل ثابت في الأرض كالجبال.", correct: false, type: "tf" },
-                { q: "تثبيت الله للمؤمنين يكون في الدنيا فقط دون الآخرة.", correct: false, type: "tf" },
-                { q: "كفر النعم وجحودها سبب لزوالها وحلول العذاب.", correct: true, type: "tf" }
-            ]},
-            { id: 16, title: "تفسير سورة إبراهيم (42-52)", questions: [
-                { q: "معنى كلمة (مُهْطِعِينَ) في وصف الناس يوم القيامة:", options: ["مسرعين مع الذل", "مبطئين", "نائمين"], correct: 0, type: "mcq" },
-                { q: " (مقرنين في الأصفاد) تعني أنهم:", options: ["مكرمين في المجالس", "مقيدين بالسلاسل والقيود", "طلقاء الأيدي"], correct: 1, type: "mcq" },
-                { q: "ثياب أهل النار (سرابيلهم) مصنوعة من:", options: ["قطران (نحاس مذاب)", "حرير", "صوف"], correct: 0, type: "mcq" },
-                { q: "تأخير الله لعذاب الظالمين دليل على غفلته عنهم.", correct: false, type: "tf" },
-                { q: "أفئدة الظالمين يوم القيامة فارغة من الخوف والفزع.", correct: false, type: "tf" },
-                { q: "الغاية الكبرى من القرآن هي العلم والعمل والتذكير.", correct: true, type: "tf" }
-            ]}
+        // --- REAL QUESTION BANK DATA FROM asd.txt ---
+        const lessonTitles = [
+            "التعريف بعلم التفسير ونشأته", "أهمية علم التفسير وضوابطه", "أبرز المؤلفات الموثوقة في التفسير", "التقنية في خدمة القرآن الكريم وتفسيره",
+            "تفسير سورة الفاتحة", "تفسير سورة يونس (3-10)", "تفسير سورة يونس (26-33)", "تفسير سورة يونس (62-70)",
+            "تفسير سورة هود (96-108)", "تفسير سورة هود (112-123)", "تفسير سورة يوسف (46-57)", "تفسير سورة يوسف (102-111)",
+            "تفسير سورة الرعد (8-15)", "تفسير سورة الرعد (19-29)", "تفسير سورة إبراهيم (24-31)", "تفسير سورة إبراهيم (42-52)"
         ];
 
-        // --- GLOBAL STATE ---
-        let points = parseInt(localStorage.getItem('pts')) || 0;
-        let used = JSON.parse(localStorage.getItem('used')) || [];
-        let state = { questions: [], idx: 0, score: 0, timer: 30, isTour: false, locked: false };
-        let timerInt;
+        const fullBank = [];
 
-        // --- UI CORE ---
-        function init() {
-            renderGrid();
-            document.getElementById('navScore').innerText = points;
+        const rawData = [
+            // Lesson 1
+            {
+                mcq: [
+                    {q: "يدور معنى التفسير في 'اللغة' حول:", o: ["الحفظ والترتيل", "الكشف والبيان والإيضاح", "الجمع والتدوين", "التأويل والظن"], c: 1},
+                    {q: "في عهد النبي ﷺ، فسر النبي 'الظلم' الوارد في سورة الأنعام بـ:", o: ["الكذب", "السرقة", "الشرك", "القتل"], c: 2},
+                    {q: "تميز منهج الصحابة في تلقي القرآن بأنهم لا يتجاوزون:", o: ["خمس آيات", "سبع آيات", "عشر آيات", "سورة كاملة"], c: 2},
+                    {q: "بدأت مرحلة 'الكتابة والتدوين' أولاً كجزء من أبواب:", o: ["اللغة العربية", "الحديث النبوي", "الفقه الإسلامي", "التاريخ والسير"], c: 1},
+                    {q: "التفسير الذي يعتمد على الاجتهاد المبني على علم يُسمى التفسير بالرأي:", o: ["المذموم", "المأثور", "المحمود", "اللغوي"], c: 2}
+                ],
+                tf: [
+                    {q: "التفسير في الاصطلاح الشرعي هو العلم الذي يُعنى ببيان معاني القرآن الكريم.", c: true},
+                    {q: "تعتبر مرحلة 'الفهم والتلقي' هي المرحلة الثانية من مراحل نشأة التفسير.", c: false},
+                    {q: "كان ابن جرير الطبري من أبرز من دون التفسير كعلم مستقل سورة سورة.", c: true},
+                    {q: "التفسير بالمأثور يعتمد على القرآن والسنة وأقوال الصحابة والتابعين.", c: true},
+                    {q: "التفسير بالرأي المذموم هو الاجتهاد المبني على قواعد اللغة والعلم.", c: false}
+                ]
+            },
+            // Lesson 2
+            {
+                mcq: [
+                    {q: "يستمد علم التفسير شرفه ومكانته من شرف موضوعه وهو:", o: ["تاريخ الأمم", "كلام الله تعالى", "أحاديث النبي", "اللغة العربية"], c: 1},
+                    {q: "أهم ضوابط المفسر التي تمنعه من تحريف المعاني لتوافق هواه هي:", o: ["معرفة التاريخ", "سلامة العقيدة", "قوة الحفظ", "الإلمام بالشعر"], c: 1},
+                    {q: "أصح طرق التفسير بالترتيب تبدأ بـ:", o: ["تفسير القرآن بالسنة", "تفسير القرآن بأقوال الصحابة", "تفسير القرآن بالقرآن", "تفسير القرآن باللغة"], c: 2},
+                    {q: "قوله تعالى {ذُقْ إِنَّكَ أَنتَ الْعَزِيزُ الْكَرِيمُ}، يُفهم معناه الحقيقي من خلال:", o: ["مفردات الكلمات فقط", "سياق الآية", "أسباب النزول فقط", "قواعد النحو"], c: 1},
+                    {q: "يفسر القرآن بالسنة النبوية لأن النبي ﷺ هو:", o: ["كاتب الوحي", "المبين للقرآن", "أول من جمع القرآن", "أعلم الناس باللغة وحده"], c: 1}
+                ],
+                tf: [
+                    {q: "التدبر هو الغاية الأساسية من إنزال القرآن الكريم.", c: true},
+                    {q: "يجوز تقديم قول التابعي في التفسير على قول الصحابي.", c: false},
+                    {q: "إهمال السياق قد يؤدي إلى فهم قاصر أو مغلوط للآيات.", c: true},
+                    {q: "يكتفى باللغة العربية وحدها لتفسير القرآن دون الحاجة للمصادر الشرعية.", c: false},
+                    {q: "يعتبر تفسير القرآن بأقوال الصحابة ثالث أصح طرق التفسير.", c: true}
+                ]
+            },
+            // Lesson 3
+            {
+                mcq: [
+                    {q: "الإمام الذي يُلقب بـ 'شيخ المفسرين' هو:", o: ["ابن كثير", "السيوطي", "الطبري", "السعدي"], c: 2},
+                    {q: "يتميز تفسير 'تيسير الكريم الرحمن' للعلامة السعدي بـ:", o: ["ذكر الأسانيد الطويلة", "التركيز على المسائل النحوية", "السهولة واستنباط الفوائد التربوية", "ذكر الروايات الإسرائيلية"], c: 2},
+                    {q: "الكتاب الذي يُعد موسوعة حديثية جمعت الروايات المنقولة في التفسير هو:", o: ["أضواء البيان", "الدر المنثور", "تفسير القرآن العظيم", "جامع البيان"], c: 1},
+                    {q: "تميز تفسير 'أضواء البيان' للشنقيطي ببراعته في:", o: ["القصص التاريخية", "الأحكام الفقهية والمسائل الأصولية", "الاختصار الشديد جداً", "التفسير بالرأي المذموم"], c: 1},
+                    {q: "المنهج الذي اتبعه ابن كثير في تفسيره هو البدء بـ:", o: ["تفسير الآية بالحديث", "تفسير الآية بأقوال التابعين", "تفسير الآية بالآية", "تفسير الآية باللغة"], c: 2}
+                ],
+                tf: [
+                    {q: "يعتبر كتاب الطبري أصح التفاسير وأجمعها.", c: true},
+                    {q: "كتاب 'تفسير القرآن العظيم' لابن كثير يعتمد على التفسير بالرأي فقط.", c: false},
+                    {q: "يتميز تفسير السعدي بخلوه من التعقيد وتركيزه على المعنى الإجمالي.", c: true},
+                    {q: "الشنقيطي في 'أضواء البيان' يركز بشكل أساسي على تفسير القرآن بالقرآن.", c: true},
+                    {q: "كتاب السيوطي 'الدر المنثور' يغلب عليه الطابع العقلي والاجتهادي.", c: false}
+                ]
+            },
+            // Lesson 4
+            {
+                mcq: [
+                    {q: "التطبيق الرسمي الذي يربط الطالب بمنهجه الدراسي وتشرف عليه وزارة التعليم هو:", o: ["آيات", "مصحف مدرستي", "الباحث القرآني", "نون"], c: 1},
+                    {q: "أنشأ مجمع الملك فهد لطباعة المصحف الشريف لخدمة القرآن رقمياً:", o: ["5 مواقع", "10 مواقع", "16 موقعاً", "20 موقعاً"], c: 2},
+                    {q: "تطبيق 'آيات' الشامل هو برنامج تابع لـ:", o: ["جامعة الملك سعود", "وزارة الإعلام", "مجمع الملك فهد", "جامعة أم القرى"], c: 0},
+                    {q: "تتيح المواقع الرسمية الموثوقة الحصول على:", o: ["ترجمات معتمدة لمعاني القرآن", "تفسير مجهول المصدر", "آراء شخصية غير علمية", "قصص غير ثابتة"], c: 0},
+                    {q: "الهدف من توجيه الطلاب لمصادر تقنية معينة هو:", o: ["صعوبة الكتب الورقية", "تحري الموثوقية وضمان العلم الصحيح", "السرعة فقط دون التثبت", "الاستغناء عن المعلم"], c: 1}
+                ],
+                tf: [
+                    {q: "تطبيق 'مصحف مدرستي' يتيح للطالب تسجيل صوته وإرساله للمعلم.", c: true},
+                    {q: "كل ما يُنشر على الإنترنت من تفاسير للقرآن يُعد مرجعاً صحيحاً.", c: false},
+                    {q: "يقدم مجمع الملك فهد تطبيقات تقدم نسخاً رقمية عالية الدقة للمصحف.", c: true},
+                    {q: "برنامج 'آيات' لا يحتوي على مكتبة تفاسير بل تلاوات فقط.", c: false},
+                    {q: "تساهم التقنية الحديثة في تيسير الوصول لكتب التفسير الموثوقة.", c: true}
+                ]
+            },
+            // Lesson 5
+            {
+                mcq: [
+                    {q: "معنى كلمة 'رب' في (رب العالمين) تدل على:", o: ["الصاحب", "المربي والمالك والخالق", "القوي فقط", "المعين"], c: 1},
+                    {q: "'الاستعانة' في قوله {إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ} تُعتبر:", o: ["غاية", "وسيلة لتحقيق العبادة", "فرض كفاية", "مجرد قول باللسان"], c: 1},
+                    {q: "الصنف الذي وصفهم الله بالضالين هم الذين عبدوا الله بجهل وهم:", o: ["اليهود", "النصارى", "المشركون", "المنافقون"], c: 1},
+                    {q: "'يوم الدين' المذكور في السورة يقصد به:", o: ["يوم الجمعة", "يوم الجزاء والحساب", "يوم الفتح", "يوم النحر"], c: 1},
+                    {q: "تُسمى سورة الفاتحة بـ 'الرقية' لأنها:", o: ["قصيرة", "فيها شفاء بإذن الله", "أول سورة في المصحف", "يقرؤها الناس كثيراً"], c: 1}
+                ],
+                tf: [
+                    {q: "سورة الفاتحة سورة مدنية وآياتها سبع.", c: false},
+                    {q: "العبادة الحقيقية تتضمن كمال الحب مع كمال الذل لله تعالى.", c: true},
+                    {q: "المغضوب عليهم هم الذين عرفوا الحق وتركوه عمداً.", c: true},
+                    {q: "قراءة الفاتحة ليست واجبة في كل ركعة من ركعات الصلاة.", c: false},
+                    {q: "الفاتحة هي أساس المناجاة بين العبد وربه في الصلاة.", c: true}
+                ]
+            },
+            // Lesson 6
+            {
+                mcq: [
+                    {q: "خلق الله السماوات والأرض في ستة أيام ثم:", o: ["نزل إلى السماء", "استوى على العرش", "خلق الملائكة", "أمر القمر بالخروج"], c: 1},
+                    {q: "جعل الله القمر 'نوراً' وقدره منازل والحكمة من ذلك:", o: ["زينة للسماء فقط", "لتعلموا عدد السنين والحساب", "لراحة الناس في الليل", "ليضيء للشمس"], c: 1},
+                    {q: "جزاء المؤمنين الذين يعملون الصالحات كما ذكرت الآيات هو:", o: ["الرزق في الدنيا فقط", "جنات النعيم", "الملك والسلطان", "طول العمر"], c: 1},
+                    {q: "وصف الله الذين رضوا بالحياة الدنيا واطمأنوا بها ونسوا الآخرة بـ:", o: ["الصابرين", "الغافلين", "المقتصدين", "المستغفرين"], c: 1},
+                    {q: "الشفاعة عند الله يوم القيامة لا تكون إلا:", o: ["للقوي والمشهور", "من بعد إذنه سبحانه", "لكل من طلبها", "بموافقة الأنبياء وحدهم"], c: 1}
+                ],
+                tf: [
+                    {q: "دعاء أهل الجنة في الجنة يبدأ بالتسبيح وينتهي بالحمد.", c: true},
+                    {q: "خلق الله الكون عبثاً ولا حكمة من تقدير حركة القمر.", c: false},
+                    {q: "إثبات البعث والجزاء من المقاصد العظيمة في سورة يونس.", c: true},
+                    {q: "تحية أهل الجنة فيما بينهم هي 'السلام'.", c: true},
+                    {q: "الاستواء على العرش من صفات الله الثابتة في القرآن.", c: true}
+                ]
+            },
+            // Lesson 7
+            {
+                mcq: [
+                    {q: "فسّر النبي ﷺ 'الزيادة' في قوله {لِّلَّذِينَ أَحْسَنُوا الْحُسْنَىٰ وَزيَادَةٌ} بـ:", o: ["كثرة الأبناء", "النظر إلى وجه الله الكريم", "قصور من ذهب", "أنهار من عسل"], c: 1},
+                    {q: "وجوه أهل النار يوم القيامة يغشاها 'القتر' وهو:", o: ["النور والضياء", "السواد والغبار والذلة", "الجمال والبهجة", "الضحك والسرور"], c: 1},
+                    {q: "عند الحشر، يتبرأ الشركاء (الآلهة المزعومة) من عابديهم ويحدث بينهم:", o: ["الصلح", "التزييل (التفريق)", "المودة", "الدفاع"], c: 1},
+                    {q: "الحجة التي استخدمها الله ضد المشركين هي إقرارهم بـ:", o: ["توحيد الربوبية", "صدق الأنبياء", "فضل الصدقة", "تحريم الخمر"], c: 0},
+                    {q: "جزاء الذين كسبوا السيئات في الآخرة يكون:", o: ["بمثلها عدلاً من الله", "بضعفها ظلماً", "بالمغفرة بدون توبة", "بالجاه والسلطان"], c: 0}
+                ],
+                tf: [
+                    {q: "توحيد الربوبية يستلزم ويوجب توحيد الألوهية.", c: true},
+                    {q: "المشركون كانوا ينكرون أن الله هو الرازق ومدبر الأمر.", c: false},
+                    {q: "وجوه المحسنين يوم القيامة لا يرهقها قتر ولا ذلة.", c: true},
+                    {q: "الأصنام ستشفع لعابديها وتجادل عنهم يوم القيامة.", c: false},
+                    {q: "الجزاء من جنس العمل قاعدة تظهر في مصير المحسنين والمسيئين.", c: true}
+                ]
+            },
+            // Lesson 8
+            {
+                mcq: [
+                    {q: "الصفات التي تجعل العبد من 'أولياء الله' هي:", o: ["الغنى والقوة", "الإيمان والتقوى", "الشهرة والمنصب", "الانعزال عن الناس"], c: 1},
+                    {q: "'البشرى' لأولياء الله في الحياة الدنيا تكون عن طريق:", o: ["المال الكثير", "الرؤيا الصالحة والثناء الحسن", "النصر بلا جهد", "عدم الابتلاء"], c: 1},
+                    {q: "نفى الله عن نفسه اتخاذ الولد لعلتين هما:", o: ["القوة والعلم", "الغنى والملك", "الرحمة والمغفرة", "الخلق والرزق"], c: 1},
+                    {q: "المقصود بكلمة 'سلطان' في قوله {إِنْ عِندَكُم مِّن سُلْطَانٍ بِهَذَا}:", o: ["قوة عسكرية", "حجة ودليل علمي", "ملك وجاه", "سحر وخيال"], c: 1},
+                    {q: "جعل الله النهار 'مبصراً' والحكمة من ذلك:", o: ["للنوم والراحة", "للسعي والعمل والكسب", "التفكر في النجوم", "للسكن والهدوء"], c: 1}
+                ],
+                tf: [
+                    {q: "أولياء الله لا خوف عليهم فيما يستقبلون ولا يحزنون على ما فات.", c: true},
+                    {q: "يجوز للنبي ﷺ والمؤمنين الحزن الذي يؤدي لليأس من كفر الناس.", c: false},
+                    {q: "العزة جميعاً لله وحده يطلبها العبد بطاعته.", c: true},
+                    {q: "متاع الكفار في الدنيا دائم ولا ينقطع.", c: false},
+                    {q: "الولاية درجة تُنال بالوراثة وليس بالعمل الصالح.", c: false}
+                ]
+            },
+            // Lesson 9
+            {
+                mcq: [
+                    {q: "أرسل الله موسى عليه السلام إلى فرعون بـ 'سلطان مبين' أي:", o: ["جيش عظيم", "حجة واضحة وآيات بينة", "أموال كثيرة", "كتب تاريخية"], c: 1},
+                    {q: "مشهد 'يَقْدُمُ قَوْمَهُ' يوم القيامة يعبر عن فرعون وهو:", o: ["يهرب من قومه", "يقودهم إلى النار كما قادهم للضلال", "يدافع عنهم", "يطلب لهم المغفرة"], c: 1},
+                    {q: "القرى التي أخذها الله فصارت 'حصيداً' تعني أنها:", o: ["بقيت آثارها قائمة", "مُحيت تماماً كالزرع المحصود", "أصبحت جنات خضراء", "ارتفعت جدرانها"], c: 1},
+                    {q: "أصوات أهل النار من شدة الكرب هي الزفير والشهيق، ومعنى 'الشهيق':", o: ["إخراج النفس", "رد النفس وصعوده", "الصمت الطويل", "الضحك العالي"], c: 1},
+                    {q: "وصف الله عطاء أهل الجنة بأنه 'غير مجذوذ' أي:", o: ["غير معروف", "غير مقطوع ولا منقوص", "قليل جداً", "ينتهي بعد زمن"], c: 1}
+                ],
+                tf: [
+                    {q: "ظلم الله الأمم السابقة حين أهلكهم بالشرك.", c: false},
+                    {q: "يوم القيامة هو 'يوم مشهود' يجمع الله فيه الأولين والآخرين.", c: true},
+                    {q: "ينقسم الناس يوم القيامة إلى ثلاث فرق: شقي وسعيد ومحايد.", c: false},
+                    {q: "اتباع قادة السوء يؤدي إلى الهلاك في الدنيا والآخرة.", c: true},
+                    {q: "لا تتكلم نفس يوم القيامة إلا بإذن الله عز وجل.", c: true}
+                ]
+            },
+            // Lesson 10
+            {
+                mcq: [
+                    {q: "أمر الله نبيه ومن تاب معه بـ 'الاستقامة' وهي:", o: ["الميل يميناً ويساراً", "الثبات على الدين بلا غلو ولا تقصير", "ترك الدنيا تماماً", "اتباع الهوى"], c: 1},
+                    {q: "نهى الله عن 'الركون' إلى الظالمين، ومعناه:", o: ["قتالهم بالسيف", "الميل إليهم بالمودة أو المداهنة والرضا بفعلهم", "دعوتهم للإسلام", "نصيحتهم سراً"], c: 1},
+                    {q: "القاعدة القرآنية {إِنَّ الْحَسَنَاتِ يُذْهِبْنَ السَّيِّئَاتِ} تعني أن:", o: ["السيئة تمحو الحسنة", "الأعمال الصالحة تكفر الذنوب الصغائر", "الإنسان لا يذنب أبداً", "الصلاة لا تزيد الحسنات"], c: 1},
+                    {q: "الغاية من ذكر قصص الرسل في القرآن الكريم هي:", o: ["التسلية والقصص التاريخي", "تثبيت فؤاد النبي ﷺ والموعظة", "معرفة أعمار الرسل", "تعلم اللغات القديمة"], c: 1},
+                    {q: "'أولو البقية' الذين ذكرتهم الآيات هم المصلحون الذين:", o: ["اعتزلوا الناس", "ينهون عن الفساد في الأرض", "يجمعون الأموال", "يتبعون الظالمين"], c: 1}
+                ],
+                tf: [
+                    {q: "حكمة الله في اختلاف الناس هي ليتميز المحق من المبطل.", c: true},
+                    {q: "الركون إلى الظالمين سبب في نيل نصرة الله ومحبته.", c: false},
+                    {q: "الصلاة في طرفي النهار وزلفاً من الليل من أعظم الزاد للاستقامة.", c: true},
+                    {q: "الله غافل عما يعمل الظالمون وسوف يتركهم بلا حساب.", c: false},
+                    {q: "التوكل على الله وحده هو مفتاح النجاح كما ختمت السورة.", c: true}
+                ]
+            },
+            // Lesson 11
+            {
+                mcq: [
+                    {q: "اعتمدت خطة يوسف عليه السلام لمواجهة القحط على:", o: ["الاستيراد من الخارج", "الزراعة الدؤوبة والادخار في السنبل", "ترك الزراعة والراحة", "توزيع كل المحصول فوراً"], c: 1},
+                    {q: "أبى يوسف عليه السلام الخروج من السجن حتى:", o: ["يأخذ مالاً", "تثبت براءته وتظهر عفته ونزاهته", "يهلك الملك", "يخرج جميع المسجونين"], c: 1},
+                    {q: "طلب يوسف عليه السلام ولاية خزائن الأرض لأنه:", o: ["يريد الجاه والسلطان", "حفيظ عليم (أمين وكفء)", "كان غنياً", "يحب السيطرة"], c: 1},
+                    {q: "معنى 'حصحص الحق' في قصة يوسف:", o: ["ضاع وفقد", "ظهر وانكشف وبان", "تأجل لوقت آخر", "صار كذباً"], c: 1},
+                    {q: "الحكمة من حفظ المحصول في 'سنبله' هي:", o: ["ليكون شكله جميلاً", "ليحفظه من التلف والسوس لأطول مدة", "ليصعب سرقته", "لزيادة وزنه"], c: 1}
+                ],
+                tf: [
+                    {q: "يجوز طلب المنصب لمن يثق في كفاءته وأمانته لمصلحة عامة.", c: true},
+                    {q: "اعترفت امرأة العزيز بأنها هي التي راودت يوسف عن نفسه.", c: true},
+                    {q: "التمكين في الأرض ليوسف كان بمحض الصدفة وليس جزاءً لإحسانه.", c: false},
+                    {q: "النفس البشرية بطبعها تأمر بالسوء إلا من رحم الله.", c: true},
+                    {q: "سنوات القحط (الشداد) سبقت سنوات الخصب في رؤيا الملك.", c: false}
+                ]
+            },
+            // Lesson 12
+            {
+                mcq: [
+                    {q: "إخبار النبي ﷺ بقصة يوسف بالتفصيل يُعد دليلاً على:", o: ["ذكائه الشخصي", "صدق نبوته وأنها وحي من عند الله", "قراءته للكتب القديمة", "سماعه للقصص من الناس"], c: 1},
+                    {q: "منهج الدعوة الذي رسمه الله للنبي وأتباعه هو الدعوة على:", o: ["بصيرة (علم ويقين وحجة)", "عاطفة مجردة", "إجبار الناس", "جهل وتقليد"], c: 0},
+                    {q: "معنى قوله تعالى {وَمَا يُؤْمِنُ أَكْثَرُهُم بِاللَّهِ إِلَّا وَهُم مُّشْرِكُونَ}:", o: ["أنهم لا يؤمنون بوجود الله", "يقرون بالربوبية ويشركون في العبادة (الألوهية)", "أنهم مؤمنون تماماً", "أنهم يشركون في الربوبية فقط"], c: 1},
+                    {q: "يتأخر نصر الله للرسل أحياناً من أجل:", o: ["تعذيب المؤمنين", "استدراج الظالمين وتمحيص المؤمنين", "نسيان الله لهم", "قوة الكفار التي لا تُغلب"], c: 1},
+                    {q: "وصف الله القرآن في ختام سورة يوسف بأنه:", o: ["أساطير قديمة", "تصديق لما بين يديه وتفصيل لكل شيء", "حديث مفترى ومكذوب", "كتاب للتاريخ فقط"], c: 1}
+                ],
+                tf: [
+                    {q: "الهداية بيد الله وحده، وحرص النبي لا يغير مشيئة الله.", c: true},
+                    {q: "قصص الأنبياء في القرآن هي مجرد تسلية وليست عبرة.", c: false},
+                    {q: "'استيأس الرسل' تعني أنهم بلغوا غاية اليأس من إيمان أقوامهم.", c: true},
+                    {q: "توحيد الربوبية وحده كافٍ لنجاة العبد دون توحيد الألوهية.", c: false},
+                    {q: "القرآن الكريم هدى ورحمة لقوم يؤمنون.", c: true}
+                ]
+            },
+            // Lesson 13
+            {
+                mcq: [
+                    {q: "الله يعلم ما تغيض الأرحام، ومعنى 'تغيض':", o: ["تزداد في العدد", "تنقص (كالسقط أو نقص المدة)", "تحفظ الجنين", "تخرج الحليب"], c: 1},
+                    {q: "'المعقبات' هم ملائكة وظيفتهم:", o: ["كتابة الرزق فقط", "حفظ الإنسان من الأقدار التي لم تُكتب عليه", "تعذيب الكفار", "إنزال المطر"], c: 1},
+                    {q: "القانون الاجتماعي {إِنَّ اللَّهَ لَا يُغَيِّرُ مَا بِقَوْمٍ حَتَّى يُغَيِّرُوا مَا بِأَنفُسِهِمْ} يعني:", o: ["التغيير يبدأ من الظروف الخارجية فقط", "زوال النعم مرتبط بتغير نفوس الناس وذنوبهم", "الله يغير الناس دون إرادتهم", "العمل لا قيمة له في التغيير"], c: 1},
+                    {q: "يجمع 'البرق' في قلوب الناس بين:", o: ["الفرح والحزن", "الخوف (من الصواعق) والطمع (في المطر)", "النوم واليقظة", "الحب والكره"], c: 1},
+                    {q: "دعاء غير الله (كالأصنام) في عدم الاستجابة يشبه:", o: ["القوي الذي يمسك الماء", "العطشان الذي يمد يده للماء من بعيد فلا يبلغه", "الغريق الذي ينجو", "الظمآن الذي يشرب حتى يرتوي"], c: 1}
+                ],
+                tf: [
+                    {q: "الرعد يسبح بحمد الله تسبيحاً حقيقياً دالاً على خضوعه.", c: true},
+                    {q: "الكافر لا يخضع لله ولا يسجد له بأي حال من الأحوال.", c: false},
+                    {q: "الله عالم الغيب والشهادة، يستوي عنده السر والجهر.", c: true},
+                    {q: "الملائكة تسبح من خيفة الله وعظمته.", c: true},
+                    {q: "كل ما في الكون يسجد لله طوعاً أو كرهاً.", c: true}
+                ]
+            },
+            // Lesson 14
+            {
+                mcq: [
+                    {q: "وصف الله الكافر في مقابل 'أولي الألباب' بأنه:", o: ["أصم", "أعمى (أعمى البصيرة)", "أبكم", "قوي"], c: 1},
+                    {q: "من صفات أولي الألباب 'يدرؤون بالحسنة السيئة' ومعناها:", o: ["يردون الإساءة بإساءة أكبر", "يدفعون السيئة بالمعروف والإحسان", "يتجاهلون الناس تماماً", "يتركون العمل الصالح"], c: 1},
+                    {q: "طمأنينة القلوب وسكينتها الحقيقية لا تكون إلا بـ:", o: ["جمع الأموال والكنوز", "ذكر الله عز وجل", "السفر بين البلدان", "كثرة الكلام"], c: 1},
+                    {q: "جزاء أولي الألباب هو 'جنات عدن' ومعنى عدن:", o: ["إقامة دائمة", "تنزه مؤقت", "مكان مجهول", "عمل شاق"], c: 0},
+                    {q: "بسط الرزق وتضييقه في الدنيا خاضع لـ:", o: ["ذكاء الإنسان وحده", "مشيئة الله وحكمته ليبتلي عباده", "الصدفة المحضة", "قوة القبيلة"], c: 1}
+                ],
+                tf: [
+                    {q: "صلة الأرحام والوفاء بالعهد من أبرز صفات أصحاب العقول السليمة.", c: true},
+                    {q: "الهداية مرتبطة فقط برؤية المعجزات الحسية الخارقة.", c: false},
+                    {q: "يدخل المؤمن الجنة مع من صلح من آبائه وأزواجه وذريته.", c: true},
+                    {q: "نقض الميثاق والفساد في الأرض من صفات الأشقياء.", c: true},
+                    {q: "الملائكة لا علاقة لها بأهل الجنة ولا ترحب بهم.", c: false}
+                ]
+            },
+            // Lesson 15
+            {
+                mcq: [
+                    {q: "شبه الله 'الكلمة الطيبة' (لا إله إلا الله) بـ:", o: ["النخلة (أصلها ثابت وفرعها في السماء)", "شجرة الحنظل", "جبل عالٍ", "نهر جارٍ"], c: 0},
+                    {q: "الشجرة الخبيثة التي 'اجتثت' من فوق الأرض ليس لها:", o: ["أغصان", "قرار (ثبات)", "لون", "ظل"], c: 1},
+                    {q: "يثبت الله المؤمنين بالقول الثابت في:", o: ["الدنيا فقط", "الآخرة فقط", "الحياة الدنيا وفي الآخرة (عند سؤال القبر)", "عند النوم فقط"], c: 2},
+                    {q: "'دار البوار' التي قاد الكفار قومهم إليها هي:", o: ["الفقر في الدنيا", "جهنم والهلاك", "السجن", "الغربة"], c: 1},
+                    {q: "قانون الزيادة في النعم مرتبط بـ:", o: ["كثرة الشكوى", "شكر الله تعالى", "إخفاء النعمة", "جحود النعمة"], c: 1}
+                ],
+                tf: [
+                    {q: "الشكر قيد للنعم الموجودة وصيد للنعم المفقودة.", c: true},
+                    {q: "الكلمة الخبيثة لها أصل راسخ في الأرض ككلمة التوحيد.", c: false},
+                    {q: "يوم القيامة لا ينفع فيه فداء بالمال ولا تنفع فيه صداقة الخلان.", c: true},
+                    {q: "كفر النعم سبب في زوالها وحلول عذاب الله.", c: true},
+                    {q: "إقامة الصلاة والإنفاق من صفات المؤمنين التي أمر الله بها.", c: true}
+                ]
+            },
+            // Lesson 16
+            {
+                mcq: [
+                    {q: "إمهال الله للظالمين في الدنيا يُعد:", o: ["غفلة منه سبحانه", "استدراجاً ليوم تشخص فيه الأبصار", "محبة لهم", "نسياناً لأفعالهم"], c: 1},
+                    {q: "وصف الله قلوب الظالمين يوم القيامة بأنها 'هواء' أي:", o: ["مليئة بالأمل", "فارغة من كل خير ومستسلمة للفزع والخوف", "قوية وشجاعة", "باردة لا تشعر"], c: 1},
+                    {q: "ثياب أهل النار (سرابيلهم) مصنوعة من 'قطران' وهو:", o: ["حرير أسود", "نحاس مذاب شديد الحرارة", "صوف خشن", "قطن بارد"], c: 1},
+                    {q: "معنى كلمة 'مهطعين' في وصف حال الناس يوم الحشر:", o: ["متكاسلين", "مسرعين مع ذل وخضوع ورافعي رءوسهم", "جالسين في صمت", "يجرون في كل اتجاه"], c: 1},
+                    {q: "الغاية النهائية من القرآن الكريم كما ذكرت خاتمة السورة:", o: ["البلاغ والإنذار ليعلموا أنما هو إله واحد", "الشعر والنثر", "القصص الخيالية", "تعلم الخط العربي"], c: 0}
+                ],
+                tf: [
+                    {q: "تشخص الأبصار يوم القيامة من شدة هول المشهد فلا تطرف.", c: true},
+                    {q: "يطلب الظالمون العودة للدنيا للعمل الصالح فيُجاب طلبهم.", c: false},
+                    {q: "'مقرنين في الأصفاد' تعني أن الظالمين مقيدون بالسلاسل والقيود.", c: true},
+                    {q: "القرآن الكريم هو رسالة تذكير لأصحاب العقول (أولي الألباب).", c: true},
+                    {q: "الله غافل عما يعمل الظالمون في الدنيا ولن يحاسبهم.", c: false}
+                ]
+            }
+        ];
+
+        // Populate fullBank from rawData
+        rawData.forEach((lesson, idx) => {
+            const lessonNum = idx + 1;
+            const title = lessonTitles[idx];
+            
+            // Add MCQs
+            lesson.mcq.forEach((q, i) => {
+                fullBank.push({
+                    id: `L${lessonNum}-M${i+1}`,
+                    lessonId: lessonNum,
+                    lessonTitle: title,
+                    type: 'mcq',
+                    q: q.q,
+                    options: q.o,
+                    correct: q.c
+                });
+            });
+
+            // Add TFs
+            lesson.tf.forEach((q, i) => {
+                fullBank.push({
+                    id: `L${lessonNum}-T${i+1}`,
+                    lessonId: lessonNum,
+                    lessonTitle: title,
+                    type: 'tf',
+                    q: q.q,
+                    correct: q.c
+                });
+            });
+        });
+
+        // --- STATE MANAGEMENT ---
+        let appState = {
+            totalScore: parseInt(localStorage.getItem('pts')) || 0,
+            usedIDs: JSON.parse(localStorage.getItem('used')) || [],
+            session: {
+                questions: [],
+                currentIdx: 0,
+                score: 0,
+                timer: 30,
+                isTour: false,
+                locked: false
+            }
+        };
+
+        let activeInterval;
+
+        // --- UI INITIALIZATION ---
+        function initApp() {
+            renderLessons();
+            updateStats();
         }
 
-        function renderGrid() {
+        function renderLessons() {
             const grid = document.getElementById('lessonsGrid');
             grid.innerHTML = '';
-            bank.forEach((l, i) => {
+            lessonTitles.forEach((t, i) => {
                 const card = document.createElement('div');
-                card.className = "lesson-card glass p-6 rounded-3xl border-2 border-slate-100 cursor-pointer transition-all";
-                card.onclick = () => startOne(i);
+                card.className = "lesson-card glass p-6 rounded-3xl border-2 border-slate-100 cursor-pointer transition-all group";
+                card.onclick = () => startSingle(i + 1);
                 card.innerHTML = `
-                    <div class="mb-4"><span class="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full text-[10px] font-black uppercase">درس ${l.id}</span></div>
-                    <h4 class="font-bold text-slate-800 leading-snug h-12 overflow-hidden">${l.title}</h4>
-                    <p class="text-[10px] text-slate-400 mt-2 font-bold uppercase">6 أسئلة معتمدة</p>
+                    <div class="flex justify-between items-start mb-4">
+                        <span class="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full text-[10px] font-black uppercase">درس ${i+1}</span>
+                        <div class="text-[10px] text-slate-300 font-bold">10 أسئلة</div>
+                    </div>
+                    <h4 class="font-bold text-slate-800 leading-snug h-12 overflow-hidden">${t}</h4>
                 `;
                 grid.appendChild(card);
             });
         }
 
-        // --- MODAL ---
-        let tQ = 10, tT = 30;
+        function updateStats() {
+            document.getElementById('navScore').innerText = appState.totalScore;
+        }
+
+        // --- MODAL & SETTINGS ---
+        let tempQCount = 10;
+        let tempTimer = 30;
+
         function openTourModal() { document.getElementById('tourModal').style.display = 'flex'; }
         function closeTourModal() { document.getElementById('tourModal').style.display = 'none'; }
-        function setTourQ(n) {
-            tQ = n;
-            document.querySelectorAll('.q-b').forEach(b => b.classList.replace('bg-indigo-600', 'bg-slate-100'));
-            document.querySelectorAll('.q-b').forEach(b => b.classList.replace('text-white', 'text-slate-500'));
+        
+        function setTourQCount(n) {
+            tempQCount = n;
+            document.querySelectorAll('.q-btn').forEach(b => b.classList.replace('bg-indigo-600', 'bg-slate-100'));
+            document.querySelectorAll('.q-btn').forEach(b => b.classList.replace('text-white', 'text-slate-500'));
             event.target.classList.replace('bg-slate-100', 'bg-indigo-600');
             event.target.classList.replace('text-slate-500', 'text-white');
         }
-        function setTourT(n) {
-            tT = n;
-            document.querySelectorAll('.t-b').forEach(b => b.classList.replace('bg-indigo-600', 'bg-slate-100'));
-            document.querySelectorAll('.t-b').forEach(b => b.classList.replace('text-white', 'text-slate-500'));
+
+        function setTourTimer(n) {
+            tempTimer = n;
+            document.querySelectorAll('.t-btn').forEach(b => b.classList.replace('bg-indigo-600', 'bg-slate-100'));
+            document.querySelectorAll('.t-btn').forEach(b => b.classList.replace('text-white', 'text-slate-500'));
             event.target.classList.replace('bg-slate-100', 'bg-indigo-600');
             event.target.classList.replace('text-slate-500', 'text-white');
         }
 
         // --- QUIZ ENGINE ---
-        function startTour() {
-            const allQs = bank.flatMap(l => l.questions.map(q => ({...q, lessonTitle: l.title})));
-            let pool = allQs.filter(q => !used.includes(q.q));
-            if (pool.length < tQ) { used = []; pool = [...allQs]; }
-            const chosen = pool.sort(() => 0.5 - Math.random()).slice(0, tQ);
-            launch(chosen, true, tT);
+        function startTourMode() {
+            let pool = fullBank.filter(q => !appState.usedIDs.includes(q.id));
+            if (pool.length < tempQCount) {
+                appState.usedIDs = []; // Reset if not enough new questions
+                pool = [...fullBank];
+            }
+            const selected = pool.sort(() => 0.5 - Math.random()).slice(0, tempQCount);
+            launch(selected, true, tempTimer);
             closeTourModal();
         }
 
-        function startOne(idx) {
-            const chosen = bank[idx].questions.map(q => ({...q, lessonTitle: bank[idx].title}));
-            launch(chosen, false, 30);
+        function startSingle(id) {
+            const selected = fullBank.filter(q => q.lessonId === id);
+            launch(selected, false, 30);
         }
 
-        function launch(qs, tour, time) {
-            state = { questions: qs, idx: 0, score: 0, timer: time, isTour: tour, locked: false };
+        function launch(qs, isTour, time) {
+            appState.session = { questions: qs, currentIdx: 0, score: 0, timer: time, isTour, locked: false };
             document.getElementById('homeView').classList.add('hidden');
             document.getElementById('quizView').classList.remove('hidden');
             document.getElementById('resultView').classList.add('hidden');
-            show();
+            showQ();
         }
 
-        function show() {
-            const s = state;
-            const q = s.questions[s.idx];
+        function showQ() {
+            const s = appState.session;
+            const q = s.questions[s.currentIdx];
             s.locked = false;
 
-            document.getElementById('quizBadge').innerText = s.isTour ? 'جولة المنهج' : 'تحدي الدرس';
-            document.getElementById('lessonName').innerText = q.lessonTitle;
-            document.getElementById('qIdxText').innerText = `${String(s.idx + 1).padStart(2, '0')}/${s.questions.length}`;
-            document.getElementById('qText').innerText = q.q;
-            document.getElementById('feedback').classList.add('hidden');
+            document.getElementById('quizTypeBadge').innerText = s.isTour ? 'جولة شاملة' : 'تحدي الدرس';
+            document.getElementById('currentLessonTitle').innerText = q.lessonTitle;
+            document.getElementById('questionCountText').innerText = `${String(s.currentIdx + 1).padStart(2, '0')}/${s.questions.length}`;
+            document.getElementById('questionText').innerText = q.q;
+            document.getElementById('feedbackPanel').classList.add('hidden');
             
-            const g = document.getElementById('optionsGrid');
-            g.innerHTML = '';
+            const grid = document.getElementById('optionsGrid');
+            grid.innerHTML = '';
 
             if (q.type === 'mcq') {
-                q.options.forEach((o, i) => {
-                    const b = document.createElement('button');
-                    b.className = "option-btn w-full text-right p-5 rounded-2xl border-2 border-slate-100 font-bold bg-white transition-all shadow-sm";
-                    b.innerText = o;
-                    b.onclick = () => select(i);
-                    g.appendChild(b);
+                q.options.forEach((opt, i) => {
+                    const btn = document.createElement('button');
+                    btn.className = "option-btn w-full text-right p-5 rounded-2xl border-2 border-slate-100 font-bold bg-white transition-all shadow-sm";
+                    btn.innerText = opt;
+                    btn.onclick = () => select(i);
+                    grid.appendChild(btn);
                 });
             } else {
-                [{t:'صحيح',v:true},{t:'خاطئ',v:false}].forEach(o => {
-                    const b = document.createElement('button');
-                    b.className = "option-btn w-full text-right p-6 rounded-2xl border-2 border-slate-100 font-black text-xl bg-white transition-all shadow-sm";
-                    b.innerText = o.t;
-                    b.onclick = () => select(o.v);
-                    g.appendChild(b);
+                [{t:'صحيح',v:true}, {t:'خاطئ',v:false}].forEach(opt => {
+                    const btn = document.createElement('button');
+                    btn.className = "option-btn w-full text-right p-6 rounded-2xl border-2 border-slate-100 font-black text-xl bg-white transition-all shadow-sm";
+                    btn.innerText = opt.t;
+                    btn.onclick = () => select(opt.v);
+                    grid.appendChild(btn);
                 });
             }
-            startBar();
+
+            runTimer();
         }
 
-        function startBar() {
-            clearInterval(timerInt);
+        function runTimer() {
+            clearInterval(activeInterval);
             const bar = document.getElementById('timerBar');
-            let rem = state.timer;
+            let remaining = appState.session.timer;
             bar.style.width = '100%';
-            timerInt = setInterval(() => {
-                rem--;
-                bar.style.width = (rem / state.timer * 100) + '%';
-                if (rem <= 0) { clearInterval(timerInt); if (!state.locked) select(null); }
+
+            activeInterval = setInterval(() => {
+                remaining--;
+                bar.style.width = (remaining / appState.session.timer * 100) + '%';
+                if (remaining <= 0) {
+                    clearInterval(activeInterval);
+                    if (!appState.session.locked) select(null);
+                }
             }, 1000);
         }
 
         function select(ans) {
-            if (state.locked) return;
-            state.locked = true;
-            clearInterval(timerInt);
+            if (appState.session.locked) return;
+            appState.session.locked = true;
+            clearInterval(activeInterval);
 
-            const q = state.questions[state.idx];
+            const q = appState.session.questions[appState.session.currentIdx];
             const isCorrect = (ans === q.correct);
-            const f = document.getElementById('feedback');
+            const panel = document.getElementById('feedbackPanel');
 
             document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
 
             if (isCorrect) {
-                state.score++;
-                points += 10;
-                f.innerText = "إجابة صحيحة! أحسنت 🌟";
-                f.className = "mt-8 p-5 rounded-[2rem] text-center font-bold text-lg bg-green-100 text-green-700 block";
+                appState.session.score++;
+                appState.totalScore += 10;
+                panel.innerText = "أحسنت! إجابة صحيحة 🌟";
+                panel.className = "mt-8 p-5 rounded-[2rem] text-center font-bold text-lg bg-green-100 text-green-700 block animate-pulse";
                 play('audioCorrect');
-                if(!used.includes(q.q)) used.push(q.q);
+                if(!appState.usedIDs.includes(q.id)) appState.usedIDs.push(q.id);
             } else {
-                f.innerText = ans === null ? "انتهى الوقت! ⏰" : "إجابة خاطئة ❌";
-                f.className = "mt-8 p-5 rounded-[2rem] text-center font-bold text-lg bg-red-100 text-red-700 block";
+                panel.innerText = ans === null ? "انتهى الوقت! ⏰" : "إجابة خاطئة، حاول في المرة القادمة!";
+                panel.className = "mt-8 p-5 rounded-[2rem] text-center font-bold text-lg bg-red-100 text-red-700 block";
                 play('audioWrong');
             }
 
-            // Highlighting
+            // Visual Feedback
             const btns = document.querySelectorAll('.option-btn');
             if (q.type === 'mcq') {
                 btns.forEach((b, i) => {
@@ -402,36 +635,40 @@
                 });
             } else {
                 btns.forEach(b => {
-                    const t = (b.innerText === 'صحيح');
-                    if (t === q.correct) b.classList.add('correct');
-                    else if (ans !== null && t === ans) b.classList.add('wrong');
+                    const isTrue = (b.innerText === 'صحيح');
+                    if (isTrue === q.correct) b.classList.add('correct');
+                    else if (ans !== null && isTrue === ans) b.classList.add('wrong');
                 });
             }
 
-            f.classList.remove('hidden');
-            localStorage.setItem('pts', points);
-            localStorage.setItem('used', JSON.stringify(used));
-            document.getElementById('navScore').innerText = points;
+            saveData();
+            updateStats();
 
-            // Auto transition after 3 seconds
+            // Auto-transition after 3 seconds
             setTimeout(() => {
-                state.idx++;
-                if (state.idx < state.questions.length) show();
-                else end();
+                appState.session.currentIdx++;
+                if (appState.session.currentIdx < appState.session.questions.length) {
+                    showQ();
+                } else {
+                    finish();
+                }
             }, 3000);
         }
 
         function abortQuiz() {
-            if (confirm('هل تريد مقاطعة الجولة والعودة للرئيسية؟')) location.reload();
+            if (confirm('هل تريد إلغاء الجولة الحالية والعودة للقائمة الرئيسية؟')) {
+                clearInterval(activeInterval);
+                location.reload();
+            }
         }
 
-        function end() {
+        function finish() {
             document.getElementById('quizView').classList.add('hidden');
             document.getElementById('resultView').classList.remove('hidden');
-            const sc = state.score;
-            const tot = state.questions.length;
-            document.getElementById('resultSummary').innerText = `حصلت على ${sc} من ${tot} إجابة صحيحة.`;
-            if (sc/tot >= 0.8) confetti({ particleCount: 150, spread: 70 });
+            const s = appState.session.score;
+            const t = appState.session.questions.length;
+            document.getElementById('resultText').innerText = `لقد أجبت على ${s} من ${t} بشكل صحيح!`;
+            if (s/t >= 0.8) confetti({ particleCount: 150, spread: 70 });
         }
 
         function play(id) {
@@ -439,7 +676,19 @@
             if (a) { a.currentTime = 0; a.play().catch(()=>{}); }
         }
 
-        window.onload = init;
+        function saveData() {
+            localStorage.setItem('pts', appState.totalScore);
+            localStorage.setItem('used', JSON.stringify(appState.usedIDs));
+        }
+
+        function resetData() {
+            if (confirm('سيتم حذف كافة النقاط والتقدم، هل أنت متأكد؟')) {
+                localStorage.clear();
+                location.reload();
+            }
+        }
+
+        window.onload = initApp;
     </script>
 </body>
 </html>
