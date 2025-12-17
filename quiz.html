@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبار ذكي - نظام الأصوات المحلية</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
+        body { font-family: 'Cairo', sans-serif; background-color: #f8fafc; }
+        .option-btn { transition: all 0.2s; }
+        .correct { background-color: #22c55e !important; color: white; border-color: #16a34a; }
+        .wrong { background-color: #ef4444 !important; color: white; border-color: #dc2626; }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-4">
+
+    <!-- شاشة البدء (ضرورية لتفعيل الصوت) -->
+    <div id="start-screen" class="bg-white p-10 rounded-3xl shadow-2xl text-center max-w-sm w-full border border-gray-100">
+        <div class="text-6xl mb-4">📝</div>
+        <h1 class="text-2xl font-bold mb-4">جاهز للاختبار؟</h1>
+        <p class="text-gray-500 mb-6 text-sm">سيتم تفعيل المؤثرات الصوتية عند الضغط على الزر أدناه</p>
+        <button onclick="startQuiz()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-2xl shadow-lg transition-transform active:scale-95">
+            ابدأ الاختبار الآن
+        </button>
+    </div>
+
+    <!-- لوحة الاختبار -->
+    <div id="quiz-screen" class="hidden bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden border border-gray-100">
+        <div class="h-2 bg-gray-100"><div id="progress" class="h-full bg-indigo-500 transition-all duration-500" style="width: 0%"></div></div>
+        
+        <div class="p-8">
+            <div class="flex justify-between items-center mb-8">
+                <span id="step" class="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full">السؤال 1</span>
+                <span id="score" class="text-xs font-bold text-gray-400">النقاط: 0</span>
+            </div>
+
+            <h2 id="question" class="text-xl font-bold text-gray-800 mb-6 min-h-[60px]">...</h2>
+            <div id="options" class="grid gap-3"></div>
+
+            <!-- لوحة تنبيهات الأخطاء (للمساعدة في التشخيص) -->
+            <div id="error-log" class="mt-6 text-[10px] text-red-500 text-center hidden p-2 bg-red-50 rounded-lg border border-red-100"></div>
+        </div>
+    </div>
+
+    <!-- عناصر الصوت في HTML لضمان التوافق العالي -->
+    <audio id="sound-correct" preload="auto">
+        <source src="sounds/correct.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="sound-wrong" preload="auto">
+        <source src="sounds/wrong.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        const questions = [
+            { q: "ما هو الكوكب الأحمر؟", options: ["المريخ", "الأرض", "زحل", "عطارد"], correct: 0 },
+            { q: "ما هو أصل اللؤلؤ؟", options: ["صخور", "محار", "نبات", "رمال"], correct: 1 },
+            { q: "كم قلب للأخطبوط؟", options: ["واحد", "اثنان", "ثلاثة", "أربعة"], correct: 2 },
+            { q: "ما هي أثقل مادة في العالم؟", options: ["الذهب", "الرصاص", "الأوزميوم", "الحديد"], correct: 2 },
+            { q: "من هو مكتشف الجاذبية؟", options: ["أينشتاين", "نيوتن", "إديسون", "فاراداي"], correct: 1 }
+        ];
+
+        let currentIndex = 0;
+        let score = 0;
+        let isLocked = false;
+
+        // الحصول على عناصر الصوت من DOM
+        const correctAudio = document.getElementById('sound-correct');
+        const wrongAudio = document.getElementById('sound-wrong');
+
+        // فحص الأخطاء عند التحميل
+        [correctAudio, wrongAudio].forEach(audio => {
+            audio.addEventListener('error', function(e) {
+                const errorLog = document.getElementById('error-log');
+                errorLog.classList.remove('hidden');
+                errorLog.innerText = `خطأ: تعذر تحميل ملف ${this.querySelector('source').src}. تأكد من وجود المجلد sounds والملفات بداخله.`;
+            });
+        });
+
+        function startQuiz() {
+            // محاولة تشغيل الصوت فوراً لفك حظر المتصفح
+            // في بعض المتصفحات، يجب تشغيل الصوت عند أول تفاعل حقيقي
+            correctAudio.play().then(() => {
+                correctAudio.pause();
+                correctAudio.currentTime = 0;
+            }).catch(e => console.log("Audio unlock interaction successful"));
+
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('quiz-screen').classList.remove('hidden');
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            isLocked = false;
+            const q = questions[currentIndex];
+            document.getElementById('question').innerText = q.q;
+            document.getElementById('step').innerText = `سؤال ${currentIndex + 1} من ${questions.length}`;
+            document.getElementById('progress').style.width = `${(currentIndex / questions.length) * 100}%`;
+
+            const optionsDiv = document.getElementById('options');
+            optionsDiv.innerHTML = '';
+
+            q.options.forEach((opt, i) => {
+                const btn = document.createElement('button');
+                btn.className = "option-btn w-full text-right p-4 rounded-2xl border border-gray-100 hover:bg-indigo-50 font-medium text-gray-700";
+                btn.innerText = opt;
+                btn.onclick = () => checkAnswer(i, btn);
+                optionsDiv.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(idx, btn) {
+            if (isLocked) return;
+            isLocked = true;
+
+            const correct = questions[currentIndex].correct;
+            const allBtns = document.querySelectorAll('.option-btn');
+
+            if (idx === correct) {
+                score++;
+                btn.classList.add('correct');
+                playSound(correctAudio);
+            } else {
+                btn.classList.add('wrong');
+                allBtns[correct].classList.add('correct');
+                playSound(wrongAudio);
+            }
+
+            document.getElementById('score').innerText = `النقاط: ${score}`;
+
+            setTimeout(() => {
+                currentIndex++;
+                if (currentIndex < questions.length) loadQuestion();
+                else finish();
+            }, 1500);
+        }
+
+        function playSound(audioElement) {
+            // إعادة التعيين قبل التشغيل
+            audioElement.pause();
+            audioElement.currentTime = 0;
+            
+            // التحميل والتشغيل
+            const playPromise = audioElement.play();
+            
+            if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                    console.error("فشل التشغيل:", error);
+                    const errorLog = document.getElementById('error-log');
+                    errorLog.innerText = "خطأ في تشغيل الصوت: تأكد من صحة مسار وصيغة الملفات في مجلد sounds";
+                    errorLog.classList.remove('hidden');
+                });
+            }
+        }
+
+        function finish() {
+            document.getElementById('quiz-screen').innerHTML = `
+                <div class="p-10 text-center">
+                    <div class="text-6xl mb-4">🏆</div>
+                    <h2 class="text-2xl font-bold mb-2">انتهى الاختبار</h2>
+                    <p class="text-gray-500 mb-6">لقد حصلت على ${score} من ${questions.length}</p>
+                    <button onclick="location.reload()" class="bg-indigo-600 text-white px-8 py-3 rounded-2xl font-bold">إعادة الاختبار</button>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html> 
