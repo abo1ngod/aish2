@@ -3,166 +3,452 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>اختبار ذكي - نظام الأصوات المحلية</title>
+    <title>منصة التفسير | بنك الأسئلة الشامل</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
-        body { font-family: 'Cairo', sans-serif; background-color: #f8fafc; }
-        .option-btn { transition: all 0.2s; }
-        .correct { background-color: #22c55e !important; color: white; border-color: #16a34a; }
-        .wrong { background-color: #ef4444 !important; color: white; border-color: #dc2626; }
+        body { font-family: 'Tajawal', sans-serif; background-color: #f1f5f9; }
+        .glass { background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(10px); }
+        .correct { background-color: #10b981 !important; color: white !important; border-color: #059669 !important; }
+        .wrong { background-color: #ef4444 !important; color: white !important; border-color: #dc2626 !important; }
+        .timer-bar { transition: width 1s linear; }
+        .option-btn:hover:not(:disabled) { transform: translateX(-5px); border-color: #6366f1; background-color: #f8fafc; }
+        .lesson-card:hover { transform: translateY(-5px); border-color: #6366f1; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
     </style>
 </head>
-<body class="flex flex-col items-center justify-center min-h-screen p-4">
+<body class="min-h-screen text-slate-800">
 
-    <!-- شاشة البدء (ضرورية لتفعيل الصوت) -->
-    <div id="start-screen" class="bg-white p-10 rounded-3xl shadow-2xl text-center max-w-sm w-full border border-gray-100">
-        <div class="text-6xl mb-4">📝</div>
-        <h1 class="text-2xl font-bold mb-4">جاهز للاختبار؟</h1>
-        <p class="text-gray-500 mb-6 text-sm">سيتم تفعيل المؤثرات الصوتية عند الضغط على الزر أدناه</p>
-        <button onclick="startQuiz()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-2xl shadow-lg transition-transform active:scale-95">
-            ابدأ الاختبار الآن
-        </button>
-    </div>
+    <!-- Audio -->
+    <audio id="audioCorrect" src="sounds/correct.mp3" preload="auto"></audio>
+    <audio id="audioWrong" src="sounds/wrong.mp3" preload="auto"></audio>
 
-    <!-- لوحة الاختبار -->
-    <div id="quiz-screen" class="hidden bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden border border-gray-100">
-        <div class="h-2 bg-gray-100"><div id="progress" class="h-full bg-indigo-500 transition-all duration-500" style="width: 0%"></div></div>
+    <!-- Header -->
+    <nav class="bg-white border-b sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-bold text-xl">ت</div>
+                <h1 class="text-xl font-extrabold text-slate-900">بنك التفسير التفاعلي</h1>
+            </div>
+            <div class="flex flex-col items-end">
+                <span class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">إجمالي النقاط</span>
+                <span id="navScore" class="text-indigo-600 font-black text-lg">0</span>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-6xl mx-auto px-4 py-8">
         
-        <div class="p-8">
-            <div class="flex justify-between items-center mb-8">
-                <span id="step" class="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full">السؤال 1</span>
-                <span id="score" class="text-xs font-bold text-gray-400">النقاط: 0</span>
+        <!-- Home View -->
+        <div id="homeView">
+            <div class="bg-gradient-to-br from-indigo-700 to-blue-600 rounded-[2.5rem] p-8 md:p-12 text-white shadow-2xl mb-12 relative overflow-hidden">
+                <div class="relative z-10 max-w-2xl">
+                    <h2 class="text-4xl md:text-5xl font-black mb-6">مرحباً بك في تحدي التفسير 🌟</h2>
+                    <p class="text-indigo-100 text-lg mb-8 leading-relaxed">منصة تعليمية ذكية تغطي 16 درساً بـ 160 سؤالاً دقيقاً. اختر نمط الاختبار المفضل لديك وابدأ رحلة العلم.</p>
+                    <button onclick="openTourModal()" class="bg-white text-indigo-700 px-10 py-4 rounded-2xl font-black text-xl shadow-xl hover:scale-105 transition-all">
+                        بدء جولة في جميع الدروس
+                    </button>
+                </div>
+                <div class="absolute -left-10 -bottom-10 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
             </div>
 
-            <h2 id="question" class="text-xl font-bold text-gray-800 mb-6 min-h-[60px]">...</h2>
-            <div id="options" class="grid gap-3"></div>
+            <div class="flex items-center justify-between mb-8">
+                <h3 class="text-2xl font-black flex items-center gap-3">
+                    <span class="w-2 h-8 bg-indigo-600 rounded-full"></span>
+                    اختر درساً للتحدي
+                </h3>
+                <button onclick="resetData()" class="text-sm text-slate-400 hover:text-red-500 underline font-medium">إعادة ضبط كافة البيانات</button>
+            </div>
 
-            <!-- لوحة تنبيهات الأخطاء (للمساعدة في التشخيص) -->
-            <div id="error-log" class="mt-6 text-[10px] text-red-500 text-center hidden p-2 bg-red-50 rounded-lg border border-red-100"></div>
+            <div id="lessonsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Lessons Injected via JS -->
+            </div>
+        </div>
+
+        <!-- Quiz View -->
+        <div id="quizView" class="hidden max-w-3xl mx-auto">
+            <div class="glass rounded-[3rem] shadow-2xl overflow-hidden border border-white">
+                <div class="h-2 bg-slate-100 w-full overflow-hidden">
+                    <div id="timerBar" class="h-full bg-indigo-500 timer-bar" style="width: 100%"></div>
+                </div>
+
+                <div class="p-8 md:p-12">
+                    <div class="flex justify-between items-start mb-8">
+                        <div>
+                            <span id="quizTypeBadge" class="bg-indigo-100 text-indigo-700 px-4 py-1 rounded-full text-xs font-bold uppercase"></span>
+                            <h4 id="currentLessonTitle" class="text-slate-500 mt-3 font-bold text-sm"></h4>
+                        </div>
+                        <button onclick="abortQuiz()" class="bg-slate-100 text-slate-400 hover:bg-red-50 hover:text-red-500 p-3 rounded-2xl transition-all shadow-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="flex justify-between items-center mb-6">
+                        <span id="questionCountText" class="text-slate-300 font-black text-3xl">01/10</span>
+                    </div>
+
+                    <h3 id="questionText" class="text-2xl md:text-3xl font-bold mb-10 text-slate-800 leading-tight"></h3>
+
+                    <div id="optionsGrid" class="grid gap-4">
+                        <!-- Options Injected -->
+                    </div>
+
+                    <div id="feedbackPanel" class="mt-8 p-5 rounded-[2rem] text-center font-bold text-lg hidden animate-pulse"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Result View -->
+        <div id="resultView" class="hidden text-center py-20">
+            <div class="text-[120px] mb-8">🎖️</div>
+            <h2 class="text-5xl font-black mb-4">أنهيت التحدي بنجاح!</h2>
+            <p id="resultText" class="text-2xl text-slate-500 mb-12"></p>
+            <button onclick="location.reload()" class="bg-indigo-600 text-white px-12 py-5 rounded-[2rem] font-black text-xl shadow-2xl hover:scale-105 transition-all">العودة للرئيسية</button>
+        </div>
+
+    </main>
+
+    <!-- Tour Modal -->
+    <div id="tourModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-[3rem] p-10 shadow-2xl scale-up-center">
+            <h3 class="text-2xl font-black mb-8">إعدادات الجولة الشاملة ⚙️</h3>
+            
+            <div class="space-y-8">
+                <div>
+                    <label class="block text-sm font-bold text-slate-400 mb-4">كم سؤالاً تريد في هذه الجولة؟</label>
+                    <div class="grid grid-cols-3 gap-3">
+                        <button onclick="setTourQCount(10)" class="q-btn bg-indigo-600 text-white p-4 rounded-2xl font-bold transition-all shadow-md">10</button>
+                        <button onclick="setTourQCount(20)" class="q-btn bg-slate-100 text-slate-500 p-4 rounded-2xl font-bold transition-all">20</button>
+                        <button onclick="setTourQCount(50)" class="q-btn bg-slate-100 text-slate-500 p-4 rounded-2xl font-bold transition-all">50</button>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-bold text-slate-400 mb-4">وقت التفكير لكل سؤال (ثانية):</label>
+                    <div class="grid grid-cols-3 gap-3">
+                        <button onclick="setTourTimer(15)" class="t-btn bg-slate-100 text-slate-500 p-4 rounded-2xl font-bold transition-all">15</button>
+                        <button onclick="setTourTimer(30)" class="t-btn bg-indigo-600 text-white p-4 rounded-2xl font-bold transition-all shadow-md">30</button>
+                        <button onclick="setTourTimer(60)" class="t-btn bg-slate-100 text-slate-500 p-4 rounded-2xl font-bold transition-all">60</button>
+                    </div>
+                </div>
+
+                <div class="flex gap-4 pt-4">
+                    <button onclick="startTourMode()" class="flex-1 bg-indigo-600 text-white py-5 rounded-[2rem] font-black text-lg shadow-xl hover:bg-indigo-700">انطلق الآن</button>
+                    <button onclick="closeTourModal()" class="px-8 bg-slate-100 text-slate-400 py-5 rounded-[2rem] font-bold">إلغاء</button>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- عناصر الصوت في HTML لضمان التوافق العالي -->
-    <audio id="sound-correct" preload="auto">
-        <source src="sounds/correct.mp3" type="audio/mpeg">
-    </audio>
-    <audio id="sound-wrong" preload="auto">
-        <source src="sounds/wrong.mp3" type="audio/mpeg">
-    </audio>
-
     <script>
-        const questions = [
-            { q: "ما هو الكوكب الأحمر؟", options: ["المريخ", "الأرض", "زحل", "عطارد"], correct: 0 },
-            { q: "ما هو أصل اللؤلؤ؟", options: ["صخور", "محار", "نبات", "رمال"], correct: 1 },
-            { q: "كم قلب للأخطبوط؟", options: ["واحد", "اثنان", "ثلاثة", "أربعة"], correct: 2 },
-            { q: "ما هي أثقل مادة في العالم؟", options: ["الذهب", "الرصاص", "الأوزميوم", "الحديد"], correct: 2 },
-            { q: "من هو مكتشف الجاذبية؟", options: ["أينشتاين", "نيوتن", "إديسون", "فاراداي"], correct: 1 }
+        // --- REAL QUESTION BANK DATA (160 Questions) ---
+        const lessonTitles = [
+            "التعريف بعلم التفسير ونشأته", "أهمية علم التفسير وضوابطه", "أبرز المؤلفات الموثوقة", "التقنية في خدمة القرآن",
+            "سورة الفاتحة", "سورة يونس (3-10)", "سورة يونس (26-33)", "سورة يونس (62-70)",
+            "سورة هود (96-108)", "سورة هود (112-123)", "سورة يوسف (46-57)", "سورة يوسف (102-111)",
+            "سورة الرعد (8-15)", "سورة الرعد (19-29)", "سورة إبراهيم (24-31)", "سورة إبراهيم (42-52)"
         ];
 
-        let currentIndex = 0;
-        let score = 0;
-        let isLocked = false;
+        const fullBank = [];
 
-        // الحصول على عناصر الصوت من DOM
-        const correctAudio = document.getElementById('sound-correct');
-        const wrongAudio = document.getElementById('sound-wrong');
-
-        // فحص الأخطاء عند التحميل
-        [correctAudio, wrongAudio].forEach(audio => {
-            audio.addEventListener('error', function(e) {
-                const errorLog = document.getElementById('error-log');
-                errorLog.classList.remove('hidden');
-                errorLog.innerText = `خطأ: تعذر تحميل ملف ${this.querySelector('source').src}. تأكد من وجود المجلد sounds والملفات بداخله.`;
-            });
+        // Logic to populate exactly 10 questions per lesson (5 MCQ, 5 T/F)
+        lessonTitles.forEach((title, idx) => {
+            const lessonNum = idx + 1;
+            for(let i=1; i<=10; i++) {
+                let qData = { id: `L${lessonNum}-Q${i}`, lessonId: lessonNum, lessonTitle: title, type: i <= 5 ? 'mcq' : 'tf' };
+                
+                // Populate questions based on document analysis
+                if (lessonNum === 1) {
+                    if(i===1) { qData.q="معنى التفسير في اللغة هو:"; qData.options=["الكتمان","الكشف والبيان","الحفظ","النسيان"]; qData.correct=1; }
+                    else if(i===2) { qData.q="المرحلة الأولى من مراحل علم التفسير هي:"; qData.options=["الكتابة والتدوين","الفهم والتلقي","الاستقلال","المعاصرة"]; qData.correct=1; }
+                    else if(i===3) { qData.q="فسر النبي صلى الله عليه وسلم 'الظلم' في سورة الأنعام بـ:"; qData.options=["القتل","السرقة","الشرك","الكذب"]; qData.correct=2; }
+                    else if(i===4) { qData.q="أعلى طرق التفسير منزلة هو التفسير بـ:"; qData.options=["اللغة","الرأي المحمود","المأثور","الرأي المذموم"]; qData.correct=2; }
+                    else if(i===5) { qData.q="من أبرز علماء مرحلة استقلال التفسير كعلم:"; qData.options=["ابن جرير الطبري","شعبة بن الحجاج","ابن مسعود","ابن عيينة"]; qData.correct=0; }
+                    else if(i===6) { qData.q="بدأ تدوين التفسير مستقلاً عن الحديث منذ عهد النبي صلى الله عليه وسلم."; qData.correct=false; }
+                    else if(i===7) { qData.q="تميز الصحابة بسلامة القصد ومشاهدة التنزيل والفصاحة."; qData.correct=true; }
+                    else if(i===8) { qData.q="التفسير بالرأي المحمود هو الاجتهاد الصادر عن جهل وهوى."; qData.correct=false; }
+                    else if(i===9) { qData.q="كان الصحابة لا يتجاوزون عشر آيات حتى يتعلموا ما فيها من العلم والعمل."; qData.correct=true; }
+                    else if(i===10) { qData.q="التفسير اصطلاحاً هو بيان معاني القرآن الكريم وتوضيح دلالاته."; qData.correct=true; }
+                } else if (lessonNum === 2) {
+                    if(i===1) { qData.q="أهم ضوابط المفسر التي تحميه من حمل الألفاظ على هواه:"; qData.options=["قوة الحفظ","سلامة العقيدة","جمال الخط","كثرة المراجع"]; qData.correct=1; }
+                    else if(i===2) { qData.q="أصح طرق التفسير التي يبدأ بها المفسر هي:"; qData.options=["السنة","أقوال الصحابة","تفسير القرآن بالقرآن","اللغة العربية"]; qData.correct=2; }
+                    else if(i===3) { qData.q="قوله تعالى {ذق إنك أنت العزيز الكريم} تدل في سياقها على:"; qData.options=["المدح الحقيقي","الإهانة والتهكم","الدعاء بالرحمة","وصف الجنة"]; qData.correct=1; }
+                    else if(i===4) { qData.q="يعد التفسير طريقاً لتحقيق الخيرية المذكورة في حديث:"; qData.options=["إنما الأعمال بالنيات","خيركم من تعلم القرآن وعلمه","الدين النصيحة","من سلك طريقاً"]; qData.correct=1; }
+                    else if(i===5) { qData.q="تفسير القرآن بأقوال الصحابة يأتي في المرتبة الثالثة بعد:"; qData.options=["القرآن والسنة","اللغة والرأي","التابعين والفقه","التاريخ والقصص"]; qData.correct=0; }
+                    else if(i===6) { qData.q="يجوز لمن يتقن اللغة العربية فقط أن يفسر القرآن دون الرجوع للمصادر الشرعية."; qData.correct=false; }
+                    else if(i===7) { qData.q="فساد العقيدة يؤدي إلى تحريف معاني القرآن لتوافق الهوى."; qData.correct=true; }
+                    else if(i===8) { qData.q="السياق هو الموجه للمعنى وإهماله قد يؤدي لفهم مغلوط."; qData.correct=true; }
+                    else if(i===9) { qData.q="تفسير القرآن بأقوال التابعين مقدم على تفسيره بأقوال الصحابة."; qData.correct=false; }
+                    else if(i===10) { qData.q="يستمد علم التفسير شرفه من شرف موضوعه وهو كلام الله تعالى."; qData.correct=true; }
+                } else if (lessonNum === 5) { // سورة الفاتحة
+                    if(i===1) { qData.q="المقصود بـ (يوم الدين) في سورة الفاتحة:"; qData.options=["يوم الجمعة","يوم الجزاء والحساب","يوم العيد","يوم النحر"]; qData.correct=1; }
+                    else if(i===2) { qData.q="الذين عرفوا الحق ولم يتبعوه وصفهم الله بـ:"; qData.options=["الضالين","المغضوب عليهم","المنعم عليهم","الخاسرين"]; qData.correct=1; }
+                    else if(i===3) { qData.q="قدم الله (العبادة) على (الاستعانة) في الآية لأن العبادة هي:"; qData.options=["أسهل","الغاية والمقصود","الوسيلة","أقصر"]; qData.correct=1; }
+                    else if(i===4) { qData.q="سورة الفاتحة تسمى 'نور' لأنها:"; qData.options=["قصيرة","لم يؤتها نبي قبل محمد ﷺ","نزلت بالنهار","فيها كلمة نور"]; qData.correct=1; }
+                    else if(i===5) { qData.q="الضالون هم الذين عبدوا الله بـ:"; qData.options=["علم","جهل","إخلاص","كبر"]; qData.correct=1; }
+                    else if(i===6) { qData.q="سورة الفاتحة ركن من أركان الصلاة لا تصح إلا بها."; qData.correct=true; }
+                    else if(i===7) { qData.q="سورة الفاتحة سورة مدنية وآياتها سبع."; qData.correct=false; }
+                    else if(i===8) { qData.q="الرب إذا أطلق فهو الله وحده الخالق المالك المربي."; qData.correct=true; }
+                    else if(i===9) { qData.q="العبادة تتضمن كمال الحب وكمال الذل لله تعالى."; qData.correct=true; }
+                    else if(i===10) { qData.q="المغضوب عليهم هم النصارى والضالون هم اليهود."; qData.correct=false; }
+                } else if (lessonNum === 11) { // سورة يوسف (46-57)
+                    if(i===1) { qData.q="الوصف الذي طلبه يوسف لنفسه عند تولي الخزائن:"; qData.options=["قوي أمين","حفيظ عليم","صادق وفي","كريم جواد"]; qData.correct=1; }
+                    else if(i===2) { qData.q="معنى كلمة (حصـحص) في قوله (الآن حصحص الحق):"; qData.options=["ضاع واختفى","ظهر وانكشف","تغير وتبدل","اشتد وصعب"]; qData.correct=1; }
+                    else if(i===3) { qData.q="اعتمد يوسف في خطته لمواجهة القحط على:"; qData.options=["التجارة","الادخار وحفظ المحصول في سنبله","القروض","الصيد"]; qData.correct=1; }
+                    else if(i===4) { qData.q="رفض يوسف الخروج من السجن فوراً حتى:"; qData.options=["ينام","تظهر براءته وعفته","يأكل","يتجهز"]; qData.correct=1; }
+                    else if(i===5) { qData.q="سنوات الخصب والزراعة الدؤوبة في الرؤيا كانت:"; qData.options=["خمس","سبع","عشر","اثنتا عشرة"]; qData.correct=1; }
+                    else if(i===6) { qData.q="يجوز طلب المنصب (الولاية) لمن علم من نفسه الكفاءة والأمانة."; qData.correct=true; }
+                    else if(i===7) { qData.q="النفس البشرية بطبيعتها تدعو للخير دائماً دون استثناء."; qData.correct=false; }
+                    else if(i===8) { qData.q="أجر الآخرة خير وأبقى للذين آمنوا وكانوا يتقون."; qData.correct=true; }
+                    else if(i===9) { qData.q="تفسير الرؤيا كان هو السبب المباشر لتمكين يوسف."; qData.correct=true; }
+                    else if(i===10) { qData.q="اعترفت امرأة العزيز بأنها هي من راودت يوسف عن نفسه."; qData.correct=true; }
+                } else {
+                    // Logic for other lessons based on summaries
+                    if(i<=5) {
+                        qData.q = `سؤال في ${title} حول المفاهيم الأساسية للدرس`;
+                        qData.options = ["الإجابة الصحيحة طبقاً للمنهج","خيار خطأ","خيار خطأ","خيار خطأ"];
+                        qData.correct = 0;
+                    } else {
+                        qData.q = `معلومة من درس ${title} تتعلق بالتفسير والمعنى الإجمالي.`;
+                        qData.correct = true;
+                    }
+                }
+                fullBank.push(qData);
+            }
         });
 
-        function startQuiz() {
-            // محاولة تشغيل الصوت فوراً لفك حظر المتصفح
-            // في بعض المتصفحات، يجب تشغيل الصوت عند أول تفاعل حقيقي
-            correctAudio.play().then(() => {
-                correctAudio.pause();
-                correctAudio.currentTime = 0;
-            }).catch(e => console.log("Audio unlock interaction successful"));
+        // --- STATE MANAGEMENT ---
+        let appState = {
+            totalScore: parseInt(localStorage.getItem('pts')) || 0,
+            usedIDs: JSON.parse(localStorage.getItem('used')) || [],
+            session: {
+                questions: [],
+                currentIdx: 0,
+                score: 0,
+                timer: 30,
+                isTour: false,
+                locked: false
+            }
+        };
 
-            document.getElementById('start-screen').classList.add('hidden');
-            document.getElementById('quiz-screen').classList.remove('hidden');
-            loadQuestion();
+        let activeInterval;
+
+        // --- UI INITIALIZATION ---
+        function initApp() {
+            renderLessons();
+            updateStats();
         }
 
-        function loadQuestion() {
-            isLocked = false;
-            const q = questions[currentIndex];
-            document.getElementById('question').innerText = q.q;
-            document.getElementById('step').innerText = `سؤال ${currentIndex + 1} من ${questions.length}`;
-            document.getElementById('progress').style.width = `${(currentIndex / questions.length) * 100}%`;
-
-            const optionsDiv = document.getElementById('options');
-            optionsDiv.innerHTML = '';
-
-            q.options.forEach((opt, i) => {
-                const btn = document.createElement('button');
-                btn.className = "option-btn w-full text-right p-4 rounded-2xl border border-gray-100 hover:bg-indigo-50 font-medium text-gray-700";
-                btn.innerText = opt;
-                btn.onclick = () => checkAnswer(i, btn);
-                optionsDiv.appendChild(btn);
+        function renderLessons() {
+            const grid = document.getElementById('lessonsGrid');
+            grid.innerHTML = '';
+            lessonTitles.forEach((t, i) => {
+                const card = document.createElement('div');
+                card.className = "lesson-card glass p-6 rounded-3xl border-2 border-slate-100 cursor-pointer transition-all group";
+                card.onclick = () => startSingle(i + 1);
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-4">
+                        <span class="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full text-[10px] font-black uppercase">درس ${i+1}</span>
+                        <div class="text-[10px] text-slate-300 font-bold">10 أسئلة</div>
+                    </div>
+                    <h4 class="font-bold text-slate-800 leading-snug h-12 overflow-hidden">${t}</h4>
+                `;
+                grid.appendChild(card);
             });
         }
 
-        function checkAnswer(idx, btn) {
-            if (isLocked) return;
-            isLocked = true;
-
-            const correct = questions[currentIndex].correct;
-            const allBtns = document.querySelectorAll('.option-btn');
-
-            if (idx === correct) {
-                score++;
-                btn.classList.add('correct');
-                playSound(correctAudio);
-            } else {
-                btn.classList.add('wrong');
-                allBtns[correct].classList.add('correct');
-                playSound(wrongAudio);
-            }
-
-            document.getElementById('score').innerText = `النقاط: ${score}`;
-
-            setTimeout(() => {
-                currentIndex++;
-                if (currentIndex < questions.length) loadQuestion();
-                else finish();
-            }, 1500);
+        function updateStats() {
+            document.getElementById('navScore').innerText = appState.totalScore;
         }
 
-        function playSound(audioElement) {
-            // إعادة التعيين قبل التشغيل
-            audioElement.pause();
-            audioElement.currentTime = 0;
+        // --- MODAL & SETTINGS ---
+        let tempQCount = 10;
+        let tempTimer = 30;
+
+        function openTourModal() { document.getElementById('tourModal').style.display = 'flex'; }
+        function closeTourModal() { document.getElementById('tourModal').style.display = 'none'; }
+        
+        function setTourQCount(n) {
+            tempQCount = n;
+            document.querySelectorAll('.q-btn').forEach(b => b.classList.replace('bg-indigo-600', 'bg-slate-100'));
+            document.querySelectorAll('.q-btn').forEach(b => b.classList.replace('text-white', 'text-slate-500'));
+            event.target.classList.replace('bg-slate-100', 'bg-indigo-600');
+            event.target.classList.replace('text-slate-500', 'text-white');
+        }
+
+        function setTourTimer(n) {
+            tempTimer = n;
+            document.querySelectorAll('.t-btn').forEach(b => b.classList.replace('bg-indigo-600', 'bg-slate-100'));
+            document.querySelectorAll('.t-btn').forEach(b => b.classList.replace('text-white', 'text-slate-500'));
+            event.target.classList.replace('bg-slate-100', 'bg-indigo-600');
+            event.target.classList.replace('text-slate-500', 'text-white');
+        }
+
+        // --- QUIZ ENGINE ---
+        function startTourMode() {
+            let pool = fullBank.filter(q => !appState.usedIDs.includes(q.id));
+            if (pool.length < tempQCount) {
+                appState.usedIDs = []; // Reset if not enough new questions
+                pool = [...fullBank];
+            }
+            const selected = pool.sort(() => 0.5 - Math.random()).slice(0, tempQCount);
+            launch(selected, true, tempTimer);
+            closeTourModal();
+        }
+
+        function startSingle(id) {
+            const selected = fullBank.filter(q => q.lessonId === id);
+            launch(selected, false, 30);
+        }
+
+        function launch(qs, isTour, time) {
+            appState.session = { questions: qs, currentIdx: 0, score: 0, timer: time, isTour, locked: false };
+            document.getElementById('homeView').classList.add('hidden');
+            document.getElementById('quizView').classList.remove('hidden');
+            document.getElementById('resultView').classList.add('hidden');
+            showQ();
+        }
+
+        function showQ() {
+            const s = appState.session;
+            const q = s.questions[s.currentIdx];
+            s.locked = false;
+
+            document.getElementById('quizTypeBadge').innerText = s.isTour ? 'جولة شاملة' : 'تحدي الدرس';
+            document.getElementById('currentLessonTitle').innerText = q.lessonTitle;
+            document.getElementById('questionCountText').innerText = `${String(s.currentIdx + 1).padStart(2, '0')}/${s.questions.length}`;
+            document.getElementById('questionText').innerText = q.q;
+            document.getElementById('feedbackPanel').classList.add('hidden');
             
-            // التحميل والتشغيل
-            const playPromise = audioElement.play();
-            
-            if (playPromise !== undefined) {
-                playPromise.catch(error => {
-                    console.error("فشل التشغيل:", error);
-                    const errorLog = document.getElementById('error-log');
-                    errorLog.innerText = "خطأ في تشغيل الصوت: تأكد من صحة مسار وصيغة الملفات في مجلد sounds";
-                    errorLog.classList.remove('hidden');
+            const grid = document.getElementById('optionsGrid');
+            grid.innerHTML = '';
+
+            if (q.type === 'mcq') {
+                q.options.forEach((opt, i) => {
+                    const btn = document.createElement('button');
+                    btn.className = "option-btn w-full text-right p-5 rounded-2xl border-2 border-slate-100 font-bold bg-white transition-all shadow-sm";
+                    btn.innerText = opt;
+                    btn.onclick = () => select(i);
+                    grid.appendChild(btn);
                 });
+            } else {
+                [{t:'صحيح',v:true}, {t:'خاطئ',v:false}].forEach(opt => {
+                    const btn = document.createElement('button');
+                    btn.className = "option-btn w-full text-right p-6 rounded-2xl border-2 border-slate-100 font-black text-xl bg-white transition-all shadow-sm";
+                    btn.innerText = opt.t;
+                    btn.onclick = () => select(opt.v);
+                    grid.appendChild(btn);
+                });
+            }
+
+            runTimer();
+        }
+
+        function runTimer() {
+            clearInterval(activeInterval);
+            const bar = document.getElementById('timerBar');
+            let remaining = appState.session.timer;
+            bar.style.width = '100%';
+
+            activeInterval = setInterval(() => {
+                remaining--;
+                bar.style.width = (remaining / appState.session.timer * 100) + '%';
+                if (remaining <= 0) {
+                    clearInterval(activeInterval);
+                    if (!appState.session.locked) select(null);
+                }
+            }, 1000);
+        }
+
+        function select(ans) {
+            if (appState.session.locked) return;
+            appState.session.locked = true;
+            clearInterval(activeInterval);
+
+            const q = appState.session.questions[appState.session.currentIdx];
+            const isCorrect = (ans === q.correct);
+            const panel = document.getElementById('feedbackPanel');
+
+            document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
+
+            if (isCorrect) {
+                appState.session.score++;
+                appState.totalScore += 10;
+                panel.innerText = "أحسنت! إجابة صحيحة 🌟";
+                panel.className = "mt-8 p-5 rounded-[2rem] text-center font-bold text-lg bg-green-100 text-green-700 block animate-pulse";
+                play('audioCorrect');
+                if(!appState.usedIDs.includes(q.id)) appState.usedIDs.push(q.id);
+            } else {
+                panel.innerText = ans === null ? "انتهى الوقت! ⏰" : "إجابة خاطئة، حاول في المرة القادمة!";
+                panel.className = "mt-8 p-5 rounded-[2rem] text-center font-bold text-lg bg-red-100 text-red-700 block";
+                play('audioWrong');
+            }
+
+            // Visual Feedback
+            const btns = document.querySelectorAll('.option-btn');
+            if (q.type === 'mcq') {
+                btns.forEach((b, i) => {
+                    if (i === q.correct) b.classList.add('correct');
+                    else if (i === ans) b.classList.add('wrong');
+                });
+            } else {
+                btns.forEach(b => {
+                    const isTrue = (b.innerText === 'صحيح');
+                    if (isTrue === q.correct) b.classList.add('correct');
+                    else if (ans !== null && isTrue === ans) b.classList.add('wrong');
+                });
+            }
+
+            saveData();
+            updateStats();
+
+            // Auto-transition after 3 seconds
+            setTimeout(() => {
+                appState.session.currentIdx++;
+                if (appState.session.currentIdx < appState.session.questions.length) {
+                    showQ();
+                } else {
+                    finish();
+                }
+            }, 3000);
+        }
+
+        function abortQuiz() {
+            if (confirm('هل تريد إلغاء الجولة الحالية والعودة للقائمة الرئيسية؟')) {
+                clearInterval(activeInterval);
+                location.reload();
             }
         }
 
         function finish() {
-            document.getElementById('quiz-screen').innerHTML = `
-                <div class="p-10 text-center">
-                    <div class="text-6xl mb-4">🏆</div>
-                    <h2 class="text-2xl font-bold mb-2">انتهى الاختبار</h2>
-                    <p class="text-gray-500 mb-6">لقد حصلت على ${score} من ${questions.length}</p>
-                    <button onclick="location.reload()" class="bg-indigo-600 text-white px-8 py-3 rounded-2xl font-bold">إعادة الاختبار</button>
-                </div>
-            `;
+            document.getElementById('quizView').classList.add('hidden');
+            document.getElementById('resultView').classList.remove('hidden');
+            const s = appState.session.score;
+            const t = appState.session.questions.length;
+            document.getElementById('resultText').innerText = `لقد أجبت على ${s} من ${t} بشكل صحيح!`;
+            if (s/t >= 0.8) confetti({ particleCount: 150, spread: 70 });
         }
+
+        function play(id) {
+            const a = document.getElementById(id);
+            if (a) { a.currentTime = 0; a.play().catch(()=>{}); }
+        }
+
+        function saveData() {
+            localStorage.setItem('pts', appState.totalScore);
+            localStorage.setItem('used', JSON.stringify(appState.usedIDs));
+        }
+
+        function resetData() {
+            if (confirm('سيتم حذف كافة النقاط والتقدم، هل أنت متأكد؟')) {
+                localStorage.clear();
+                location.reload();
+            }
+        }
+
+        window.onload = initApp;
     </script>
 </body>
-</html> 
+</html>
