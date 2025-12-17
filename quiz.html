@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منصة التفسير | بنك الأسئلة الشامل</title>
+    <title>منصة التفسير | بنك الأسئلة المعتمد</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -13,8 +13,8 @@
         .correct { background-color: #10b981 !important; color: white !important; border-color: #059669 !important; }
         .wrong { background-color: #ef4444 !important; color: white !important; border-color: #dc2626 !important; }
         .timer-bar { transition: width 1s linear; }
-        .option-btn:hover:not(:disabled) { transform: translateX(-5px); border-color: #6366f1; background-color: #f8fafc; }
-        .lesson-card:hover { transform: translateY(-5px); border-color: #6366f1; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        .option-btn:hover:not(:disabled) { transform: translateX(-5px); border-color: #6366f1; }
+        .lesson-card:hover { transform: translateY(-5px); border-color: #6366f1; }
     </style>
 </head>
 <body class="min-h-screen text-slate-800">
@@ -23,16 +23,16 @@
     <audio id="audioCorrect" src="sounds/correct.mp3" preload="auto"></audio>
     <audio id="audioWrong" src="sounds/wrong.mp3" preload="auto"></audio>
 
-    <!-- Header -->
+    <!-- Nav -->
     <nav class="bg-white border-b sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-bold text-xl">ت</div>
-                <h1 class="text-xl font-extrabold text-slate-900">بنك التفسير التفاعلي</h1>
+                <h1 class="text-xl font-extrabold">بنك أسئلة التفسير</h1>
             </div>
-            <div class="flex flex-col items-end">
-                <span class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">إجمالي النقاط</span>
-                <span id="navScore" class="text-indigo-600 font-black text-lg">0</span>
+            <div class="text-left">
+                <p class="text-[10px] text-slate-400 font-bold uppercase">النقاط المكتسبة</p>
+                <p id="navScore" class="text-indigo-600 font-black">0</p>
             </div>
         </div>
     </nav>
@@ -41,28 +41,18 @@
         
         <!-- Home View -->
         <div id="homeView">
-            <div class="bg-gradient-to-br from-indigo-700 to-blue-600 rounded-[2.5rem] p-8 md:p-12 text-white shadow-2xl mb-12 relative overflow-hidden">
-                <div class="relative z-10 max-w-2xl">
-                    <h2 class="text-4xl md:text-5xl font-black mb-6">مرحباً بك في تحدي التفسير 🌟</h2>
-                    <p class="text-indigo-100 text-lg mb-8 leading-relaxed">منصة تعليمية ذكية تغطي 16 درساً بـ 160 سؤالاً دقيقاً. اختر نمط الاختبار المفضل لديك وابدأ رحلة العلم.</p>
+            <div class="bg-gradient-to-br from-indigo-700 to-indigo-500 rounded-[2.5rem] p-8 md:p-12 text-white shadow-2xl mb-12 relative overflow-hidden">
+                <div class="relative z-10">
+                    <h2 class="text-4xl md:text-5xl font-black mb-4">مرحباً بك في تحدي التفسير 🌟</h2>
+                    <p class="text-indigo-100 text-lg mb-8 max-w-xl">اختبر معلوماتك في 16 درساً من مقرر التفسير بأسئلة دقيقة من المنهج.</p>
                     <button onclick="openTourModal()" class="bg-white text-indigo-700 px-10 py-4 rounded-2xl font-black text-xl shadow-xl hover:scale-105 transition-all">
                         بدء جولة في جميع الدروس
                     </button>
                 </div>
-                <div class="absolute -left-10 -bottom-10 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
             </div>
 
-            <div class="flex items-center justify-between mb-8">
-                <h3 class="text-2xl font-black flex items-center gap-3">
-                    <span class="w-2 h-8 bg-indigo-600 rounded-full"></span>
-                    اختر درساً للتحدي
-                </h3>
-                <button onclick="resetData()" class="text-sm text-slate-400 hover:text-red-500 underline font-medium">إعادة ضبط كافة البيانات</button>
-            </div>
-
-            <div id="lessonsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <!-- Lessons Injected via JS -->
-            </div>
+            <h3 class="text-2xl font-black mb-8 flex items-center gap-3">قائمة الدروس المتاحة</h3>
+            <div id="lessonsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"></div>
         </div>
 
         <!-- Quiz View -->
@@ -75,27 +65,18 @@
                 <div class="p-8 md:p-12">
                     <div class="flex justify-between items-start mb-8">
                         <div>
-                            <span id="quizTypeBadge" class="bg-indigo-100 text-indigo-700 px-4 py-1 rounded-full text-xs font-bold uppercase"></span>
-                            <h4 id="currentLessonTitle" class="text-slate-500 mt-3 font-bold text-sm"></h4>
+                            <span id="quizBadge" class="bg-indigo-100 text-indigo-700 px-4 py-1 rounded-full text-xs font-bold uppercase"></span>
+                            <h4 id="lessonName" class="text-slate-500 mt-3 font-bold text-sm"></h4>
                         </div>
-                        <button onclick="abortQuiz()" class="bg-slate-100 text-slate-400 hover:bg-red-50 hover:text-red-500 p-3 rounded-2xl transition-all shadow-sm">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                            </svg>
+                        <button onclick="abortQuiz()" class="bg-slate-100 text-slate-400 hover:text-red-500 p-3 rounded-2xl transition-all shadow-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                         </button>
                     </div>
 
-                    <div class="flex justify-between items-center mb-6">
-                        <span id="questionCountText" class="text-slate-300 font-black text-3xl">01/10</span>
-                    </div>
-
-                    <h3 id="questionText" class="text-2xl md:text-3xl font-bold mb-10 text-slate-800 leading-tight"></h3>
-
-                    <div id="optionsGrid" class="grid gap-4">
-                        <!-- Options Injected -->
-                    </div>
-
-                    <div id="feedbackPanel" class="mt-8 p-5 rounded-[2rem] text-center font-bold text-lg hidden animate-pulse"></div>
+                    <div class="mb-6"><span id="qIdxText" class="text-slate-300 font-black text-3xl">01/06</span></div>
+                    <h3 id="qText" class="text-2xl md:text-3xl font-bold mb-10 text-slate-800 leading-tight"></h3>
+                    <div id="optionsGrid" class="grid gap-4"></div>
+                    <div id="feedback" class="mt-8 p-5 rounded-[2rem] text-center font-bold text-lg hidden"></div>
                 </div>
             </div>
         </div>
@@ -103,39 +84,36 @@
         <!-- Result View -->
         <div id="resultView" class="hidden text-center py-20">
             <div class="text-[120px] mb-8">🎖️</div>
-            <h2 class="text-5xl font-black mb-4">أنهيت التحدي بنجاح!</h2>
-            <p id="resultText" class="text-2xl text-slate-500 mb-12"></p>
-            <button onclick="location.reload()" class="bg-indigo-600 text-white px-12 py-5 rounded-[2rem] font-black text-xl shadow-2xl hover:scale-105 transition-all">العودة للرئيسية</button>
+            <h2 class="text-5xl font-black mb-4">أنهيت التحدي!</h2>
+            <p id="resultSummary" class="text-2xl text-slate-500 mb-12"></p>
+            <button onclick="location.reload()" class="bg-indigo-600 text-white px-12 py-5 rounded-[2rem] font-black text-xl shadow-2xl transition-all">العودة للرئيسية</button>
         </div>
 
     </main>
 
     <!-- Tour Modal -->
     <div id="tourModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden items-center justify-center p-4">
-        <div class="bg-white w-full max-w-md rounded-[3rem] p-10 shadow-2xl scale-up-center">
-            <h3 class="text-2xl font-black mb-8">إعدادات الجولة الشاملة ⚙️</h3>
-            
+        <div class="bg-white w-full max-w-md rounded-[3rem] p-10 shadow-2xl">
+            <h3 class="text-2xl font-black mb-8 text-center">إعدادات الجولة ⚙️</h3>
             <div class="space-y-8">
                 <div>
-                    <label class="block text-sm font-bold text-slate-400 mb-4">كم سؤالاً تريد في هذه الجولة؟</label>
+                    <label class="block text-sm font-bold text-slate-400 mb-4">عدد الأسئلة:</label>
                     <div class="grid grid-cols-3 gap-3">
-                        <button onclick="setTourQCount(10)" class="q-btn bg-indigo-600 text-white p-4 rounded-2xl font-bold transition-all shadow-md">10</button>
-                        <button onclick="setTourQCount(20)" class="q-btn bg-slate-100 text-slate-500 p-4 rounded-2xl font-bold transition-all">20</button>
-                        <button onclick="setTourQCount(50)" class="q-btn bg-slate-100 text-slate-500 p-4 rounded-2xl font-bold transition-all">50</button>
+                        <button onclick="setTourQ(10)" class="q-b bg-indigo-600 text-white p-4 rounded-2xl font-bold transition-all shadow-md">10</button>
+                        <button onclick="setTourQ(20)" class="q-b bg-slate-100 text-slate-500 p-4 rounded-2xl font-bold transition-all">20</button>
+                        <button onclick="setTourQ(50)" class="q-b bg-slate-100 text-slate-500 p-4 rounded-2xl font-bold transition-all">50</button>
                     </div>
                 </div>
-
                 <div>
-                    <label class="block text-sm font-bold text-slate-400 mb-4">وقت التفكير لكل سؤال (ثانية):</label>
+                    <label class="block text-sm font-bold text-slate-400 mb-4">وقت التفكير (ثانية):</label>
                     <div class="grid grid-cols-3 gap-3">
-                        <button onclick="setTourTimer(15)" class="t-btn bg-slate-100 text-slate-500 p-4 rounded-2xl font-bold transition-all">15</button>
-                        <button onclick="setTourTimer(30)" class="t-btn bg-indigo-600 text-white p-4 rounded-2xl font-bold transition-all shadow-md">30</button>
-                        <button onclick="setTourTimer(60)" class="t-btn bg-slate-100 text-slate-500 p-4 rounded-2xl font-bold transition-all">60</button>
+                        <button onclick="setTourT(15)" class="t-b bg-slate-100 text-slate-500 p-4 rounded-2xl font-bold transition-all">15</button>
+                        <button onclick="setTourT(30)" class="t-b bg-indigo-600 text-white p-4 rounded-2xl font-bold transition-all shadow-md">30</button>
+                        <button onclick="setTourT(60)" class="t-b bg-slate-100 text-slate-500 p-4 rounded-2xl font-bold transition-all">60</button>
                     </div>
                 </div>
-
                 <div class="flex gap-4 pt-4">
-                    <button onclick="startTourMode()" class="flex-1 bg-indigo-600 text-white py-5 rounded-[2rem] font-black text-lg shadow-xl hover:bg-indigo-700">انطلق الآن</button>
+                    <button onclick="startTour()" class="flex-1 bg-indigo-600 text-white py-5 rounded-[2rem] font-black text-lg shadow-xl hover:bg-indigo-700">ابدأ الجولة</button>
                     <button onclick="closeTourModal()" class="px-8 bg-slate-100 text-slate-400 py-5 rounded-[2rem] font-bold">إلغاء</button>
                 </div>
             </div>
@@ -143,250 +121,279 @@
     </div>
 
     <script>
-        // --- REAL QUESTION BANK DATA (160 Questions) ---
-        const lessonTitles = [
-            "التعريف بعلم التفسير ونشأته", "أهمية علم التفسير وضوابطه", "أبرز المؤلفات الموثوقة", "التقنية في خدمة القرآن",
-            "سورة الفاتحة", "سورة يونس (3-10)", "سورة يونس (26-33)", "سورة يونس (62-70)",
-            "سورة هود (96-108)", "سورة هود (112-123)", "سورة يوسف (46-57)", "سورة يوسف (102-111)",
-            "سورة الرعد (8-15)", "سورة الرعد (19-29)", "سورة إبراهيم (24-31)", "سورة إبراهيم (42-52)"
+        // --- DATA FROM FILE (Full 16 Lessons, exactly as provided) ---
+        const bank = [
+            { id: 1, title: "التعريف بعلم التفسير ونشأته", questions: [
+                { q: "أعلى طرق التفسير منزلة هو التفسير بـ:", options: ["الرأي المحمود", "المأثور", "اللغة العربية"], correct: 1, type: "mcq" },
+                { q: "كان الصحابة لا يتجاوزون ... آيات حتى يتعلموا ما فيها:", options: ["خمس", "عشر", "عشرين"], correct: 1, type: "mcq" },
+                { q: "من أبرز علماء مرحلة استقلال التفسير وتدوينه كعلم مستقل:", options: ["ابن جرير الطبري", "سفيان بن عيينة", "ابن مسعود"], correct: 0, type: "mcq" },
+                { q: "بدأ تدوين التفسير مستقلاً عن الحديث منذ عهد النبي ﷺ.", correct: false, type: "tf" },
+                { q: "التفسير بالرأي المحمود هو الاجتهاد الصادر عن هوى وجهل.", correct: false, type: "tf" },
+                { q: "تميز تفسير الصحابة بأنهم أهل اللسان العربي وشهدوا التنزيل.", correct: true, type: "tf" }
+            ]},
+            { id: 2, title: "أهمية علم التفسير وضوابطه", questions: [
+                { q: "أصح طرق التفسير التي يجب أن يبدأ بها المفسر هي:", options: ["تفسير القرآن بالسنة", "تفسير القرآن بالقرآن", "تفسير القرآن بالرأي"], correct: 1, type: "mcq" },
+                { q: "قوله تعالى {ذُقْ إِنَّكَ أَنتَ الْعَزِيزُ الْكَرِيمُ} سياقها يدل على:", options: ["المدح والثناء", "التحقير والتهكم", "الوصف الحقيقي"], correct: 1, type: "mcq" },
+                { q: "من ضوابط المفسر التي تحميه من حمل الألفاظ على هواه:", options: ["سلامة العقيدة", "كثرة الحفظ", "جمال الخط"], correct: 0, type: "mcq" },
+                { q: "يجوز لمن يتقن اللغة العربية فقط أن يفسر القرآن دون الرجوع للسنة.", correct: false, type: "tf" },
+                { q: "تفسير القرآن بأقوال الصحابة مقدم على تفسيره بأقوال التابعين.", correct: true, type: "tf" },
+                { q: "مراعاة السياق ضروري لفهم مراد الله في الآيات.", correct: true, type: "tf" }
+            ]},
+            { id: 3, title: "أبرز المؤلفات الموثوقة في التفسير", questions: [
+                { q: "الكتاب الذي يُعد أصح التفاسير ويعتمد عليه المفسرون هو:", options: ["تفسير الطبري", "تفسير السعدي", "تفسير الجلالين"], correct: 0, type: "mcq" },
+                { q: "يتميز تفسير 'أضواء البيان' للشنقيطي بـ:", options: ["جمع الروايات الضعيفة", "العناية بالأحكام الفقهية وتفسير القرآن بالقرآن", "الاختصار الشديد"], correct: 1, type: "mcq" },
+                { q: "مؤلف كتاب 'تفسير القرآن العظيم' هو:", options: ["جلال الدين السيوطي", "ابن كثير الدمشقي", "عبد الرحمن السعدي"], correct: 1, type: "mcq" },
+                { q: "كتاب 'الدر المنثور' للسيوطي يعتمد على التفسير بالرأي العقلي.", correct: false, type: "tf" },
+                { q: "يتميز تفسير السعدي بذكر المعنى الإجمالي بأسلوب سهل وميسر.", correct: true, type: "tf" },
+                { q: "منهج ابن كثير في التفسير يبدأ بذكر الأحاديث قبل الآيات المناسبة.", correct: false, type: "tf" }
+            ]},
+            { id: 4, title: "التقنية في خدمة القرآن الكريم وتفسيره", questions: [
+                { q: "التطبيق الذي يتيح للطالب حل الواجبات وإرسال التسجيل الصوتي للمعلم هو:", options: ["آيات", "مصحف مدرستي", "الباحث القرآني"], correct: 1, type: "mcq" },
+                { q: "الجهة المشرفة على تطبيق وبرنامج 'آيات' هي:", options: ["وزارة التعليم", "جامعة الملك سعود", "مجمع الملك فهد"], correct: 1, type: "mcq" },
+                { q: "عدد المواقع المتخصصة التي أنشأها مجمع الملك فهد لخدمة القرآن:", options: ["10 مواقع", "16 موقعاً", "5 مواقع"], correct: 1, type: "mcq" },
+                { q: "جميع تطبيقات القرآن الموجودة في متاجر الهواتف موثوقة وصحيحة.", correct: false, type: "tf" },
+                { q: "يقدم مجمع الملك فهد خدمات رقمية تشمل ترجمات معاني القرآن.", correct: true, type: "tf" },
+                { q: "تتيح التقنية الحديثة الوصول السريع لكتب التفسير المعتمدة.", correct: true, type: "tf" }
+            ]},
+            { id: 5, title: "تفسير سورة الفاتحة", questions: [
+                { q: "المقصود بـ (يوم الدين) في السورة:", options: ["يوم الجمعة", "يوم الجزاء والحساب", "يوم العيد"], correct: 1, type: "mcq" },
+                { q: "الذين عرفوا الحق ولم يتبعوه وصفهم الله بـ:", options: ["المغضوب عليهم", "الضالين", "المنعم عليهم"], correct: 0, type: "mcq" },
+                { q: "قدم الله 'العبادة' على 'الاستعانة' في الآية لأن:", options: ["الاستعانة أهم", "العبادة هي الغاية والمقصود", "السياق اللفظي"], correct: 1, type: "mcq" },
+                { q: "سورة الفاتحة هي أول سورة نزلت كاملة في القرآن.", correct: true, type: "tf" },
+                { q: " (الضالون) هم الذين تركوا الحق عن عمد وعناد.", correct: false, type: "tf" },
+                { q: "قراءة الفاتحة ركن من أركان الصلاة لا تصح إلا بها.", correct: true, type: "tf" }
+            ]},
+            { id: 6, title: "تفسير سورة يونس (3-10)", questions: [
+                { q: "الحكمة من تقدير منازل القمر كما ذكرت الآيات:", options: ["للإنارة ليلاً فقط", "لتعلموا عدد السنين والحساب", "لزينة السماء"], correct: 1, type: "mcq" },
+                { q: "وصف الله الذين لا يرجون لقاءه بأنهم:", options: ["رضوا بالحياة الدنيا واطمأنوا بها", "يجاهدون في سبيله", "يتفكرون في الخلق"], correct: 0, type: "mcq" },
+                { q: "آخر دعاء أهل الجنة هو:", options: ["سبحانك اللهم", "الحمد لله رب العالمين", "سلام عليكم"], correct: 1, type: "mcq" },
+                { q: "خلق الله السماوات والأرض في ثمانية أيام.", correct: false, type: "tf" },
+                { q: "الشفاعة يوم القيامة تكون مفتوحة للجميع دون إذن.", correct: false, type: "tf" },
+                { q: "الركون إلى الدنيا والغفلة عن آيات الله سبب لدخول النار.", correct: true, type: "tf" }
+            ]},
+            { id: 7, title: "تفسير سورة يونس (26-33)", questions: [
+                { q: "المقصود بـ (الزيادة) في قوله تعالى {لِّلَّذِينَ أَحْسَنُوا الْحُسْنَىٰ وَزيَادَةٌ}:", options: ["القصور والحور العين", "النظر إلى وجه الله الكريم", "طول العمر في الجنة"], correct: 1, type: "mcq" },
+                { q: "معنى كلمة (قتر) في الآيات:", options: ["سواد وغبار", "نور وضياء", "حزن وبكاء"], correct: 0, type: "mcq" },
+                { q: "احتج الله على المشركين لإثبات توحيد الألوهية بإقرارهم بـ:", options: ["توحيد الأسماء والصفات", "توحيد الربوبية", "الإيمان بالكتب"], correct: 1, type: "mcq" },
+                { q: "الشركاء (الأصنام) سيدافعون عن المشركين يوم القيامة.", correct: false, type: "tf" },
+                { q: "الله يضاعف الحسنات ويجازي السيئة بمثلها عدلاً منه.", correct: true, type: "tf" },
+                { q: "الآيات تثبت أن المشركين كانوا ينكرون وجود الله تماماً.", correct: false, type: "tf" }
+            ]},
+            { id: 8, title: "تفسير سورة يونس (62-70)", questions: [
+                { q: " 'أولياء الله' كما عرفتهم الآيات هم:", options: ["الذين تركوا الدنيا واعتزلوا الناس", "الذين آمنوا وكانوا يتقون", "أصحاب الكرامات الخارقة"], correct: 1, type: "mcq" },
+                { q: "الحكمة من جعل الله الليل كما ورد في الآيات:", options: ["للعمل والكسب", "للسكن والراحة", "للخوف والوحشة"], correct: 1, type: "mcq" },
+                { q: "وصف الله قول المشركين 'اتخذ الله ولداً' بأنه:", options: ["اجتهاد مقبول", "افتراء وكذب بلا سلطان", "تعظيم لله"], correct: 1, type: "mcq" },
+                { q: "الخوف والحزن منفيان عن أولياء الله في الدنيا والآخرة.", correct: true, type: "tf" },
+                { q: "يجوز الحزن الشديد الذي يؤدي لليأس بسبب قول المكذبين.", correct: false, type: "tf" },
+                { q: "الحجة العلمية والدليل سماه الله في الآيات 'سلطاناً'.", correct: true, type: "tf" }
+            ]},
+            { id: 9, title: "تفسير سورة هود (96-108)", questions: [
+                { q: "معنى قوله تعالى (الورد المورود) في سياق قصة فرعون:", options: ["الماء العذب", "مدخل النار", "قصور الجنة"], correct: 1, type: "mcq" },
+                { q: "وصف الله يوم القيامة في الآيات بأنه يوم:", options: ["قصير", "مشهود", "مظلم"], correct: 1, type: "mcq" },
+                { q: "معنى كلمة (غير مجذوذ) في وصف عطاء أهل الجنة:", options: ["غير مقطوع", "غير كثير", "غير معلوم"], correct: 0, type: "mcq" },
+                { q: "قاد فرعون قومه إلى النجاة في الدنيا والآخرة.", correct: false, type: "tf" },
+                { q: "الأصنام دفعت العذاب عن عابديها لما نزل بهم.", correct: false, type: "tf" },
+                { q: "يوم القيامة لا تتكلم فيه نفس إلا بإذن الرحمن.", correct: true, type: "tf" }
+            ]},
+            { id: 10, title: "تفسير سورة هود (112-123)", questions: [
+                { q: "معنى قوله تعالى (لا تركنوا) إلى الذين ظلموا:", options: ["لا تحاربوهم", "لا تميلوا إليهم", "لا تدعوهم"], correct: 1, type: "mcq" },
+                { q: "القاعدة الشرعية المستنبطة من قوله (إن الحسنات يذهبن السيئات) هي:", options: ["الطاعات تكفر الذنوب", "الذنوب تبطل الطاعات", "السيئة تمحو الحسنة"], correct: 0, type: "mcq" },
+                { q: "الغاية من ذكر قصص الرسل للنبي ﷺ كما في الآيات:", options: ["معرفة الأنساب", "تثبيت فؤاده", "التسلية والترفيه"], correct: 1, type: "mcq" },
+                { q: "الاستقامة تعني الثبات على الدين وموافقة الأمر الشرعي دون غلو.", correct: true, type: "tf" },
+                { q: "يجوز للمسلم أن يميل بقلبه للظالمين ويرضى بفعالهم.", correct: false, type: "tf" },
+                { q: "الصلاة تعتبر من أكبر الحسنات الماحية للخطايا.", correct: true, type: "tf" }
+            ]},
+            { id: 11, title: "تفسير سورة يوسف (46-57)", questions: [
+                { q: "الوصف الذي وصف به يوسف نفسه لطلب تولي الخزائن:", options: ["قوي أمين", "حفيظ عليم", "غني كريم"], correct: 1, type: "mcq" },
+                { q: "معنى كلمة (حصـحص) في قوله (الآن حصحص الحق):", options: ["ضاع واختفى", "ظهر وانكشف", "التبس وغمض"], correct: 1, type: "mcq" },
+                { q: "الخطة التي وضعها يوسف عليه السلام لمواجهة القحط اعتمدت على:", options: ["زيادة الضرائب", "الادخار وحفظ النعمة", "طلب المساعدات الخارجية"], correct: 1, type: "mcq" },
+                { q: "خرج يوسف من السجن فوراً بمجرد أن طلبه الملك.", correct: false, type: "tf" },
+                { q: "يجوز طلب الولاية (المنصب) لمن علم من نفسه القدرة والأمانة.", correct: true, type: "tf" },
+                { q: "النفس البشرية أمارة بالسوء إلا ما رحم الله وعصم.", correct: true, type: "tf" }
+            ]},
+            { id: 12, title: "تفسير سورة يوسف (102-111)", questions: [
+                { q: "الشرط الأساسي للدعوة إلى الله كما في قوله (أدعو إلى الله على ...):", options: ["مال", "بصيرة وعلم", "قوة وسلطة"], correct: 1, type: "mcq" },
+                { q: "معنى قوله تعالى (استيأس الرسل):", options: ["فقدوا الأمل في إيمان أقوامهم", "يئسوا من رحمة الله", "ماتوا جميعاً"], correct: 0, type: "mcq" },
+                { q: "وصف الله قصص القرآن في ختام السورة بأنها:", options: ["عبرة لأولي الألباب", "أساطير الأولين", "تسلية للناس"], correct: 0, type: "mcq" },
+                { q: "توحيد الربوبية يكفي لدخول الجنة دون توحيد الألوهية.", correct: false, type: "tf" },
+                { q: "القرآن الكريم مصدق لما بين يديه من الكتب السماوية ومهيمن عليها.", correct: true, type: "tf" },
+                { q: "الأمن من مكر الله وعذابه صفة مذمومة حذرت منها الآيات.", correct: true, type: "tf" }
+            ]},
+            { id: 13, title: "تفسير سورة الرعد (8-15)", questions: [
+                { q: "معنى (المعقبات) في قوله تعالى (له معقبات من بين يديه):", options: ["الشياطين", "الملائكة الحفظة", "النجوم"], correct: 1, type: "mcq" },
+                { q: "القانون الإلهي في تغيير النعم مرتبط بـ:", options: ["تغير ما في نفوس الناس", "تغير الزمان", "تغير المكان"], correct: 0, type: "mcq" },
+                { q: "تسبيح الرعد بحمد الله هو تسبيح:", options: ["حقيقي دال على الخضوع", "مجازي", "خيالي"], correct: 0, type: "mcq" },
+                { q: "الله يعلم ما تغيض الأرحام وما تزداد.", correct: true, type: "tf" },
+                { q: "دعاء غير الله كمن يبسط كفيه إلى الماء ليبلغ فاه فلا يبلغه.", correct: true, type: "tf" },
+                { q: "الكافر لا يسجد لله مطلقاً لا طوعاً ولا كرهاً.", correct: false, type: "tf" }
+            ]},
+            { id: 14, title: "تفسير سورة الرعد (19-29)", questions: [
+                { q: "معنى (جنات عدن):", options: ["جنات إقامة دائمة", "بساتين مؤقتة", "حدائق الدنيا"], correct: 0, type: "mcq" },
+                { q: "قوله تعالى (يدرؤون بالحسنة السيئة) يعني:", options: ["يدفعون السيئة بالإحسان", "يردون السيئة بمثلها", "ينسون السيئة"], correct: 0, type: "mcq" },
+                { q: "تطمئن القلوب وتسكن بـ:", options: ["جمع المال", "ذكر الله", "السفر والترحال"], correct: 1, type: "mcq" },
+                { q: "العمى الحقيقي المذكور في القرآن هو عمى البصر.", correct: false, type: "tf" },
+                { q: "صلة الرحم والوفاء بالعهد من صفات أولي الألباب.", correct: true, type: "tf" },
+                { q: "بسط الرزق وتضييقه خاضع لمشيئة الله وحكمته.", correct: true, type: "tf" }
+            ]},
+            { id: 15, title: "تفسير سورة إبراهيم (24-31)", questions: [
+                { q: "شبه الله 'الكلمة الطيبة' في الآيات بـ:", options: ["شجرة طيبة أصلها ثابت", "شجرة خبيثة اجتثت", "جبل راسخ"], correct: 0, type: "mcq" },
+                { q: "المقصود بـ (دار البوار) التي أحل الكفار قومهم فيها:", options: ["الدنيا", "جهنم", "القبر"], correct: 1, type: "mcq" },
+                { q: " (لَئِن شَكَرْتُمْ لَأَزِيدَنَّكُمْ) تدل على أن الشكر سبب لـ:", options: ["بقاء النعمة وزيادتها", "زوال النعمة", "ثبات النعمة دون زيادة"], correct: 0, type: "mcq" },
+                { q: "الكلمة الخبيثة (الكفر) لها أصل ثابت في الأرض كالجبال.", correct: false, type: "tf" },
+                { q: "تثبيت الله للمؤمنين يكون في الدنيا فقط دون الآخرة.", correct: false, type: "tf" },
+                { q: "كفر النعم وجحودها سبب لزوالها وحلول العذاب.", correct: true, type: "tf" }
+            ]},
+            { id: 16, title: "تفسير سورة إبراهيم (42-52)", questions: [
+                { q: "معنى كلمة (مُهْطِعِينَ) في وصف الناس يوم القيامة:", options: ["مسرعين مع الذل", "مبطئين", "نائمين"], correct: 0, type: "mcq" },
+                { q: " (مقرنين في الأصفاد) تعني أنهم:", options: ["مكرمين في المجالس", "مقيدين بالسلاسل والقيود", "طلقاء الأيدي"], correct: 1, type: "mcq" },
+                { q: "ثياب أهل النار (سرابيلهم) مصنوعة من:", options: ["قطران (نحاس مذاب)", "حرير", "صوف"], correct: 0, type: "mcq" },
+                { q: "تأخير الله لعذاب الظالمين دليل على غفلته عنهم.", correct: false, type: "tf" },
+                { q: "أفئدة الظالمين يوم القيامة فارغة من الخوف والفزع.", correct: false, type: "tf" },
+                { q: "الغاية الكبرى من القرآن هي العلم والعمل والتذكير.", correct: true, type: "tf" }
+            ]}
         ];
 
-        const fullBank = [];
+        // --- GLOBAL STATE ---
+        let points = parseInt(localStorage.getItem('pts')) || 0;
+        let used = JSON.parse(localStorage.getItem('used')) || [];
+        let state = { questions: [], idx: 0, score: 0, timer: 30, isTour: false, locked: false };
+        let timerInt;
 
-        // Logic to populate exactly 10 questions per lesson (5 MCQ, 5 T/F)
-        lessonTitles.forEach((title, idx) => {
-            const lessonNum = idx + 1;
-            for(let i=1; i<=10; i++) {
-                let qData = { id: `L${lessonNum}-Q${i}`, lessonId: lessonNum, lessonTitle: title, type: i <= 5 ? 'mcq' : 'tf' };
-                
-                // Populate questions based on document analysis
-                if (lessonNum === 1) {
-                    if(i===1) { qData.q="معنى التفسير في اللغة هو:"; qData.options=["الكتمان","الكشف والبيان","الحفظ","النسيان"]; qData.correct=1; }
-                    else if(i===2) { qData.q="المرحلة الأولى من مراحل علم التفسير هي:"; qData.options=["الكتابة والتدوين","الفهم والتلقي","الاستقلال","المعاصرة"]; qData.correct=1; }
-                    else if(i===3) { qData.q="فسر النبي صلى الله عليه وسلم 'الظلم' في سورة الأنعام بـ:"; qData.options=["القتل","السرقة","الشرك","الكذب"]; qData.correct=2; }
-                    else if(i===4) { qData.q="أعلى طرق التفسير منزلة هو التفسير بـ:"; qData.options=["اللغة","الرأي المحمود","المأثور","الرأي المذموم"]; qData.correct=2; }
-                    else if(i===5) { qData.q="من أبرز علماء مرحلة استقلال التفسير كعلم:"; qData.options=["ابن جرير الطبري","شعبة بن الحجاج","ابن مسعود","ابن عيينة"]; qData.correct=0; }
-                    else if(i===6) { qData.q="بدأ تدوين التفسير مستقلاً عن الحديث منذ عهد النبي صلى الله عليه وسلم."; qData.correct=false; }
-                    else if(i===7) { qData.q="تميز الصحابة بسلامة القصد ومشاهدة التنزيل والفصاحة."; qData.correct=true; }
-                    else if(i===8) { qData.q="التفسير بالرأي المحمود هو الاجتهاد الصادر عن جهل وهوى."; qData.correct=false; }
-                    else if(i===9) { qData.q="كان الصحابة لا يتجاوزون عشر آيات حتى يتعلموا ما فيها من العلم والعمل."; qData.correct=true; }
-                    else if(i===10) { qData.q="التفسير اصطلاحاً هو بيان معاني القرآن الكريم وتوضيح دلالاته."; qData.correct=true; }
-                } else if (lessonNum === 2) {
-                    if(i===1) { qData.q="أهم ضوابط المفسر التي تحميه من حمل الألفاظ على هواه:"; qData.options=["قوة الحفظ","سلامة العقيدة","جمال الخط","كثرة المراجع"]; qData.correct=1; }
-                    else if(i===2) { qData.q="أصح طرق التفسير التي يبدأ بها المفسر هي:"; qData.options=["السنة","أقوال الصحابة","تفسير القرآن بالقرآن","اللغة العربية"]; qData.correct=2; }
-                    else if(i===3) { qData.q="قوله تعالى {ذق إنك أنت العزيز الكريم} تدل في سياقها على:"; qData.options=["المدح الحقيقي","الإهانة والتهكم","الدعاء بالرحمة","وصف الجنة"]; qData.correct=1; }
-                    else if(i===4) { qData.q="يعد التفسير طريقاً لتحقيق الخيرية المذكورة في حديث:"; qData.options=["إنما الأعمال بالنيات","خيركم من تعلم القرآن وعلمه","الدين النصيحة","من سلك طريقاً"]; qData.correct=1; }
-                    else if(i===5) { qData.q="تفسير القرآن بأقوال الصحابة يأتي في المرتبة الثالثة بعد:"; qData.options=["القرآن والسنة","اللغة والرأي","التابعين والفقه","التاريخ والقصص"]; qData.correct=0; }
-                    else if(i===6) { qData.q="يجوز لمن يتقن اللغة العربية فقط أن يفسر القرآن دون الرجوع للمصادر الشرعية."; qData.correct=false; }
-                    else if(i===7) { qData.q="فساد العقيدة يؤدي إلى تحريف معاني القرآن لتوافق الهوى."; qData.correct=true; }
-                    else if(i===8) { qData.q="السياق هو الموجه للمعنى وإهماله قد يؤدي لفهم مغلوط."; qData.correct=true; }
-                    else if(i===9) { qData.q="تفسير القرآن بأقوال التابعين مقدم على تفسيره بأقوال الصحابة."; qData.correct=false; }
-                    else if(i===10) { qData.q="يستمد علم التفسير شرفه من شرف موضوعه وهو كلام الله تعالى."; qData.correct=true; }
-                } else if (lessonNum === 5) { // سورة الفاتحة
-                    if(i===1) { qData.q="المقصود بـ (يوم الدين) في سورة الفاتحة:"; qData.options=["يوم الجمعة","يوم الجزاء والحساب","يوم العيد","يوم النحر"]; qData.correct=1; }
-                    else if(i===2) { qData.q="الذين عرفوا الحق ولم يتبعوه وصفهم الله بـ:"; qData.options=["الضالين","المغضوب عليهم","المنعم عليهم","الخاسرين"]; qData.correct=1; }
-                    else if(i===3) { qData.q="قدم الله (العبادة) على (الاستعانة) في الآية لأن العبادة هي:"; qData.options=["أسهل","الغاية والمقصود","الوسيلة","أقصر"]; qData.correct=1; }
-                    else if(i===4) { qData.q="سورة الفاتحة تسمى 'نور' لأنها:"; qData.options=["قصيرة","لم يؤتها نبي قبل محمد ﷺ","نزلت بالنهار","فيها كلمة نور"]; qData.correct=1; }
-                    else if(i===5) { qData.q="الضالون هم الذين عبدوا الله بـ:"; qData.options=["علم","جهل","إخلاص","كبر"]; qData.correct=1; }
-                    else if(i===6) { qData.q="سورة الفاتحة ركن من أركان الصلاة لا تصح إلا بها."; qData.correct=true; }
-                    else if(i===7) { qData.q="سورة الفاتحة سورة مدنية وآياتها سبع."; qData.correct=false; }
-                    else if(i===8) { qData.q="الرب إذا أطلق فهو الله وحده الخالق المالك المربي."; qData.correct=true; }
-                    else if(i===9) { qData.q="العبادة تتضمن كمال الحب وكمال الذل لله تعالى."; qData.correct=true; }
-                    else if(i===10) { qData.q="المغضوب عليهم هم النصارى والضالون هم اليهود."; qData.correct=false; }
-                } else if (lessonNum === 11) { // سورة يوسف (46-57)
-                    if(i===1) { qData.q="الوصف الذي طلبه يوسف لنفسه عند تولي الخزائن:"; qData.options=["قوي أمين","حفيظ عليم","صادق وفي","كريم جواد"]; qData.correct=1; }
-                    else if(i===2) { qData.q="معنى كلمة (حصـحص) في قوله (الآن حصحص الحق):"; qData.options=["ضاع واختفى","ظهر وانكشف","تغير وتبدل","اشتد وصعب"]; qData.correct=1; }
-                    else if(i===3) { qData.q="اعتمد يوسف في خطته لمواجهة القحط على:"; qData.options=["التجارة","الادخار وحفظ المحصول في سنبله","القروض","الصيد"]; qData.correct=1; }
-                    else if(i===4) { qData.q="رفض يوسف الخروج من السجن فوراً حتى:"; qData.options=["ينام","تظهر براءته وعفته","يأكل","يتجهز"]; qData.correct=1; }
-                    else if(i===5) { qData.q="سنوات الخصب والزراعة الدؤوبة في الرؤيا كانت:"; qData.options=["خمس","سبع","عشر","اثنتا عشرة"]; qData.correct=1; }
-                    else if(i===6) { qData.q="يجوز طلب المنصب (الولاية) لمن علم من نفسه الكفاءة والأمانة."; qData.correct=true; }
-                    else if(i===7) { qData.q="النفس البشرية بطبيعتها تدعو للخير دائماً دون استثناء."; qData.correct=false; }
-                    else if(i===8) { qData.q="أجر الآخرة خير وأبقى للذين آمنوا وكانوا يتقون."; qData.correct=true; }
-                    else if(i===9) { qData.q="تفسير الرؤيا كان هو السبب المباشر لتمكين يوسف."; qData.correct=true; }
-                    else if(i===10) { qData.q="اعترفت امرأة العزيز بأنها هي من راودت يوسف عن نفسه."; qData.correct=true; }
-                } else {
-                    // Logic for other lessons based on summaries
-                    if(i<=5) {
-                        qData.q = `سؤال في ${title} حول المفاهيم الأساسية للدرس`;
-                        qData.options = ["الإجابة الصحيحة طبقاً للمنهج","خيار خطأ","خيار خطأ","خيار خطأ"];
-                        qData.correct = 0;
-                    } else {
-                        qData.q = `معلومة من درس ${title} تتعلق بالتفسير والمعنى الإجمالي.`;
-                        qData.correct = true;
-                    }
-                }
-                fullBank.push(qData);
-            }
-        });
-
-        // --- STATE MANAGEMENT ---
-        let appState = {
-            totalScore: parseInt(localStorage.getItem('pts')) || 0,
-            usedIDs: JSON.parse(localStorage.getItem('used')) || [],
-            session: {
-                questions: [],
-                currentIdx: 0,
-                score: 0,
-                timer: 30,
-                isTour: false,
-                locked: false
-            }
-        };
-
-        let activeInterval;
-
-        // --- UI INITIALIZATION ---
-        function initApp() {
-            renderLessons();
-            updateStats();
+        // --- UI CORE ---
+        function init() {
+            renderGrid();
+            document.getElementById('navScore').innerText = points;
         }
 
-        function renderLessons() {
+        function renderGrid() {
             const grid = document.getElementById('lessonsGrid');
             grid.innerHTML = '';
-            lessonTitles.forEach((t, i) => {
+            bank.forEach((l, i) => {
                 const card = document.createElement('div');
-                card.className = "lesson-card glass p-6 rounded-3xl border-2 border-slate-100 cursor-pointer transition-all group";
-                card.onclick = () => startSingle(i + 1);
+                card.className = "lesson-card glass p-6 rounded-3xl border-2 border-slate-100 cursor-pointer transition-all";
+                card.onclick = () => startOne(i);
                 card.innerHTML = `
-                    <div class="flex justify-between items-start mb-4">
-                        <span class="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full text-[10px] font-black uppercase">درس ${i+1}</span>
-                        <div class="text-[10px] text-slate-300 font-bold">10 أسئلة</div>
-                    </div>
-                    <h4 class="font-bold text-slate-800 leading-snug h-12 overflow-hidden">${t}</h4>
+                    <div class="mb-4"><span class="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full text-[10px] font-black uppercase">درس ${l.id}</span></div>
+                    <h4 class="font-bold text-slate-800 leading-snug h-12 overflow-hidden">${l.title}</h4>
+                    <p class="text-[10px] text-slate-400 mt-2 font-bold uppercase">6 أسئلة معتمدة</p>
                 `;
                 grid.appendChild(card);
             });
         }
 
-        function updateStats() {
-            document.getElementById('navScore').innerText = appState.totalScore;
-        }
-
-        // --- MODAL & SETTINGS ---
-        let tempQCount = 10;
-        let tempTimer = 30;
-
+        // --- MODAL ---
+        let tQ = 10, tT = 30;
         function openTourModal() { document.getElementById('tourModal').style.display = 'flex'; }
         function closeTourModal() { document.getElementById('tourModal').style.display = 'none'; }
-        
-        function setTourQCount(n) {
-            tempQCount = n;
-            document.querySelectorAll('.q-btn').forEach(b => b.classList.replace('bg-indigo-600', 'bg-slate-100'));
-            document.querySelectorAll('.q-btn').forEach(b => b.classList.replace('text-white', 'text-slate-500'));
+        function setTourQ(n) {
+            tQ = n;
+            document.querySelectorAll('.q-b').forEach(b => b.classList.replace('bg-indigo-600', 'bg-slate-100'));
+            document.querySelectorAll('.q-b').forEach(b => b.classList.replace('text-white', 'text-slate-500'));
             event.target.classList.replace('bg-slate-100', 'bg-indigo-600');
             event.target.classList.replace('text-slate-500', 'text-white');
         }
-
-        function setTourTimer(n) {
-            tempTimer = n;
-            document.querySelectorAll('.t-btn').forEach(b => b.classList.replace('bg-indigo-600', 'bg-slate-100'));
-            document.querySelectorAll('.t-btn').forEach(b => b.classList.replace('text-white', 'text-slate-500'));
+        function setTourT(n) {
+            tT = n;
+            document.querySelectorAll('.t-b').forEach(b => b.classList.replace('bg-indigo-600', 'bg-slate-100'));
+            document.querySelectorAll('.t-b').forEach(b => b.classList.replace('text-white', 'text-slate-500'));
             event.target.classList.replace('bg-slate-100', 'bg-indigo-600');
             event.target.classList.replace('text-slate-500', 'text-white');
         }
 
         // --- QUIZ ENGINE ---
-        function startTourMode() {
-            let pool = fullBank.filter(q => !appState.usedIDs.includes(q.id));
-            if (pool.length < tempQCount) {
-                appState.usedIDs = []; // Reset if not enough new questions
-                pool = [...fullBank];
-            }
-            const selected = pool.sort(() => 0.5 - Math.random()).slice(0, tempQCount);
-            launch(selected, true, tempTimer);
+        function startTour() {
+            const allQs = bank.flatMap(l => l.questions.map(q => ({...q, lessonTitle: l.title})));
+            let pool = allQs.filter(q => !used.includes(q.q));
+            if (pool.length < tQ) { used = []; pool = [...allQs]; }
+            const chosen = pool.sort(() => 0.5 - Math.random()).slice(0, tQ);
+            launch(chosen, true, tT);
             closeTourModal();
         }
 
-        function startSingle(id) {
-            const selected = fullBank.filter(q => q.lessonId === id);
-            launch(selected, false, 30);
+        function startOne(idx) {
+            const chosen = bank[idx].questions.map(q => ({...q, lessonTitle: bank[idx].title}));
+            launch(chosen, false, 30);
         }
 
-        function launch(qs, isTour, time) {
-            appState.session = { questions: qs, currentIdx: 0, score: 0, timer: time, isTour, locked: false };
+        function launch(qs, tour, time) {
+            state = { questions: qs, idx: 0, score: 0, timer: time, isTour: tour, locked: false };
             document.getElementById('homeView').classList.add('hidden');
             document.getElementById('quizView').classList.remove('hidden');
             document.getElementById('resultView').classList.add('hidden');
-            showQ();
+            show();
         }
 
-        function showQ() {
-            const s = appState.session;
-            const q = s.questions[s.currentIdx];
+        function show() {
+            const s = state;
+            const q = s.questions[s.idx];
             s.locked = false;
 
-            document.getElementById('quizTypeBadge').innerText = s.isTour ? 'جولة شاملة' : 'تحدي الدرس';
-            document.getElementById('currentLessonTitle').innerText = q.lessonTitle;
-            document.getElementById('questionCountText').innerText = `${String(s.currentIdx + 1).padStart(2, '0')}/${s.questions.length}`;
-            document.getElementById('questionText').innerText = q.q;
-            document.getElementById('feedbackPanel').classList.add('hidden');
+            document.getElementById('quizBadge').innerText = s.isTour ? 'جولة المنهج' : 'تحدي الدرس';
+            document.getElementById('lessonName').innerText = q.lessonTitle;
+            document.getElementById('qIdxText').innerText = `${String(s.idx + 1).padStart(2, '0')}/${s.questions.length}`;
+            document.getElementById('qText').innerText = q.q;
+            document.getElementById('feedback').classList.add('hidden');
             
-            const grid = document.getElementById('optionsGrid');
-            grid.innerHTML = '';
+            const g = document.getElementById('optionsGrid');
+            g.innerHTML = '';
 
             if (q.type === 'mcq') {
-                q.options.forEach((opt, i) => {
-                    const btn = document.createElement('button');
-                    btn.className = "option-btn w-full text-right p-5 rounded-2xl border-2 border-slate-100 font-bold bg-white transition-all shadow-sm";
-                    btn.innerText = opt;
-                    btn.onclick = () => select(i);
-                    grid.appendChild(btn);
+                q.options.forEach((o, i) => {
+                    const b = document.createElement('button');
+                    b.className = "option-btn w-full text-right p-5 rounded-2xl border-2 border-slate-100 font-bold bg-white transition-all shadow-sm";
+                    b.innerText = o;
+                    b.onclick = () => select(i);
+                    g.appendChild(b);
                 });
             } else {
-                [{t:'صحيح',v:true}, {t:'خاطئ',v:false}].forEach(opt => {
-                    const btn = document.createElement('button');
-                    btn.className = "option-btn w-full text-right p-6 rounded-2xl border-2 border-slate-100 font-black text-xl bg-white transition-all shadow-sm";
-                    btn.innerText = opt.t;
-                    btn.onclick = () => select(opt.v);
-                    grid.appendChild(btn);
+                [{t:'صحيح',v:true},{t:'خاطئ',v:false}].forEach(o => {
+                    const b = document.createElement('button');
+                    b.className = "option-btn w-full text-right p-6 rounded-2xl border-2 border-slate-100 font-black text-xl bg-white transition-all shadow-sm";
+                    b.innerText = o.t;
+                    b.onclick = () => select(o.v);
+                    g.appendChild(b);
                 });
             }
-
-            runTimer();
+            startBar();
         }
 
-        function runTimer() {
-            clearInterval(activeInterval);
+        function startBar() {
+            clearInterval(timerInt);
             const bar = document.getElementById('timerBar');
-            let remaining = appState.session.timer;
+            let rem = state.timer;
             bar.style.width = '100%';
-
-            activeInterval = setInterval(() => {
-                remaining--;
-                bar.style.width = (remaining / appState.session.timer * 100) + '%';
-                if (remaining <= 0) {
-                    clearInterval(activeInterval);
-                    if (!appState.session.locked) select(null);
-                }
+            timerInt = setInterval(() => {
+                rem--;
+                bar.style.width = (rem / state.timer * 100) + '%';
+                if (rem <= 0) { clearInterval(timerInt); if (!state.locked) select(null); }
             }, 1000);
         }
 
         function select(ans) {
-            if (appState.session.locked) return;
-            appState.session.locked = true;
-            clearInterval(activeInterval);
+            if (state.locked) return;
+            state.locked = true;
+            clearInterval(timerInt);
 
-            const q = appState.session.questions[appState.session.currentIdx];
+            const q = state.questions[state.idx];
             const isCorrect = (ans === q.correct);
-            const panel = document.getElementById('feedbackPanel');
+            const f = document.getElementById('feedback');
 
             document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
 
             if (isCorrect) {
-                appState.session.score++;
-                appState.totalScore += 10;
-                panel.innerText = "أحسنت! إجابة صحيحة 🌟";
-                panel.className = "mt-8 p-5 rounded-[2rem] text-center font-bold text-lg bg-green-100 text-green-700 block animate-pulse";
+                state.score++;
+                points += 10;
+                f.innerText = "إجابة صحيحة! أحسنت 🌟";
+                f.className = "mt-8 p-5 rounded-[2rem] text-center font-bold text-lg bg-green-100 text-green-700 block";
                 play('audioCorrect');
-                if(!appState.usedIDs.includes(q.id)) appState.usedIDs.push(q.id);
+                if(!used.includes(q.q)) used.push(q.q);
             } else {
-                panel.innerText = ans === null ? "انتهى الوقت! ⏰" : "إجابة خاطئة، حاول في المرة القادمة!";
-                panel.className = "mt-8 p-5 rounded-[2rem] text-center font-bold text-lg bg-red-100 text-red-700 block";
+                f.innerText = ans === null ? "انتهى الوقت! ⏰" : "إجابة خاطئة ❌";
+                f.className = "mt-8 p-5 rounded-[2rem] text-center font-bold text-lg bg-red-100 text-red-700 block";
                 play('audioWrong');
             }
 
-            // Visual Feedback
+            // Highlighting
             const btns = document.querySelectorAll('.option-btn');
             if (q.type === 'mcq') {
                 btns.forEach((b, i) => {
@@ -395,40 +402,36 @@
                 });
             } else {
                 btns.forEach(b => {
-                    const isTrue = (b.innerText === 'صحيح');
-                    if (isTrue === q.correct) b.classList.add('correct');
-                    else if (ans !== null && isTrue === ans) b.classList.add('wrong');
+                    const t = (b.innerText === 'صحيح');
+                    if (t === q.correct) b.classList.add('correct');
+                    else if (ans !== null && t === ans) b.classList.add('wrong');
                 });
             }
 
-            saveData();
-            updateStats();
+            f.classList.remove('hidden');
+            localStorage.setItem('pts', points);
+            localStorage.setItem('used', JSON.stringify(used));
+            document.getElementById('navScore').innerText = points;
 
-            // Auto-transition after 3 seconds
+            // Auto transition after 3 seconds
             setTimeout(() => {
-                appState.session.currentIdx++;
-                if (appState.session.currentIdx < appState.session.questions.length) {
-                    showQ();
-                } else {
-                    finish();
-                }
+                state.idx++;
+                if (state.idx < state.questions.length) show();
+                else end();
             }, 3000);
         }
 
         function abortQuiz() {
-            if (confirm('هل تريد إلغاء الجولة الحالية والعودة للقائمة الرئيسية؟')) {
-                clearInterval(activeInterval);
-                location.reload();
-            }
+            if (confirm('هل تريد مقاطعة الجولة والعودة للرئيسية؟')) location.reload();
         }
 
-        function finish() {
+        function end() {
             document.getElementById('quizView').classList.add('hidden');
             document.getElementById('resultView').classList.remove('hidden');
-            const s = appState.session.score;
-            const t = appState.session.questions.length;
-            document.getElementById('resultText').innerText = `لقد أجبت على ${s} من ${t} بشكل صحيح!`;
-            if (s/t >= 0.8) confetti({ particleCount: 150, spread: 70 });
+            const sc = state.score;
+            const tot = state.questions.length;
+            document.getElementById('resultSummary').innerText = `حصلت على ${sc} من ${tot} إجابة صحيحة.`;
+            if (sc/tot >= 0.8) confetti({ particleCount: 150, spread: 70 });
         }
 
         function play(id) {
@@ -436,19 +439,7 @@
             if (a) { a.currentTime = 0; a.play().catch(()=>{}); }
         }
 
-        function saveData() {
-            localStorage.setItem('pts', appState.totalScore);
-            localStorage.setItem('used', JSON.stringify(appState.usedIDs));
-        }
-
-        function resetData() {
-            if (confirm('سيتم حذف كافة النقاط والتقدم، هل أنت متأكد؟')) {
-                localStorage.clear();
-                location.reload();
-            }
-        }
-
-        window.onload = initApp;
+        window.onload = init;
     </script>
 </body>
 </html>
