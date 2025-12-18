@@ -1246,7 +1246,6 @@
             document.getElementById('progress-fill').style.width = `${((gameState.currentIndex) / total) * 100}%`;
             document.getElementById('question-text').textContent = question.question;
             document.getElementById('q-type').textContent = question.type === 'mcq' ? 'اختيار من متعدد' : 'صح أم خطأ';
-            document.getElementById('next-btn').style.display = 'none';
 
             const optionsContainer = document.getElementById('options-container');
 
@@ -1576,3 +1575,4 @@
 </body>
 </html>
 
+ 
