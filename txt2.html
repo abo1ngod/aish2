@@ -463,6 +463,7 @@
                     <button onclick="generateWordsList()" style="width:100%; padding:10px; background:var(--accent-color); color:white; border:none; border-radius:8px; cursor:pointer;">توليد وحفظ القائمة</button>
                 </div>
                 <div class="admin-form">
+                    <input type="hidden" id="edit-article-key">
                     <label style="font-weight:bold; font-size:0.9rem;">قائمة الكلمات (افصل بفاصلة أو سطر جديد):</label>
                     <textarea id="wordsListInput" class="form-control" style="height:150px; font-family:monospace;"></textarea>
                     <button onclick="saveWordsList()" style="width:100%; padding:10px; background:var(--secondary-color); color:white; border:none; border-radius:8px; cursor:pointer;">حفظ التعديلات</button>
@@ -663,13 +664,10 @@
         function activateThikrMic(key, text) {
             if(!('webkitSpeechRecognition' in window)) return alert("المتصفح لا يدعم");
             
-            // إذا ضغط على نفس الزر وهو يعمل، نوقفه (اختياري، أو نتركه يعمل)
-            // هنا سنعيد تشغيله لضمان الاستمرارية أو التبديل
             if(window.athkarRec) window.athkarRec.stop();
             
             document.querySelectorAll('.thikr-btn').forEach(b => {
                 b.classList.remove('listening');
-                // إعادة النص الافتراضي للميكروفون في باقي الأزرار
                 const statusEl = b.querySelector('.thikr-mic-status');
                 if(statusEl) statusEl.innerText = "اضغط للقراءة 🎙️";
             });
@@ -680,11 +678,10 @@
 
             const rec = new webkitSpeechRecognition();
             rec.lang = 'ar-SA';
-            rec.continuous = true; // تعديل: البقاء مستمراً
+            rec.continuous = true; 
             rec.interimResults = false;
 
             rec.onend = () => {
-                // إذا كان لا يزال الزر نشطاً (لم يضغط المستخدم زر آخر)، نعد التشغيل
                 if(btn.classList.contains('listening') && document.body.classList.contains('content-mode')) {
                     rec.start();
                 } else {
@@ -694,7 +691,6 @@
             };
 
             rec.onresult = (e) => {
-                // نأخذ آخر نتيجة لأن continuous = true
                 const lastIdx = e.results.length - 1;
                 const spoken = e.results[lastIdx][0].transcript;
                 
@@ -831,22 +827,32 @@
                 <div style="text-align:center; padding:40px;">
                     <div style="font-size:4rem; margin-bottom:20px;">⚡</div>
                     <h3>تحدي سرعة الكلمات</h3>
-                    <p style="color:#666; max-width:400px; margin:0 auto 20px;">ستظهر لك 10 كلمات عشوائية. لديك 5 ثوانٍ فقط لقراءة كل كلمة.</p>
+                    <p style="color:#666; max-width:400px; margin:0 auto 10px;">حدد عدد الكلمات للجولة:</p>
+                    <div style="display:flex; justify-content:center; align-items:center; gap:10px; margin-bottom:20px;">
+                        <input type="number" id="wordCountInput" value="10" min="1" max="50" style="padding:10px; border-radius:10px; border:1px solid #ddd; width:80px; text-align:center; font-size:1.1rem; font-weight:bold;">
+                        <span style="color:#666;">كلمة</span>
+                    </div>
+                    <p style="color:#666; max-width:400px; margin:0 auto 20px;">لديك 5 ثوانٍ فقط لقراءة كل كلمة.</p>
                     <button onclick="initWordGame()" style="background:var(--primary-color); color:white; border:none; padding:15px 40px; border-radius:50px; font-size:1.2rem; cursor:pointer; font-weight:bold; box-shadow:0 10px 20px rgba(79, 70, 229, 0.3);">ابدأ التحدي</button>
                 </div>
             `;
         }
 
         function initWordGame() {
+            const requestedCount = parseInt(document.getElementById('wordCountInput').value) || 10;
+            
             wordsRef.once('value').then(snap => {
                 const val = snap.val();
                 let allWords = [];
                 if (val && val.list) {
                     allWords = val.list.split(/[\n,]+/).map(w => w.trim()).filter(w => w.length > 0);
                 }
-                if (allWords.length < 10) allWords = ["أسد", "نمر", "صقر", "جمل", "بحر", "قمر", "شمس", "نجم", "ورده", "كتب"];
+                if (allWords.length < 5) allWords = ["أسد", "نمر", "صقر", "جمل", "بحر", "قمر", "شمس", "نجم", "ورده", "كتب"];
 
-                wordGame.wordsList = allWords.sort(() => 0.5 - Math.random()).slice(0, 10);
+                // إذا طلب اللاعب أكثر مما هو متاح، نستخدم المتاح
+                const actualCount = Math.min(requestedCount, allWords.length);
+
+                wordGame.wordsList = allWords.sort(() => 0.5 - Math.random()).slice(0, actualCount);
                 wordGame.currentIndex = 0; wordGame.score = 0; wordGame.active = true;
 
                 document.getElementById('wordGameOverlay').style.display = 'flex';
@@ -857,7 +863,7 @@
 
         function nextGameWord() {
             if (!wordGame.active) return;
-            if (wordGame.currentIndex >= 10) { endWordGame(false); return; }
+            if (wordGame.currentIndex >= wordGame.wordsList.length) { endWordGame(false); return; }
 
             wordGame.currentWord = wordGame.wordsList[wordGame.currentIndex];
             const display = document.getElementById('activeWordDisplay');
@@ -878,11 +884,10 @@
             if(wordGame.recognition) wordGame.recognition.stop();
             wordGame.recognition = new webkitSpeechRecognition();
             wordGame.recognition.lang = 'ar-SA'; 
-            wordGame.recognition.continuous = true; // تعديل: البقاء للاستماع للتصحيحات
+            wordGame.recognition.continuous = true; 
             wordGame.recognition.interimResults = true;
             
             wordGame.recognition.onresult = (e) => {
-                // نأخذ آخر نتيجة
                 const lastIdx = e.results.length - 1;
                 const spoken = e.results[lastIdx][0].transcript;
                 
@@ -907,7 +912,6 @@
             if(wordGame.timer) clearTimeout(wordGame.timer);
             if(wordGame.recognition) wordGame.recognition.stop();
             
-            // تعديل: عدم النزول تحت الصفر
             if (wordGame.score > 0) wordGame.score--;
             
             document.getElementById('gameScoreVal').innerText = wordGame.score;
@@ -924,7 +928,9 @@
             if (!canceled && currentUser) {
                 const newScore = parseInt(currentUser.points) + wordGame.score;
                 competitorsRef.child(currentUser.key).update({ points: newScore });
-                showResultGeneric(wordGame.score > 5 ? "رائع!" : "حاول مجدداً", `<div style="font-size:3rem; font-weight:bold; color:var(--accent-color);">${wordGame.score} / 10</div>`);
+                showResultGeneric(wordGame.score > (wordGame.wordsList.length / 2) ? "رائع!" : "حاول مجدداً", 
+                    `<div style="font-size:3rem; font-weight:bold; color:var(--accent-color);">${wordGame.score} / ${wordGame.wordsList.length}</div>
+                     <p style="color:#666;">لقد جمعت ${wordGame.score} نقطة في هذه الجولة</p>`);
             }
         }
 
