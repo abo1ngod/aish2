@@ -991,8 +991,8 @@
                 </div>
                 <div class="menu-card" onclick="requireLogin('showRoundModal')">
                     <i class="fas fa-book-open"></i>
-                    <h3>اختر الوحدة</h3>
-                    <p>تدرب على وحدة محددة</p>
+                    <h3>اختر أحد الدروس</h3>
+                    <p>تدرب على درس محدد</p>
                 </div>
                 <div class="menu-card" onclick="requireLogin('startMarathon')">
                     <i class="fas fa-running"></i>
@@ -1087,8 +1087,9 @@
     <!-- Round Selection Modal -->
     <div class="modal-overlay" id="round-modal">
         <div class="modal">
-            <h2><i class="fas fa-book"></i> اختر الوحدة</h2>
-            <p>اختر الوحدة التي تريد التدرب عليها</p>
+            <h2><i class="fas fa-book"></i> اختر أحد الدروس</h2>
+            <p>اختر الدرس الذي تريد التدرب عليه<br> ثم اضغط على ( ابدأ )
+            </p>
             <div class="round-selection" id="unit-selection"></div>
             <div class="btn-container">
                 <button class="btn btn-secondary" onclick="closeModal('round-modal')">إلغاء</button>
@@ -1101,7 +1102,7 @@
     <div class="modal-overlay" id="login-modal">
         <div class="modal">
             <h2><i class="fas fa-sign-in-alt"></i> تسجيل الدخول</h2>
-            <p>أدخل السجل المدني للدخول</p>
+            <p>أهلا بك في مسابقة التفسير</p>
             <div class="form-group">
                 <label>السجل المدني</label>
                 <input type="text" id="login-id" placeholder="أدخل السجل المدني" maxlength="10">
@@ -1744,7 +1745,7 @@
         function requireLogin(action) {
             if (!currentUser) {
                 pendingAction = action;
-                showCustomAlert('للبدء سجل بياناتك في أعلى الصفحة');
+                showCustomAlert('استمتع بالمسابقة بعد التسجيل');
                 showLoginModal();
             } else {
                 window[action]();
@@ -1761,7 +1762,7 @@
             const container = document.getElementById('unit-selection');
             container.innerHTML = units.map(unit => `
                 <div class="round-option" data-unit="${unit.id}" onclick="selectUnit(${unit.id})">
-                    <h4>${unit.icon} الوحدة ${unit.id}</h4>
+                    <h4>${unit.icon}</h4>
                     <p>${unit.name}</p>
                 </div>
             `).join('');
