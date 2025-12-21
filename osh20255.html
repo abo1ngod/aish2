@@ -1,0 +1,2165 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مسابقة التفسير الكبرى</title>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <style>
+        :root {
+            --primary: #1a5f4a;
+            --primary-light: #2d8a6e;
+            --secondary: #d4af37;
+            --accent: #c9302c;
+            --bg-dark: #0d1b16;
+            --bg-card: #132a22;
+            --text-light: #f4f1e8;
+            --text-muted: #a8b5a0;
+            --gold-gradient: linear-gradient(135deg, #d4af37 0%, #f4e4a6 50%, #d4af37 100%);
+            --success: #28a745;
+            --danger: #dc3545;
+        }
+
+        .light {
+            --primary: #2d8a6e;
+            --primary-light: #3da882;
+            --bg-dark: #f5f5f0;
+            --bg-card: #ffffff;
+            --text-light: #1a1a1a;
+            --text-muted: #666666;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .bg-pattern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                radial-gradient(circle at 20% 80%, rgba(26, 95, 74, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(212, 175, 55, 0.15) 0%, transparent 50%),
+                url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0L30 60M0 30L60 30' stroke='%231a5f4a' stroke-opacity='0.1' stroke-width='1'/%3E%3C/svg%3E");
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* User Bar */
+        .user-bar {
+            background: var(--bg-card);
+            border: 2px solid var(--primary);
+            border-radius: 15px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            background: var(--gold-gradient);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: #1a1a1a;
+        }
+
+        .user-name {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--secondary);
+        }
+
+        .user-id {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .not-registered {
+            color: var(--accent);
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .not-registered:hover {
+            color: var(--secondary);
+        }
+
+        .logout-btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: #a52520;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 30px 20px;
+            margin-bottom: 30px;
+            cursor: default;
+            user-select: none;
+        }
+
+        .header h1 {
+            font-family: 'Amiri', serif;
+            font-size: clamp(2rem, 6vw, 3.5rem);
+            background: var(--gold-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            text-shadow: 0 0 30px rgba(212, 175, 55, 0.3);
+        }
+
+        .header p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        /* Stats Bar */
+        .stats-bar {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+
+        .stat-item {
+            background: var(--bg-card);
+            border: 1px solid var(--primary);
+            border-radius: 15px;
+            padding: 15px 25px;
+            text-align: center;
+            min-width: 120px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .stat-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(26, 95, 74, 0.3);
+        }
+
+        .stat-item i {
+            font-size: 1.5rem;
+            color: var(--secondary);
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--secondary);
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        /* Main Menu */
+        .main-menu {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .menu-card {
+            background: linear-gradient(145deg, var(--bg-card), rgba(26, 95, 74, 0.2));
+            border: 2px solid var(--primary);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .menu-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .menu-card:hover::before {
+            left: 100%;
+        }
+
+        .menu-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            border-color: var(--secondary);
+            box-shadow: 0 20px 40px rgba(212, 175, 55, 0.2);
+        }
+
+        .menu-card i {
+            font-size: 3rem;
+            color: var(--secondary);
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .menu-card h3 {
+            font-size: 1.4rem;
+            margin-bottom: 10px;
+            color: var(--text-light);
+        }
+
+        .menu-card p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        /* Game Screen */
+        .game-screen {
+            display: none;
+        }
+
+        .game-screen.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            background: var(--bg-card);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border: 1px solid var(--primary);
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .round-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .round-badge {
+            background: var(--gold-gradient);
+            color: #1a1a1a;
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-weight: 700;
+        }
+
+        .timer {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1.3rem;
+            color: var(--secondary);
+        }
+
+        .timer.warning {
+            color: var(--accent);
+            animation: pulse 0.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .progress-bar {
+            height: 10px;
+            background: rgba(26, 95, 74, 0.3);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--gold-gradient);
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+
+        /* Question Card */
+        .question-card {
+            background: var(--bg-card);
+            border: 2px solid var(--primary);
+            border-radius: 25px;
+            padding: 30px;
+            margin-bottom: 25px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .question-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, rgba(212, 175, 55, 0.1) 0%, transparent 70%);
+        }
+
+        .question-number {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: var(--primary);
+            color: var(--secondary);
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .question-type {
+            display: inline-block;
+            background: rgba(212, 175, 55, 0.2);
+            color: var(--secondary);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin-bottom: 20px;
+        }
+
+        .question-text {
+            font-family: 'Amiri', serif;
+            font-size: clamp(1.2rem, 4vw, 1.6rem);
+            line-height: 2;
+            margin-bottom: 25px;
+            color: var(--text-light);
+        }
+
+        /* Options */
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option {
+            background: rgba(26, 95, 74, 0.2);
+            border: 2px solid var(--primary);
+            border-radius: 15px;
+            padding: 18px 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 1.1rem;
+        }
+
+        .option:hover:not(.disabled) {
+            background: rgba(26, 95, 74, 0.4);
+            border-color: var(--secondary);
+            transform: translateX(-5px);
+        }
+
+        .option.selected {
+            background: rgba(212, 175, 55, 0.2);
+            border-color: var(--secondary);
+        }
+
+        .option.correct {
+            background: rgba(40, 167, 69, 0.3);
+            border-color: var(--success);
+        }
+
+        .option.wrong {
+            background: rgba(220, 53, 69, 0.3);
+            border-color: var(--danger);
+        }
+
+        .option.disabled {
+            pointer-events: none;
+        }
+
+        .option-letter {
+            width: 35px;
+            height: 35px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: var(--secondary);
+            flex-shrink: 0;
+        }
+
+        .option.correct .option-letter {
+            background: var(--success);
+            color: white;
+        }
+
+        .option.wrong .option-letter {
+            background: var(--danger);
+            color: white;
+        }
+
+        /* True/False Options */
+        .tf-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .tf-option {
+            padding: 25px;
+            text-align: center;
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
+        .tf-option i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        /* Buttons */
+        .btn {
+            background: var(--gold-gradient);
+            color: #1a1a1a;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 30px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Tajawal', sans-serif;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(212, 175, 55, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--primary);
+            color: var(--text-light);
+        }
+
+        .btn-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        /* Results Screen */
+        .results-card {
+            background: var(--bg-card);
+            border: 2px solid var(--secondary);
+            border-radius: 25px;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .results-icon {
+            font-size: 5rem;
+            margin-bottom: 20px;
+        }
+
+        .results-icon.excellent { color: var(--secondary); }
+        .results-icon.good { color: var(--success); }
+        .results-icon.average { color: #ffc107; }
+        .results-icon.poor { color: var(--danger); }
+
+        .results-title {
+            font-family: 'Amiri', serif;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: var(--gold-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .results-score {
+            font-size: 4rem;
+            font-weight: 800;
+            color: var(--secondary);
+            margin: 20px 0;
+        }
+
+        .results-details {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 25px 0;
+            flex-wrap: wrap;
+        }
+
+        .result-stat {
+            text-align: center;
+        }
+
+        .result-stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .result-stat-value.correct { color: var(--success); }
+        .result-stat-value.wrong { color: var(--danger); }
+
+        .result-stat-label {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--bg-card);
+            border: 2px solid var(--secondary);
+            border-radius: 25px;
+            padding: 30px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+            animation: modalIn 0.3s ease;
+            max-height: 90vh;
+            overflow-y: auto;
+            margin: auto;
+        }
+
+        .modal.wide {
+            max-width: 800px;
+        }
+
+        @keyframes modalIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .modal h2 {
+            font-family: 'Amiri', serif;
+            font-size: 1.8rem;
+            color: var(--secondary);
+            margin-bottom: 20px;
+        }
+
+        .modal p {
+            color: var(--text-muted);
+            margin-bottom: 25px;
+            line-height: 1.8;
+        }
+
+        /* Form Inputs */
+        .form-group {
+            margin-bottom: 20px;
+            text-align: right;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--secondary);
+            font-weight: 600;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid var(--primary);
+            border-radius: 15px;
+            background: rgba(26, 95, 74, 0.2);
+            color: var(--text-light);
+            font-size: 1.1rem;
+            font-family: 'Tajawal', sans-serif;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--secondary);
+        }
+
+        .form-group input::placeholder {
+            color: var(--text-muted);
+        }
+
+        /* Round Selection */
+        .round-selection {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 10px 5px;
+        }
+
+        .round-option {
+            background: rgba(26, 95, 74, 0.3);
+            border: 2px solid var(--primary);
+            border-radius: 15px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .round-option:hover, .round-option.selected {
+            border-color: var(--secondary);
+            background: rgba(212, 175, 55, 0.2);
+        }
+
+        .round-option h4 {
+            color: var(--secondary);
+            margin-bottom: 5px;
+        }
+
+        .round-option p {
+            font-size: 0.85rem;
+            margin: 0;
+        }
+
+        /* Leaderboard */
+        .leaderboard {
+            background: var(--bg-card);
+            border: 2px solid var(--primary);
+            border-radius: 20px;
+            padding: 25px;
+        }
+
+        .leaderboard h3 {
+            text-align: center;
+            color: var(--secondary);
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        .leaderboard-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            background: rgba(26, 95, 74, 0.2);
+        }
+
+        .leaderboard-item.gold { background: rgba(255, 215, 0, 0.2); border: 1px solid gold; }
+        .leaderboard-item.silver { background: rgba(192, 192, 192, 0.2); border: 1px solid silver; }
+        .leaderboard-item.bronze { background: rgba(205, 127, 50, 0.2); border: 1px solid #cd7f32; }
+
+        .rank {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .rank.gold { background: gold; color: #1a1a1a; }
+        .rank.silver { background: silver; color: #1a1a1a; }
+        .rank.bronze { background: #cd7f32; color: white; }
+        .rank.normal { background: var(--primary); color: var(--text-light); }
+
+        .leaderboard-name { flex: 1; font-weight: 500; }
+        .leaderboard-score { color: var(--secondary); font-weight: 700; font-size: 1.2rem; }
+        .leaderboard-games { color: var(--text-muted); font-size: 0.85rem; margin-right: 10px; }
+
+        /* Feedback Animation */
+        .feedback {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 5rem;
+            z-index: 100;
+            animation: feedbackPop 0.8s ease forwards;
+            pointer-events: none;
+        }
+
+        @keyframes feedbackPop {
+            0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+            50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+        }
+
+        /* Confetti */
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            top: -10px;
+            z-index: 99;
+            animation: confettiFall 3s linear forwards;
+        }
+
+        @keyframes confettiFall {
+            to {
+                top: 100vh;
+                transform: rotate(720deg);
+            }
+        }
+
+        /* Admin Table */
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            text-align: right;
+        }
+
+        .admin-table th, .admin-table td {
+            padding: 12px 15px;
+            border: 1px solid var(--primary);
+        }
+
+        .admin-table th {
+            background: var(--primary);
+            color: var(--secondary);
+        }
+
+        .admin-table tr:nth-child(even) {
+            background: rgba(26, 95, 74, 0.1);
+        }
+
+        .admin-table tr:hover {
+            background: rgba(26, 95, 74, 0.2);
+        }
+
+        .admin-btn {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            margin: 2px;
+        }
+
+        .admin-btn.delete { background: var(--danger); color: white; }
+        .admin-btn.reset { background: var(--secondary); color: #1a1a1a; }
+
+        .admin-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .admin-stat-card {
+            background: rgba(26, 95, 74, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .admin-stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--secondary);
+        }
+
+        .admin-stat-label {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .container { padding: 10px; }
+            .header { padding: 20px 10px; margin-bottom: 20px; }
+            .header h1 { font-size: 1.8rem; }
+            .header p { font-size: 0.95rem; }
+            .question-card { padding: 15px; padding-top: 50px; }
+            .question-number { width: 35px; height: 35px; font-size: 1rem; top: 10px; left: 10px; }
+            .question-text { font-size: 1.1rem; line-height: 1.8; }
+            .option { padding: 12px 15px; font-size: 1rem; }
+            .option-letter { width: 28px; height: 28px; font-size: 0.9rem; }
+            .tf-options { grid-template-columns: 1fr; }
+            .tf-option { padding: 18px; font-size: 1.1rem; }
+            .stats-bar { gap: 8px; }
+            .stat-item { min-width: 90px; padding: 10px 12px; }
+            .stat-value { font-size: 1.5rem; }
+            .stat-label { font-size: 0.75rem; }
+            .menu-card { padding: 20px; }
+            .menu-card i { font-size: 2.5rem; }
+            .menu-card h3 { font-size: 1.2rem; }
+            .menu-card p { font-size: 0.85rem; }
+            .main-menu { grid-template-columns: 1fr 1fr; gap: 12px; }
+            .progress-container { padding: 15px; }
+            .round-badge { padding: 6px 12px; font-size: 0.85rem; }
+            .timer { font-size: 1.1rem; }
+            .btn { padding: 12px 25px; font-size: 1rem; }
+            .btn-container { gap: 10px; }
+            .results-card { padding: 25px 15px; }
+            .results-icon { font-size: 4rem; }
+            .results-title { font-size: 1.8rem; }
+            .results-score { font-size: 3rem; }
+            .result-stat-value { font-size: 1.5rem; }
+            .modal { padding: 20px; max-height: 85vh; }
+            .round-selection { max-height: 250px; grid-template-columns: 1fr; }
+            .round-option { padding: 15px; }
+            .exit-btn { padding: 8px 15px; font-size: 0.85rem; }
+            .user-bar { flex-direction: column; text-align: center; }
+            .user-info { flex-direction: column; }
+            .admin-table { font-size: 0.85rem; }
+            .admin-table th, .admin-table td { padding: 8px; }
+        }
+
+        @media (max-width: 400px) {
+            .main-menu { grid-template-columns: 1fr; }
+            .stats-bar { flex-direction: row; justify-content: space-around; }
+            .stat-item { min-width: 80px; flex: 1; }
+        }
+
+        /* Exit Button */
+        .exit-btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Tajawal', sans-serif;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .exit-btn:hover {
+            background: #a52520;
+            transform: scale(1.05);
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        /* Auto-next countdown */
+        .countdown-bar {
+            height: 4px;
+            background: var(--secondary);
+            border-radius: 2px;
+            margin-top: 15px;
+            animation: countdownShrink 3s linear forwards;
+        }
+
+        @keyframes countdownShrink {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
+
+        /* Hide screens */
+        #home-screen { display: block; }
+        #game-screen, #results-screen, #leaderboard-screen { display: none; }
+    </style>
+</head>
+<body>
+    <div class="bg-pattern"></div>
+    <div class="container">
+        <!-- User Bar -->
+        <div class="user-bar" id="user-bar">
+            <div class="user-info" id="user-info">
+                <div class="user-avatar"><i class="fas fa-user"></i></div>
+                <div>
+                    <div class="not-registered" onclick="showLoginModal()">
+                        أنت غير مسجل - انقر هنا للتسجيل
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Header -->
+        <header class="header" id="main-header">
+            <h1><i class="fas fa-quran"></i> مسابقة التفسير الكبرى</h1>
+            <p>اختبر معلوماتك في علم التفسير وتفسير القرآن الكريم</p>
+        </header>
+
+        <!-- Stats Bar -->
+        <div class="stats-bar" id="stats-bar">
+            <div class="stat-item">
+                <i class="fas fa-trophy"></i>
+                <div class="stat-value" id="total-score">0</div>
+                <div class="stat-label">النقاط الكلية</div>
+            </div>
+            <div class="stat-item">
+                <i class="fas fa-fire"></i>
+                <div class="stat-value" id="streak">0</div>
+                <div class="stat-label">سلسلة الإجابات</div>
+            </div>
+            <div class="stat-item">
+                <i class="fas fa-gamepad"></i>
+                <div class="stat-value" id="games-played">0</div>
+                <div class="stat-label">الجولات</div>
+            </div>
+        </div>
+
+        <!-- Home Screen -->
+        <div id="home-screen" class="game-screen active">
+            <div class="main-menu">
+                <div class="menu-card" onclick="requireLogin('startQuickGame')">
+                    <i class="fas fa-bolt"></i>
+                    <h3>جولة سريعة</h3>
+                    <p>10 أسئلة متنوعة - اختبر سرعتك!</p>
+                </div>
+                <div class="menu-card" onclick="requireLogin('showRoundModal')">
+                    <i class="fas fa-book-open"></i>
+                    <h3>اختر الوحدة</h3>
+                    <p>تدرب على وحدة محددة</p>
+                </div>
+                <div class="menu-card" onclick="requireLogin('startMarathon')">
+                    <i class="fas fa-running"></i>
+                    <h3>ماراثون التفسير</h3>
+                    <p>25 سؤال - تحدي شامل!</p>
+                </div>
+                <div class="menu-card" onclick="showLeaderboard()">
+                    <i class="fas fa-medal"></i>
+                    <h3>لوحة المتصدرين</h3>
+                    <p>شاهد أفضل النتائج</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="game-screen" class="game-screen">
+            <div class="game-header">
+                <button class="exit-btn" onclick="confirmExit()">
+                    <i class="fas fa-sign-out-alt"></i> إنهاء الجولة
+                </button>
+            </div>
+            <div class="progress-container">
+                <div class="progress-header">
+                    <div class="round-info">
+                        <span class="round-badge" id="round-name">الجولة السريعة</span>
+                        <span id="question-counter">السؤال 1 من 10</span>
+                    </div>
+                    <div class="timer" id="timer">
+                        <i class="fas fa-clock"></i>
+                        <span id="time-left">30</span>
+                    </div>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <div class="question-card">
+                <div class="question-number" id="q-number">1</div>
+                <span class="question-type" id="q-type">اختيار من متعدد</span>
+                <p class="question-text" id="question-text">نص السؤال هنا...</p>
+                <div class="options-container" id="options-container"></div>
+                <div class="countdown-bar" id="countdown-bar" style="display: none;"></div>
+            </div>
+        </div>
+
+        <!-- Results Screen -->
+        <div id="results-screen" class="game-screen">
+            <div class="results-card">
+                <div class="results-icon" id="results-icon">🏆</div>
+                <h2 class="results-title" id="results-title">ممتاز!</h2>
+                <div class="results-score" id="final-score">0%</div>
+                <div class="results-details">
+                    <div class="result-stat">
+                        <div class="result-stat-value correct" id="correct-count">0</div>
+                        <div class="result-stat-label">إجابات صحيحة</div>
+                    </div>
+                    <div class="result-stat">
+                        <div class="result-stat-value wrong" id="wrong-count">0</div>
+                        <div class="result-stat-label">إجابات خاطئة</div>
+                    </div>
+                    <div class="result-stat">
+                        <div class="result-stat-value" id="points-earned" style="color: var(--secondary)">0</div>
+                        <div class="result-stat-label">النقاط المكتسبة</div>
+                    </div>
+                </div>
+                <div class="btn-container">
+                    <button class="btn btn-secondary" onclick="goHome()">
+                        <i class="fas fa-home"></i> الرئيسية
+                    </button>
+                    <button class="btn" onclick="playAgain()">
+                        <i class="fas fa-redo"></i> العب مجدداً
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Leaderboard Screen -->
+        <div id="leaderboard-screen" class="game-screen">
+            <div class="leaderboard">
+                <h3><i class="fas fa-crown"></i> لوحة المتصدرين</h3>
+                <div id="leaderboard-list"></div>
+            </div>
+            <div class="btn-container" style="margin-top: 25px;">
+                <button class="btn" onclick="goHome()">
+                    <i class="fas fa-arrow-right"></i> العودة
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Round Selection Modal -->
+    <div class="modal-overlay" id="round-modal">
+        <div class="modal">
+            <h2><i class="fas fa-book"></i> اختر الوحدة</h2>
+            <p>اختر الوحدة التي تريد التدرب عليها</p>
+            <div class="round-selection" id="unit-selection"></div>
+            <div class="btn-container">
+                <button class="btn btn-secondary" onclick="closeModal('round-modal')">إلغاء</button>
+                <button class="btn" onclick="startUnitGame()">ابدأ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div class="modal-overlay" id="login-modal">
+        <div class="modal">
+            <h2><i class="fas fa-sign-in-alt"></i> تسجيل الدخول</h2>
+            <p>أدخل السجل المدني للدخول</p>
+            <div class="form-group">
+                <label>السجل المدني</label>
+                <input type="text" id="login-id" placeholder="أدخل السجل المدني" maxlength="10">
+            </div>
+            <div class="btn-container">
+                <button class="btn btn-secondary" onclick="closeModal('login-modal')">إلغاء</button>
+                <button class="btn" onclick="login()">دخول</button>
+            </div>
+            <p style="margin-top: 20px; margin-bottom: 0;">
+                <span class="not-registered" onclick="showRegisterModal()">ليس لديك حساب؟ سجل الآن</span>
+            </p>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div class="modal-overlay" id="register-modal">
+        <div class="modal">
+            <h2><i class="fas fa-user-plus"></i> التسجيل</h2>
+            <p>سجل بياناتك للمشاركة في المسابقة</p>
+            <div class="form-group">
+                <label>الاسم الكامل</label>
+                <input type="text" id="register-name" placeholder="أدخل اسمك الكامل">
+            </div>
+            <div class="form-group">
+                <label>السجل المدني</label>
+                <input type="text" id="register-id" placeholder="أدخل السجل المدني (10 أرقام)" maxlength="10">
+            </div>
+            <div class="btn-container">
+                <button class="btn btn-secondary" onclick="closeModal('register-modal')">إلغاء</button>
+                <button class="btn" onclick="register()">تسجيل</button>
+            </div>
+            <p style="margin-top: 20px; margin-bottom: 0;">
+                <span class="not-registered" onclick="showLoginModal()">لديك حساب؟ سجل دخولك</span>
+            </p>
+        </div>
+    </div>
+
+    <!-- Admin Modal -->
+    <div class="modal-overlay" id="admin-modal">
+        <div class="modal wide">
+            <h2><i class="fas fa-cog"></i> لوحة الإدارة</h2>
+            <div id="admin-content"></div>
+            <div class="btn-container" style="margin-top: 20px;">
+                <button class="btn btn-secondary" onclick="closeModal('admin-modal')">إغلاق</button>
+                <button class="btn" onclick="exportData()"><i class="fas fa-download"></i> تصدير البيانات</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Password Modal -->
+    <div class="modal-overlay" id="admin-password-modal">
+        <div class="modal">
+            <h2><i class="fas fa-lock"></i> كلمة مرور الإدارة</h2>
+            <div class="form-group">
+                <label>كلمة المرور</label>
+                <input type="password" id="admin-password" placeholder="أدخل كلمة المرور">
+            </div>
+            <div class="btn-container">
+                <button class="btn btn-secondary" onclick="closeModal('admin-password-modal')">إلغاء</button>
+                <button class="btn" onclick="verifyAdminPassword()">دخول</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBxPO6RKsQ1Cq-mqlCpFTrCuIyxnYdB37U",
+            authDomain: "studentsystem-c1ab1.firebaseapp.com",
+            databaseURL: "https://studentsystem-c1ab1-default-rtdb.firebaseio.com",
+            projectId: "studentsystem-c1ab1",
+            storageBucket: "studentsystem-c1ab1.firebasestorage.app",
+            messagingSenderId: "112215023848",
+            appId: "1:112215023848:web:0adba326a527ee7e37e95d"
+        };
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.database();
+        const rootRef = db.ref('tafser_01');
+
+        // الأصوات
+        const sounds = {
+            correct: new Audio('sounds/correct.mp3'),
+            wrong: new Audio('sounds/wrong.mp3')
+        };
+
+        // تشغيل الصوت
+        function playSound(type) {
+            try {
+                sounds[type].currentTime = 0;
+                sounds[type].play().catch(() => {});
+            } catch (e) {}
+        }
+
+        // قاعدة بيانات المستخدمين
+        let usersDB = {};
+        let currentUser = null;
+        let adminPassword = "admin123";
+        let pendingAction = null;
+
+        // بنك الأسئلة الشامل
+        const questionsBank = [
+            // ورقة عمل الدرس (1)
+            { unit: 1, type: "mcq", question: "أعلى طرق التفسير منزلة هو التفسير بـ:", options: ["الرأي المحمود", "المأثور", "اللغة العربية"], correct: 1 },
+            { unit: 1, type: "mcq", question: "كان الصحابة لا يتجاوزون ... آيات حتى يتعلموا ما فيها:", options: ["خمس", "عشر", "عشرين"], correct: 1 },
+            { unit: 1, type: "mcq", question: "من أبرز علماء مرحلة استقلال التفسير وتدوينه كعلم مستقل:", options: ["ابن جرير الطبري", "سفيان بن عيينة", "ابن مسعود"], correct: 0 },
+            { unit: 1, type: "tf", question: "بدأ تدوين التفسير مستقلاً عن الحديث منذ عهد النبي ﷺ.", correct: false },
+            { unit: 1, type: "tf", question: "التفسير بالرأي المحمود هو الاجتهاد الصادر عن هوى وجهل.", correct: false },
+            { unit: 1, type: "tf", question: "تميز تفسير الصحابة بأنهم أهل اللسان العربي وشهدوا التنزيل.", correct: true },
+
+            // ورقة عمل الدرس (2)
+            { unit: 2, type: "mcq", question: "أصح طرق التفسير التي يجب أن يبدأ بها المفسر هي:", options: ["تفسير القرآن بالسنة", "تفسير القرآن بالقرآن", "تفسير القرآن بالرأي"], correct: 1 },
+            { unit: 2, type: "mcq", question: "قوله تعالى {ذُقْ إِنَّكَ أَنتَ الْعَزِيزُ الْكَرِيمُ} سياقها يدل على:", options: ["المدح والثناء", "التحقير والتهكم", "الوصف الحقيقي"], correct: 1 },
+            { unit: 2, type: "mcq", question: "من ضوابط المفسر التي تحميه من حمل الألفاظ على هواه:", options: ["سلامة العقيدة", "كثرة الحفظ", "جمال الخط"], correct: 0 },
+            { unit: 2, type: "tf", question: "يجوز لمن يتقن اللغة العربية فقط أن يفسر القرآن دون الرجوع للسنة.", correct: false },
+            { unit: 2, type: "tf", question: "تفسير القرآن بأقوال الصحابة مقدم على تفسيره بأقوال التابعين.", correct: true },
+            { unit: 2, type: "tf", question: "مراعاة السياق ضروري لفهم مراد الله في الآيات.", correct: true },
+
+            // ورقة عمل الدرس (3)
+            { unit: 3, type: "mcq", question: "الكتاب الذي يُعد أصح التفاسير ويعتمد عليه المفسرون هو:", options: ["تفسير الطبري", "تفسير السعدي", "تفسير الجلالين"], correct: 0 },
+            { unit: 3, type: "mcq", question: "يتميز تفسير \"أضواء البيان\" للشنقيطي بـ:", options: ["جمع الروايات الضعيفة", "العناية بالأحكام الفقهية وتفسير القرآن بالقرآن", "الاختصار الشديد"], correct: 1 },
+            { unit: 3, type: "mcq", question: "مؤلف كتاب \"تفسير القرآن العظيم\" هو:", options: ["جلال الدين السيوطي", "ابن كثير الدمشقي", "عبد الرحمن السعدي"], correct: 1 },
+            { unit: 3, type: "tf", question: "كتاب \"الدر المنثور\" للسيوطي يعتمد على التفسير بالرأي العقلي.", correct: false },
+            { unit: 3, type: "tf", question: "يتميز تفسير السعدي بذكر المعنى الإجمالي بأسلوب سهل وميسر.", correct: true },
+            { unit: 3, type: "tf", question: "منهج ابن كثير في التفسير يبدأ بذكر الأحاديث قبل الآيات المناسبة.", correct: false },
+
+            // ورقة عمل الدرس (4)
+            { unit: 4, type: "mcq", question: "التطبيق الذي يتيح للطالب حل الواجبات وإرسال التسجيل الصوتي للمعلم هو:", options: ["آيات", "مصحف مدرستي", "الباحث القرآني"], correct: 1 },
+            { unit: 4, type: "mcq", question: "الجهة المشرفة على تطبيق وبرنامج \"آيات\" هي:", options: ["وزارة التعليم", "جامعة الملك سعود", "مجمع الملك فهد"], correct: 1 },
+            { unit: 4, type: "mcq", question: "عدد المواقع المتخصصة التي أنشأها مجمع الملك فهد لخدمة القرآن:", options: ["10 مواقع", "16 موقعاً", "5 مواقع"], correct: 1 },
+            { unit: 4, type: "tf", question: "جميع تطبيقات القرآن الموجودة في متاجر الهواتف موثوقة وصحيحة.", correct: false },
+            { unit: 4, type: "tf", question: "يقدم مجمع الملك فهد خدمات رقمية تشمل ترجمات معاني القرآن.", correct: true },
+            { unit: 4, type: "tf", question: "تتيح التقنية الحديثة الوصول السريع لكتب التفسير المعتمدة.", correct: true },
+
+            // ورقة عمل الدرس (5)
+            { unit: 5, type: "mcq", question: "المقصود بـ (يوم الدين) في السورة:", options: ["يوم الجمعة", "يوم الجزاء والحساب", "يوم العيد"], correct: 1 },
+            { unit: 5, type: "mcq", question: "الذين عرفوا الحق ولم يتبعوه وصفهم الله بـ:", options: ["المغضوب عليهم", "الضالين", "المنعم عليهم"], correct: 0 },
+            { unit: 5, type: "mcq", question: "قدم الله \"العبادة\" على \"الاستعانة\" في الآية لأن:", options: ["الاستعانة أهم", "العبادة هي الغاية والمقصود", "السياق اللفظي"], correct: 1 },
+            { unit: 5, type: "tf", question: "سورة الفاتحة هي أول سورة نزلت كاملة في القرآن.", correct: true },
+            { unit: 5, type: "tf", question: "(الضالون) هم الذين تركوا الحق عن عمد وعناد.", correct: false },
+            { unit: 5, type: "tf", question: "قراءة الفاتحة ركن من أركان الصلاة لا تصح إلا بها.", correct: true },
+
+            // ورقة عمل الدرس (6)
+            { unit: 6, type: "mcq", question: "الحكمة من تقدير منازل القمر كما ذكرت الآيات:", options: ["للإنارة ليلاً فقط", "لتعلموا عدد السنين والحساب", "لزينة السماء"], correct: 1 },
+            { unit: 6, type: "mcq", question: "وصف الله الذين لا يرجون لقاءه بأنهم:", options: ["رضوا بالحياة الدنيا واطمأنوا بها", "يجاهدون في سبيله", "يتفكرون في الخلق"], correct: 0 },
+            { unit: 6, type: "mcq", question: "آخر دعاء أهل الجنة هو:", options: ["سبحانك اللهم", "الحمد لله رب العالمين", "سلام عليكم"], correct: 1 },
+            { unit: 6, type: "tf", question: "خلق الله السماوات والأرض في ستة أيام.", correct: true },
+            { unit: 6, type: "tf", question: "الشفاعة يوم القيامة تكون مفتوحة للجميع دون إذن.", correct: false },
+            { unit: 6, type: "tf", question: "الركون إلى الدنيا والغفلة عن آيات الله سبب لدخول النار.", correct: true },
+
+            // ورقة عمل الدرس (7)
+            { unit: 7, type: "mcq", question: "المقصود بـ (الزيادة) في قوله تعالى {لِّلَّذِينَ أَحْسَنُوا الْحُسْنَىٰ وَزِيَادَةٌ}:", options: ["القصور والحور العين", "النظر إلى وجه الله الكريم", "طول العمر في الجنة"], correct: 1 },
+            { unit: 7, type: "mcq", question: "معنى كلمة (قتر) في الآيات:", options: ["سواد وغبار", "نور وضياء", "حزن وبكاء"], correct: 0 },
+            { unit: 7, type: "mcq", question: "احتج الله على المشركين لإثبات توحيد الألوهية بإقرارهم بـ:", options: ["توحيد الأسماء والصفات", "توحيد الربوبية", "الإيمان بالكتب"], correct: 1 },
+            { unit: 7, type: "tf", question: "الشركاء (الأصنام) سيدافعون عن المشركين يوم القيامة.", correct: false },
+            { unit: 7, type: "tf", question: "الله يضاعف الحسنات ويجازي السيئة بمثلها عدلاً منه.", correct: true },
+            { unit: 7, type: "tf", question: "الآيات تثبت أن المشركين كانوا ينكرون وجود الله تماماً.", correct: false },
+
+            // ورقة عمل الدرس (8)
+            { unit: 8, type: "mcq", question: "\"أولياء الله\" كما عرفتهم الآيات هم:", options: ["الذين تركوا الدنيا واعتزلوا الناس", "الذين آمنوا وكانوا يتقون", "أصحاب الكرامات الخارقة"], correct: 1 },
+            { unit: 8, type: "mcq", question: "الحكمة من جعل الله الليل كما ورد في الآيات:", options: ["للعمل والكسب", "للسكن والراحة", "للخوف والوحشة"], correct: 1 },
+            { unit: 8, type: "mcq", question: "وصف الله قول المشركين \"اتخذ الله ولداً\" بأنه:", options: ["اجتهاد مقبول", "افتراء وكذب بلا سلطان", "تعظيم لله"], correct: 1 },
+            { unit: 8, type: "tf", question: "الخوف والحزن منفيان عن أولياء الله في الدنيا والآخرة.", correct: true },
+            { unit: 8, type: "tf", question: "يجوز الحزن الشديد الذي يؤدي لليأس بسبب قول المكذبين.", correct: false },
+            { unit: 8, type: "tf", question: "الحجة العلمية والدليل سماه الله في الآيات \"سلطاناً\".", correct: true },
+
+            // ورقة عمل الدرس (9)
+            { unit: 9, type: "mcq", question: "معنى قوله تعالى (الورد المورود) في سياق قصة فرعون:", options: ["الماء العذب", "مدخل النار", "قصور الجنة"], correct: 1 },
+            { unit: 9, type: "mcq", question: "وصف الله يوم القيامة في الآيات بأنه يوم:", options: ["قصير", "مشهود", "مظلم"], correct: 1 },
+            { unit: 9, type: "mcq", question: "معنى كلمة (غير مجذوذ) في وصف عطاء أهل الجنة:", options: ["غير مقطوع", "غير كثير", "غير معلوم"], correct: 0 },
+            { unit: 9, type: "tf", question: "قاد فرعون قومه إلى النجاة في الدنيا والآخرة.", correct: false },
+            { unit: 9, type: "tf", question: "الأصنام دفعت العذاب عن عابديها لما نزل بهم.", correct: false },
+            { unit: 9, type: "tf", question: "يوم القيامة لا تتكلم فيه نفس إلا بإذن الرحمن.", correct: true },
+
+            // ورقة عمل الدرس (10)
+            { unit: 10, type: "mcq", question: "معنى قوله تعالى (لا تركنوا) إلى الذين ظلموا:", options: ["لا تحاربوهم", "لا تميلوا إليهم", "لا تدعوهم"], correct: 1 },
+            { unit: 10, type: "mcq", question: "القاعدة الشرعية المستنبطة من قوله (إن الحسنات يذهبن السيئات) هي:", options: ["الطاعات تكفر الذنوب", "الذنوب تبطل الطاعات", "السيئة تمحو الحسنة"], correct: 0 },
+            { unit: 10, type: "mcq", question: "الغاية من ذكر قصص الرسل للنبي ﷺ كما في الآيات:", options: ["معرفة الأنساب", "تثبيت فؤاده", "التسلية والترفيه"], correct: 1 },
+            { unit: 10, type: "tf", question: "الاستقامة تعني الثبات على الدين وموافقة الأمر الشرعي دون غلو.", correct: true },
+            { unit: 10, type: "tf", question: "يجوز للمسلم أن يميل بقلبه للظالمين ويرضى بفعالهم.", correct: false },
+            { unit: 10, type: "tf", question: "الصلاة تعتبر من أكبر الحسنات الماحية للخطايا.", correct: true },
+
+            // ورقة عمل الدرس (11)
+            { unit: 11, type: "mcq", question: "الوصف الذي وصف به يوسف نفسه لطلب تولي الخزائن:", options: ["قوي أمين", "حفيظ عليم", "غني كريم"], correct: 1 },
+            { unit: 11, type: "mcq", question: "معنى كلمة (حصـحص) في قوله (الآن حصحص الحق):", options: ["ضاع واختفى", "ظهر وانكشف", "التبس وغمض"], correct: 1 },
+            { unit: 11, type: "mcq", question: "الخطة التي وضعها يوسف عليه السلام لمواجهة القحط اعتمدت على:", options: ["زيادة الضرائب", "الادخار وحفظ النعمة", "طلب المساعدات الخارجية"], correct: 1 },
+            { unit: 11, type: "tf", question: "خرج يوسف من السجن فوراً بمجرد أن طلبه الملك.", correct: false },
+            { unit: 11, type: "tf", question: "يجوز طلب الولاية (المنصب) لمن علم من نفسه القدرة والأمانة.", correct: true },
+            { unit: 11, type: "tf", question: "النفس البشرية أمارة بالسوء إلا ما رحم الله وعصم.", correct: true },
+
+            // ورقة عمل الدرس (12)
+            { unit: 12, type: "mcq", question: "الشرط الأساسي للدعوة إلى الله كما في قوله (أدعو إلى الله على ...):", options: ["مال", "بصيرة وعلم", "قوة وسلطة"], correct: 1 },
+            { unit: 12, type: "mcq", question: "معنى قوله تعالى (استيأس الرسل):", options: ["فقدوا الأمل في إيمان أقوامهم", "يئسوا من رحمة الله", "ماتوا جميعاً"], correct: 0 },
+            { unit: 12, type: "mcq", question: "وصف الله قصص القرآن في ختام السورة بأنها:", options: ["عبرة لأولي الألباب", "أساطير الأولين", "تسلية للناس"], correct: 0 },
+            { unit: 12, type: "tf", question: "توحيد الربوبية يكفي لدخول الجنة دون توحيد الألوهية.", correct: false },
+            { unit: 12, type: "tf", question: "القرآن الكريم مصدق لما بين يديه من الكتب السماوية ومهيمن عليها.", correct: true },
+            { unit: 12, type: "tf", question: "الأمن من مكر الله وعذابه صفة مذمومة حذرت منها الآيات.", correct: true },
+
+            // ورقة عمل الدرس (13)
+            { unit: 13, type: "mcq", question: "معنى (المعقبات) في قوله تعالى (له معقبات من بين يديه):", options: ["الشياطين", "الملائكة الحفظة", "النجوم"], correct: 1 },
+            { unit: 13, type: "mcq", question: "القانون الإلهي في تغيير النعم مرتبط بـ:", options: ["تغير ما في نفوس الناس", "تغير الزمان", "تغير المكان"], correct: 0 },
+            { unit: 13, type: "mcq", question: "تسبيح الرعد بحمد الله هو تسبيح:", options: ["حقيقي دال على الخضوع", "مجازي", "خيالي"], correct: 0 },
+            { unit: 13, type: "tf", question: "الله يعلم ما تغيض الأرحام وما تزداد.", correct: true },
+            { unit: 13, type: "tf", question: "دعاء غير الله كمن يبسط كفيه إلى الماء ليبلغ فاه فلا يبلغه.", correct: true },
+            { unit: 13, type: "tf", question: "الكافر لا يسجد لله مطلقاً لا طوعاً ولا كرهاً.", correct: false },
+
+            // ورقة عمل الدرس (14)
+            { unit: 14, type: "mcq", question: "معنى (جنات عدن):", options: ["جنات إقامة دائمة", "بساتين مؤقتة", "حدائق الدنيا"], correct: 0 },
+            { unit: 14, type: "mcq", question: "قوله تعالى (يدرؤون بالحسنة السيئة) يعني:", options: ["يدفعون السيئة بالإحسان", "يردون السيئة بمثلها", "ينسون السيئة"], correct: 0 },
+            { unit: 14, type: "mcq", question: "تطمئن القلوب وتسكن بـ:", options: ["جمع المال", "ذكر الله", "السفر والترحال"], correct: 1 },
+            { unit: 14, type: "tf", question: "العمى الحقيقي المذكور في القرآن هو عمى البصر.", correct: false },
+            { unit: 14, type: "tf", question: "صلة الرحم والوفاء بالعهد من صفات أولي الألباب.", correct: true },
+            { unit: 14, type: "tf", question: "بسط الرزق وتضييقه خاضع لمشيئة الله وحكمته.", correct: true },
+
+            // ورقة عمل الدرس (15)
+            { unit: 15, type: "mcq", question: "شبه الله \"الكلمة الطيبة\" في الآيات بـ:", options: ["شجرة طيبة أصلها ثابت", "شجرة خبيثة اجتثت", "جبل راسخ"], correct: 0 },
+            { unit: 15, type: "mcq", question: "المقصود بـ (دار البوار) التي أحل الكفار قومهم فيها:", options: ["الدنيا", "جهنم", "القبر"], correct: 1 },
+            { unit: 15, type: "mcq", question: "(لَئِن شَكَرْتُمْ لَأَزِيدَنَّكُمْ) تدل على أن الشكر سبب لـ:", options: ["بقاء النعمة وزيادتها", "زوال النعمة", "ثبات النعمة دون زيادة"], correct: 0 },
+            { unit: 15, type: "tf", question: "الكلمة الخبيثة (الكفر) لها أصل ثابت في الأرض كالجبال.", correct: false },
+            { unit: 15, type: "tf", question: "تثبيت الله للمؤمنين يكون في الدنيا فقط دون الآخرة.", correct: false },
+            { unit: 15, type: "tf", question: "كفر النعم وجحودها سبب لزوالها وحلول العذاب.", correct: true },
+
+            // ورقة عمل الدرس (16)
+            { unit: 16, type: "mcq", question: "معنى كلمة (مُهْطِعِينَ) في وصف الناس يوم القيامة:", options: ["مسرعين مع الذل", "مبطئين", "نائمين"], correct: 0 },
+            { unit: 16, type: "mcq", question: "(مقرنين في الأصفاد) تعني أنهم:", options: ["مكرمين في المجالس", "مقيدين بالسلاسل والقيود", "طلقاء الأيدي"], correct: 1 },
+            { unit: 16, type: "mcq", question: "ثياب أهل النار (سرابيلهم) مصنوعة من:", options: ["قطران (نحاس مذاب)", "حرير", "صوف"], correct: 0 },
+            { unit: 16, type: "tf", question: "تأخير الله لعذاب الظالمين دليل على غفلته عنهم.", correct: false },
+            { unit: 16, type: "tf", question: "الكفار أقسموا في الدنيا أنهم لن يزولوا ولن يبعثوا.", correct: true },
+            { unit: 16, type: "tf", question: "الغاية من إنزال القرآن هي البلاغ والإنذار والتذكير.", correct: true }
+        ];
+
+        // حالة اللعبة
+        let gameState = {
+            currentQuestions: [],
+            currentIndex: 0,
+            score: 0,
+            correctAnswers: 0,
+            wrongAnswers: 0,
+            streak: 0,
+            maxStreak: 0,
+            totalScore: 0,
+            gamesPlayed: 0,
+            timeLeft: 30,
+            timer: null,
+            autoNextTimer: null,
+            gameMode: 'quick',
+            selectedUnit: null,
+            usedQuestions: new Set()
+        };
+
+        // وحدات المقرر
+        const units = [
+            { id: 1, name: "الدرس (1)", icon: "📖" },
+            { id: 2, name: "الدرس (2)", icon: "📚" },
+            { id: 3, name: "الدرس (3)", icon: "📕" },
+            { id: 4, name: "الدرس (4)", icon: "📱" },
+            { id: 5, name: "الدرس (5)", icon: "🕌" },
+            { id: 6, name: "الدرس (6)", icon: "🌙" },
+            { id: 7, name: "الدرس (7)", icon: "⭐" },
+            { id: 8, name: "الدرس (8)", icon: "🌟" },
+            { id: 9, name: "الدرس (9)", icon: "⚡" },
+            { id: 10, name: "الدرس (10)", icon: "📿" },
+            { id: 11, name: "الدرس (11)", icon: "🌴" },
+            { id: 12, name: "الدرس (12)", icon: "💎" },
+            { id: 13, name: "الدرس (13)", icon: "🌧️" },
+            { id: 14, name: "الدرس (14)", icon: "🌳" },
+            { id: 15, name: "الدرس (15)", icon: "🌿" },
+            { id: 16, name: "الدرس (16)", icon: "🔥" }
+        ];
+
+        // تهيئة التطبيق
+        function init() {
+            setupDarkMode();
+            renderUnitSelection();
+            setupAdminAccess();
+            loadUsersFromFirebase();
+        }
+
+        // دوال الكوكيز
+        function setCookie(name, value, days) {
+            const expires = new Date(Date.now() + days * 864e5).toUTCString();
+            document.cookie = name + '=' + encodeURIComponent(value) + '; expires=' + expires + '; path=/; SameSite=Lax';
+        }
+        function getCookie(name) {
+            const value = '; ' + document.cookie;
+            const parts = value.split('; ' + name + '=');
+            if (parts.length === 2) return decodeURIComponent(parts.pop().split(';').shift());
+            return null;
+        }
+        function deleteCookie(name) {
+            document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+        }
+
+        // تحميل المستخدمين من Firebase
+        function loadUsersFromFirebase() {
+            rootRef.child('users').once('value', (snapshot) => {
+                usersDB = snapshot.val() || {};
+                // استعادة جلسة المستخدم المحفوظة
+                const savedUserId = getCookie('currentUserId');
+                if (savedUserId && usersDB[savedUserId]) {
+                    currentUser = usersDB[savedUserId];
+                    loadUserStats();
+                }
+                updateUserDisplay();
+            });
+            // مراقبة التحديثات المستمرة
+            rootRef.child('users').on('value', (snapshot) => {
+                usersDB = snapshot.val() || {};
+                if (currentUser && usersDB[currentUser.id]) {
+                    currentUser = usersDB[currentUser.id];
+                    loadUserStats();
+                    updateUserDisplay();
+                }
+            });
+        }
+
+        // حفظ مستخدم في Firebase
+        function saveUserToFirebase(user) {
+            rootRef.child('users').child(user.id).set(user);
+        }
+
+        // حذف مستخدم من Firebase
+        function deleteUserFromFirebase(id) {
+            rootRef.child('users').child(id).remove();
+        }
+
+        function setupDarkMode() {
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.add('light');
+            }
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+                if (event.matches) {
+                    document.documentElement.classList.remove('light');
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                    document.documentElement.classList.add('light');
+                }
+            });
+        }
+
+        function setupAdminAccess() {
+            document.getElementById('main-header').addEventListener('dblclick', function() {
+                document.getElementById('admin-password-modal').classList.add('active');
+            });
+        }
+
+        function verifyAdminPassword() {
+            const password = document.getElementById('admin-password').value;
+            if (password === adminPassword) {
+                closeModal('admin-password-modal');
+                document.getElementById('admin-password').value = '';
+                showAdminPanel();
+            } else {
+                showCustomAlert('كلمة المرور غير صحيحة');
+            }
+        }
+
+        function showAdminPanel() {
+            const users = Object.values(usersDB);
+            const totalUsers = users.length;
+            const totalGames = users.reduce((sum, u) => sum + u.gamesPlayed, 0);
+            const totalPoints = users.reduce((sum, u) => sum + u.totalScore, 0);
+            const avgScore = totalGames > 0 ? Math.round(totalPoints / totalGames) : 0;
+
+            let html = `
+                <div class="admin-stats">
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-value">${totalUsers}</div>
+                        <div class="admin-stat-label">عدد المسجلين</div>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-value">${totalGames}</div>
+                        <div class="admin-stat-label">إجمالي الجولات</div>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-value">${totalPoints}</div>
+                        <div class="admin-stat-label">إجمالي النقاط</div>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-value">${avgScore}</div>
+                        <div class="admin-stat-label">متوسط النقاط</div>
+                    </div>
+                </div>
+            `;
+
+            if (users.length > 0) {
+                html += `
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>الاسم</th>
+                                <th>السجل المدني</th>
+                                <th>النقاط</th>
+                                <th>الجولات</th>
+                                <th>إجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                users.sort((a, b) => b.totalScore - a.totalScore).forEach((user, i) => {
+                    html += `
+                        <tr>
+                            <td>${i + 1}</td>
+                            <td>${user.name}</td>
+                            <td>${user.id}</td>
+                            <td>${user.totalScore}</td>
+                            <td>${user.gamesPlayed}</td>
+                            <td>
+                                <button class="admin-btn reset" onclick="resetUserStats('${user.id}')">إعادة</button>
+                                <button class="admin-btn delete" onclick="deleteUser('${user.id}')">حذف</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                html += '</tbody></table>';
+            } else {
+                html += '<p style="text-align: center; color: var(--text-muted);">لا يوجد مستخدمين مسجلين</p>';
+            }
+
+            document.getElementById('admin-content').innerHTML = html;
+            document.getElementById('admin-modal').classList.add('active');
+        }
+
+        function resetUserStats(id) {
+            if (usersDB[id]) {
+                usersDB[id].totalScore = 0;
+                usersDB[id].gamesPlayed = 0;
+                usersDB[id].maxStreak = 0;
+                saveUserToFirebase(usersDB[id]);
+                if (currentUser && currentUser.id === id) {
+                    loadUserStats();
+                }
+                showAdminPanel();
+                showCustomAlert('تم إعادة تعيين إحصائيات المستخدم');
+            }
+        }
+
+        function deleteUser(id) {
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay active';
+            modal.innerHTML = `
+                <div class="modal">
+                    <h2><i class="fas fa-trash" style="color: var(--danger);"></i> حذف المستخدم</h2>
+                    <p>هل أنت متأكد من حذف هذا المستخدم؟</p>
+                    <div class="btn-container">
+                        <button class="btn btn-secondary" onclick="this.closest('.modal-overlay').remove()">إلغاء</button>
+                        <button class="btn" style="background: var(--danger);" onclick="confirmDeleteUser('${id}'); this.closest('.modal-overlay').remove();">حذف</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function confirmDeleteUser(id) {
+            deleteUserFromFirebase(id);
+            delete usersDB[id];
+            if (currentUser && currentUser.id === id) {
+                logout();
+            }
+            showAdminPanel();
+            showCustomAlert('تم حذف المستخدم بنجاح');
+        }
+
+        function exportData() {
+            const users = Object.values(usersDB);
+            let csv = 'الاسم,السجل المدني,النقاط,الجولات,أعلى سلسلة\n';
+            users.forEach(user => {
+                csv += `${user.name},${user.id},${user.totalScore},${user.gamesPlayed},${user.maxStreak}\n`;
+            });
+
+            const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'quiz_data.csv';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // نظام التسجيل والدخول
+        function showLoginModal() {
+            closeModal('register-modal');
+            document.getElementById('login-modal').classList.add('active');
+        }
+
+        function showRegisterModal() {
+            closeModal('login-modal');
+            document.getElementById('register-modal').classList.add('active');
+        }
+
+        function login() {
+            const id = document.getElementById('login-id').value.trim();
+            if (!id) {
+                showCustomAlert('الرجاء إدخال السجل المدني');
+                return;
+            }
+            if (usersDB[id]) {
+                currentUser = usersDB[id];
+                setCookie('currentUserId', id, 30);
+                loadUserStats();
+                updateUserDisplay();
+                closeModal('login-modal');
+                document.getElementById('login-id').value = '';
+                showCustomAlert(`مرحباً ${currentUser.name}!`);
+                if (pendingAction) {
+                    window[pendingAction]();
+                    pendingAction = null;
+                }
+            } else {
+                showCustomAlert('السجل المدني غير مسجل. الرجاء التسجيل أولاً.');
+            }
+        }
+
+        function register() {
+            const name = document.getElementById('register-name').value.trim();
+            const id = document.getElementById('register-id').value.trim();
+
+            if (!name || !id) {
+                showCustomAlert('الرجاء إدخال جميع البيانات');
+                return;
+            }
+            if (id.length !== 10 || !/^\d+$/.test(id)) {
+                showCustomAlert('السجل المدني يجب أن يكون 10 أرقام');
+                return;
+            }
+            if (usersDB[id]) {
+                const modal = document.createElement('div');
+                modal.className = 'modal-overlay active';
+                modal.innerHTML = `
+                    <div class="modal">
+                        <h2><i class="fas fa-user-check" style="color: var(--success);"></i></h2>
+                        <p>أنت <strong style="color: var(--secondary);">${usersDB[id].name}</strong> مسجل مسبقاً!</p>
+                        <button class="btn" onclick="this.closest('.modal-overlay').remove(); loginExisting('${id}')">تفضل ادخل بالنقر هنا</button>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+                return;
+            }
+
+            usersDB[id] = {
+                id: id,
+                name: name,
+                totalScore: 0,
+                gamesPlayed: 0,
+                maxStreak: 0,
+                registeredAt: new Date().toISOString()
+            };
+            saveUserToFirebase(usersDB[id]);
+
+            currentUser = usersDB[id];
+            setCookie('currentUserId', id, 30);
+            loadUserStats();
+            updateUserDisplay();
+            closeModal('register-modal');
+            document.getElementById('register-name').value = '';
+            document.getElementById('register-id').value = '';
+            showCustomAlert(`تم التسجيل بنجاح! مرحباً ${name}`);
+            if (pendingAction) {
+                window[pendingAction]();
+                pendingAction = null;
+            }
+        }
+
+        function loginExisting(id) {
+            currentUser = usersDB[id];
+            setCookie('currentUserId', id, 30);
+            loadUserStats();
+            updateUserDisplay();
+            closeModal('register-modal');
+        }
+
+        function logout() {
+            currentUser = null;
+            deleteCookie('currentUserId');
+            gameState.totalScore = 0;
+            gameState.gamesPlayed = 0;
+            gameState.maxStreak = 0;
+            updateStatsDisplay();
+            updateUserDisplay();
+        }
+
+        function loadUserStats() {
+            if (currentUser) {
+                gameState.totalScore = currentUser.totalScore;
+                gameState.gamesPlayed = currentUser.gamesPlayed;
+                gameState.maxStreak = currentUser.maxStreak;
+                updateStatsDisplay();
+            }
+        }
+
+        function saveUserStats() {
+            if (currentUser) {
+                currentUser.totalScore = gameState.totalScore;
+                currentUser.gamesPlayed = gameState.gamesPlayed;
+                currentUser.maxStreak = gameState.maxStreak;
+                usersDB[currentUser.id] = currentUser;
+                saveUserToFirebase(currentUser);
+            }
+        }
+
+        function updateUserDisplay() {
+            const userInfo = document.getElementById('user-info');
+            if (currentUser) {
+                userInfo.innerHTML = `
+                    <div class="user-avatar"><i class="fas fa-user-check"></i></div>
+                    <div>
+                        <div class="user-name">${currentUser.name}</div>
+                        <div class="user-id">السجل: ${currentUser.id}</div>
+                    </div>
+                `;
+                document.getElementById('user-bar').innerHTML = `
+                    <div class="user-info" id="user-info">
+                        <div class="user-avatar"><i class="fas fa-user-check"></i></div>
+                        <div>
+                            <div class="user-name">${currentUser.name}</div>
+                            <div class="user-id">السجل: ${currentUser.id}</div>
+                        </div>
+                    </div>
+                    <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> تسجيل خروج</button>
+                `;
+            } else {
+                document.getElementById('user-bar').innerHTML = `
+                    <div class="user-info" id="user-info">
+                        <div class="user-avatar"><i class="fas fa-user"></i></div>
+                        <div>
+                            <div class="not-registered" onclick="showLoginModal()">
+                                أنت غير مسجل - انقر هنا للتسجيل
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function requireLogin(action) {
+            if (!currentUser) {
+                pendingAction = action;
+                showCustomAlert('للبدء سجل بياناتك في أعلى الصفحة');
+                showLoginModal();
+            } else {
+                window[action]();
+            }
+        }
+
+        function updateStatsDisplay() {
+            document.getElementById('total-score').textContent = gameState.totalScore;
+            document.getElementById('streak').textContent = gameState.maxStreak;
+            document.getElementById('games-played').textContent = gameState.gamesPlayed;
+        }
+
+        function renderUnitSelection() {
+            const container = document.getElementById('unit-selection');
+            container.innerHTML = units.map(unit => `
+                <div class="round-option" data-unit="${unit.id}" onclick="selectUnit(${unit.id})">
+                    <h4>${unit.icon} الوحدة ${unit.id}</h4>
+                    <p>${unit.name}</p>
+                </div>
+            `).join('');
+        }
+
+        function selectUnit(unitId) {
+            gameState.selectedUnit = unitId;
+            document.querySelectorAll('.round-option').forEach(el => el.classList.remove('selected'));
+            document.querySelector(`[data-unit="${unitId}"]`).classList.add('selected');
+        }
+
+        function showRoundModal() {
+            document.getElementById('round-modal').classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        function getRandomQuestions(count, unitFilter = null) {
+            let available = questionsBank.filter(q => {
+                if (unitFilter && q.unit !== unitFilter) return false;
+                return !gameState.usedQuestions.has(JSON.stringify(q));
+            });
+
+            if (available.length < count) {
+                gameState.usedQuestions.clear();
+                available = unitFilter ?
+                    questionsBank.filter(q => q.unit === unitFilter) :
+                    [...questionsBank];
+            }
+
+            const shuffled = available.sort(() => Math.random() - 0.5);
+            const selected = shuffled.slice(0, Math.min(count, shuffled.length));
+            selected.forEach(q => gameState.usedQuestions.add(JSON.stringify(q)));
+            return selected;
+        }
+
+        function startQuickGame() {
+            gameState.gameMode = 'quick';
+            gameState.currentQuestions = getRandomQuestions(10);
+            startGame("الجولة السريعة");
+        }
+
+        function startUnitGame() {
+            if (!gameState.selectedUnit) {
+                showCustomAlert('الرجاء اختيار وحدة للتدرب عليها');
+                return;
+            }
+            closeModal('round-modal');
+            gameState.gameMode = 'unit';
+            gameState.currentQuestions = getRandomQuestions(10, gameState.selectedUnit);
+            const unitName = units.find(u => u.id === gameState.selectedUnit).name;
+            startGame(unitName);
+        }
+
+        function startMarathon() {
+            gameState.gameMode = 'marathon';
+            gameState.currentQuestions = getRandomQuestions(25);
+            startGame("ماراثون التفسير");
+        }
+
+        function startGame(roundName) {
+            gameState.currentIndex = 0;
+            gameState.score = 0;
+            gameState.correctAnswers = 0;
+            gameState.wrongAnswers = 0;
+            gameState.streak = 0;
+
+            document.getElementById('round-name').textContent = roundName;
+            showScreen('game-screen');
+            displayQuestion();
+        }
+
+        function displayQuestion() {
+            const question = gameState.currentQuestions[gameState.currentIndex];
+            const total = gameState.currentQuestions.length;
+
+            document.getElementById('q-number').textContent = gameState.currentIndex + 1;
+            document.getElementById('question-counter').textContent = `السؤال ${gameState.currentIndex + 1} من ${total}`;
+            document.getElementById('progress-fill').style.width = `${((gameState.currentIndex) / total) * 100}%`;
+            document.getElementById('question-text').textContent = question.question;
+            document.getElementById('q-type').textContent = question.type === 'mcq' ? 'اختيار من متعدد' : 'صح أم خطأ';
+
+            const optionsContainer = document.getElementById('options-container');
+
+            if (question.type === 'mcq') {
+                optionsContainer.className = 'options-container';
+                optionsContainer.innerHTML = question.options.map((opt, i) => `
+                    <div class="option" onclick="selectOption(${i})">
+                        <span class="option-letter">${['أ', 'ب', 'ج'][i]}</span>
+                        <span>${opt}</span>
+                    </div>
+                `).join('');
+            } else {
+                optionsContainer.className = 'options-container tf-options';
+                optionsContainer.innerHTML = `
+                    <div class="option tf-option" onclick="selectTF(true)">
+                        <i class="fas fa-check-circle" style="color: var(--success);"></i>
+                        صح
+                    </div>
+                    <div class="option tf-option" onclick="selectTF(false)">
+                        <i class="fas fa-times-circle" style="color: var(--danger);"></i>
+                        خطأ
+                    </div>
+                `;
+            }
+
+            startTimer();
+        }
+
+        function startTimer() {
+            gameState.timeLeft = 30;
+            updateTimerDisplay();
+
+            if (gameState.timer) clearInterval(gameState.timer);
+
+            gameState.timer = setInterval(() => {
+                gameState.timeLeft--;
+                updateTimerDisplay();
+
+                if (gameState.timeLeft <= 0) {
+                    clearInterval(gameState.timer);
+                    handleTimeout();
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const timerEl = document.getElementById('timer');
+            document.getElementById('time-left').textContent = gameState.timeLeft;
+            timerEl.classList.toggle('warning', gameState.timeLeft <= 10);
+        }
+
+        function selectOption(index) {
+            clearInterval(gameState.timer);
+            const question = gameState.currentQuestions[gameState.currentIndex];
+            const isCorrect = index === question.correct;
+            processAnswer(isCorrect, index);
+        }
+
+        function selectTF(answer) {
+            clearInterval(gameState.timer);
+            const question = gameState.currentQuestions[gameState.currentIndex];
+            const isCorrect = answer === question.correct;
+            processAnswer(isCorrect, answer);
+        }
+
+        function processAnswer(isCorrect, selected) {
+            const options = document.querySelectorAll('.option');
+            options.forEach(opt => opt.classList.add('disabled'));
+
+            const question = gameState.currentQuestions[gameState.currentIndex];
+
+            if (question.type === 'mcq') {
+                options[question.correct].classList.add('correct');
+                if (!isCorrect && typeof selected === 'number') {
+                    options[selected].classList.add('wrong');
+                }
+            } else {
+                const correctIndex = question.correct ? 0 : 1;
+                const selectedIndex = selected ? 0 : 1;
+                options[correctIndex].classList.add('correct');
+                if (!isCorrect) {
+                    options[selectedIndex].classList.add('wrong');
+                }
+            }
+
+            if (isCorrect) {
+                gameState.correctAnswers++;
+                gameState.streak++;
+                const basePoints = 10;
+                const timeBonus = Math.floor(gameState.timeLeft / 3);
+                const streakBonus = Math.min(gameState.streak - 1, 5) * 2;
+                gameState.score += basePoints + timeBonus + streakBonus;
+                showFeedback('✅');
+                playSound('correct');
+            } else {
+                gameState.wrongAnswers++;
+                gameState.streak = 0;
+                showFeedback('❌');
+                playSound('wrong');
+            }
+
+            gameState.maxStreak = Math.max(gameState.maxStreak, gameState.streak);
+            document.getElementById('streak').textContent = gameState.streak;
+
+            const countdownBar = document.getElementById('countdown-bar');
+            countdownBar.style.display = 'block';
+            countdownBar.style.animation = 'none';
+            countdownBar.offsetHeight;
+            countdownBar.style.animation = 'countdownShrink 3s linear forwards';
+
+            gameState.autoNextTimer = setTimeout(() => {
+                countdownBar.style.display = 'none';
+                nextQuestion();
+            }, 3000);
+        }
+
+        function handleTimeout() {
+            gameState.wrongAnswers++;
+            gameState.streak = 0;
+            const options = document.querySelectorAll('.option');
+            options.forEach(opt => opt.classList.add('disabled'));
+
+            const question = gameState.currentQuestions[gameState.currentIndex];
+            if (question.type === 'mcq') {
+                options[question.correct].classList.add('correct');
+            } else {
+                options[question.correct ? 0 : 1].classList.add('correct');
+            }
+
+            showFeedback('⏰');
+            playSound('wrong');
+
+            const countdownBar = document.getElementById('countdown-bar');
+            countdownBar.style.display = 'block';
+            countdownBar.style.animation = 'none';
+            countdownBar.offsetHeight;
+            countdownBar.style.animation = 'countdownShrink 3s linear forwards';
+
+            gameState.autoNextTimer = setTimeout(() => {
+                countdownBar.style.display = 'none';
+                nextQuestion();
+            }, 3000);
+        }
+
+        function nextQuestion() {
+            if (gameState.autoNextTimer) {
+                clearTimeout(gameState.autoNextTimer);
+                gameState.autoNextTimer = null;
+            }
+            document.getElementById('countdown-bar').style.display = 'none';
+
+            gameState.currentIndex++;
+            if (gameState.currentIndex >= gameState.currentQuestions.length) {
+                endGame();
+            } else {
+                displayQuestion();
+            }
+        }
+
+        function endGame() {
+            clearInterval(gameState.timer);
+            gameState.gamesPlayed++;
+            gameState.totalScore += gameState.score;
+
+            saveUserStats();
+
+            const percentage = Math.round((gameState.correctAnswers / gameState.currentQuestions.length) * 100);
+
+            let icon, title;
+            if (percentage >= 90) {
+                icon = '🏆'; title = 'ممتاز! ما شاء الله!';
+                createConfetti();
+            } else if (percentage >= 70) {
+                icon = '🌟'; title = 'جيد جداً!';
+            } else if (percentage >= 50) {
+                icon = '👍'; title = 'جيد، استمر!';
+            } else {
+                icon = '📚'; title = 'حاول مرة أخرى';
+            }
+
+            document.getElementById('results-icon').textContent = icon;
+            document.getElementById('results-title').textContent = title;
+            document.getElementById('final-score').textContent = percentage + '%';
+            document.getElementById('correct-count').textContent = gameState.correctAnswers;
+            document.getElementById('wrong-count').textContent = gameState.wrongAnswers;
+            document.getElementById('points-earned').textContent = gameState.score;
+
+            updateStatsDisplay();
+            showScreen('results-screen');
+        }
+
+        function showLeaderboard() {
+            const list = document.getElementById('leaderboard-list');
+            const users = Object.values(usersDB).sort((a, b) => b.totalScore - a.totalScore);
+
+            if (users.length === 0) {
+                list.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 30px;">لا يوجد متسابقين بعد!</p>';
+            } else {
+                list.innerHTML = users.map((user, i) => {
+                    let rankClass = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+                    const isCurrentUser = currentUser && currentUser.id === user.id;
+                    return `
+                        <div class="leaderboard-item ${rankClass}" style="${isCurrentUser ? 'border: 2px solid var(--secondary);' : ''}">
+                            <div class="rank ${rankClass || 'normal'}">${i + 1}</div>
+                            <div class="leaderboard-name" style="${isCurrentUser ? 'color: var(--secondary); font-weight: 700;' : ''}">${user.name} ${isCurrentUser ? '(أنت)' : ''}</div>
+                            <span class="leaderboard-games">${user.gamesPlayed} جولة</span>
+                            <div class="leaderboard-score">${user.totalScore} نقطة</div>
+                        </div>
+                    `;
+                }).join('');
+            }
+            showScreen('leaderboard-screen');
+        }
+
+        function playAgain() {
+            switch (gameState.gameMode) {
+                case 'quick': startQuickGame(); break;
+                case 'unit':
+                    gameState.currentQuestions = getRandomQuestions(10, gameState.selectedUnit);
+                    const unitName = units.find(u => u.id === gameState.selectedUnit).name;
+                    startGame(unitName);
+                    break;
+                case 'marathon': startMarathon(); break;
+            }
+        }
+
+        function goHome() {
+            clearInterval(gameState.timer);
+            if (gameState.autoNextTimer) {
+                clearTimeout(gameState.autoNextTimer);
+                gameState.autoNextTimer = null;
+            }
+            showScreen('home-screen');
+        }
+
+        function confirmExit() {
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay active';
+            modal.id = 'exit-confirm-modal';
+            modal.innerHTML = `
+                <div class="modal">
+                    <h2><i class="fas fa-exclamation-triangle" style="color: var(--accent);"></i> إنهاء الجولة</h2>
+                    <p>هل أنت متأكد من إنهاء الجولة الحالية؟<br>سيتم فقدان تقدمك في هذه الجولة.</p>
+                    <div class="btn-container">
+                        <button class="btn btn-secondary" onclick="document.getElementById('exit-confirm-modal').remove()">
+                            <i class="fas fa-arrow-right"></i> متابعة اللعب
+                        </button>
+                        <button class="btn" style="background: var(--accent);" onclick="document.getElementById('exit-confirm-modal').remove(); exitGame();">
+                            <i class="fas fa-sign-out-alt"></i> إنهاء
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function exitGame() {
+            clearInterval(gameState.timer);
+            if (gameState.autoNextTimer) {
+                clearTimeout(gameState.autoNextTimer);
+                gameState.autoNextTimer = null;
+            }
+            goHome();
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.game-screen').forEach(s => {
+                s.classList.remove('active');
+                s.style.display = 'none';
+            });
+            const screen = document.getElementById(screenId);
+            screen.style.display = 'block';
+            setTimeout(() => screen.classList.add('active'), 10);
+        }
+
+        function showFeedback(emoji) {
+            const feedback = document.createElement('div');
+            feedback.className = 'feedback';
+            feedback.textContent = emoji;
+            document.body.appendChild(feedback);
+            setTimeout(() => feedback.remove(), 800);
+        }
+
+        function createConfetti() {
+            const colors = ['#d4af37', '#1a5f4a', '#28a745', '#ffc107', '#17a2b8'];
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * 100 + 'vw';
+                    confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+                    confetti.style.width = (Math.random() * 10 + 5) + 'px';
+                    confetti.style.height = confetti.style.width;
+                    document.body.appendChild(confetti);
+                    setTimeout(() => confetti.remove(), 3000);
+                }, i * 30);
+            }
+        }
+
+        function showCustomAlert(message) {
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay active';
+            modal.innerHTML = `
+                <div class="modal">
+                    <h2><i class="fas fa-info-circle"></i> تنبيه</h2>
+                    <p>${message}</p>
+                    <button class="btn" onclick="this.closest('.modal-overlay').remove()">حسناً</button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        // تشغيل التطبيق
+        init();
+    </script>
+</body>
+</html>
