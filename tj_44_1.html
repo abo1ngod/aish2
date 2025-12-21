@@ -939,7 +939,7 @@
                                             <h3 className="font-bold text-lg text-slate-800">{l.title}</h3>
                                         </div>
                                         <div className="flex gap-2">
-                                            <button onClick={() => handleLessonClick(l)} className="text-xs bg-primary text-white px-4 py-2.5 rounded-full font-bold hover:bg-blue-700 transition flex-1 md:flex-none justify-center">{status === 'passed' ? 'مراجعة الدرس' : 'بدء ال��رس'}</button>
+                                            <button onClick={() => handleLessonClick(l)} className="text-xs bg-primary text-white px-4 py-2.5 rounded-full font-bold hover:bg-blue-700 transition flex-1 md:flex-none justify-center">{status === 'passed' ? 'مراجعة الدرس' : 'بدء الدرس'}</button>
                                             <button onClick={() => {setActiveLesson(l); setView('flashcards')}} className="text-xs bg-purple-50 text-purple-600 px-4 py-2.5 rounded-full font-bold border border-purple-100 hover:bg-purple-100 transition flex-1 md:flex-none justify-center">بطاقات</button>
                                             {user.role !== 'guest' && (
                                                 <div className={`text-xs px-4 py-2.5 rounded-full font-bold border flex items-center justify-center flex-1 md:flex-none ${status==='passed'?'bg-green-100 text-green-700 border-green-200':status==='failed'?'bg-red-100 text-red-700 border-red-200':'bg-blue-50 text-blue-700 border-blue-100'}`}>
