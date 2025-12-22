@@ -747,8 +747,8 @@
 
         const StudentDashboard = ({ user, students, lessons, setView, setActiveLesson, setLessonMode, onProfileUpdate, onSendMessage }) => {
             const [showEditProfile, setShowEditProfile] = useState(false);
-            const [showStudentSearch, setShowStudentSearch] = useState(false);
             const [showContact, setShowContact] = useState(false);
+            const [showStats, setShowStats] = useState(false);
 
             // Profile Edit state (moved outside inner component to prevent re-creation)
             const [editData, setEditData] = useState({ password: '', mobile: '', avatar: '' });
@@ -783,44 +783,17 @@
                 else { setLessonMode('take'); setActiveLesson(l); setView('lesson'); }
             };
 
-            // Guest Search Inner Component
-            const StudentSearchModal = () => {
-                const [searchNid, setSearchNid] = useState('');
-                const [result, setResult] = useState(null);
-                const [error, setError] = useState('');
-
-                const doSearch = () => {
-                    const s = students.find(x => x.nid === searchNid);
-                    if(s) { setResult(s); setError(''); }
-                    else { setError('عذراً، السجل المدني غير موجود في النظام.'); setResult(null); }
-                };
-
-                return (
-                    <div className="modal-overlay">
-                        <div className="bg-white p-6 rounded-2xl w-full max-w-sm m-4 shadow-2xl relative">
-                            <button onClick={()=>setShowStudentSearch(false)} className="absolute top-4 left-4 text-slate-400 hover:text-slate-600"><i className="fas fa-times"></i></button>
-                            <h3 className="font-bold text-xl mb-4 text-center">بحث عن طالب</h3>
-                            {!result ? (
-                                <div>
-                                    <input className="w-full p-3 border rounded-xl mb-3 text-center" placeholder="أدخل السجل المدني" value={searchNid} onChange={e => setSearchNid(e.target.value)} />
-                                    <button onClick={doSearch} className="w-full bg-blue-600 text-white p-3 rounded-xl font-bold">بحث</button>
-                                    {error && <p className="text-red-500 text-sm text-center mt-3">{error}</p>}
-                                </div>
-                            ) : (
-                                <div className="text-center fade-in">
-                                    {result.avatar ? <img src={result.avatar} className="w-24 h-24 rounded-full mx-auto mb-4 object-cover border-4 border-blue-100" /> : <div className="w-24 h-24 rounded-full bg-slate-200 mx-auto mb-4 flex items-center justify-center text-4xl text-slate-400"><i className="fas fa-user"></i></div>}
-                                    <h2 className="text-2xl font-bold text-slate-800">{result.name}</h2>
-                                    <p className="text-slate-500 mb-4">{getLevelName(result.level)}</p>
-                                    <div className="flex justify-center gap-4 text-sm">
-                                        <div className="bg-yellow-50 px-4 py-2 rounded-lg border border-yellow-100"><span className="block font-bold text-gold text-lg">{result.xp}</span>نقاط</div>
-                                        <div className="bg-purple-50 px-4 py-2 rounded-lg border border-purple-100"><span className="block font-bold text-purple-600 text-lg">{result.history?.length || 0}</span>درس</div>
-                                    </div>
-                                    <button onClick={()=>setResult(null)} className="mt-6 text-blue-500 underline text-sm">بحث جديد</button>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                );
+            // Top 10 Students Stats calculation
+            const getTop10Students = () => {
+                const totalLessons = lessons.filter(l => l.isVisible).length;
+                return students
+                    .map(s => {
+                        const passedLessons = s.history?.filter(h => h.score >= 50).map(h => h.lessonId).filter((v, i, a) => a.indexOf(v) === i).length || 0;
+                        const completionRate = totalLessons > 0 ? Math.round((passedLessons / totalLessons) * 100) : 0;
+                        return { ...s, passedLessons, completionRate };
+                    })
+                    .sort((a, b) => b.completionRate - a.completionRate || b.xp - a.xp)
+                    .slice(0, 10);
             };
 
             // Guest Message Modal
@@ -894,8 +867,36 @@
                             </div>
                         </div>
                     )}
-                    {showStudentSearch && <StudentSearchModal />}
                     {showContact && <ContactModal />}
+                    {showStats && (
+                        <div className="modal-overlay">
+                            <div className="bg-white p-6 rounded-2xl w-full max-w-md m-4 shadow-2xl max-h-[80vh] overflow-y-auto">
+                                <div className="flex justify-between items-center mb-4 border-b pb-2">
+                                    <h3 className="font-bold text-xl">إحصائيات عامة - الطلاب العشرة الأوائل</h3>
+                                    <button onClick={() => setShowStats(false)} className="text-slate-400 hover:text-slate-600"><i className="fas fa-times"></i></button>
+                                </div>
+                                <div className="space-y-3">
+                                    {getTop10Students().map((s, idx) => (
+                                        <div key={s.nid} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border">
+                                            <div className="font-bold text-lg text-primary w-6">{idx + 1}</div>
+                                            <div className="w-12 h-12 rounded-full bg-slate-200 flex items-center justify-center overflow-hidden border-2 border-white shadow">
+                                                {s.avatar ? <img src={s.avatar} className="w-full h-full object-cover" /> : <i className="fas fa-user text-slate-400"></i>}
+                                            </div>
+                                            <div className="flex-1">
+                                                <div className="font-bold text-slate-800">{s.name}</div>
+                                                <div className="text-xs text-slate-500">{getLevelName(s.level)}</div>
+                                            </div>
+                                            <div className="text-center">
+                                                <div className="text-sm font-bold text-green-600">{s.passedLessons} درس</div>
+                                                <div className="text-xs text-slate-400">{s.completionRate}%</div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {getTop10Students().length === 0 && <div className="text-center text-slate-400 py-4">لا توجد بيانات</div>}
+                                </div>
+                            </div>
+                        </div>
+                    )}
                     <div className="lg:col-span-1 space-y-6">
                         <div className="bg-white p-6 rounded-3xl shadow-sm border h-fit sticky top-24">
                             <div className="text-center mb-8">
@@ -909,6 +910,7 @@
                                 <div className="grid grid-cols-2 gap-3 mb-6">
                                     <button onClick={() => setView('srs')} className="bg-orange-50 text-orange-600 p-4 rounded-2xl font-bold border border-orange-100 relative hover:bg-orange-100 transition flex flex-col items-center gap-1"><i className="fas fa-brain text-xl"></i> مراجعة {reviewCount > 0 && <span className="absolute top-2 right-2 bg-red-500 text-white text-xs w-5 h-5 rounded-full animate-bounce">{reviewCount}</span>}</button>
                                     <button onClick={() => setView('mistakes')} className="bg-red-50 text-red-600 p-4 rounded-2xl font-bold border border-red-100 relative hover:bg-red-100 transition flex flex-col items-center gap-1"><i className="fas fa-bug text-xl"></i> أخطائي {mistakesCount > 0 && <span className="absolute top-2 right-2 bg-red-500 text-white text-xs w-5 h-5 rounded-full">{mistakesCount}</span>}</button>
+                                    <button onClick={() => setShowStats(true)} className="bg-teal-50 text-teal-600 p-4 rounded-2xl font-bold border border-teal-100 relative hover:bg-teal-100 transition flex flex-col items-center gap-1 col-span-2"><i className="fas fa-chart-bar text-xl"></i> إحصائيات عامة</button>
                                     <button onClick={() => setView('certificate')} className="col-span-2 bg-slate-800 text-white p-3 rounded-xl font-bold hover:bg-black transition flex items-center justify-center gap-2"><i className="fas fa-certificate"></i> شهادتي</button>
                                     <button onClick={() => setShowEditProfile(true)} className="col-span-2 bg-white text-slate-600 border border-slate-200 p-2 rounded-xl font-bold hover:bg-slate-50 transition flex items-center justify-center gap-2 text-sm"><i className="fas fa-user-edit"></i> تعديل بياناتي</button>
                                 </div>
@@ -917,6 +919,7 @@
                                 <div className="space-y-3">
                                     <div className="bg-yellow-50 p-4 rounded text-center text-sm text-yellow-800">وضع الزائر: المشاهدة فقط</div>
                                     <button onClick={() => setShowContact(true)} className="w-full bg-white border border-blue-200 text-blue-600 py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-blue-50 transition"><i className="fas fa-envelope"></i> راسل المعلم</button>
+                                    <button onClick={() => setShowStats(true)} className="w-full bg-white border border-teal-200 text-teal-600 py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-teal-50 transition"><i className="fas fa-chart-bar"></i> إحصائيات عامة</button>
                                 </div>
                             )}
                         </div>
@@ -924,11 +927,6 @@
                     <div className="lg:col-span-2 space-y-4">
                         <div className="flex items-center gap-2 mb-4">
                             <h2 className="text-2xl font-bold text-slate-800">الدروس المتاحة</h2>
-                            {user.role === 'guest' && (
-                                <button onClick={()=>setShowStudentSearch(true)} className="bg-white border text-slate-500 hover:text-blue-600 w-8 h-8 rounded-full flex items-center justify-center transition shadow-sm" title="بحث عن طالب">
-                                    <i className="fas fa-search"></i>
-                                </button>
-                            )}
                         </div>
                         {visibleLessons.length === 0 && <div className="text-center p-8 bg-white rounded-2xl text-slate-500">لا توجد دروس حالياً...</div>}
                         {visibleLessons.map(l => {
@@ -1303,7 +1301,7 @@
                                         <div><label className="block text-sm font-bold mb-1">الشعبة / الصف</label><input className="w-full p-2 border rounded" value={editingStudent.section} onChange={e => setEditingStudent({...editingStudent, section: e.target.value})} /></div>
                                         <div><label className="block text-sm font-bold mb-1">السجل المدني</label><input className="w-full p-2 border rounded bg-slate-50" value={editingStudent.nid} disabled /></div>
                                         <div><label className="block text-sm font-bold mb-1 text-red-500">كلمة المرور</label><input className="w-full p-2 border rounded border-red-200" value={editingStudent.password || ''} onChange={e => setEditingStudent({...editingStudent, password: e.target.value})} placeholder="تعيين كلمة مرور جديدة" /></div>
-                                        <div><label className="block text-sm font-bold mb-1">رقم الجوال</label><input className="w-full p-2 border rounded" value={editingStudent.mobile || ''} onChange={e => setEditingStudent({...editingStudent, mobile: e.target.value})} /></div>
+                                        <div><label className="block text-sm font-bold mb-1">رق�� الجوال</label><input className="w-full p-2 border rounded" value={editingStudent.mobile || ''} onChange={e => setEditingStudent({...editingStudent, mobile: e.target.value})} /></div>
                                         
                                         {/* Image Management in Admin */}
                                         <div>
