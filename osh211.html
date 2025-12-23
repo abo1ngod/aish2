@@ -178,6 +178,10 @@
             const [guestMessages, setGuestMessages] = useState([]);
             const [dbReady, setDbReady] = useState(false);
 
+            // Messaging System State
+            const [privateMessages, setPrivateMessages] = useState([]);
+            const [announcements, setAnnouncements] = useState([]);
+
             const [currentUser, setCurrentUser] = useState(() => {
                 try {
                     const saved = window.localStorage.getItem('currentUser');
@@ -258,11 +262,25 @@
                     }
                 });
 
+                // 5. Listen to Private Messages
+                const qPrivateMsgs = window.query(window.collection(window.db, ...publicDataPath, 'private_messages'));
+                const unsubPrivateMsgs = window.onSnapshot(qPrivateMsgs, (snapshot) => {
+                    setPrivateMessages(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+                });
+
+                // 6. Listen to Announcements
+                const qAnnouncements = window.query(window.collection(window.db, ...publicDataPath, 'announcements'));
+                const unsubAnnouncements = window.onSnapshot(qAnnouncements, (snapshot) => {
+                    setAnnouncements(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+                });
+
                 return () => {
                     unsubLessons();
                     unsubStudents();
                     unsubMsgs();
                     unsubSettings();
+                    unsubPrivateMsgs();
+                    unsubAnnouncements();
                 };
             }, []);
 
@@ -358,6 +376,67 @@
                 setAdminPassword(newPass); // Optimistic update
             };
 
+            // --- Messaging System Functions ---
+            const fbSendPrivateMessage = async (fromId, toId, text, fromName) => {
+                await window.addDoc(window.collection(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'private_messages'), {
+                    from: fromId,
+                    to: toId,
+                    fromName: fromName,
+                    text: text,
+                    timestamp: Date.now(),
+                    read: false
+                });
+            };
+
+            const fbMarkMessageRead = async (msgId) => {
+                await window.setDoc(window.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'private_messages', msgId), { read: true }, { merge: true });
+            };
+
+            const fbDeletePrivateMessage = async (msgId) => {
+                await window.deleteDoc(window.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'private_messages', msgId));
+            };
+
+            const fbDeleteConversation = async (studentNid) => {
+                const toDelete = privateMessages.filter(m => m.from === studentNid || m.to === studentNid);
+                for (let msg of toDelete) {
+                    await window.deleteDoc(window.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'private_messages', msg.id));
+                }
+            };
+
+            const fbSendAnnouncement = async (text, targetSection = 'all', isPinned = false, scheduledFor = null) => {
+                await window.addDoc(window.collection(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'announcements'), {
+                    text: text,
+                    targetSection: targetSection,
+                    isPinned: isPinned,
+                    scheduledFor: scheduledFor,
+                    timestamp: Date.now(),
+                    readBy: []
+                });
+            };
+
+            const fbMarkAnnouncementRead = async (annId, studentNid) => {
+                const ann = announcements.find(a => a.id === annId);
+                if (ann && !ann.readBy?.includes(studentNid)) {
+                    const newReadBy = [...(ann.readBy || []), studentNid];
+                    await window.setDoc(window.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'announcements', annId), { readBy: newReadBy }, { merge: true });
+                }
+            };
+
+            const fbToggleAnnouncementPin = async (annId) => {
+                const ann = announcements.find(a => a.id === annId);
+                if (ann) {
+                    await window.setDoc(window.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'announcements', annId), { isPinned: !ann.isPinned }, { merge: true });
+                }
+            };
+
+            const fbDeleteAnnouncement = async (annId) => {
+                await window.deleteDoc(window.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'announcements', annId));
+            };
+
+            const fbUpdateAnnouncement = async (annId, newText) => {
+                await window.setDoc(window.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'announcements', annId), { text: newText }, { merge: true });
+            };
+
             // --- Original Logic Adapted ---
 
             const handleAdminTabClick = () => {
@@ -448,25 +527,26 @@
             };
 
             const performLogin = async (studentObj) => {
-                const today = new Date().toDateString();
+                const now = new Date();
+                const today = now.toDateString();
+                const lastLoginDateOnly = studentObj.lastLoginTimestamp ? new Date(studentObj.lastLoginTimestamp).toDateString() : null;
                 let updates = {};
-                
-                if(studentObj.lastLogin !== today) {
+
+                if(lastLoginDateOnly !== today) {
                     const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
-                    if(studentObj.lastLogin === yesterday.toDateString()) {
+                    if(lastLoginDateOnly === yesterday.toDateString()) {
                         updates.streak = (studentObj.streak || 0) + 1;
                     } else {
                         updates.streak = 1;
                     }
-                    updates.lastLogin = today;
                 }
-                
-                if(Object.keys(updates).length > 0) {
-                    await fbUpdateStudent(studentObj.nid, updates);
-                    setCurrentUser({ ...studentObj, ...updates, role: 'student' });
-                } else {
-                    setCurrentUser({ ...studentObj, role: 'student' });
-                }
+
+                // Always update lastLogin with full timestamp
+                updates.lastLogin = today;
+                updates.lastLoginTimestamp = now.getTime();
+
+                await fbUpdateStudent(studentObj.nid, updates);
+                setCurrentUser({ ...studentObj, ...updates, role: 'student' });
                 setView('student-dash');
             };
 
@@ -575,9 +655,9 @@
                     )}
                     <main className="flex-grow container mx-auto p-4 md:p-6 max-w-7xl">
                         {view === 'landing' && <Landing setView={setView} loginGuest={loginGuest} />}
-                        {view === 'admin' && <AdminDashboard lessons={lessons} addLesson={fbAddLesson} updateLesson={fbUpdateLesson} deleteLesson={fbDeleteLesson} toggleVisibility={fbToggleVisibility} addBulkLessons={addBulkLessons} students={students} addStudent={fbAddStudent} updateStudentFull={fbUpdateStudent} deleteStudent={fbDeleteStudent} deleteAllStudents={fbDeleteAllStudents} importStudents={importStudents} exportStudents={() => {/* Export Logic Same */}} questionBank={questionBank} resetStudentFull={resetStudentFull} resetStudentLesson={resetStudentLesson} guestMessages={guestMessages} deleteMessage={fbDeleteMessage} adminPassword={adminPassword} setAdminPassword={fbSetAdminPassword} useStickyState={useStickyState} />}
+                        {view === 'admin' && <AdminDashboard lessons={lessons} addLesson={fbAddLesson} updateLesson={fbUpdateLesson} deleteLesson={fbDeleteLesson} toggleVisibility={fbToggleVisibility} addBulkLessons={addBulkLessons} students={students} addStudent={fbAddStudent} updateStudentFull={fbUpdateStudent} deleteStudent={fbDeleteStudent} deleteAllStudents={fbDeleteAllStudents} importStudents={importStudents} exportStudents={() => {/* Export Logic Same */}} questionBank={questionBank} resetStudentFull={resetStudentFull} resetStudentLesson={resetStudentLesson} guestMessages={guestMessages} deleteMessage={fbDeleteMessage} adminPassword={adminPassword} setAdminPassword={fbSetAdminPassword} useStickyState={useStickyState} privateMessages={privateMessages} announcements={announcements} fbSendPrivateMessage={fbSendPrivateMessage} fbMarkMessageRead={fbMarkMessageRead} fbDeletePrivateMessage={fbDeletePrivateMessage} fbDeleteConversation={fbDeleteConversation} fbSendAnnouncement={fbSendAnnouncement} fbToggleAnnouncementPin={fbToggleAnnouncementPin} fbDeleteAnnouncement={fbDeleteAnnouncement} fbUpdateAnnouncement={fbUpdateAnnouncement} />}
                         {view === 'student-login' && <StudentLogin students={students} onLogin={performLogin} updateStudentFull={fbUpdateStudent} />}
-                        {view === 'student-dash' && <StudentDashboard user={currentUser} students={students} lessons={lessons} setView={setView} setActiveLesson={setActiveLesson} setLessonMode={setLessonMode} onProfileUpdate={handleProfileUpdate} onSendMessage={fbAddGuestMessage} />}
+                        {view === 'student-dash' && <StudentDashboard user={currentUser} students={students} lessons={lessons} setView={setView} setActiveLesson={setActiveLesson} setLessonMode={setLessonMode} onProfileUpdate={handleProfileUpdate} onSendMessage={fbAddGuestMessage} privateMessages={privateMessages} announcements={announcements} onSendPrivateMessage={fbSendPrivateMessage} onMarkAnnouncementRead={fbMarkAnnouncementRead} onMarkMessageRead={fbMarkMessageRead} />}
                         {view === 'lesson' && <LessonView lesson={activeLesson} user={currentUser} onComplete={updateUserProgress} onBack={() => setView('student-dash')} mode={lessonMode} />}
                         {view === 'flashcards' && <FlashcardsView lesson={activeLesson} onBack={() => setView('student-dash')} />}
                         {view === 'srs' && <SRSView user={currentUser} onReview={handleSRSReview} onBack={() => setView('student-dash')} />}
@@ -745,10 +825,12 @@
             );
         };
 
-        const StudentDashboard = ({ user, students, lessons, setView, setActiveLesson, setLessonMode, onProfileUpdate, onSendMessage }) => {
+        const StudentDashboard = ({ user, students, lessons, setView, setActiveLesson, setLessonMode, onProfileUpdate, onSendMessage, privateMessages = [], announcements = [], onSendPrivateMessage, onMarkAnnouncementRead, onMarkMessageRead }) => {
             const [showEditProfile, setShowEditProfile] = useState(false);
             const [showContact, setShowContact] = useState(false);
             const [showStats, setShowStats] = useState(false);
+            const [showMessaging, setShowMessaging] = useState(false);
+            const [messagingTab, setMessagingTab] = useState('announcements');
 
             // Profile Edit state (moved outside inner component to prevent re-creation)
             const [editData, setEditData] = useState({ password: '', mobile: '', avatar: '' });
@@ -767,6 +849,24 @@
             const visibleLessons = lessons.filter(l => l.isVisible);
             const reviewCount = user.role === 'student' ? (user.srsQueue?.filter(q => q.nextReview <= Date.now()).length || 0) : 0;
             const mistakesCount = user.role === 'student' ? (user.mistakes?.length || 0) : 0;
+
+            // Messaging calculations
+            const myAnnouncements = user.role === 'student' ? announcements.filter(a =>
+                a.targetSection === 'all' || a.targetSection === user.section
+            ) : [];
+            const unreadAnnouncements = myAnnouncements.filter(a => !a.readBy?.includes(user.nid));
+            const myMessages = user.role === 'student' ? privateMessages.filter(m =>
+                m.from === user.nid || m.to === user.nid
+            ) : [];
+            const unreadMessages = myMessages.filter(m => m.to === user.nid && !m.read);
+            const totalUnread = unreadAnnouncements.length + unreadMessages.length;
+
+            // Format timestamp helper
+            const formatMsgTime = (ts) => {
+                if (!ts) return '';
+                const d = new Date(ts);
+                return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')} - ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+            };
 
             const getLessonStatus = (lessonId) => {
                 if(user.role === 'guest') return { status: 'new', score: 0 };
@@ -897,6 +997,72 @@
                             </div>
                         </div>
                     )}
+                    {showMessaging && user.role === 'student' && (
+                        <div className="modal-overlay">
+                            <div className="bg-white p-6 rounded-2xl w-full max-w-lg m-4 shadow-2xl max-h-[85vh] overflow-hidden flex flex-col">
+                                <div className="flex justify-between items-center mb-4 border-b pb-3">
+                                    <h3 className="font-bold text-xl text-indigo-700"><i className="fas fa-comments ml-2"></i>التواصل مع المعلم</h3>
+                                    <button onClick={() => setShowMessaging(false)} className="text-slate-400 hover:text-slate-600 text-xl"><i className="fas fa-times"></i></button>
+                                </div>
+                                {/* Tabs */}
+                                <div className="flex gap-2 mb-4">
+                                    <button onClick={() => setMessagingTab('announcements')} className={`flex-1 py-2 px-4 rounded-lg font-bold text-sm transition ${messagingTab === 'announcements' ? 'bg-purple-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+                                        <i className="fas fa-bullhorn ml-1"></i> الإعلانات {unreadAnnouncements.length > 0 && <span className="bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full mr-1">{unreadAnnouncements.length}</span>}
+                                    </button>
+                                    <button onClick={() => setMessagingTab('private')} className={`flex-1 py-2 px-4 rounded-lg font-bold text-sm transition ${messagingTab === 'private' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+                                        <i className="fas fa-envelope ml-1"></i> رسائلي {unreadMessages.length > 0 && <span className="bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full mr-1">{unreadMessages.length}</span>}
+                                    </button>
+                                </div>
+                                {/* Content */}
+                                <div className="flex-1 overflow-y-auto">
+                                    {messagingTab === 'announcements' && (
+                                        <div className="space-y-3">
+                                            {myAnnouncements.length === 0 ? <p className="text-slate-400 text-center py-8">لا توجد إعلانات</p> :
+                                                [...myAnnouncements].sort((a, b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0) || b.timestamp - a.timestamp).map(ann => (
+                                                    <div key={ann.id} onClick={() => onMarkAnnouncementRead && onMarkAnnouncementRead(ann.id, user.nid)} className={`p-4 rounded-xl border cursor-pointer transition ${ann.isPinned ? 'bg-yellow-50 border-yellow-300' : 'bg-slate-50'} ${!ann.readBy?.includes(user.nid) ? 'border-r-4 border-r-purple-500' : ''}`}>
+                                                        <div className="flex items-center gap-2 mb-2">
+                                                            {ann.isPinned && <i className="fas fa-thumbtack text-yellow-600"></i>}
+                                                            {!ann.readBy?.includes(user.nid) && <span className="bg-purple-500 text-white text-xs px-2 py-0.5 rounded">جديد</span>}
+                                                            <span className="text-xs text-slate-400">{formatMsgTime(ann.timestamp)}</span>
+                                                        </div>
+                                                        <p className="text-slate-700 whitespace-pre-wrap">{ann.text}</p>
+                                                    </div>
+                                                ))
+                                            }
+                                        </div>
+                                    )}
+                                    {messagingTab === 'private' && (
+                                        <div className="flex flex-col h-full">
+                                            <div className="flex-1 overflow-y-auto space-y-3 mb-4 p-2 bg-slate-50 rounded-xl min-h-48">
+                                                {myMessages.length === 0 ? <p className="text-slate-400 text-center py-8">لا توجد رسائل</p> :
+                                                    [...myMessages].sort((a, b) => a.timestamp - b.timestamp).map(m => {
+                                                        if (m.to === user.nid && !m.read && onMarkMessageRead) onMarkMessageRead(m.id);
+                                                        return (
+                                                            <div key={m.id} className={`flex ${m.from === user.nid ? 'justify-end' : 'justify-start'}`}>
+                                                                <div className={`max-w-xs p-3 rounded-xl ${m.from === user.nid ? 'bg-indigo-100 text-indigo-900' : 'bg-white border shadow-sm'}`}>
+                                                                    <p className="text-sm whitespace-pre-wrap">{m.text}</p>
+                                                                    <div className="text-xs text-slate-400 mt-1">{formatMsgTime(m.timestamp)}</div>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })
+                                                }
+                                            </div>
+                                            <div className="flex gap-2 mt-auto">
+                                                <input type="text" id="studentMsgInput" className="flex-1 p-3 border rounded-xl text-sm" placeholder="اكتب رسالتك للمعلم..." onKeyPress={e => { if(e.key === 'Enter') document.getElementById('studentSendBtn').click(); }} />
+                                                <button id="studentSendBtn" onClick={() => {
+                                                    const input = document.getElementById('studentMsgInput');
+                                                    if (!input.value.trim() || !onSendPrivateMessage) return;
+                                                    onSendPrivateMessage(user.nid, 'teacher', input.value, user.name);
+                                                    input.value = '';
+                                                }} className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl font-bold"><i className="fas fa-paper-plane"></i></button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    )}
                     <div className="lg:col-span-1 space-y-6">
                         <div className="bg-white p-6 rounded-3xl shadow-sm border h-fit sticky top-24">
                             <div className="text-center mb-8">
@@ -911,6 +1077,7 @@
                                     <button onClick={() => setView('srs')} className="bg-orange-50 text-orange-600 p-4 rounded-2xl font-bold border border-orange-100 relative hover:bg-orange-100 transition flex flex-col items-center gap-1"><i className="fas fa-brain text-xl"></i> مراجعة {reviewCount > 0 && <span className="absolute top-2 right-2 bg-red-500 text-white text-xs w-5 h-5 rounded-full animate-bounce">{reviewCount}</span>}</button>
                                     <button onClick={() => setView('mistakes')} className="bg-red-50 text-red-600 p-4 rounded-2xl font-bold border border-red-100 relative hover:bg-red-100 transition flex flex-col items-center gap-1"><i className="fas fa-bug text-xl"></i> أخطائي {mistakesCount > 0 && <span className="absolute top-2 right-2 bg-red-500 text-white text-xs w-5 h-5 rounded-full">{mistakesCount}</span>}</button>
                                     <button onClick={() => setShowStats(true)} className="bg-teal-50 text-teal-600 p-4 rounded-2xl font-bold border border-teal-100 relative hover:bg-teal-100 transition flex flex-col items-center gap-1 col-span-2"><i className="fas fa-chart-bar text-xl"></i> إحصائيات عامة</button>
+                                    <button onClick={() => setShowMessaging(true)} className="bg-indigo-50 text-indigo-600 p-4 rounded-2xl font-bold border border-indigo-100 relative hover:bg-indigo-100 transition flex flex-col items-center gap-1 col-span-2"><i className="fas fa-comments text-xl"></i> التواصل {totalUnread > 0 && <span className="absolute top-2 right-2 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center animate-pulse">{totalUnread}</span>}</button>
                                     <button onClick={() => setView('certificate')} className="col-span-2 bg-slate-800 text-white p-3 rounded-xl font-bold hover:bg-black transition flex items-center justify-center gap-2"><i className="fas fa-certificate"></i> شهادتي</button>
                                     <button onClick={() => setShowEditProfile(true)} className="col-span-2 bg-white text-slate-600 border border-slate-200 p-2 rounded-xl font-bold hover:bg-slate-50 transition flex items-center justify-center gap-2 text-sm"><i className="fas fa-user-edit"></i> تعديل بياناتي</button>
                                 </div>
@@ -955,7 +1122,7 @@
             );
         };
 
-        const AdminDashboard = ({ lessons, addLesson, updateLesson, deleteLesson, toggleVisibility, addBulkLessons, students, addStudent, updateStudentFull, deleteStudent, deleteAllStudents, importStudents, exportStudents, questionBank, resetStudentFull, resetStudentLesson, guestMessages, deleteMessage, adminPassword, setAdminPassword, useStickyState }) => {
+        const AdminDashboard = ({ lessons, addLesson, updateLesson, deleteLesson, toggleVisibility, addBulkLessons, students, addStudent, updateStudentFull, deleteStudent, deleteAllStudents, importStudents, exportStudents, questionBank, resetStudentFull, resetStudentLesson, guestMessages, deleteMessage, adminPassword, setAdminPassword, useStickyState, privateMessages = [], announcements = [], fbSendPrivateMessage, fbMarkMessageRead, fbDeletePrivateMessage, fbDeleteConversation, fbSendAnnouncement, fbToggleAnnouncementPin, fbDeleteAnnouncement, fbUpdateAnnouncement }) => {
             const [tab, setTab] = useState('manage'); 
             const [lesson, setLesson] = useState({ title: '', content: '', questions: [], flashcards: [] });
             const [bulkText, setBulkText] = useState('');
@@ -967,12 +1134,15 @@
             
             const [studentSearch, setStudentSearch] = useState('');
             const [studentSort, setStudentSort] = useState('name-asc');
+            const [studentSectionFilter, setStudentSectionFilter] = useState('all');
             const [studentPage, setStudentPage] = useState(1);
             const [editingStudent, setEditingStudent] = useState(null);
             const [viewingStudent, setViewingStudent] = useState(null);
             const [enlargedImg, setEnlargedImg] = useState(null);
+            const [chatStudent, setChatStudent] = useState(null);
+            const [editingAnnouncement, setEditingAnnouncement] = useState(null);
 
-            const STUDENTS_PER_PAGE = 20;
+            const STUDENTS_PER_PAGE = 40;
 
             const callGemini = async (prompt) => {
                 if(!apiKey) throw new Error("مفتاح API مفقود");
@@ -1032,14 +1202,70 @@
             const addQuestion = () => { setLesson({...lesson, questions: [...lesson.questions, {id: Date.now(), type: 'mcq', text: 'سؤال جديد', options: ['خيار 1', 'خيار 2'], answer: 'خيار 1', explanation: ''}]}); };
             const removeQuestion = (idx) => { setLesson({...lesson, questions: lesson.questions.filter((_, i) => i !== idx)}); };
 
+            // Get unique sections for filter dropdown
+            const uniqueSections = [...new Set(students.map(s => s.section).filter(Boolean))].sort();
+
             // Filtering and Sorting
             let filteredStudents = students.filter(s => s.name.includes(studentSearch) || s.nid.includes(studentSearch));
-            
+
+            // Apply section filter
+            if (studentSectionFilter !== 'all') {
+                filteredStudents = filteredStudents.filter(s => s.section === studentSectionFilter);
+            }
+
             filteredStudents.sort((a, b) => {
                 if (studentSort === 'name-asc') return a.name.localeCompare(b.name);
-                if (studentSort === 'section-asc') return (a.section || '').localeCompare(b.section || '');
                 if (studentSort === 'xp-desc') return b.xp - a.xp;
                 return 0;
+            });
+
+            // Statistics calculations for reports
+            const today = new Date().toDateString();
+            const oneWeekAgo = new Date();
+            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+            const activeToday = students.filter(s => s.lastLogin === today);
+            const activeThisWeek = students.filter(s => {
+                if (!s.lastLogin) return false;
+                const loginDate = new Date(s.lastLogin);
+                return loginDate >= oneWeekAgo;
+            });
+            const absentStudents = students.filter(s => {
+                if (!s.lastLogin) return true;
+                const loginDate = new Date(s.lastLogin);
+                return loginDate < oneWeekAgo;
+            });
+            // Students who never logged in OR logged in but didn't complete setup
+            const notUpdatedProfile = students.filter(s => !s.hasCompletedSetup);
+
+            // Last 10 students who logged in (sorted by timestamp)
+            // Support both new lastLoginTimestamp and old lastLogin for backward compatibility
+            const last10LoggedIn = [...students]
+                .filter(s => s.lastLoginTimestamp || s.lastLogin)
+                .sort((a, b) => {
+                    const tsA = a.lastLoginTimestamp || (a.lastLogin ? new Date(a.lastLogin).getTime() : 0);
+                    const tsB = b.lastLoginTimestamp || (b.lastLogin ? new Date(b.lastLogin).getTime() : 0);
+                    return tsB - tsA;
+                })
+                .slice(0, 10);
+
+            // Format timestamp helper
+            const formatDateTime = (timestamp) => {
+                if (!timestamp) return '-';
+                const d = new Date(timestamp);
+                if (isNaN(d.getTime())) return '-';
+                const date = `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
+                const time = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+                return `${date} - ${time}`;
+            };
+            // Get login time from student (handles both lastLoginTimestamp and lastLogin)
+            const getLoginTime = (s) => s.lastLoginTimestamp || (s.lastLogin ? new Date(s.lastLogin).getTime() : null);
+
+            // Section distribution
+            const sectionDistribution = {};
+            students.forEach(s => {
+                const sec = s.section || 'غير محدد';
+                sectionDistribution[sec] = (sectionDistribution[sec] || 0) + 1;
             });
 
             const totalPages = Math.ceil(filteredStudents.length / STUDENTS_PER_PAGE);
@@ -1105,6 +1331,8 @@
                         <button onClick={() => {setTab('create'); setLesson({title:'',content:'',questions:[],flashcards:[]}); setEditingId(null);}} className={`w-full text-right p-3 rounded font-bold mb-1 ${tab==='create'?'bg-blue-50 text-blue-600':''}`}><i className="fas fa-plus-circle"></i> درس (إضافة/تعديل)</button>
                         <button onClick={() => setTab('bulk')} className={`w-full text-right p-3 rounded font-bold mb-1 ${tab==='bulk'?'bg-purple-50 text-purple-600':''}`}><i className="fas fa-layer-group"></i> المقسم الذكي</button>
                         <button onClick={() => setTab('students')} className={`w-full text-right p-3 rounded font-bold mb-1 ${tab==='students'?'bg-green-50 text-green-600':''}`}><i className="fas fa-users-cog"></i> إدارة الطلاب</button>
+                        <button onClick={() => setTab('reports')} className={`w-full text-right p-3 rounded font-bold mb-1 ${tab==='reports'?'bg-teal-50 text-teal-600':''}`}><i className="fas fa-chart-pie"></i> التقارير والإحصائيات</button>
+                        <button onClick={() => setTab('communication')} className={`w-full text-right p-3 rounded font-bold mb-1 ${tab==='communication'?'bg-indigo-50 text-indigo-600':''}`}><i className="fas fa-comments"></i> التواصل {privateMessages.filter(m => m.to === 'teacher' && !m.read).length > 0 && <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full mr-1">{privateMessages.filter(m => m.to === 'teacher' && !m.read).length}</span>}</button>
                         <button onClick={() => setTab('messages')} className={`w-full text-right p-3 rounded font-bold mb-1 ${tab==='messages'?'bg-orange-50 text-orange-600':''}`}><i className="fas fa-envelope"></i> الرسائل والإعدادات</button>
                     </div>
 
@@ -1205,11 +1433,16 @@
 
                                 <div className="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
                                     <input className="p-2 border rounded-lg w-full md:w-64" placeholder="بحث بالاسم أو السجل..." value={studentSearch} onChange={e => {setStudentSearch(e.target.value); setStudentPage(1);}} />
-                                    <div className="flex gap-2 w-full md:w-auto">
+                                    <div className="flex gap-2 w-full md:w-auto flex-wrap">
                                         <select value={studentSort} onChange={(e) => setStudentSort(e.target.value)} className="p-2 border rounded-lg bg-white flex-grow md:flex-grow-0">
                                             <option value="name-asc">الأسم (أبجدياً)</option>
-                                            <option value="section-asc">الشعبة</option>
                                             <option value="xp-desc">النقاط (الأعلى)</option>
+                                        </select>
+                                        <select value={studentSectionFilter} onChange={(e) => {setStudentSectionFilter(e.target.value); setStudentPage(1);}} className="p-2 border rounded-lg bg-white flex-grow md:flex-grow-0">
+                                            <option value="all">جميع الشعب</option>
+                                            {uniqueSections.map(sec => (
+                                                <option key={sec} value={sec}>{sec}</option>
+                                            ))}
                                         </select>
                                     </div>
                                     <div className="flex gap-2">
@@ -1260,6 +1493,401 @@
                             </div>
                         )}
 
+                        {tab === 'reports' && (
+                            <div className="overflow-x-hidden">
+                                <h2 className="text-xl md:text-2xl font-bold mb-6"><i className="fas fa-chart-pie text-teal-600 ml-2"></i>التقارير والإحصائيات</h2>
+
+                                {/* Quick Stats Cards */}
+                                <div className="grid grid-cols-2 gap-3 md:gap-4 mb-6">
+                                    <div className="bg-green-50 border border-green-200 p-3 md:p-4 rounded-xl text-center">
+                                        <div className="text-2xl md:text-3xl font-bold text-green-600">{activeToday.length}</div>
+                                        <div className="text-xs text-green-700 font-bold">نشطون اليوم</div>
+                                    </div>
+                                    <div className="bg-blue-50 border border-blue-200 p-3 md:p-4 rounded-xl text-center">
+                                        <div className="text-2xl md:text-3xl font-bold text-blue-600">{activeThisWeek.length}</div>
+                                        <div className="text-xs text-blue-700 font-bold">نشطون الأسبوع</div>
+                                    </div>
+                                    <div className="bg-red-50 border border-red-200 p-3 md:p-4 rounded-xl text-center">
+                                        <div className="text-2xl md:text-3xl font-bold text-red-600">{absentStudents.length}</div>
+                                        <div className="text-xs text-red-700 font-bold">غائبون (أسبوع+)</div>
+                                    </div>
+                                    <div className="bg-orange-50 border border-orange-200 p-3 md:p-4 rounded-xl text-center">
+                                        <div className="text-2xl md:text-3xl font-bold text-orange-600">{notUpdatedProfile.length}</div>
+                                        <div className="text-xs text-orange-700 font-bold">لم يحدّثوا بياناتهم</div>
+                                    </div>
+                                </div>
+
+                                {/* Section Distribution */}
+                                <div className="bg-white border rounded-xl p-4 md:p-6 mb-6">
+                                    <h3 className="font-bold text-base md:text-lg mb-4 border-b pb-2"><i className="fas fa-users text-teal-500 ml-2"></i>توزيع الطلاب حسب الشعب</h3>
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
+                                        {Object.entries(sectionDistribution).map(([sec, count]) => (
+                                            <div key={sec} className="bg-slate-50 p-2 md:p-3 rounded-lg text-center border">
+                                                <div className="text-xl md:text-2xl font-bold text-slate-700">{count}</div>
+                                                <div className="text-xs md:text-sm text-slate-500 font-bold truncate">{sec}</div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    {Object.keys(sectionDistribution).length === 0 && <p className="text-slate-400 text-center py-4">لا توجد بيانات</p>}
+                                </div>
+
+                                {/* Detailed Reports */}
+                                <div className="grid md:grid-cols-2 gap-4 md:gap-6 mb-6">
+                                    {/* Active Today */}
+                                    <div className="bg-white border rounded-xl p-4 md:p-6">
+                                        <h3 className="font-bold text-sm md:text-lg mb-3 md:mb-4 border-b pb-2 text-green-700"><i className="fas fa-check-circle ml-2"></i>النشطون اليوم ({activeToday.length})</h3>
+                                        <div className="max-h-48 md:max-h-64 overflow-y-auto space-y-2">
+                                            {activeToday.length === 0 ? <p className="text-slate-400 text-sm text-center py-4">لا يوجد طلاب نشطون اليوم</p> : activeToday.map(s => (
+                                                <div key={s.nid} className="flex justify-between items-center p-2 bg-green-50 rounded-lg border border-green-100">
+                                                    <span className="font-bold text-xs md:text-sm truncate flex-1">{s.name}</span>
+                                                    <span className="text-xs text-slate-500 mr-2">{s.section || '-'}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Active This Week */}
+                                    <div className="bg-white border rounded-xl p-4 md:p-6">
+                                        <h3 className="font-bold text-sm md:text-lg mb-3 md:mb-4 border-b pb-2 text-blue-700"><i className="fas fa-calendar-week ml-2"></i>النشطون الأسبوع ({activeThisWeek.length})</h3>
+                                        <div className="max-h-48 md:max-h-64 overflow-y-auto space-y-2">
+                                            {activeThisWeek.length === 0 ? <p className="text-slate-400 text-sm text-center py-4">لا يوجد طلاب نشطون هذا الأسبوع</p> : activeThisWeek.map(s => (
+                                                <div key={s.nid} className="p-2 bg-blue-50 rounded-lg border border-blue-100">
+                                                    <div className="flex justify-between items-center">
+                                                        <span className="font-bold text-xs md:text-sm truncate flex-1">{s.name}</span>
+                                                        <span className="text-xs text-slate-500 font-mono mr-2 hidden md:inline">{formatDateTime(getLoginTime(s))}</span>
+                                                    </div>
+                                                    <div className="text-xs text-slate-500 mt-1 md:hidden">{formatDateTime(getLoginTime(s))}</div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Absent Students */}
+                                    <div className="bg-white border rounded-xl p-4 md:p-6">
+                                        <h3 className="font-bold text-sm md:text-lg mb-3 md:mb-4 border-b pb-2 text-red-700"><i className="fas fa-user-clock ml-2"></i>الغائبون ({absentStudents.length})</h3>
+                                        <div className="max-h-48 md:max-h-64 overflow-y-auto space-y-2">
+                                            {absentStudents.length === 0 ? <p className="text-slate-400 text-sm text-center py-4">لا يوجد طلاب غائبون</p> : absentStudents.map(s => (
+                                                <div key={s.nid} className="p-2 bg-red-50 rounded-lg border border-red-100">
+                                                    <div className="flex justify-between items-center">
+                                                        <span className="font-bold text-xs md:text-sm truncate flex-1">{s.name}</span>
+                                                        <span className="text-xs text-slate-500 mr-2 hidden md:inline">{getLoginTime(s) ? formatDateTime(getLoginTime(s)) : 'لم يسجل'}</span>
+                                                    </div>
+                                                    <div className="text-xs text-slate-500 mt-1 md:hidden">{getLoginTime(s) ? formatDateTime(getLoginTime(s)) : 'لم يسجل'}</div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Not Updated Profile */}
+                                    <div className="bg-white border rounded-xl p-4 md:p-6">
+                                        <h3 className="font-bold text-sm md:text-lg mb-3 md:mb-4 border-b pb-2 text-orange-700"><i className="fas fa-user-edit ml-2"></i>لم يحدّثوا بياناتهم ({notUpdatedProfile.length})</h3>
+                                        <div className="max-h-48 md:max-h-64 overflow-y-auto space-y-2">
+                                            {notUpdatedProfile.length === 0 ? <p className="text-slate-400 text-sm text-center py-4">جميع الطلاب حدّثوا بياناتهم</p> : notUpdatedProfile.map(s => (
+                                                <div key={s.nid} className="flex justify-between items-center p-2 bg-orange-50 rounded-lg border border-orange-100">
+                                                    <span className="font-bold text-xs md:text-sm truncate flex-1">{s.name}</span>
+                                                    <span className="text-xs text-slate-500 mr-2">{s.lastLogin ? 'سجّل' : 'لم يسجل'}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Last 10 Logged In */}
+                                <div className="bg-white border rounded-xl p-3 md:p-6 mb-6">
+                                    <h3 className="font-bold text-sm md:text-lg mb-3 md:mb-4 border-b pb-2 text-indigo-700"><i className="fas fa-clock ml-2"></i>آخر 10 طلاب دخلوا</h3>
+                                    <div className="space-y-2 md:hidden">
+                                        {last10LoggedIn.length === 0 ? <p className="text-slate-400 text-sm text-center py-4">لا توجد بيانات دخول</p> : last10LoggedIn.map((s, idx) => (
+                                            <div key={s.nid} className="flex items-center gap-2 p-2 bg-indigo-50 rounded-lg border border-indigo-100">
+                                                <span className="font-bold text-indigo-600 w-6">{idx + 1}</span>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="font-bold text-slate-800 text-xs truncate">{s.name}</div>
+                                                    <div className="text-xs text-slate-500">{formatDateTime(getLoginTime(s))}</div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="overflow-x-auto hidden md:block">
+                                        {last10LoggedIn.length === 0 ? <p className="text-slate-400 text-sm text-center py-4">لا توجد بيانات دخول</p> : (
+                                            <table className="w-full text-right text-sm">
+                                                <thead className="bg-indigo-50 text-indigo-700">
+                                                    <tr>
+                                                        <th className="p-3 rounded-tr-lg">#</th>
+                                                        <th className="p-3">الاسم</th>
+                                                        <th className="p-3">الشعبة</th>
+                                                        <th className="p-3 rounded-tl-lg">تاريخ ووقت الدخول</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y">
+                                                    {last10LoggedIn.map((s, idx) => (
+                                                        <tr key={s.nid} className="hover:bg-indigo-50 transition">
+                                                            <td className="p-3 font-bold text-indigo-600">{idx + 1}</td>
+                                                            <td className="p-3 font-bold text-slate-800">{s.name}</td>
+                                                            <td className="p-3 text-slate-600">{s.section || '-'}</td>
+                                                            <td className="p-3 text-slate-500 font-mono text-xs">{formatDateTime(getLoginTime(s))}</td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Export Section */}
+                                <div className="bg-gradient-to-r from-slate-800 to-slate-900 text-white p-4 md:p-6 rounded-xl">
+                                    <h3 className="font-bold text-sm md:text-lg mb-3 md:mb-4"><i className="fas fa-file-export ml-2"></i>مشاركة مع إدارة المدرسة</h3>
+                                    <p className="text-slate-300 text-xs md:text-sm mb-3 md:mb-4">تصدير تقرير شامل عن الطلاب وأدائهم لمشاركته مع إدارة المدرسة</p>
+                                    <div className="grid grid-cols-2 md:flex md:flex-wrap gap-2 md:gap-3">
+                                        <button onClick={() => {
+                                            const bom = "\uFEFF";
+                                            const headers = "الاسم,الشعبة,السجل المدني,النقاط,المستوى,آخر دخول,حالة البيانات\n";
+                                            const rows = students.map(s =>
+                                                `${s.name},${s.section||''},${s.nid},${s.xp},${s.level},${formatDateTime(s.lastLoginTimestamp)},${s.hasCompletedSetup?'محدّثة':'غير محدّثة'}`
+                                            ).join("\n");
+                                            const blob = new Blob([bom + headers + rows], { type: 'text/csv;charset=utf-8;' });
+                                            const link = document.createElement("a");
+                                            link.href = URL.createObjectURL(blob);
+                                            link.download = `تقرير_الطلاب_${new Date().toLocaleDateString('ar-SA')}.csv`;
+                                            link.click();
+                                        }} className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 md:px-6 md:py-3 rounded-lg font-bold flex items-center justify-center gap-1 md:gap-2 transition text-xs md:text-base">
+                                            <i className="fas fa-file-csv"></i> <span className="hidden sm:inline">تقرير شامل</span><span className="sm:hidden">شامل</span>
+                                        </button>
+                                        <button onClick={() => {
+                                            const bom = "\uFEFF";
+                                            const headers = "الاسم,الشعبة,السجل,وقت الدخول\n";
+                                            const rows = activeToday.map(s => `${s.name},${s.section||''},${s.nid},${formatDateTime(s.lastLoginTimestamp)}`).join("\n");
+                                            const blob = new Blob([bom + headers + rows], { type: 'text/csv;charset=utf-8;' });
+                                            const link = document.createElement("a");
+                                            link.href = URL.createObjectURL(blob);
+                                            link.download = `النشطون_اليوم_${new Date().toLocaleDateString('ar-SA')}.csv`;
+                                            link.click();
+                                        }} className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 md:px-6 md:py-3 rounded-lg font-bold flex items-center justify-center gap-1 md:gap-2 transition text-xs md:text-base">
+                                            <i className="fas fa-calendar-day"></i> <span className="hidden sm:inline">النشطون اليوم</span><span className="sm:hidden">نشطون</span>
+                                        </button>
+                                        <button onClick={() => {
+                                            const bom = "\uFEFF";
+                                            const headers = "الاسم,الشعبة,السجل,آخر دخول\n";
+                                            const rows = absentStudents.map(s => `${s.name},${s.section||''},${s.nid},${s.lastLoginTimestamp ? formatDateTime(s.lastLoginTimestamp) : 'لم يسجل'}`).join("\n");
+                                            const blob = new Blob([bom + headers + rows], { type: 'text/csv;charset=utf-8;' });
+                                            const link = document.createElement("a");
+                                            link.href = URL.createObjectURL(blob);
+                                            link.download = `الغائبون_${new Date().toLocaleDateString('ar-SA')}.csv`;
+                                            link.click();
+                                        }} className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 md:px-6 md:py-3 rounded-lg font-bold flex items-center justify-center gap-1 md:gap-2 transition text-xs md:text-base">
+                                            <i className="fas fa-user-times"></i> <span>الغائبون</span>
+                                        </button>
+                                        <button onClick={() => {
+                                            const bom = "\uFEFF";
+                                            let content = "تقرير توزيع الشعب\n\n";
+                                            Object.entries(sectionDistribution).forEach(([sec, count]) => {
+                                                content += `${sec}: ${count} طالب\n`;
+                                            });
+                                            content += `\nالإجمالي: ${students.length} طالب`;
+                                            const blob = new Blob([bom + content], { type: 'text/plain;charset=utf-8;' });
+                                            const link = document.createElement("a");
+                                            link.href = URL.createObjectURL(blob);
+                                            link.download = `توزيع_الشعب_${new Date().toLocaleDateString('ar-SA')}.txt`;
+                                            link.click();
+                                        }} className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 md:px-6 md:py-3 rounded-lg font-bold flex items-center justify-center gap-1 md:gap-2 transition text-xs md:text-base">
+                                            <i className="fas fa-users"></i> <span className="hidden sm:inline">توزيع الشعب</span><span className="sm:hidden">الشعب</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {tab === 'communication' && (
+                            <div>
+                                <h2 className="text-2xl font-bold mb-6"><i className="fas fa-comments text-indigo-600 ml-2"></i>نظام التواصل</h2>
+
+                                {/* Announcements Section */}
+                                <div className="bg-white border rounded-xl p-6 mb-6">
+                                    <h3 className="font-bold text-lg mb-4 border-b pb-2 text-purple-700"><i className="fas fa-bullhorn ml-2"></i>إرسال إعلان</h3>
+                                    <div className="space-y-4">
+                                        <textarea id="announcementText" className="w-full p-4 border rounded-xl h-24 resize-none" placeholder="اكتب إعلانك هنا..."></textarea>
+                                        <div className="flex flex-wrap gap-4 items-center">
+                                            <div className="flex items-center gap-2">
+                                                <label className="text-sm font-bold">إرسال إلى:</label>
+                                                <select id="announcementTarget" className="p-2 border rounded-lg bg-white">
+                                                    <option value="all">جميع الطلاب</option>
+                                                    {uniqueSections.map(sec => <option key={sec} value={sec}>شعبة {sec}</option>)}
+                                                </select>
+                                            </div>
+                                            <label className="flex items-center gap-2 text-sm">
+                                                <input type="checkbox" id="announcementPinned" className="w-4 h-4" />
+                                                <span>تثبيت الإعلان</span>
+                                            </label>
+                                            <button onClick={() => {
+                                                const text = document.getElementById('announcementText').value;
+                                                const target = document.getElementById('announcementTarget').value;
+                                                const pinned = document.getElementById('announcementPinned').checked;
+                                                if (!text.trim()) return;
+                                                fbSendAnnouncement(text, target, pinned);
+                                                document.getElementById('announcementText').value = '';
+                                                document.getElementById('announcementPinned').checked = false;
+                                            }} className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg font-bold transition">
+                                                <i className="fas fa-paper-plane ml-1"></i> إرسال
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Edit Announcement Modal */}
+                                {editingAnnouncement && (
+                                    <div className="modal-overlay" onClick={e => { if(e.target.className.includes('modal-overlay')) setEditingAnnouncement(null); }}>
+                                        <div className="bg-white p-6 rounded-2xl w-full max-w-md m-4 shadow-2xl">
+                                            <h3 className="font-bold text-xl mb-4 border-b pb-2 text-purple-700"><i className="fas fa-edit ml-2"></i>تعديل الإعلان</h3>
+                                            <textarea id="editAnnText" defaultValue={editingAnnouncement.text} className="w-full p-4 border rounded-xl h-32 resize-none mb-4" placeholder="نص الإعلان..."></textarea>
+                                            <div className="flex gap-2">
+                                                <button onClick={() => { const newText = document.getElementById('editAnnText').value; if(newText.trim()) { fbUpdateAnnouncement(editingAnnouncement.id, newText); setEditingAnnouncement(null); } }} className="flex-1 bg-purple-600 text-white py-2 rounded-lg font-bold">حفظ</button>
+                                                <button onClick={() => setEditingAnnouncement(null)} className="flex-1 bg-slate-200 text-slate-700 py-2 rounded-lg font-bold">إلغاء</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Existing Announcements */}
+                                <div className="bg-white border rounded-xl p-6 mb-6">
+                                    <h3 className="font-bold text-lg mb-4 border-b pb-2 text-purple-700"><i className="fas fa-list ml-2"></i>الإعلانات السابقة ({announcements.length})</h3>
+                                    <div className="space-y-3 max-h-64 overflow-y-auto">
+                                        {announcements.length === 0 ? <p className="text-slate-400 text-center py-4">لا توجد إعلانات</p> :
+                                            [...announcements].sort((a, b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0) || b.timestamp - a.timestamp).map(ann => (
+                                                <div key={ann.id} className={`p-4 rounded-xl border ${ann.isPinned ? 'bg-yellow-50 border-yellow-300' : 'bg-slate-50'}`}>
+                                                    <div className="flex justify-between items-start mb-2">
+                                                        <div className="flex items-center gap-2 flex-wrap">
+                                                            {ann.isPinned && <i className="fas fa-thumbtack text-yellow-600"></i>}
+                                                            <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">{ann.targetSection === 'all' ? 'الجميع' : `شعبة ${ann.targetSection}`}</span>
+                                                            <span className="text-xs text-slate-400">{formatDateTime(ann.timestamp)}</span>
+                                                        </div>
+                                                        <div className="flex gap-1">
+                                                            <button onClick={() => setEditingAnnouncement(ann)} className="p-1 text-blue-400 hover:text-blue-600" title="تعديل"><i className="fas fa-edit"></i></button>
+                                                            <button onClick={() => fbToggleAnnouncementPin(ann.id)} className={`p-1 rounded ${ann.isPinned ? 'text-yellow-600' : 'text-slate-400 hover:text-yellow-600'}`} title="تثبيت"><i className="fas fa-thumbtack"></i></button>
+                                                            <button onClick={() => fbDeleteAnnouncement(ann.id)} className="p-1 text-red-400 hover:text-red-600" title="حذف"><i className="fas fa-trash"></i></button>
+                                                        </div>
+                                                    </div>
+                                                    <p className="text-slate-700 whitespace-pre-wrap">{ann.text}</p>
+                                                    <div className="text-xs text-slate-400 mt-2">قرأه {ann.readBy?.length || 0} من {students.length} طالب</div>
+                                                </div>
+                                            ))
+                                        }
+                                    </div>
+                                </div>
+
+                                {/* Private Messages */}
+                                <div className="grid lg:grid-cols-3 gap-6">
+                                    {/* Conversations List */}
+                                    <div className="bg-white border rounded-xl p-6">
+                                        <h3 className="font-bold text-lg mb-4 border-b pb-2 text-indigo-700"><i className="fas fa-inbox ml-2"></i>المحادثات</h3>
+                                        <div className="space-y-2 max-h-96 overflow-y-auto">
+                                            {(() => {
+                                                const conversations = {};
+                                                privateMessages.forEach(m => {
+                                                    const otherParty = m.from === 'teacher' ? m.to : m.from;
+                                                    if (!conversations[otherParty]) conversations[otherParty] = { messages: [], unread: 0, lastTime: 0, name: '' };
+                                                    conversations[otherParty].messages.push(m);
+                                                    if (m.to === 'teacher' && !m.read) conversations[otherParty].unread++;
+                                                    if (m.timestamp > conversations[otherParty].lastTime) {
+                                                        conversations[otherParty].lastTime = m.timestamp;
+                                                        conversations[otherParty].name = m.from === 'teacher' ? (students.find(s => s.nid === m.to)?.name || m.to) : m.fromName;
+                                                    }
+                                                });
+                                                const sorted = Object.entries(conversations).sort((a, b) => b[1].lastTime - a[1].lastTime);
+                                                return sorted.length === 0 ? <p className="text-slate-400 text-center py-4 text-sm">لا توجد محادثات</p> :
+                                                    sorted.map(([nid, conv]) => (
+                                                        <button key={nid} onClick={() => {
+                                                            setChatStudent(students.find(s => s.nid === nid) || { nid, name: conv.name });
+                                                            conv.messages.filter(m => m.to === 'teacher' && !m.read).forEach(m => fbMarkMessageRead(m.id));
+                                                        }} className={`w-full text-right p-3 rounded-lg border transition flex justify-between items-center ${chatStudent?.nid === nid ? 'bg-indigo-50 border-indigo-300' : 'hover:bg-slate-50'}`}>
+                                                            <div>
+                                                                <div className="font-bold text-sm">{conv.name}</div>
+                                                                <div className="text-xs text-slate-400">{formatDateTime(conv.lastTime)}</div>
+                                                            </div>
+                                                            {conv.unread > 0 && <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">{conv.unread}</span>}
+                                                        </button>
+                                                    ));
+                                            })()}
+                                        </div>
+                                    </div>
+
+                                    {/* Chat Window */}
+                                    <div className="lg:col-span-2 bg-white border rounded-xl p-6">
+                                        {chatStudent ? (
+                                            <>
+                                                <div className="flex justify-between items-center mb-4 border-b pb-3">
+                                                    <div>
+                                                        <h3 className="font-bold text-lg text-indigo-700"><i className="fas fa-user ml-2"></i>{chatStudent.name}</h3>
+                                                        <span className="text-xs text-slate-400">شعبة {chatStudent.section || '-'}</span>
+                                                    </div>
+                                                    <div className="flex gap-2">
+                                                        <button onClick={() => setChatStudent(null)} className="text-slate-400 hover:text-slate-600 text-sm"><i className="fas fa-times ml-1"></i>إغلاق</button>
+                                                        <button onClick={() => { fbDeleteConversation(chatStudent.nid); setChatStudent(null); }} className="text-red-400 hover:text-red-600 text-sm"><i className="fas fa-trash ml-1"></i>حذف</button>
+                                                    </div>
+                                                </div>
+                                                <div className="h-64 overflow-y-auto mb-4 space-y-3 p-2 bg-slate-50 rounded-xl">
+                                                    {privateMessages
+                                                        .filter(m => m.from === chatStudent.nid || m.to === chatStudent.nid)
+                                                        .sort((a, b) => a.timestamp - b.timestamp)
+                                                        .map(m => (
+                                                            <div key={m.id} className={`flex ${m.from === 'teacher' ? 'justify-start' : 'justify-end'}`}>
+                                                                <div className={`max-w-xs p-3 rounded-xl ${m.from === 'teacher' ? 'bg-indigo-100 text-indigo-900' : 'bg-white border'}`}>
+                                                                    <p className="text-sm whitespace-pre-wrap">{m.text}</p>
+                                                                    <div className="flex justify-between items-center mt-1">
+                                                                        <span className="text-xs text-slate-400">{formatDateTime(m.timestamp)}</span>
+                                                                        <button onClick={() => fbDeletePrivateMessage(m.id)} className="text-red-300 hover:text-red-500 text-xs mr-2"><i className="fas fa-trash"></i></button>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        ))
+                                                    }
+                                                    {privateMessages.filter(m => m.from === chatStudent.nid || m.to === chatStudent.nid).length === 0 && <p className="text-slate-400 text-center py-8 text-sm">لا توجد رسائل سابقة - ابدأ المحادثة</p>}
+                                                </div>
+                                                <div className="flex gap-2">
+                                                    <input type="text" id="teacherReplyInput" className="flex-1 p-3 border rounded-xl" placeholder="اكتب رسالتك..." onKeyPress={e => { if(e.key === 'Enter') document.getElementById('teacherSendBtn').click(); }} />
+                                                    <button id="teacherSendBtn" onClick={() => {
+                                                        const input = document.getElementById('teacherReplyInput');
+                                                        if (!input.value.trim()) return;
+                                                        fbSendPrivateMessage('teacher', chatStudent.nid, input.value, 'المعلم');
+                                                        input.value = '';
+                                                    }} className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-bold"><i className="fas fa-paper-plane"></i></button>
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <div className="h-full flex flex-col">
+                                                <div className="mb-4">
+                                                    <label className="text-sm font-bold text-slate-600 mb-2 block">مراسلة طالب جديد:</label>
+                                                    <input type="text" id="studentSearchInput" className="w-full p-3 border rounded-xl bg-white mb-2" placeholder="ابحث عن طالب..." onChange={e => {
+                                                        const search = e.target.value.toLowerCase();
+                                                        const options = document.querySelectorAll('#newChatStudent option');
+                                                        options.forEach(opt => { if(opt.value) opt.style.display = opt.textContent.toLowerCase().includes(search) ? '' : 'none'; });
+                                                    }} />
+                                                    <select id="newChatStudent" className="w-full p-3 border rounded-xl bg-white" onChange={e => { if(e.target.value) setChatStudent(students.find(s => s.nid === e.target.value)); }}>
+                                                        <option value="">-- اختر طالب --</option>
+                                                        {[...students].sort((a,b) => a.name.localeCompare(b.name, 'ar')).map(s => <option key={s.nid} value={s.nid}>{s.name} ({s.section || '-'})</option>)}
+                                                    </select>
+                                                </div>
+                                                <div className="flex-1 flex items-center justify-center text-slate-400">
+                                                    <div className="text-center">
+                                                        <i className="fas fa-comments text-6xl mb-4 opacity-30"></i>
+                                                        <p>اختر محادثة من القائمة أو طالب جديد</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Stats */}
+                                <div className="mt-6 bg-slate-100 rounded-xl p-4">
+                                    <h4 className="font-bold text-sm mb-2 text-slate-600"><i className="fas fa-chart-bar ml-1"></i>إحصائيات التواصل</h4>
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                                        <div className="bg-white p-3 rounded-lg"><div className="text-2xl font-bold text-purple-600">{announcements.length}</div><div className="text-xs text-slate-500">إعلان</div></div>
+                                        <div className="bg-white p-3 rounded-lg"><div className="text-2xl font-bold text-indigo-600">{privateMessages.length}</div><div className="text-xs text-slate-500">رسالة خاصة</div></div>
+                                        <div className="bg-white p-3 rounded-lg"><div className="text-2xl font-bold text-red-500">{privateMessages.filter(m => m.to === 'teacher' && !m.read).length}</div><div className="text-xs text-slate-500">غير مقروءة</div></div>
+                                        <div className="bg-white p-3 rounded-lg"><div className="text-2xl font-bold text-green-600">{new Set(privateMessages.map(m => m.from === 'teacher' ? m.to : m.from)).size}</div><div className="text-xs text-slate-500">طالب تواصل</div></div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         {tab === 'messages' && (
                             <div>
                                 <h2 className="text-2xl font-bold mb-6">الرسائل والإعدادات</h2>
@@ -1301,7 +1929,7 @@
                                         <div><label className="block text-sm font-bold mb-1">الشعبة / الصف</label><input className="w-full p-2 border rounded" value={editingStudent.section} onChange={e => setEditingStudent({...editingStudent, section: e.target.value})} /></div>
                                         <div><label className="block text-sm font-bold mb-1">السجل المدني</label><input className="w-full p-2 border rounded bg-slate-50" value={editingStudent.nid} disabled /></div>
                                         <div><label className="block text-sm font-bold mb-1 text-red-500">كلمة المرور</label><input className="w-full p-2 border rounded border-red-200" value={editingStudent.password || ''} onChange={e => setEditingStudent({...editingStudent, password: e.target.value})} placeholder="تعيين كلمة مرور جديدة" /></div>
-                                        <div><label className="block text-sm font-bold mb-1">رق�� الجوال</label><input className="w-full p-2 border rounded" value={editingStudent.mobile || ''} onChange={e => setEditingStudent({...editingStudent, mobile: e.target.value})} /></div>
+                                        <div><label className="block text-sm font-bold mb-1">رقم الجوال</label><input className="w-full p-2 border rounded" value={editingStudent.mobile || ''} onChange={e => setEditingStudent({...editingStudent, mobile: e.target.value})} /></div>
                                         
                                         {/* Image Management in Admin */}
                                         <div>
@@ -1451,6 +2079,7 @@
             const [answers, setAnswers] = useState({});
             const [result, setResult] = useState(null);
             const [randomizedQuestions, setRandomizedQuestions] = useState([]);
+            const [unansweredIds, setUnansweredIds] = useState([]);
             const isReview = mode === 'review';
             
             useEffect(() => {
@@ -1476,8 +2105,14 @@
             }
 
             const submit = () => {
-                if(user.role === 'guest') return alert("عذراً، الزوار لا يمكنهم تسليم الإجابات.");
-                if(isReview) return; 
+                if(user.role === 'guest') return;
+                if(isReview) return;
+                const unanswered = randomizedQuestions.filter(q => !answers[q.id] || String(answers[q.id]).trim() === '');
+                if(unanswered.length > 0) {
+                    setUnansweredIds(unanswered.map(q => q.id));
+                    return;
+                }
+                setUnansweredIds([]);
                 let correct = 0; let mistakes = [];
                 randomizedQuestions.forEach(q => { 
                     const userAns = String(answers[q.id]).trim().toLowerCase();
@@ -1505,7 +2140,7 @@
                             <div className="border-b pb-6 mb-6"><button onClick={onBack} className="text-slate-400 font-bold mb-4 block hover:text-slate-600 transition"><i className="fas fa-arrow-right ml-1"></i> عودة للدروس</button><h2 className="text-3xl font-extrabold mb-4 text-slate-800">{lesson.title}</h2><div className="bg-slate-50 p-6 rounded-2xl text-lg text-slate-700 leading-loose border border-slate-100">{lesson.content}</div></div>
                             <div className="space-y-8 mb-10">
                                 {randomizedQuestions.map((q, i) => (
-                                    <div key={q.id} className="p-6 border rounded-2xl hover:border-blue-200 transition bg-white shadow-sm">
+                                    <div key={q.id} className={`p-6 border rounded-2xl hover:border-blue-200 transition bg-white shadow-sm ${unansweredIds.includes(q.id) ? 'border-red-500 border-2 bg-red-50' : ''}`}>
                                         <div className="flex flex-col gap-3 mb-4"><div className="flex justify-between items-center w-full"><span className="bg-blue-100 text-primary text-sm px-3 py-1 rounded-full font-bold">سؤال {i+1}</span><span className="text-xs text-slate-400 font-bold uppercase tracking-wider">{q.type === 'tf' ? 'صح/خطأ' : 'اختيار'}</span></div><p className="font-bold text-xl text-slate-800 leading-relaxed break-words whitespace-normal">{q.text}</p></div>
                                         {q.type === 'mcq' && q.options.map(opt => {
                                             const isCorrect = String(opt).toLowerCase() === String(q.answer).toLowerCase();
@@ -1521,6 +2156,7 @@
                                     </div>
                                 ))}
                             </div>
+                            {!isReview && unansweredIds.length > 0 && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl mb-4 text-center font-bold"><i className="fas fa-exclamation-triangle ml-2"></i>يرجى الإجابة على جميع الأسئلة ({unansweredIds.length} سؤال متروك)</div>}
                             {!isReview && (user.role !== 'guest' ? <button onClick={submit} className="w-full bg-slate-900 text-white py-5 rounded-2xl font-bold text-xl hover:shadow-xl transition">تسليم الإجابات</button> : <div className="text-center text-slate-500 bg-slate-100 p-4 rounded-xl">وضع الزائر</div>)}
                         </>
                     ) : (
