@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>نظام المسابقة الصوتي - نسخة ذكية</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #3498db;
+            --focus-color: #27ae60;
+            --bg-color: #f4f6f9;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            padding-bottom: 80px; 
+        }
+
+        /* --- منطقة العنوان والتنبيهات --- */
+        .header-area {
+            text-align: center;
+            padding: 20px;
+            background: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        h1 {
+            margin: 0 0 10px 0;
+            color: var(--primary);
+            font-size: 1.8rem;
+        }
+
+        .live-transcript {
+            background: #ecf0f1;
+            padding: 8px 15px;
+            border-radius: 20px;
+            display: inline-block;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            margin-top: 5px;
+            border: 1px solid #bdc3c7;
+            min-width: 200px;
+        }
+        .live-transcript span {
+            color: #d35400;
+            font-weight: bold;
+        }
+
+        /* --- شبكة البطاقات --- */
+        .cards-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            padding: 20px;
+            width: 100%;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            width: 100%; 
+            max-width: 280px; 
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            cursor: pointer;
+            border: 4px solid transparent;
+            transition: transform 0.2s, border-color 0.2s;
+            position: relative;
+        }
+
+        .card.active-target {
+            border-color: var(--focus-color);
+            background-color: #eafaf1;
+            transform: scale(1.02);
+            box-shadow: 0 8px 15px rgba(39, 174, 96, 0.2);
+        }
+
+        .card.dimmed {
+            opacity: 0.6;
+            filter: grayscale(100%);
+        }
+
+        .card .name { font-size: 2rem; font-weight: bold; color: var(--primary); }
+        .card .count { font-size: 4rem; font-weight: 800; color: var(--accent); line-height: 1.1; }
+        .card .status-icon { font-size: 1.5rem; margin-bottom: 5px; opacity: 0; }
+        .card.active-target .status-icon { opacity: 1; }
+
+        /* --- الشريط السفلي الثابت --- */
+        .fixed-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: #ffffff;
+            border-top: 1px solid #ddd;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 999;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            height: 70px; 
+        }
+
+        .status-text { font-weight: bold; font-size: 0.9rem; }
+        .status-idle { color: #e74c3c; }
+        .status-listening { color: #27ae60; }
+
+        .admin-btn {
+            background: #2c3e50;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        /* --- لوحة الإدارة --- */
+        #admin-panel {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); z-index: 1000; justify-content: center; align-items: center;
+        }
+        .panel-content {
+            background: white; width: 90%; max-width: 500px; border-radius: 10px; padding: 20px;
+            max-height: 80vh; overflow-y: auto; position: relative;
+        }
+        .close-btn { position: absolute; top: 10px; left: 10px; font-size: 1.5rem; border: none; background: none; cursor: pointer; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        td, th { padding: 8px; border-bottom: 1px solid #eee; text-align: right; }
+        input[type="text"] { width: 100%; padding: 5px; }
+        .btn-action { padding: 5px 10px; border-radius: 4px; border: none; color: white; cursor: pointer; margin: 2px; }
+        .btn-red { background: #c0392b; }
+        .btn-blue { background: #2980b9; }
+
+    </style>
+</head>
+<body>
+
+    <div class="header-area">
+        <h1>🎙️ المسابقة التفاعلية</h1>
+        <div class="live-transcript">
+            سمعت: <span id="debug-text">...</span>
+        </div>
+        <p style="font-size: 0.8rem; color: #7f8c8d; margin-top: 5px;">اضغط على اسم المتسابق لبدء العد له</p>
+    </div>
+
+    <div class="cards-container" id="cards-wrapper">
+        <!-- البطاقات -->
+    </div>
+
+    <div class="fixed-footer">
+        <div id="footer-status" class="status-text status-idle">🔴 لم يتم اختيار أحد</div>
+        <button class="admin-btn" onclick="openAdmin()">🔒 الإدارة</button>
+    </div>
+
+    <div id="admin-panel">
+        <div class="panel-content">
+            <button class="close-btn" onclick="closeAdmin()">✖</button>
+            <h3>⚙️ لوحة التحكم</h3>
+            
+            <div style="margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+                <input type="text" id="new-name-input" placeholder="اسم جديد..." style="width: 70%; padding: 8px;">
+                <button onclick="addNewPerson()" class="btn-action btn-blue" style="padding: 8px;">إضافة</button>
+            </div>
+
+            <table id="admin-table">
+                <!-- جدول البيانات -->
+            </table>
+
+            <button onclick="resetAll()" class="btn-action btn-red" style="width: 100%; margin-top: 15px; padding: 10px;">تصفير الكل ⚠️</button>
+        </div>
+    </div>
+
+    <script>
+        let people = [];
+        let activeId = null; 
+
+        // دالة تنظيف النص العربي وتوحيد الحروف (الهمزات والتاء المربوطة)
+        function normalizeArabic(text) {
+            if (!text) return "";
+            text = text.trim();
+            // استبدال أ إ آ بـ ا
+            text = text.replace(/[أإآ]/g, 'ا');
+            // استبدال ة بـ ه
+            text = text.replace(/ة/g, 'ه');
+            return text;
+        }
+
+        function init() {
+            const saved = localStorage.getItem('voiceApp_v3');
+            if (saved) {
+                people = JSON.parse(saved);
+            } else {
+                people = [
+                    { id: 1, name: "أحمد", count: 0 },
+                    { id: 2, name: "محمد", count: 0 },
+                    { id: 3, name: "فاطمة", count: 0 }
+                ];
+            }
+            renderUI();
+        }
+
+        function saveData() {
+            localStorage.setItem('voiceApp_v3', JSON.stringify(people));
+            renderUI();
+        }
+
+        function renderUI() {
+            const wrapper = document.getElementById('cards-wrapper');
+            const adminTable = document.getElementById('admin-table');
+            
+            wrapper.innerHTML = '';
+            adminTable.innerHTML = '';
+
+            people.forEach((p, index) => {
+                let cardClass = "card";
+                if (activeId !== null) {
+                    if (p.id === activeId) cardClass += " active-target"; 
+                    else cardClass += " dimmed"; 
+                }
+
+                wrapper.innerHTML += `
+                    <div class="${cardClass}" onclick="toggleSelect(${p.id})">
+                        <div class="status-icon">🎙️ يستمع...</div>
+                        <div class="name">${p.name}</div>
+                        <div class="count">${p.count}</div>
+                    </div>
+                `;
+
+                adminTable.innerHTML += `
+                    <tr>
+                        <td><input type="text" value="${p.name}" onchange="editName(${index}, this.value)"></td>
+                        <td><b>${p.count}</b></td>
+                        <td>
+                            <button class="btn-action btn-red" onclick="deletePerson(${index})">حذف</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function toggleSelect(id) {
+            const statusDiv = document.getElementById('footer-status');
+            
+            if (activeId === id) {
+                activeId = null;
+                stopMic();
+                statusDiv.innerText = "🔴 لم يتم اختيار أحد";
+                statusDiv.className = "status-text status-idle";
+            } else {
+                activeId = id;
+                const person = people.find(p => p.id === id);
+                startMic();
+                statusDiv.innerText = `🟢 جاري الاستماع لـ: ${person.name}`;
+                statusDiv.className = "status-text status-listening";
+            }
+            renderUI();
+        }
+
+        let recognition;
+        let isRecRunning = false;
+
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechAPI();
+            recognition.lang = 'ar-SA';
+            recognition.continuous = false;
+            recognition.interimResults = false;
+
+            recognition.onstart = function() { isRecRunning = true; };
+            
+            recognition.onend = function() { 
+                isRecRunning = false;
+                if (activeId !== null) {
+                    try { recognition.start(); } catch(e) {}
+                }
+            };
+
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript;
+                
+                document.getElementById('debug-text').innerText = transcript;
+
+                processVoiceCommand(transcript);
+            };
+
+            recognition.onerror = function(event) {
+                console.log("Mic Error:", event.error);
+                if(event.error === 'not-allowed') {
+                    document.getElementById('debug-text').innerText = "❌ الميكروفون محظور";
+                }
+            };
+        } else {
+            alert("متصفحك لا يدعم هذه الميزة. الرجاء استخدام Google Chrome");
+        }
+
+        function startMic() {
+            if (recognition && !isRecRunning) {
+                try { recognition.start(); } catch(e) {}
+            }
+        }
+
+        function stopMic() {
+            if (recognition) recognition.stop();
+        }
+
+        // --- التعديل الرئيسي هنا: استخدام دالة التطبيع ---
+        function processVoiceCommand(text) {
+            if (activeId === null) return;
+
+            const target = people.find(p => p.id === activeId);
+            
+            if (target) {
+                // 1. تنظيف وتوحيد ما قاله المستخدم
+                const spokenNormalized = normalizeArabic(text);
+                // 2. تنظيف وتوحيد الاسم المخزن في النظام
+                const targetNameNormalized = normalizeArabic(target.name);
+                
+                // 3. المقارنة بين النسخ الموحدة
+                if (spokenNormalized.includes(targetNameNormalized)) {
+                    target.count++;
+                    saveData();
+                    
+                    document.getElementById('debug-text').style.color = "green";
+                    setTimeout(() => document.getElementById('debug-text').style.color = "#d35400", 500);
+                }
+            }
+        }
+
+        function openAdmin() {
+            if(prompt("رمز المرور (1234)") === "1234") {
+                document.getElementById('admin-panel').style.display = 'flex';
+            }
+        }
+        function closeAdmin() { document.getElementById('admin-panel').style.display = 'none'; }
+        
+        function addNewPerson() {
+            const name = document.getElementById('new-name-input').value;
+            if(name) {
+                people.push({ id: Date.now(), name: name, count: 0 });
+                saveData();
+                document.getElementById('new-name-input').value = '';
+            }
+        }
+        
+        function editName(idx, val) { people[idx].name = val; saveData(); }
+        function deletePerson(idx) { if(confirm("حذف؟")) { people.splice(idx, 1); saveData(); } }
+        function resetAll() { if(confirm("تصفير الكل؟")) { people.forEach(p => p.count=0); saveData(); } }
+
+        init();
+
+    </script>
+</body>
+</html>
+

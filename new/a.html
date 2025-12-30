@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>البحث عن الطلاب</title>
+
+<style>
+    body { font-family: Tahoma; background:#f4f4f4; padding:20px; }
+    .box { background:#fff; padding:20px; border-radius:10px; max-width:500px; margin:auto; box-shadow:0 0 10px #ccc; }
+    input { width:100%; padding:10px; margin-top:10px; border-radius:8px; border:1px solid #aaa; font-size:18px; }
+    table { width:100%; margin-top:20px; border-collapse:collapse; }
+    th, td { padding:10px; border-bottom:1px solid #ddd; text-align:center; }
+    th { background:#007bff; color:#fff; }
+    h2 { text-align:center; }
+</style>
+
+<!-- Firebase v8 (النسخة المضمونة للعمل) -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+</head>
+
+<body>
+
+<div class="box">
+    <h2>🔍 البحث عن الطلاب</h2>
+    <input type="text" id="searchInput" placeholder="اكتب اسم الطالب">
+    
+    <table id="resultsTable" style="display:none;">
+        <thead>
+            <tr>
+                <th>الاسم</th>
+                <th>الصف</th>
+                <th>النقاط</th>
+            </tr>
+        </thead>
+        <tbody id="resultsBody"></tbody>
+    </table>
+</div>
+
+<script>
+// إعدادات Firebase
+const firebaseConfig = {
+  apiKey: "AIzaSyBxPO6RKsY1Cq-mqlCpFTrCuIyxnYdB37U",
+  authDomain: "studentsystem-c1ab1.firebaseapp.com",
+  databaseURL: "https://studentsystem-c1ab1-default-rtdb.firebaseio.com",
+  projectId: "studentsystem-c1ab1",
+  storageBucket: "studentsystem-c1ab1.firebasestorage.app",
+  messagingSenderId: "112215023848",
+  appId: "1:112215023848:web:0adba326a527ee7e37e95d"
+};
+
+// تشغيل Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+const input = document.getElementById("searchInput");
+const resultsTable = document.getElementById("resultsTable");
+const resultsBody = document.getElementById("resultsBody");
+
+input.addEventListener("input", function () {
+    const text = input.value.trim();
+
+    if (text.length === 0) {
+        resultsTable.style.display = "none";
+        resultsBody.innerHTML = "";
+        return;
+    }
+
+    const refStudents = db.ref("students")
+        .orderByChild("name")
+        .startAt(text)
+        .endAt(text + "\uf8ff");
+
+    refStudents.once("value", snapshot => {
+        resultsBody.innerHTML = "";
+
+        if (!snapshot.exists()) {
+            resultsTable.style.display = "none";
+            return;
+        }
+
+        resultsTable.style.display = "table";
+
+        snapshot.forEach(child => {
+            const s = child.val();
+            const tr = document.createElement("tr");
+
+            tr.innerHTML = `
+                <td>${s.name || "-"}</td>
+                <td>${s.class || "-"}</td>
+                <td>${s.score || 0}</td>
+            `;
+
+            resultsBody.appendChild(tr);
+        });
+    });
+});
+</script>
+
+</body>
+</html>

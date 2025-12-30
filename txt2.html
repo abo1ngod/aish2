@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>عائلة المنافسين - الشامل</title>
+    <!-- استدعاء الخطوط -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Rakkas&display=swap" rel="stylesheet">
+    
+    <!-- مكتبات Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <style>
+        /* --- المتغيرات والتنسيق الأساسي --- */
+        :root {
+            --primary-color: #4F46E5;
+            --secondary-color: #818CF8;
+            --accent-color: #F59E0B;
+            --danger-color: #EF4444;
+            --success-color: #10B981;
+            --bg-color: #F3F4F6;
+            --card-bg: #ffffff;
+            --text-color: #1F2937;
+            --header-transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            overflow-x: hidden;
+            transition: background-color 0.3s;
+        }
+
+        /* --- تنسيق الهيدر --- */
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 3rem 1.5rem 5rem;
+            border-bottom-left-radius: 50px;
+            border-bottom-right-radius: 50px;
+            position: relative;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(79, 70, 229, 0.2);
+            transition: all var(--header-transition);
+            z-index: 100;
+        }
+
+        body.content-mode header { padding: 1rem 1.5rem; border-radius: 0 0 20px 20px; }
+
+        .settings-icon, .user-icon {
+            position: absolute; top: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px; border-radius: 50%;
+            cursor: pointer; transition: all 0.3s; z-index: 1000;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .settings-icon { left: 20px; }
+        .user-icon { right: 20px; display: none; padding: 8px; }
+
+        .settings-icon:hover, .user-icon:hover { background: rgba(255, 255, 255, 0.4); }
+        .settings-icon svg, .user-icon svg { width: 24px; height: 24px; stroke: white; }
+
+        body.content-mode .settings-icon, body.content-mode .user-icon { opacity: 0; pointer-events: none; }
+
+        .family-title {
+            font-family: 'Rakkas', serif; font-size: 3.5rem; margin-bottom: 1.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            transition: all var(--header-transition); cursor: pointer; user-select: none;
+        }
+        body.content-mode .family-title { font-size: 2rem; margin-bottom: 0; margin-top: 5px; }
+
+        .header-actions {
+            display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;
+            margin-top: 20px; transition: all 0.3s; max-height: 100px; opacity: 1;
+        }
+        .btn-header {
+            background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(5px);
+            border: 2px solid rgba(255, 255, 255, 0.5); color: white; padding: 12px 30px;
+            border-radius: 50px; font-size: 1.1rem; font-weight: 600; cursor: pointer;
+            transition: all 0.3s ease; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;
+        }
+        body.content-mode .header-actions { opacity: 0; pointer-events: none; max-height: 0; margin: 0; overflow: hidden; }
+
+        /* --- القسم الرئيسي --- */
+        main {
+            max-width: 1000px; margin: -40px auto 50px; padding: 0 20px;
+            display: none; /* يتم التحكم به عبر JS */
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px; position: relative; z-index: 10;
+            transition: opacity 0.5s ease, transform 0.5s ease;
+            opacity: 0; animation: slideUp 0.8s forwards;
+        }
+        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        /* body.content-mode main { display: none; } تم نقله للـ JS لضمان الاختفاء التام */
+
+        .card {
+            background: var(--card-bg); border-radius: 20px; padding: 30px 20px;
+            text-align: center; box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            transition: all 0.4s; cursor: pointer; border: 1px solid rgba(0,0,0,0.02);
+            display: flex; flex-direction: column; align-items: center; gap: 15px;
+        }
+        .card:hover { transform: translateY(-10px); box-shadow: 0 15px 30px rgba(79, 70, 229, 0.15); border-color: var(--secondary-color); }
+        .card-icon {
+            width: 60px; height: 60px; background: #EEF2FF; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; margin-bottom: 5px;
+        }
+        .card:nth-child(1) .card-icon { color: #10B981; background: #D1FAE5; }
+        .card:nth-child(2) .card-icon { color: #3B82F6; background: #DBEAFE; }
+        .card:nth-child(3) .card-icon { color: #F59E0B; background: #FEF3C7; }
+        .card:nth-child(4) .card-icon { color: #8B5CF6; background: #EDE9FE; }
+        .card svg { width: 32px; height: 32px; stroke-width: 2; }
+
+        /* --- صفحة المحتوى (العادية) --- */
+        .content-page {
+            display: none; max-width: 900px; margin: 20px auto; background: white;
+            min-height: 80vh; border-radius: 20px; padding: 40px;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.05); opacity: 0;
+            transform: translateY(20px); transition: opacity 0.5s ease 0.2s, transform 0.5s ease 0.2s;
+        }
+        body.content-mode .content-page { display: block; opacity: 1; transform: translateY(0); }
+        .content-header { border-bottom: 2px solid #f0f0f0; padding-bottom: 20px; margin-bottom: 20px; color: var(--primary-color); }
+        .db-item { background: #f9fafb; border-right: 4px solid var(--primary-color); padding: 15px; margin-bottom: 15px; border-radius: 8px; }
+
+        /* --- شاشة الأذكار --- */
+        .athkar-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;
+        }
+        .thikr-btn {
+            background: white; border: 2px solid #eee; border-radius: 20px; padding: 25px;
+            text-align: center; cursor: pointer; transition: 0.3s; position: relative;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05); display: flex; flex-direction: column; align-items: center; justify-content: center;
+            min-height: 180px;
+        }
+        .thikr-btn:hover { border-color: var(--primary-color); transform: translateY(-5px); }
+        .thikr-btn.listening { border-color: var(--accent-color); background: #FFFBEB; animation: breathe 2s infinite; }
+        .thikr-btn.success { border-color: var(--success-color); background: #ECFDF5; }
+
+        @keyframes breathe { 0% {box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4);} 70% {box-shadow: 0 0 0 10px rgba(245, 158, 11, 0);} 100% {box-shadow: 0 0 0 0 rgba(245, 158, 11, 0);} }
+
+        .thikr-text { font-size: 1.3rem; font-weight: bold; margin-bottom: 15px; color: #374151; }
+        
+        .thikr-stats {
+            display: flex; width: 100%; justify-content: space-around; font-size: 0.85rem; color: #666;
+            background: #f8fafc; padding: 8px; border-radius: 10px; margin-top: 10px;
+        }
+        .stat-item { display: flex; flex-direction: column; align-items: center; }
+        .stat-item b { font-size: 1.1rem; color: var(--primary-color); }
+        .session-badge {
+            background: var(--accent-color); color: white; padding: 2px 10px; border-radius: 10px;
+            font-size: 0.8rem; position: absolute; top: 10px; left: 10px;
+        }
+        
+        /* مؤشر حالة الميكروفون في الأذكار */
+        .thikr-mic-status {
+            font-size: 0.8rem; color: #999; margin-bottom: 5px; display: flex; align-items: center; gap: 5px;
+        }
+        .listening .thikr-mic-status { color: var(--accent-color); font-weight: bold; }
+        .listening .thikr-mic-status::before { content: '🔴'; animation: pulse 1s infinite; }
+
+
+        /* --- شاشة القراءة التفاعلية (المقالات) --- */
+        #readerOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: white; z-index: 3000; display: none; flex-direction: column;
+        }
+        .reader-header {
+            padding: 15px 20px; background: white; box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            display: flex; justify-content: space-between; align-items: center; z-index: 10;
+        }
+        .reader-body {
+            flex: 1; padding: 40px; overflow-y: auto; text-align: justify;
+            display: flex; justify-content: center; align-items: flex-start;
+        }
+        .reader-text-container {
+            font-size: 2.5rem; line-height: 2.2; max-width: 900px; width: 100%;
+            color: var(--text-color); direction: rtl;
+        }
+        .word-span { display: inline-block; padding: 0 5px; margin: 2px; border-radius: 6px; transition: all 0.2s; border-bottom: 3px solid transparent; }
+        .word-current { background-color: #FEF3C7; color: #000; border-bottom-color: var(--accent-color); transform: scale(1.1); }
+        .word-correct { color: var(--success-color); opacity: 0.6; }
+        .word-wrong { color: var(--danger-color); text-decoration: line-through; opacity: 0.5; }
+        .reader-footer { padding: 20px; background: white; border-top: 1px solid #eee; display: flex; justify-content: center; align-items: center; gap: 20px; }
+        .mic-status { width: 60px; height: 60px; border-radius: 50%; background: #eee; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; transition: all 0.3s; }
+        .mic-active { background: #FEE2E2; color: var(--danger-color); animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% {box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);} 70% {box-shadow: 0 0 0 15px rgba(239, 68, 68, 0);} 100% {box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);} }
+
+        /* --- شاشة لعبة سرعة الكلمات --- */
+        #wordGameOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #1e1b4b, #312e81);
+            z-index: 3100; display: none; flex-direction: column; align-items: center; justify-content: center;
+            color: white;
+        }
+        .game-top-bar {
+            position: absolute; top: 20px; left: 0; width: 100%; padding: 0 20px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .game-score { font-size: 1.5rem; font-weight: bold; color: var(--accent-color); background: rgba(255,255,255,0.1); padding: 5px 20px; border-radius: 20px; }
+        
+        .word-display-box {
+            font-size: 5rem; font-weight: bold; background: white; color: #1e1b4b;
+            padding: 40px 60px; border-radius: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            margin-bottom: 30px; min-width: 300px; text-align: center;
+            animation: zoomIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes zoomIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        .timer-bar-container { width: 80%; max-width: 500px; height: 10px; background: rgba(255,255,255,0.2); border-radius: 5px; overflow: hidden; }
+        .timer-bar { height: 100%; background: var(--accent-color); width: 100%; transition: width 0.1s linear; }
+        
+        .feedback-msg { font-size: 2rem; height: 50px; margin-top: 20px; font-weight: bold; color: var(--success-color); text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+
+        /* --- شاشة النتائج --- */
+        #resultOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); z-index: 3500; display: none;
+            justify-content: center; align-items: center; padding: 20px;
+        }
+        .result-card {
+            background: white; width: 100%; max-width: 500px; border-radius: 25px;
+            padding: 40px; text-align: center; animation: popIn 0.5s;
+        }
+        @keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .result-badge { font-size: 4rem; margin-bottom: 10px; display: block; }
+        .motivation-text { font-size: 1.5rem; font-weight: bold; color: var(--primary-color); margin-bottom: 20px; }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .stat-box { background: #f9fafb; padding: 15px; border-radius: 15px; border: 1px solid #eee; }
+        .stat-val { font-size: 2rem; font-weight: bold; color: var(--accent-color); display: block; }
+
+        /* --- عناصر المكتبة --- */
+        .texts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 15px; width: 100%; }
+        .text-card {
+            background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            cursor: pointer; border: 2px solid transparent; transition: all 0.2s; position: relative; display: flex; flex-direction: column; min-height: 160px;
+        }
+        .text-card:hover { transform: translateY(-3px); border-color: var(--primary-color); }
+        .level-badge { position: absolute; top: 15px; left: 15px; padding: 4px 10px; border-radius: 10px; font-size: 0.75rem; font-weight: bold; color: white; }
+        .level-easy { background: var(--success-color); } .level-medium { background: var(--accent-color); } .level-hard { background: var(--danger-color); }
+        .text-title { font-weight: bold; margin-bottom: 10px; font-size: 1.1rem; color: var(--primary-color); padding-left: 60px; }
+        .text-preview { font-size: 0.9rem; color: #555; line-height: 1.5; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; flex: 1; }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(5px);
+            z-index: 2000; display: none; align-items: center; justify-content: center;
+        }
+        .modal-active { display: flex; }
+        .modal-box { background: white; width: 90%; max-width: 600px; padding: 30px; border-radius: 20px; position: relative; max-height: 85vh; overflow-y: auto; }
+        .close-btn { position: absolute; top: 15px; left: 15px; background: #f3f4f6; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; }
+        
+        /* Filter Tabs */
+        .filter-tabs { display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 5px; }
+        .filter-btn { padding: 8px 16px; border-radius: 20px; border: 1px solid #ddd; background: white; cursor: pointer; transition: 0.3s; white-space: nowrap; }
+        .filter-btn.active { background: var(--primary-color); color: white; border-color: var(--primary-color); }
+
+        /* Profile Popup (Fixed) */
+        .profile-popup { position: absolute; top: 70px; right: 20px; background: white; width: 280px; padding: 25px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); display: none; z-index: 1500; text-align: center; }
+        .profile-popup.active { display: block; animation: fadeIn 0.2s; }
+        .profile-row { display: flex; justify-content: space-between; border-bottom: 1px solid #eee; padding: 8px 0; font-size: 0.9rem; }
+        .profile-row span:first-child { color: #666; }
+        .profile-row span:last-child { font-weight: bold; color: var(--primary-color); }
+
+        /* Admin Styles */
+        .admin-tabs { display: flex; gap: 10px; margin-bottom: 15px; border-bottom: 2px solid #eee; padding-bottom: 10px; overflow-x: auto; }
+        .admin-tab-btn { background: none; border: none; padding: 10px 20px; cursor: pointer; font-weight: bold; color: #777; border-bottom: 3px solid transparent; white-space: nowrap; }
+        .admin-tab-btn.active { color: var(--primary-color); border-bottom-color: var(--primary-color); }
+        .admin-section { display: none; }
+        .admin-section.active { display: block; }
+        .form-control { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 8px; }
+        .ai-panel { background: #EEF2FF; padding: 15px; border-radius: 10px; border: 1px solid #C7D2FE; margin-bottom: 20px; }
+
+    </style>
+</head>
+<body>
+
+    <!-- الهيدر -->
+    <header id="mainHeader">
+        <div class="settings-icon" onclick="openAdminPanel()" title="لوحة التحكم">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        </div>
+
+        <div id="userProfileIcon" class="user-icon" onclick="toggleProfilePopup()" title="بياناتي">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+        </div>
+
+        <!-- نافذة بيانات المستخدم (محسنة) -->
+        <div id="profilePopup" class="profile-popup">
+            <div style="margin: 0 auto 15px; width: 70px; height: 70px; background:var(--secondary-color); color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:2rem; font-weight:bold;" id="popupAvatar">?</div>
+            <h3 id="popupName" style="color:var(--primary-color); margin-bottom:15px;">اسم المستخدم</h3>
+            
+            <div class="profile-row">
+                <span>النقاط العامة:</span>
+                <span id="popupScore">0</span>
+            </div>
+            <div class="profile-row">
+                <span>مجموع الأذكار:</span>
+                <span id="popupAthkarTotal">0</span>
+            </div>
+            
+            <button class="btn-logout" onclick="logoutUser()">تسجيل الخروج</button>
+        </div>
+
+        <h1 class="family-title" onclick="goHome()" title="عودة للرئيسية">عائلة المنافسين</h1>
+
+        <div class="header-actions" id="headerActions">
+            <a href="#" class="btn-header" onclick="openLoginModal()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                المتنافسون (دخول)
+            </a>
+            <a href="#" class="btn-header">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                رسائل هادفة
+            </a>
+        </div>
+        
+        <p id="welcomeMessage">أهلاً بك يا <span id="welcomeName" style="font-weight:bold; color:var(--accent-color);"></span></p>
+
+    </header>
+
+    <!-- المحتوى الرئيسي -->
+    <main id="cardsGrid">
+        <div class="card" onclick="openContent('سرعة الكلمات', 'word_speed')">
+            <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg></div>
+            <h3>سرعة الكلمات</h3>
+        </div>
+        <div class="card" onclick="openContent('سرعة القراءة', 'reading_speed')">
+            <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg></div>
+            <h3>سرعة القراءة</h3>
+        </div>
+        <div class="card" onclick="openContent('مقالات', 'articles')">
+            <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg></div>
+            <h3>مقالات (المكتبة)</h3>
+        </div>
+        <div class="card" onclick="openContent('أذكار', 'athkar')">
+            <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></div>
+            <h3>أذكار</h3>
+        </div>
+    </main>
+
+    <!-- صفحة المحتوى (عامة) -->
+    <section id="contentSection" class="content-page">
+        <div class="content-header">
+            <h2 id="pageTitle">عنوان الصفحة</h2>
+        </div>
+        <div id="dynamicContent" class="content-body"></div>
+    </section>
+
+    <!-- شاشة لعبة سرعة الكلمات (Overlay) -->
+    <div id="wordGameOverlay">
+        <div class="game-top-bar">
+            <button onclick="endWordGame(true)" style="background:rgba(255,255,255,0.2); color:white; border:none; padding:8px 15px; border-radius:15px; cursor:pointer;">✕ خروج</button>
+            <div class="game-score">نقاط: <span id="gameScoreVal">0</span></div>
+        </div>
+        <div style="font-size:1.2rem; color:#bbb; margin-bottom:10px;">اقرأ الكلمة بسرعة!</div>
+        <div class="word-display-box" id="activeWordDisplay">...</div>
+        <div class="timer-bar-container">
+            <div class="timer-bar" id="wordTimerBar"></div>
+        </div>
+        <div class="feedback-msg" id="wordFeedback"></div>
+        <div style="margin-top:20px; color:rgba(255,255,255,0.5); font-size:0.9rem;">
+            الميكروفون يعمل تلقائياً عند ظهور الكلمة 🎙️
+        </div>
+    </div>
+
+    <!-- شاشة القراءة التفاعلية (للمقالات) -->
+    <div id="readerOverlay">
+        <div class="reader-header">
+            <div class="reader-timer" id="readerTimer">00:00</div>
+            <button onclick="closeReader()" style="background:none; border:none; font-size:1.2rem; cursor:pointer; color:#777;">✕ خروج</button>
+        </div>
+        <div class="reader-body">
+            <div id="readerTextContainer" class="reader-text-container"></div>
+        </div>
+        <div class="reader-footer">
+            <div id="micIcon" class="mic-status">🎙️</div>
+            <div style="font-size:0.9rem; color:#666;">اقرأ النص بصوت واضح...</div>
+            <button onclick="finishReading()" style="background:var(--success-color); color:white; border:none; padding:10px 25px; border-radius:50px; cursor:pointer; font-weight:bold;">إنهاء</button>
+        </div>
+    </div>
+
+    <!-- شاشة النتائج (عامة) -->
+    <div id="resultOverlay">
+        <div class="result-card">
+            <span class="result-badge" id="resultEmoji">🏆</span>
+            <div class="motivation-text" id="motivationText">أحسنت يا بطل!</div>
+            <div id="resultStatsContent"></div> <!-- محتوى متغير حسب نوع اللعبة -->
+            <button onclick="closeResult()" style="background:var(--primary-color); color:white; width:100%; padding:15px; border-radius:15px; border:none; font-size:1.1rem; cursor:pointer; margin-top:10px;">إغلاق</button>
+        </div>
+    </div>
+
+    <!-- النوافذ المنبثقة الأخرى -->
+    <div id="loginOverlay" class="modal-overlay">
+        <div class="modal-box">
+            <button class="close-btn" onclick="closeLoginModal()">✕</button>
+            <h2 style="text-align:center; color:var(--primary-color); margin-bottom:20px;">من أنت؟</h2>
+            <div id="loginList"><p style="text-align:center;">جاري التحميل...</p></div>
+        </div>
+    </div>
+
+    <div id="adminOverlay" class="modal-overlay">
+        <div class="modal-box admin-panel">
+            <button class="close-btn" onclick="closeAdminPanel()">✕</button>
+            <div class="panel-header"><h2>لوحة التحكم</h2></div>
+            <div class="admin-tabs">
+                <button class="admin-tab-btn active" onclick="switchAdminTab('users')">المتنافسون</button>
+                <button class="admin-tab-btn" onclick="switchAdminTab('content')">المقالات</button>
+                <button class="admin-tab-btn" onclick="switchAdminTab('words')">كلمات السرعة</button>
+                <button class="admin-tab-btn" onclick="switchAdminTab('athkar')">إدارة الأذكار</button>
+            </div>
+            
+            <!-- قسم المستخدمين -->
+            <div id="adminUsersSection" class="admin-section active">
+                <div class="admin-form">
+                    <input type="hidden" id="compId">
+                    <input type="text" id="compName" class="form-control" placeholder="اسم المتنافس" required>
+                    <input type="number" id="compScore" class="form-control" placeholder="النقاط" required>
+                    <button onclick="saveCompetitor()" id="saveBtn" style="width:100%; padding:10px; background:var(--primary-color); color:white; border:none; border-radius:8px; cursor:pointer;">إضافة متنافس</button>
+                </div>
+                <div id="competitorsList"></div>
+            </div>
+            
+            <!-- قسم المقالات -->
+            <div id="adminContentSection" class="admin-section">
+                <div class="ai-panel">
+                    <div class="ai-title">توليد مقالات (AI)</div>
+                    <div style="display:flex; gap:10px;">
+                        <input type="number" id="ai-count" class="form-control" placeholder="العدد" value="3" style="margin:0;">
+                        <select id="ai-level" class="form-control" style="margin:0;">
+                            <option value="easy">🟢 سهل</option>
+                            <option value="medium">🟡 متوسط</option>
+                            <option value="hard">🔴 صعب</option>
+                        </select>
+                        <button onclick="generateAIArticles()" style="padding:10px 15px; background:var(--accent-color); color:white; border:none; border-radius:8px; cursor:pointer; white-space:nowrap;">توليد</button>
+                    </div>
+                </div>
+                <div class="admin-form">
+                    <input type="hidden" id="edit-article-key">
+                    <input type="text" id="new-text-title" class="form-control" placeholder="عنوان المقال">
+                    <select id="new-text-level" class="form-control">
+                        <option value="easy">🟢 سهل</option>
+                        <option value="medium">🟡 متوسط</option>
+                        <option value="hard">🔴 صعب</option>
+                    </select>
+                    <textarea id="new-text-content" class="form-control" style="height:100px" placeholder="نص المقال..."></textarea>
+                    <button onclick="saveArticle()" id="saveArticleBtn" style="width:100%; padding:10px; background:var(--secondary-color); color:white; border:none; border-radius:8px; cursor:pointer;">نشر يدوي</button>
+                </div>
+                <div id="articlesList" style="margin-top:15px; max-height:200px; overflow-y:auto;"></div>
+            </div>
+
+            <!-- قسم إدارة الكلمات -->
+            <div id="adminWordsSection" class="admin-section">
+                <div class="ai-panel">
+                    <div class="ai-title">توليد 100 كلمة تلقائياً</div>
+                    <p style="font-size:0.8rem; color:#666; margin-bottom:10px;">سيتم استبدال القائمة الحالية بـ 100 اسم وحيوان (4-5 أحرف).</p>
+                    <button onclick="generateWordsList()" style="width:100%; padding:10px; background:var(--accent-color); color:white; border:none; border-radius:8px; cursor:pointer;">توليد وحفظ القائمة</button>
+                </div>
+                <div class="admin-form">
+                    <input type="hidden" id="edit-article-key">
+                    <label style="font-weight:bold; font-size:0.9rem;">قائمة الكلمات (افصل بفاصلة أو سطر جديد):</label>
+                    <textarea id="wordsListInput" class="form-control" style="height:150px; font-family:monospace;"></textarea>
+                    <button onclick="saveWordsList()" style="width:100%; padding:10px; background:var(--secondary-color); color:white; border:none; border-radius:8px; cursor:pointer;">حفظ التعديلات</button>
+                </div>
+            </div>
+
+            <!-- قسم إدارة الأذكار -->
+            <div id="adminAthkarSection" class="admin-section">
+                <div class="ai-panel">
+                    <div class="ai-title">إعدادات سريعة</div>
+                    <button onclick="restoreDefaultAthkar()" style="width:100%; padding:10px; background:var(--accent-color); color:white; border:none; border-radius:8px; cursor:pointer;">استعادة الأذكار الافتراضية</button>
+                </div>
+                <div class="admin-form">
+                    <input type="hidden" id="thikrId">
+                    <input type="text" id="thikrText" class="form-control" placeholder="نص الذكر" required>
+                    <button onclick="saveThikr()" id="saveThikrBtn" style="width:100%; padding:10px; background:var(--primary-color); color:white; border:none; border-radius:8px; cursor:pointer;">إضافة ذكر</button>
+                </div>
+                <div id="athkarListAdmin" style="margin-top:15px; max-height:200px; overflow-y:auto;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 1. Firebase Setup
+        const firebaseConfig = {
+            apiKey: "AIzaSyBxPO6RKsQ1Cq-mqlCpFTrCuIyxnYdB37U",
+            authDomain: "studentsystem-c1ab1.firebaseapp.com",
+            databaseURL: "https://studentsystem-c1ab1-default-rtdb.firebaseio.com",
+            projectId: "studentsystem-c1ab1",
+            storageBucket: "studentsystem-c1ab1.firebasestorage.app",
+            messagingSenderId: "112215023848",
+            appId: "1:112215023848:web:0adba326a527ee7e37e95d"
+        };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const rootRef = db.ref('aish_2');
+        const competitorsRef = rootRef.child('competitors');
+        const articlesRef = rootRef.child('articles');
+        const wordsRef = rootRef.child('word_speed_words'); 
+        const athkarRef = rootRef.child('athkar_list');
+
+        let currentUser = null;
+        let articlesData = [];
+
+        // متغيرات الألعاب
+        let reader = { active: false, words: [], currentIndex: 0, startTime: 0, timerInterval: null, recognition: null, attempts: 0, missedWords: [], correctCount: 0 };
+        let wordGame = { active: false, wordsList: [], currentWord: "", currentIndex: 0, score: 0, timer: null, recognition: null };
+        let athkarSessionCounts = {};
+
+        // 2. User & Profile
+        function openLoginModal() {
+            document.getElementById('loginOverlay').classList.add('modal-active');
+            competitorsRef.once('value').then((snapshot) => {
+                const list = document.getElementById('loginList'); list.innerHTML = '';
+                const data = snapshot.val();
+                if (!data) { list.innerHTML = '<p style="text-align:center;">لا يوجد بيانات.</p>'; return; }
+                Object.keys(data).forEach(key => {
+                    const c = data[key];
+                    const div = document.createElement('div');
+                    div.style.cssText = "display:flex; justify-content:space-between; padding:15px; margin-bottom:10px; border:2px solid #eee; border-radius:12px; cursor:pointer;";
+                    div.innerHTML = `<div style="display:flex; align-items:center;"><div style="width:40px;height:40px;background:var(--secondary-color);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-left:10px;">${c.name.charAt(0)}</div><span style="font-weight:bold;">${c.name}</span></div><span style="color:var(--primary-color);">دخول ←</span>`;
+                    div.onclick = () => loginUser(key, c);
+                    list.appendChild(div);
+                });
+            });
+        }
+        function closeLoginModal() { document.getElementById('loginOverlay').classList.remove('modal-active'); }
+        function loginUser(key, user) {
+            currentUser = { key, ...user };
+            closeLoginModal();
+            document.getElementById('cardsGrid').style.display = 'grid';
+            document.getElementById('userProfileIcon').style.display = 'flex';
+            document.getElementById('headerActions').style.opacity = '0'; 
+            document.getElementById('headerActions').style.pointerEvents = 'none';
+            document.getElementById('welcomeName').innerText = user.name;
+            document.getElementById('welcomeMessage').style.opacity = '1';
+            
+            updateProfileUI(user);
+            competitorsRef.child(key).on('value', (snap) => { 
+                const val = snap.val(); 
+                if(val) {
+                    currentUser = { key, ...val }; // تحديث الكائن المحلي
+                    updateProfileUI(val); 
+                }
+            });
+        }
+        
+        function updateProfileUI(user) {
+            document.getElementById('popupName').innerText = user.name;
+            document.getElementById('popupScore').innerText = user.points || 0;
+            document.getElementById('popupAvatar').innerText = user.name ? user.name.charAt(0) : '?';
+            
+            // حساب مجموع الأذكار
+            let totalAthkar = 0;
+            if(user.athkar_stats) {
+                Object.values(user.athkar_stats).forEach(stat => {
+                    totalAthkar += (stat.total || 0);
+                });
+            }
+            document.getElementById('popupAthkarTotal').innerText = totalAthkar;
+        }
+
+        function toggleProfilePopup() { document.getElementById('profilePopup').classList.toggle('active'); }
+        function logoutUser() {
+            if(currentUser) competitorsRef.child(currentUser.key).off();
+            currentUser = null;
+            athkarSessionCounts = {};
+            document.getElementById('profilePopup').classList.remove('active');
+            document.getElementById('cardsGrid').style.display = 'none';
+            document.getElementById('userProfileIcon').style.display = 'none';
+            document.getElementById('headerActions').style.opacity = '1'; 
+            document.getElementById('headerActions').style.pointerEvents = 'all';
+            document.getElementById('welcomeMessage').style.opacity = '0';
+            goHome();
+        }
+
+        // 3. Navigation
+        function openContent(title, key) {
+            document.body.classList.add('content-mode');
+            // إخفاء التبويبات الرئيسية تماماً
+            document.getElementById('cardsGrid').style.display = 'none';
+            
+            document.getElementById('pageTitle').innerText = title;
+            const container = document.getElementById('dynamicContent');
+            container.innerHTML = '<div style="text-align:center; padding:20px;">جاري التحميل...</div>';
+            window.scrollTo(0,0);
+
+            if (key === 'articles') loadArticlesLibrary(container);
+            else if (key === 'word_speed') loadWordSpeedStartScreen(container);
+            else if (key === 'athkar') loadAthkarContent(container);
+            else {
+                rootRef.child(key).once('value').then(snap => renderGenericData(snap.val(), container));
+            }
+        }
+        function goHome() { 
+            document.body.classList.remove('content-mode'); 
+            // إظهار التبويبات الرئيسية
+            if(currentUser) document.getElementById('cardsGrid').style.display = 'grid';
+            
+            athkarSessionCounts = {}; 
+            if(window.athkarRec) window.athkarRec.stop();
+        }
+        function renderGenericData(data, container) {
+            container.innerHTML = '';
+            if (!data) { container.innerHTML = '<p style="text-align:center; color:#777;">لا توجد بيانات.</p>'; return; }
+            if (typeof data === 'string') container.innerHTML = `<div class="db-item"><p>${data}</p></div>`;
+            else Object.keys(data).forEach(k => {
+                const i = data[k];
+                const t = (typeof i === 'object') ? (i.title || k) : k;
+                const b = (typeof i === 'object') ? (i.content || JSON.stringify(i)) : i;
+                container.innerHTML += `<div class="db-item"><h4>${t}</h4><p>${b}</p></div>`;
+            });
+        }
+
+        // --- نظام الأذكار التفاعلي ---
+        function loadAthkarContent(container) {
+            container.innerHTML = '<div id="athkarGrid" class="athkar-grid"></div>';
+            const grid = document.getElementById('athkarGrid');
+
+            athkarRef.once('value').then(snap => {
+                const data = snap.val();
+                if(!data) {
+                    grid.innerHTML = '<div style="text-align:center;width:100%;grid-column:1/-1;">لا توجد أذكار.</div>';
+                    return;
+                }
+
+                Object.keys(data).forEach(key => {
+                    const item = data[key];
+                    if(!athkarSessionCounts[key]) athkarSessionCounts[key] = 0;
+                    
+                    let daily = 0;
+                    let total = 0;
+                    if(currentUser) {
+                        const userStats = (currentUser.athkar_stats && currentUser.athkar_stats[key]) || {};
+                        total = userStats.total || 0;
+                        const todayStr = new Date().toDateString();
+                        if (userStats.lastDate === todayStr) daily = userStats.daily || 0;
+                    }
+
+                    const btn = document.createElement('div');
+                    btn.className = 'thikr-btn';
+                    btn.id = `btn-${key}`;
+                    btn.onclick = () => activateThikrMic(key, item.text);
+                    btn.innerHTML = `
+                        <div class="session-badge" id="sess-${key}">الجلسة: ${athkarSessionCounts[key]}</div>
+                        <div class="thikr-text">${item.text}</div>
+                        <div class="thikr-mic-status" id="mic-status-${key}">اضغط للقراءة 🎙️</div>
+                        <div class="thikr-stats">
+                            <div class="stat-item"><span>يومي</span><b id="day-${key}">${daily}</b></div>
+                            <div class="stat-item"><span>مجموع</span><b id="tot-${key}">${total}</b></div>
+                        </div>
+                    `;
+                    grid.appendChild(btn);
+                });
+            });
+        }
+
+        function activateThikrMic(key, text) {
+            if(!('webkitSpeechRecognition' in window)) return alert("المتصفح لا يدعم");
+            
+            if(window.athkarRec) window.athkarRec.stop();
+            
+            document.querySelectorAll('.thikr-btn').forEach(b => {
+                b.classList.remove('listening');
+                const statusEl = b.querySelector('.thikr-mic-status');
+                if(statusEl) statusEl.innerText = "اضغط للقراءة 🎙️";
+            });
+
+            const btn = document.getElementById(`btn-${key}`);
+            btn.classList.add('listening');
+            document.getElementById(`mic-status-${key}`).innerText = "يستمع...";
+
+            const rec = new webkitSpeechRecognition();
+            rec.lang = 'ar-SA';
+            rec.continuous = true; 
+            rec.interimResults = false;
+
+            rec.onend = () => {
+                if(btn.classList.contains('listening') && document.body.classList.contains('content-mode')) {
+                    rec.start();
+                } else {
+                    btn.classList.remove('listening');
+                    document.getElementById(`mic-status-${key}`).innerText = "اضغط للقراءة 🎙️";
+                }
+            };
+
+            rec.onresult = (e) => {
+                const lastIdx = e.results.length - 1;
+                const spoken = e.results[lastIdx][0].transcript;
+                
+                if(normalizeText(spoken).includes(normalizeText(text))) {
+                    handleThikrSuccess(key);
+                }
+            };
+
+            rec.start();
+            window.athkarRec = rec;
+        }
+
+        function handleThikrSuccess(key) {
+            const btn = document.getElementById(`btn-${key}`);
+            
+            btn.classList.add('success');
+            setTimeout(() => btn.classList.remove('success'), 500);
+
+            athkarSessionCounts[key]++;
+            document.getElementById(`sess-${key}`).innerText = `الجلسة: ${athkarSessionCounts[key]}`;
+
+            if(currentUser) {
+                const todayStr = new Date().toDateString();
+                competitorsRef.child(currentUser.key).child('athkar_stats').child(key).transaction((current) => {
+                    if(!current) return { total: 1, daily: 1, lastDate: todayStr };
+                    let newDaily = 1;
+                    if(current.lastDate === todayStr) newDaily = (current.daily || 0) + 1;
+                    return { total: (current.total || 0) + 1, daily: newDaily, lastDate: todayStr };
+                }, (err, committed, snap) => {
+                    if(committed) {
+                        const val = snap.val();
+                        document.getElementById(`day-${key}`).innerText = val.daily;
+                        document.getElementById(`tot-${key}`).innerText = val.total;
+                    }
+                });
+            }
+        }
+
+        // 4. Articles Section
+        function loadArticlesLibrary(container) {
+            container.innerHTML = `<div class="filter-tabs"><button class="filter-btn active" onclick="filterArticles('all',this)">الكل</button><button class="filter-btn" onclick="filterArticles('easy',this)">🟢 سهل</button><button class="filter-btn" onclick="filterArticles('medium',this)">🟡 متوسط</button><button class="filter-btn" onclick="filterArticles('hard',this)">🔴 صعب</button></div><div id="libraryGrid" class="texts-grid"></div>`;
+            articlesRef.once('value').then(snap => {
+                const data = snap.val(); articlesData = [];
+                if (data) Object.keys(data).forEach(k => articlesData.push({id: k, ...data[k]}));
+                renderArticlesGrid('all');
+            });
+        }
+        function filterArticles(lvl, btn) {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderArticlesGrid(lvl);
+        }
+        function renderArticlesGrid(lvl) {
+            const grid = document.getElementById('libraryGrid'); grid.innerHTML = '';
+            const flt = lvl === 'all' ? articlesData : articlesData.filter(a => a.level === lvl);
+            if (flt.length === 0) { grid.innerHTML = '<p style="text-align:center;width:100%;">لا يوجد مقالات</p>'; return; }
+            flt.forEach(art => {
+                const div = document.createElement('div'); div.className = 'text-card';
+                div.onclick = () => startReadingSession(art);
+                div.innerHTML = `<div class="level-badge level-${art.level}">${art.level==='easy'?'سهل':(art.level==='medium'?'متوسط':'صعب')}</div><div class="text-title">${art.title}</div><div class="text-preview">${art.content}</div><div class="text-meta"><span>🎙️ اقرأ</span><span style="color:var(--primary-color);">بدء</span></div>`;
+                grid.appendChild(div);
+            });
+        }
+
+        // 5. Article Reader Logic
+        function startReadingSession(article) {
+            reader.words = article.content.trim().split(/\s+/);
+            reader.currentIndex = 0; reader.attempts = 0; reader.correctCount = 0; reader.missedWords = []; reader.active = true;
+            const con = document.getElementById('readerTextContainer'); con.innerHTML = '';
+            reader.words.forEach((w, i) => { const s = document.createElement('span'); s.id = `r-word-${i}`; s.className = 'word-span'; s.innerText = w; con.appendChild(s); });
+            document.getElementById('readerOverlay').style.display = 'flex';
+            highlightCurrentWord();
+            reader.startTime = Date.now();
+            if (reader.timerInterval) clearInterval(reader.timerInterval);
+            reader.timerInterval = setInterval(() => {
+                const d = Math.floor((Date.now() - reader.startTime) / 1000);
+                document.getElementById('readerTimer').innerText = `${Math.floor(d/60).toString().padStart(2,'0')}:${(d%60).toString().padStart(2,'0')}`;
+            }, 1000);
+            setupReaderSpeech();
+        }
+        function highlightCurrentWord() {
+            if(reader.currentIndex < reader.words.length) {
+                const el = document.getElementById(`r-word-${reader.currentIndex}`);
+                if(el) { el.classList.add('word-current'); el.scrollIntoView({behavior:"smooth",block:"center"}); }
+            }
+        }
+        function setupReaderSpeech() {
+            if(!('webkitSpeechRecognition' in window)) return alert("المتصفح لا يدعم الصوت");
+            reader.recognition = new webkitSpeechRecognition();
+            reader.recognition.lang = 'ar-SA'; reader.recognition.continuous = true; reader.recognition.interimResults = true;
+            reader.recognition.onstart = () => document.getElementById('micIcon').classList.add('mic-active');
+            reader.recognition.onend = () => { document.getElementById('micIcon').classList.remove('mic-active'); if(reader.active && reader.currentIndex < reader.words.length) reader.recognition.start(); };
+            reader.recognition.onresult = (e) => {
+                if(!reader.active) return;
+                const transcript = e.results[e.results.length - 1][0].transcript;
+                checkWord(transcript);
+            };
+            reader.recognition.start();
+        }
+        function checkWord(spoken) {
+            if(reader.currentIndex >= reader.words.length) return;
+            const target = normalizeText(reader.words[reader.currentIndex]);
+            if(normalizeText(spoken).includes(target)) {
+                document.getElementById(`r-word-${reader.currentIndex}`).className = 'word-span word-correct';
+                reader.correctCount++; reader.currentIndex++; reader.attempts = 0;
+                highlightCurrentWord();
+                if(reader.currentIndex >= reader.words.length) finishReading();
+            } else {
+                reader.attempts++;
+                if(reader.attempts >= 5) {
+                    document.getElementById(`r-word-${reader.currentIndex}`).className = 'word-span word-wrong';
+                    reader.missedWords.push(reader.words[reader.currentIndex]);
+                    reader.currentIndex++; reader.attempts = 0; highlightCurrentWord();
+                    if(reader.currentIndex >= reader.words.length) finishReading();
+                }
+            }
+        }
+        function finishReading() {
+            reader.active = false; clearInterval(reader.timerInterval); if(reader.recognition) reader.recognition.stop();
+            document.getElementById('readerOverlay').style.display = 'none';
+            const acc = Math.round((reader.correctCount / reader.words.length) * 100);
+            const wpm = Math.round(reader.correctCount / ((Date.now() - reader.startTime)/60000 || 1));
+            showResultGeneric("🌟 أداء رائع!", `
+                <div class="stats-grid">
+                    <div class="stat-box"><span class="stat-val">${wpm}</span><span class="stat-label">كلمة/دقيقة</span></div>
+                    <div class="stat-box"><span class="stat-val">${acc}%</span><span class="stat-label">الدقة</span></div>
+                </div>`);
+        }
+        function closeReader() { reader.active = false; clearInterval(reader.timerInterval); if(reader.recognition) reader.recognition.stop(); document.getElementById('readerOverlay').style.display = 'none'; }
+
+        // --- 6. Word Speed Game ---
+        function loadWordSpeedStartScreen(container) {
+            container.innerHTML = `
+                <div style="text-align:center; padding:40px;">
+                    <div style="font-size:4rem; margin-bottom:20px;">⚡</div>
+                    <h3>تحدي سرعة الكلمات</h3>
+                    <p style="color:#666; max-width:400px; margin:0 auto 10px;">حدد عدد الكلمات للجولة:</p>
+                    <div style="display:flex; justify-content:center; align-items:center; gap:10px; margin-bottom:20px;">
+                        <input type="number" id="wordCountInput" value="10" min="1" max="50" style="padding:10px; border-radius:10px; border:1px solid #ddd; width:80px; text-align:center; font-size:1.1rem; font-weight:bold;">
+                        <span style="color:#666;">كلمة</span>
+                    </div>
+                    <p style="color:#666; max-width:400px; margin:0 auto 20px;">لديك 5 ثوانٍ فقط لقراءة كل كلمة.</p>
+                    <button onclick="initWordGame()" style="background:var(--primary-color); color:white; border:none; padding:15px 40px; border-radius:50px; font-size:1.2rem; cursor:pointer; font-weight:bold; box-shadow:0 10px 20px rgba(79, 70, 229, 0.3);">ابدأ التحدي</button>
+                </div>
+            `;
+        }
+
+        function initWordGame() {
+            const requestedCount = parseInt(document.getElementById('wordCountInput').value) || 10;
+            
+            wordsRef.once('value').then(snap => {
+                const val = snap.val();
+                let allWords = [];
+                if (val && val.list) {
+                    allWords = val.list.split(/[\n,]+/).map(w => w.trim()).filter(w => w.length > 0);
+                }
+                if (allWords.length < 5) allWords = ["أسد", "نمر", "صقر", "جمل", "بحر", "قمر", "شمس", "نجم", "ورده", "كتب"];
+
+                // إذا طلب اللاعب أكثر مما هو متاح، نستخدم المتاح
+                const actualCount = Math.min(requestedCount, allWords.length);
+
+                wordGame.wordsList = allWords.sort(() => 0.5 - Math.random()).slice(0, actualCount);
+                wordGame.currentIndex = 0; wordGame.score = 0; wordGame.active = true;
+
+                document.getElementById('wordGameOverlay').style.display = 'flex';
+                document.getElementById('gameScoreVal').innerText = "0";
+                nextGameWord();
+            });
+        }
+
+        function nextGameWord() {
+            if (!wordGame.active) return;
+            if (wordGame.currentIndex >= wordGame.wordsList.length) { endWordGame(false); return; }
+
+            wordGame.currentWord = wordGame.wordsList[wordGame.currentIndex];
+            const display = document.getElementById('activeWordDisplay');
+            const timerBar = document.getElementById('wordTimerBar');
+
+            display.innerText = wordGame.currentWord; display.style.color = "#1e1b4b";
+            document.getElementById('wordFeedback').innerText = "";
+            timerBar.style.width = "100%"; timerBar.style.transition = "none";
+            
+            setTimeout(() => { timerBar.style.transition = "width 5s linear"; timerBar.style.width = "0%"; }, 50);
+            setupWordGameSpeech();
+
+            if(wordGame.timer) clearTimeout(wordGame.timer);
+            wordGame.timer = setTimeout(() => { handleWordFail(); }, 5000);
+        }
+
+        function setupWordGameSpeech() {
+            if(wordGame.recognition) wordGame.recognition.stop();
+            wordGame.recognition = new webkitSpeechRecognition();
+            wordGame.recognition.lang = 'ar-SA'; 
+            wordGame.recognition.continuous = true; 
+            wordGame.recognition.interimResults = true;
+            
+            wordGame.recognition.onresult = (e) => {
+                const lastIdx = e.results.length - 1;
+                const spoken = e.results[lastIdx][0].transcript;
+                
+                if (normalizeText(spoken).includes(normalizeText(wordGame.currentWord))) {
+                    handleWordSuccess();
+                }
+            };
+            try { wordGame.recognition.start(); } catch(e){}
+        }
+
+        function handleWordSuccess() {
+            if(wordGame.timer) clearTimeout(wordGame.timer);
+            if(wordGame.recognition) wordGame.recognition.stop();
+            wordGame.score++;
+            document.getElementById('gameScoreVal').innerText = wordGame.score;
+            document.getElementById('activeWordDisplay').style.color = "var(--success-color)";
+            document.getElementById('wordFeedback').innerText = "ممتاز! 🌟";
+            setTimeout(() => { wordGame.currentIndex++; nextGameWord(); }, 1000);
+        }
+
+        function handleWordFail() {
+            if(wordGame.timer) clearTimeout(wordGame.timer);
+            if(wordGame.recognition) wordGame.recognition.stop();
+            
+            if (wordGame.score > 0) wordGame.score--;
+            
+            document.getElementById('gameScoreVal').innerText = wordGame.score;
+            document.getElementById('activeWordDisplay').style.color = "var(--danger-color)";
+            document.getElementById('wordFeedback').innerText = "انتهى الوقت!";
+            setTimeout(() => { wordGame.currentIndex++; nextGameWord(); }, 1000);
+        }
+
+        function endWordGame(canceled) {
+            wordGame.active = false;
+            if(wordGame.timer) clearTimeout(wordGame.timer);
+            if(wordGame.recognition) wordGame.recognition.stop();
+            document.getElementById('wordGameOverlay').style.display = 'none';
+            if (!canceled && currentUser) {
+                const newScore = parseInt(currentUser.points) + wordGame.score;
+                competitorsRef.child(currentUser.key).update({ points: newScore });
+                showResultGeneric(wordGame.score > (wordGame.wordsList.length / 2) ? "رائع!" : "حاول مجدداً", 
+                    `<div style="font-size:3rem; font-weight:bold; color:var(--accent-color);">${wordGame.score} / ${wordGame.wordsList.length}</div>
+                     <p style="color:#666;">لقد جمعت ${wordGame.score} نقطة في هذه الجولة</p>`);
+            }
+        }
+
+        // --- Utils ---
+        function normalizeText(t) {
+            return t.trim().replace(/[^\u0600-\u06FF\s]/g, '')
+                    .replace(/[أإآ]/g, 'ا')
+                    .replace(/ة/g, 'ه')
+                    .replace(/ى/g, 'ي')
+                    .replace(/\s+/g, ' ');
+        }
+
+        function showResultGeneric(title, contentHtml) {
+            document.getElementById('motivationText').innerText = title;
+            document.getElementById('resultStatsContent').innerHTML = contentHtml;
+            document.getElementById('resultOverlay').style.display = 'flex';
+        }
+        function closeResult() { document.getElementById('resultOverlay').style.display = 'none'; }
+
+        // --- Admin Functions ---
+        function openAdminPanel() { document.getElementById('adminOverlay').classList.add('modal-active'); loadCompetitorsList(); loadArticlesListAdmin(); loadWordsListAdmin(); loadAthkarListAdmin(); }
+        function closeAdminPanel() { document.getElementById('adminOverlay').classList.remove('modal-active'); }
+        function switchAdminTab(t) {
+            document.querySelectorAll('.admin-tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+            if(t==='users') { document.querySelector('.admin-tab-btn:nth-child(1)').classList.add('active'); document.getElementById('adminUsersSection').classList.add('active'); }
+            else if(t==='content') { document.querySelector('.admin-tab-btn:nth-child(2)').classList.add('active'); document.getElementById('adminContentSection').classList.add('active'); }
+            else if(t==='words') { document.querySelector('.admin-tab-btn:nth-child(3)').classList.add('active'); document.getElementById('adminWordsSection').classList.add('active'); }
+            else { document.querySelector('.admin-tab-btn:nth-child(4)').classList.add('active'); document.getElementById('adminAthkarSection').classList.add('active'); }
+        }
+
+        function saveCompetitor() {
+            const n=document.getElementById('compName').value, s=document.getElementById('compScore').value, id=document.getElementById('compId').value;
+            if(!n||!s) return;
+            if(id) competitorsRef.child(id).update({name:n,points:s}).then(resetForm);
+            else competitorsRef.push({name:n,points:s}).then(resetForm);
+        }
+        function resetForm() {
+            document.getElementById('compId').value=''; document.getElementById('compName').value=''; document.getElementById('compScore').value='';
+            document.getElementById('saveBtn').innerText="إضافة";
+            document.getElementById('edit-article-key').value=''; document.getElementById('new-text-title').value=''; document.getElementById('new-text-content').value='';
+            document.getElementById('saveArticleBtn').innerText="نشر";
+            document.getElementById('thikrId').value=''; document.getElementById('thikrText').value=''; document.getElementById('saveThikrBtn').innerText="إضافة ذكر";
+        }
+        function loadCompetitorsList() {
+            competitorsRef.on('value', snap => {
+                const l = document.getElementById('competitorsList'); l.innerHTML='';
+                const d = snap.val(); if(!d) return;
+                Object.keys(d).forEach(k => {
+                    const c = d[k];
+                    l.innerHTML += `<div style="display:flex;justify-content:space-between;padding:10px;background:#f9f9f9;margin-bottom:5px;border-radius:5px;"><span>${c.name} (${c.points})</span><div><button onclick="editComp('${k}','${c.name}','${c.points}')" style="margin-left:5px;">✏️</button><button onclick="deleteComp('${k}')" style="color:red;">✕</button></div></div>`;
+                });
+            });
+        }
+        function deleteComp(k) { if(confirm('حذف؟')) competitorsRef.child(k).remove(); }
+        function editComp(k,n,p) { document.getElementById('compId').value=k; document.getElementById('compName').value=n; document.getElementById('compScore').value=p; document.getElementById('saveBtn').innerText="حفظ"; }
+
+        function saveArticle() {
+            const k=document.getElementById('edit-article-key').value, t=document.getElementById('new-text-title').value, c=document.getElementById('new-text-content').value, l=document.getElementById('new-text-level').value;
+            if(!t||!c) return;
+            if(k) articlesRef.child(k).update({title:t,content:c,level:l}).then(resetForm);
+            else articlesRef.push({title:t,content:c,level:l}).then(resetForm);
+            loadArticlesListAdmin();
+        }
+        function loadArticlesListAdmin() {
+            articlesRef.once('value').then(snap => {
+                const l = document.getElementById('articlesList'); l.innerHTML='';
+                const d = snap.val(); if(!d) return;
+                Object.keys(d).forEach(k => {
+                    const i = d[k];
+                    l.innerHTML += `<div style="display:flex;justify-content:space-between;padding:10px;border-bottom:1px solid #eee;align-items:center;"><div style="font-size:0.8rem;width:70%;"><b>${i.title}</b> (${i.level})</div><div><button onclick="editArticle('${k}','${i.title}','${i.level}', \`${i.content}\`)" style="cursor:pointer;margin-left:5px;">✏️</button><button onclick="deleteArticle('${k}')" style="color:red;border:none;background:none;cursor:pointer;">✕</button></div></div>`;
+                });
+            });
+        }
+        function editArticle(k,t,l,c) { document.getElementById('edit-article-key').value=k; document.getElementById('new-text-title').value=t; document.getElementById('new-text-level').value=l; document.getElementById('new-text-content').value=c; document.getElementById('saveArticleBtn').innerText="حفظ التعديلات"; }
+        function deleteArticle(k) { if(confirm('حذف؟')) articlesRef.child(k).remove().then(loadArticlesListAdmin); }
+        function generateAIArticles() {
+            const count=document.getElementById('ai-count').value, level=document.getElementById('ai-level').value;
+            for(let i=0;i<count;i++) articlesRef.push({title:`مقال آلي ${i+1}`,content:`هذا نص تم توليده تلقائياً لمستوى ${level} لاختبار القراءة.`,level:level});
+            alert('تم التوليد'); loadArticlesListAdmin();
+        }
+
+        function loadWordsListAdmin() { wordsRef.once('value').then(snap => { const val = snap.val(); if(val && val.list) document.getElementById('wordsListInput').value = val.list; }); }
+        function saveWordsList() { wordsRef.set({list: document.getElementById('wordsListInput').value}).then(() => alert("تم الحفظ")); }
+        function generateWordsList() {
+            const words = ["أحمد", "محمد", "سعيد", "خالد", "عمر", "علي", "نمر", "أسد", "فهد", "ذئب", "دب", "قط", "كلب", "فيل", "جمل", "بقر", "صقر", "نسر", "بوم", "بطة", "بحر", "نهر", "جبل", "رمل", "شجر", "ورد", "زهر", "قلم", "كتب", "ورق", "علم", "فهم", "يد", "رجل", "عين", "أذن", "فم", "شمس", "قمر", "نجم", "ليل", "صبح", "أبيض", "أحمر", "أخضر", "أزرق", "بيت", "باب", "شباك", "سقف"];
+            document.getElementById('wordsListInput').value = words.join('\n'); saveWordsList();
+        }
+
+        function restoreDefaultAthkar() {
+            if(confirm("سيتم استبدال القائمة الحالية. متابعة؟")) {
+                const list = ["سبحان الله", "الحمد لله", "الله أكبر", "لا إله إلا الله", "استغفر الله", "لا حول ولا قوة إلا بالله", "اللهم صل وسلم على نبينا محمد", "سبحان الله وبحمده سبحان الله العظيم"];
+                athkarRef.remove().then(() => { list.forEach(t => athkarRef.push({text: t})); alert("تمت الاستعادة"); loadAthkarListAdmin(); });
+            }
+        }
+        function loadAthkarListAdmin() {
+            athkarRef.once('value').then(snap => {
+                const l = document.getElementById('athkarListAdmin'); l.innerHTML='';
+                const d = snap.val(); if(!d) return;
+                Object.keys(d).forEach(k => {
+                    l.innerHTML += `<div style="display:flex;justify-content:space-between;padding:10px;border-bottom:1px solid #eee;"><span>${d[k].text}</span><div><button onclick="editThikr('${k}','${d[k].text}')">✏️</button><button onclick="deleteThikr('${k}')" style="color:red;">✕</button></div></div>`;
+                });
+            });
+        }
+        function saveThikr() {
+            const t = document.getElementById('thikrText').value, id = document.getElementById('thikrId').value;
+            if(!t) return;
+            if(id) athkarRef.child(id).update({text:t}).then(resetForm);
+            else athkarRef.push({text:t}).then(resetForm);
+            loadAthkarListAdmin();
+        }
+        function deleteThikr(k) { if(confirm('حذف؟')) athkarRef.child(k).remove().then(loadAthkarListAdmin); }
+        function editThikr(k,t) { document.getElementById('thikrId').value=k; document.getElementById('thikrText').value=t; document.getElementById('saveThikrBtn').innerText="حفظ"; }
+
+    </script>
+</body>
+</html>

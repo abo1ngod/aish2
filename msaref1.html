@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+    <!-- اخر تحديث مصاريف بقوائم متعددة ،البيت، المدرسة، رحلة -->
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مدير المصاريف</title>
+    <style>
+        :root { --primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%); --shadow: 0 4px 15px rgba(102, 126, 234, 0.3); --danger: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%); }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, system-ui, sans-serif; }
+        body { background: var(--primary); min-height: 100vh; padding: 10px; }
+        .container { max-width: 900px; margin: 0 auto; background: #fff; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden; animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .header { background: var(--primary); color: white; padding: 15px; text-align: center; }
+        .header h1 { font-size: 22px; font-weight: 700; }
+        .content { padding: 15px; }
+        
+        .user-selector { margin-bottom: 15px; padding: 12px; background: #f8f9fa; border-radius: 12px; display: flex; flex-direction: column; gap: 8px; }
+        .user-selector h3 { font-size: 13px; color: #555; }
+        
+        /* تنسيق الصف العلوي للاختيار والإضافة */
+        .selector-row { display: flex; gap: 8px; align-items: center; }
+        #userSelect { flex: 1; padding: 10px; border-radius: 8px; border: 2px solid #e0e0e0; font-size: 14px; outline: none; background: white; height: 42px; }
+        
+        .add-user-btn { width: 42px; height: 42px; padding: 0; border: 1px dashed #667eea; background: transparent; color: #667eea; border-radius: 8px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; transition: 0.3s; flex-shrink: 0; }
+        .add-user-btn:hover { background: #f0f2ff; transform: scale(1.05); }
+
+        .new-user-group { display: none; gap: 8px; margin-top: 5px; animation: fadeIn 0.3s; }
+        .new-user-group.show { display: flex; }
+        .new-user-group input { flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 8px; font-size: 13px; }
+
+        .tabs { display: flex; gap: 10px; margin-bottom: 15px; border-bottom: 2px solid #f0f0f0; align-items: center; padding-bottom: 5px; }
+        .tab { font-size: 14px; color: #667eea; font-weight: 700; background: none; border: none; }
+        
+        .export-btn { margin-right: auto; padding: 6px 12px; background: #25D366; color: #fff; border: none; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; gap: 5px; align-items: center; }
+
+        .input-section { display: none; margin-bottom: 15px; background: #fdfdfd; padding: 10px; border-radius: 10px; border: 1px solid #eee; }
+        .input-section.show { display: block; }
+        .compact-row { display: flex; gap: 8px; flex-wrap: nowrap; align-items: center; }
+        .compact-row input[type="text"] { flex: 2; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
+        .compact-row input[type="number"] { flex: 0.8; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; width: 80px; }
+        .btn-add-item { padding: 10px 15px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; white-space: nowrap; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; border-radius: 8px; overflow: hidden; font-size: 13px; }
+        th, td { padding: 10px 8px; text-align: right; border-bottom: 1px solid #eee; }
+        th { background: #f8f9fa; color: #333; }
+        .total-row { background: var(--primary) !important; color: #fff; font-weight: 700; }
+        
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 2000; align-items: center; justify-content: center; padding: 20px; }
+        .modal.active { display: flex; }
+        .modal-content { background: #fff; padding: 20px; border-radius: 15px; max-width: 350px; width: 100%; text-align: center; }
+        
+        .bottom-actions { display: none; gap: 10px; margin-top: 15px; }
+        .bottom-actions.show { display: flex; }
+        .btn-clear { background: #95a5a6; color: #fff; flex: 1; padding: 10px; border-radius: 8px; border: none; font-size: 12px; cursor: pointer; }
+        .btn-delete-list { background: var(--danger); color: #fff; flex: 1; padding: 10px; border-radius: 8px; border: none; font-size: 12px; cursor: pointer; font-weight: 600; }
+        
+        @media (max-width: 400px) {
+            .compact-row { flex-wrap: wrap; }
+            .compact-row input[type="text"] { flex: 1 1 100%; }
+            .compact-row input[type="number"] { flex: 1; }
+            .btn-add-item { flex: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header"><h1>💰 مدير المصاريف</h1></div>
+        <div class="content">
+            <div class="user-selector">
+                <h3>قائمة مصاريف:</h3>
+                <div class="selector-row">
+                    <select id="userSelect" onchange="changeUser(this.value)">
+                        <option value="">اختر من القائمة</option>
+                    </select>
+                    <button class="add-user-btn" onclick="$('newUserGroup').classList.toggle('show')">➕</button>
+                </div>
+                <div id="newUserGroup" class="new-user-group">
+                    <input type="text" id="newUserName" placeholder="اسم القائمة">
+                    <button class="btn-add-item" onclick="addNewUser()">إضافة</button>
+                </div>
+            </div>
+
+            <div class="tabs">
+                <span class="tab" id="mainTab">يرجى اختيار قائمة</span>
+                <button class="export-btn" onclick="exportToWhatsApp()"><span>📤</span><span>تصدير</span></button>
+            </div>
+
+            <div id="inputSection" class="input-section">
+                <div class="compact-row">
+                    <input type="text" id="itemName" placeholder="اسم الصنف">
+                    <input type="number" id="itemPrice" placeholder="السعر" step="0.01">
+                    <button class="btn-add-item" id="addButton" onclick="addItem()">إضافة</button>
+                </div>
+            </div>
+
+            <div id="manageTable"></div>
+            
+            <div id="bottomActions" class="bottom-actions">
+                <button class="btn-clear" onclick="confirmClearAll()">مسح المصروفات</button>
+                <button class="btn-delete-list" onclick="confirmDeleteList()">🗑️ حذف القائمة</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="confirmModal" class="modal"><div class="modal-content"><h3 id="modalTitle">تنبيه</h3><p id="confirmMessage"></p><div id="modalBtns" style="display:flex; gap:10px; margin-top:15px; justify-content:center;"></div></div></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas-pro@1.5.8/dist/html2canvas-pro.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script>
+        const config = { apiKey: "AIzaSyBxPO6RKsQ1Cq-mqlCpFTrCuIyxnYdB37U", databaseURL: "https://studentsystem-c1ab1-default-rtdb.firebaseio.com", projectId: "studentsystem-c1ab1" };
+        if (!firebase.apps.length) firebase.initializeApp(config);
+        const db = firebase.database().ref('xxx1');
+        let data = {}, currentUser = null, editIdx = -1, deleteIdx = -1;
+
+        const $ = id => document.getElementById(id);
+
+        function load() {
+            db.on('value', snap => {
+                data = snap.val() || { 'البيت': true };
+                updateDropdown();
+                if (currentUser && data[currentUser]) render();
+                else if (currentUser && !data[currentUser]) changeUser("");
+            });
+        }
+
+        function save() { db.set(data); }
+
+        function updateDropdown() {
+            const select = $('userSelect');
+            select.innerHTML = '<option value="">اختر من القائمة</option>';
+            Object.keys(data).forEach(u => {
+                const opt = document.createElement('option');
+                opt.value = u; opt.textContent = u;
+                select.appendChild(opt);
+            });
+            if (currentUser) select.value = currentUser;
+        }
+
+        function changeUser(val) {
+            if (!val) {
+                currentUser = null;
+                $('mainTab').textContent = 'يرجى اختيار قائمة';
+                $('inputSection').classList.remove('show');
+                $('bottomActions').classList.remove('show');
+                $('manageTable').innerHTML = '';
+                return;
+            }
+            currentUser = val;
+            render();
+        }
+
+        function render() {
+            if (!currentUser) return;
+            $('mainTab').textContent = `إدارة مصاريف ${currentUser}`;
+            $('inputSection').classList.add('show');
+            $('bottomActions').classList.add('show');
+            
+            const list = Array.isArray(data[currentUser]) ? data[currentUser] : [];
+            const total = list.reduce((s, i) => s + i.price, 0);
+            
+            $('manageTable').innerHTML = list.length ? `
+                <table><thead><tr><th>الصنف</th><th>السعر</th><th>-</th></tr></thead>
+                <tbody>${list.map((item, i) => `
+                    <tr><td>${item.name}</td><td>${item.price.toFixed(2)}</td>
+                    <td><span onclick="editItem(${i})" style="cursor:pointer">✏️</span> <span onclick="askDelete(${i})" style="cursor:pointer">🗑️</span></td></tr>
+                `).join('')}<tr class="total-row"><td>الإجمالي</td><td>${total.toFixed(2)} ريال</td><td></td></tr>
+                </tbody></table>` : '<div style="text-align:center;padding:20px;color:#999;font-size:12px;">القائمة فارغة، أضف صنفاً أعلاه</div>';
+        }
+
+        function addItem() {
+            const n = $('itemName').value.trim(), p = parseFloat($('itemPrice').value);
+            if (!n || isNaN(p)) return showMsg('أدخل بيانات صحيحة');
+            if (!Array.isArray(data[currentUser])) data[currentUser] = [];
+            if (editIdx > -1) data[currentUser][editIdx] = { name:n, price:p };
+            else data[currentUser].push({ name:n, price:p });
+            editIdx = -1; $('addButton').textContent = 'إضافة';
+            $('itemName').value = ''; $('itemPrice').value = ''; save();
+        }
+
+        function editItem(i) {
+            editIdx = i; const item = data[currentUser][i];
+            $('itemName').value = item.name; $('itemPrice').value = item.price;
+            $('addButton').textContent = 'تحديث'; $('itemName').focus();
+        }
+
+        function addNewUser() {
+            const n = $('newUserName').value.trim();
+            if (!n || data[n]) return showMsg('اسم غير صالح أو موجود');
+            data[n] = true; currentUser = n;
+            $('newUserName').value = ''; $('newUserGroup').classList.remove('show'); 
+            save(); $('userSelect').value = n; render();
+        }
+
+        function askDelete(i) { 
+            deleteIdx = i; 
+            showConfirm(`حذف "${data[currentUser][i].name}"؟`, () => { 
+                data[currentUser].splice(deleteIdx,1); 
+                if (data[currentUser].length === 0) data[currentUser] = true;
+                save(); 
+            }); 
+        }
+        
+        function confirmClearAll() { 
+            if(!currentUser) return;
+            showConfirm('مسح جميع المصروفات في هذه القائمة؟', () => { data[currentUser] = true; save(); }); 
+        }
+
+        function confirmDeleteList() {
+            if(!currentUser) return;
+            showConfirm(`هل أنت متأكد من حذف قائمة "${currentUser}" نهائياً؟ سيتم مسح كافة البيانات المرتبطة بها.`, () => {
+                delete data[currentUser];
+                save();
+                changeUser("");
+            });
+        }
+
+        function showConfirm(msg, action) {
+            $('confirmMessage').textContent = msg;
+            $('modalBtns').innerHTML = `<button class="btn-add-item" id="go">تأكيد</button><button class="btn-clear" style="margin:0; width:auto;" onclick="closeModal()">إلغاء</button>`;
+            $('confirmModal').classList.add('active');
+            $('go').onclick = () => { action(); closeModal(); };
+        }
+
+        function showMsg(m) { $('modalTitle').textContent='تنبيه'; $('confirmMessage').textContent=m; $('modalBtns').innerHTML=`<button class="btn-add-item" onclick="closeModal()">حسناً</button>`; $('confirmModal').classList.add('active'); }
+        function closeModal() { $('confirmModal').classList.remove('active'); }
+
+        async function exportToWhatsApp() {
+            const list = Array.isArray(data[currentUser]) ? data[currentUser] : [];
+            if (!list.length) return showMsg('القائمة فارغة');
+            const el = $('manageTable');
+            const canvas = await html2canvas(el, { scale: 2 });
+            const total = list.reduce((s, i) => s + i.price, 0);
+            const msg = `*تقرير مصاريف: ${currentUser}*\n` + list.map(i => `• ${i.name}: ${i.price}`).join('\n') + `\n*الإجمالي: ${total} ريال*`;
+            
+            canvas.toBlob(async blob => {
+                const file = new File([blob], 'expenses.jpg', { type: 'image/jpeg' });
+                if (navigator.share && navigator.canShare({ files: [file] })) {
+                    await navigator.share({ files: [file], text: msg });
+                } else {
+                    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
+                }
+            }, 'image/jpeg');
+        }
+
+        load();
+    </script>
+</body>
+</html> 

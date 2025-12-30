@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بيانات الطلاب</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts (Cairo) -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #f3f4f6;
+        }
+        .student-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .student-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #888; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555; 
+        }
+        /* Modal Animation */
+        .modal-enter {
+            opacity: 0;
+            transform: scale(0.9);
+        }
+        .modal-enter-active {
+            opacity: 1;
+            transform: scale(1);
+            transition: opacity 300ms, transform 300ms;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- Navbar -->
+    <nav class="bg-blue-600 text-white shadow-lg sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center gap-3">
+                    <i class="fa-solid fa-graduation-cap text-2xl"></i>
+                    <!-- Changed Title -->
+                    <h1 class="text-xl font-bold">بيانات الطلاب</h1>
+                </div>
+                <div class="text-sm font-light opacity-90 hidden sm:block">
+                    لوحة التحكم
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- Stats & Filters Control Panel -->
+        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-8 space-y-4">
+            
+            <div class="flex flex-col md:flex-row gap-4">
+                <!-- Search Box -->
+                <div class="relative flex-grow">
+                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                        <i class="fa-solid fa-search text-gray-400"></i>
+                    </div>
+                    <!-- Changed Placeholder -->
+                    <input type="text" id="searchInput" 
+                        class="block w-full pr-10 pl-3 py-3 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition duration-150" 
+                        placeholder="ابحث بالاسم أو السجل المدني...">
+                </div>
+
+                <!-- Section Filter (Dynamic) -->
+                <div class="w-full md:w-1/4 relative">
+                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                        <i class="fa-solid fa-filter text-gray-400"></i>
+                    </div>
+                    <select id="sectionFilter" 
+                        class="block w-full pr-10 pl-3 py-3 border border-gray-300 rounded-lg leading-5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm appearance-none cursor-pointer">
+                        <option value="">كل الشعب</option>
+                        <!-- Options will be populated via JS -->
+                    </select>
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fa-solid fa-chevron-down text-gray-400 text-xs"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Bar & Pagination -->
+            <div class="flex flex-wrap items-center justify-between border-t border-gray-100 pt-3 mt-2">
+                <div class="flex gap-4 text-sm text-gray-600 mb-2 sm:mb-0">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-users text-blue-500"></i>
+                        <span>العدد الكلي: <span id="totalStudents">0</span></span>
+                    </div>
+                </div>
+                
+                <div class="flex flex-col items-end gap-2">
+                    <div class="text-xs text-gray-400">
+                        يتم عرض بحد أقصى 40 نتيجة في الصفحة
+                    </div>
+                    <!-- Pagination Controls -->
+                    <div class="flex items-center gap-2 text-sm" id="paginationControls">
+                        <button id="prevBtn" class="px-3 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                            <i class="fa-solid fa-chevron-right ml-1"></i> السابق
+                        </button>
+                        <span id="pageInfo" class="font-bold text-gray-700 mx-2">1</span>
+                        <button id="nextBtn" class="px-3 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                            التالي <i class="fa-solid fa-chevron-left mr-1"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loading" class="flex flex-col items-center justify-center py-20">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+            <p class="text-gray-500">جاري تحميل وتحديث البيانات...</p>
+        </div>
+
+        <!-- Cards Grid -->
+        <div id="studentsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <!-- Cards injected via JS -->
+        </div>
+
+    </main>
+
+    <!-- Image Modal (Lightbox) -->
+    <div id="imageModal" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <!-- Backdrop -->
+        <div class="fixed inset-0 bg-gray-900 bg-opacity-80 transition-opacity backdrop-blur-sm" onclick="closeModal()"></div>
+
+        <div class="fixed inset-0 z-10 overflow-y-auto pointer-events-none">
+            <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+                
+                <div class="relative transform overflow-hidden rounded-lg bg-white text-right shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg modal-panel pointer-events-auto">
+                    
+                    <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4 flex flex-col items-center">
+                        <!-- Removed Close Button (X) as requested -->
+                        
+                        <!-- Large Image -->
+                        <div class="mt-4 mb-4">
+                            <img id="modalImage" src="" alt="Student" class="w-64 h-64 object-cover rounded-full border-4 border-blue-100 shadow-lg mx-auto">
+                        </div>
+                        
+                        <!-- Student Name in Modal -->
+                        <h3 class="text-xl font-bold leading-6 text-gray-900 mb-2" id="modalTitle">اسم الطالب</h3>
+                        <p class="text-sm text-gray-500" id="modalSubtitle">تفاصيل الطالب</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Scripts -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBxPO6RKsQ1Cq-mqlCpFTrCuIyxnYdB37U",
+            authDomain: "studentsystem-c1ab1.firebaseapp.com",
+            databaseURL: "https://studentsystem-c1ab1-default-rtdb.firebaseio.com",
+            projectId: "studentsystem-c1ab1",
+            storageBucket: "studentsystem-c1ab1.firebasestorage.app",
+            messagingSenderId: "112215023848",
+            appId: "1:112215023848:web:0adba326a527ee7e37e95d"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Global State
+        let allStudents = [];
+        let filteredStudents = []; // Store filtered results for pagination
+        let uniqueSections = new Set();
+        let currentPage = 1;
+        const itemsPerPage = 40;
+        
+        // DOM Elements
+        const gridContainer = document.getElementById('studentsGrid');
+        const searchInput = document.getElementById('searchInput');
+        const sectionFilter = document.getElementById('sectionFilter');
+        const loadingSpinner = document.getElementById('loading');
+        const totalStudentsEl = document.getElementById('totalStudents');
+        
+        // Pagination Elements
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const pageInfo = document.getElementById('pageInfo');
+        
+        // Modal Elements
+        const imageModal = document.getElementById('imageModal');
+        const modalImage = document.getElementById('modalImage');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalSubtitle = document.getElementById('modalSubtitle');
+
+        // --- Helper Functions ---
+
+        window.openModal = (imgSrc, name, section) => {
+            modalImage.src = imgSrc;
+            modalImage.onerror = function() {
+                this.src = `https://ui-avatars.com/api/?background=e2e8f0&color=64748b&name=${encodeURIComponent(name)}`;
+            };
+            modalTitle.textContent = name;
+            modalSubtitle.textContent = `الشعبة: ${section}`;
+            imageModal.classList.remove('hidden');
+            const panel = imageModal.querySelector('.modal-panel');
+            panel.classList.add('modal-enter-active');
+        };
+
+        window.closeModal = () => {
+            imageModal.classList.add('hidden');
+        };
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !imageModal.classList.contains('hidden')) {
+                closeModal();
+            }
+        });
+
+        const getAvatar = (url, name) => {
+            if (!url || url.trim() === '') {
+                return `https://ui-avatars.com/api/?background=random&color=fff&name=${encodeURIComponent(name)}`;
+            }
+            return url;
+        };
+
+        const updateSectionFilterOptions = () => {
+            const currentSelection = sectionFilter.value;
+            while (sectionFilter.options.length > 1) {
+                sectionFilter.remove(1);
+            }
+            
+            const sortedSections = Array.from(uniqueSections).sort();
+            
+            sortedSections.forEach(section => {
+                const option = document.createElement('option');
+                option.value = section;
+                option.textContent = section;
+                sectionFilter.appendChild(option);
+            });
+            
+            if (uniqueSections.has(currentSelection)) {
+                sectionFilter.value = currentSelection;
+            }
+        };
+
+        const renderCard = (student) => {
+            const name = student.name || 'طالب مجهول';
+            const avatarUrl = getAvatar(student.avatar, name);
+            const section = student.section || 'عام';
+
+            // Using JSON.stringify for safe passing of strings to onclick
+            const safeName = name.replace(/'/g, "\\'");
+            const safeSection = section.replace(/'/g, "\\'");
+
+            return `
+                <div class="student-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col h-full relative group">
+                    <div class="h-2 bg-gradient-to-r from-blue-500 to-indigo-500 w-full"></div>
+                    
+                    <div class="p-5 flex-grow">
+                        <div class="flex flex-col items-center text-center">
+                            <!-- Avatar with Click Event -->
+                            <div class="relative cursor-pointer transition-transform hover:scale-105" 
+                                 onclick="openModal('${avatarUrl}', '${safeName}', '${safeSection}')"
+                                 title="انقر للتكبير">
+                                <img src="${avatarUrl}" 
+                                     alt="${name}" 
+                                     onerror="this.src='https://ui-avatars.com/api/?background=e2e8f0&color=64748b&name=${encodeURIComponent(name)}'"
+                                     class="w-20 h-20 rounded-full object-cover border-4 border-white shadow-md bg-gray-200 mb-3">
+                            </div>
+                            
+                            <!-- Full Name -->
+                            <h3 class="font-bold text-gray-800 text-lg w-full leading-snug mb-2">
+                                ${name}
+                            </h3>
+                            
+                            <span class="text-xs text-blue-600 bg-blue-50 px-3 py-1 rounded-full border border-blue-100">
+                                الشعبة: ${section}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        };
+
+        const updatePagination = () => {
+            const totalPages = Math.ceil(filteredStudents.length / itemsPerPage) || 1;
+            
+            pageInfo.textContent = `${currentPage} / ${totalPages}`;
+            
+            prevBtn.disabled = currentPage === 1;
+            nextBtn.disabled = currentPage === totalPages || totalPages === 0;
+        };
+
+        const renderGrid = () => {
+            // Calculate indices for current page
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            
+            const pageData = filteredStudents.slice(start, end);
+
+            gridContainer.innerHTML = '';
+            
+            if (pageData.length === 0) {
+                gridContainer.innerHTML = `
+                    <div class="col-span-full text-center py-12">
+                        <div class="bg-gray-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                            <i class="fa-solid fa-search text-gray-400 text-2xl"></i>
+                        </div>
+                        <p class="text-gray-500">لا توجد نتائج مطابقة للبحث.</p>
+                    </div>
+                `;
+            } else {
+                pageData.forEach(student => {
+                    gridContainer.innerHTML += renderCard(student);
+                });
+            }
+            
+            updatePagination();
+            // Scroll to top of grid slightly
+            if(currentPage > 1) {
+                document.querySelector('main').scrollIntoView({ behavior: 'smooth' });
+            }
+        };
+
+        const filterStudents = () => {
+            const query = searchInput.value.toLowerCase();
+            const sectionQuery = sectionFilter.value;
+
+            filteredStudents = allStudents.filter(student => {
+                const name = (student.name || '').toLowerCase();
+                const nid = (student.nid || '').toString();
+                const section = (student.section || 'عام');
+
+                const matchesSearch = name.includes(query) || nid.includes(query);
+                const matchesSection = sectionQuery === '' || section === sectionQuery;
+
+                return matchesSearch && matchesSection;
+            });
+
+            // Update Stats
+            totalStudentsEl.textContent = filteredStudents.length;
+            
+            // Reset to page 1 on new filter
+            currentPage = 1;
+            renderGrid();
+        };
+
+        // --- Main Logic ---
+        async function init() {
+            try {
+                await signInAnonymously(auth);
+                
+                const studentsRef = collection(db, 'artifacts', 'almanara_lms', 'public', 'data', 'students');
+                
+                onSnapshot(studentsRef, (snapshot) => {
+                    allStudents = [];
+                    uniqueSections.clear();
+
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        allStudents.push({ id: doc.id, ...data });
+                        
+                        if (data.section) {
+                            uniqueSections.add(data.section);
+                        } else {
+                            uniqueSections.add('عام');
+                        }
+                    });
+
+                    loadingSpinner.classList.add('hidden');
+                    updateSectionFilterOptions();
+                    filterStudents(); // Will trigger renderGrid
+                    
+                }, (error) => {
+                    console.error("Firestore Error:", error);
+                    loadingSpinner.innerHTML = `<p class="text-red-500">حدث خطأ في تحميل البيانات.</p>`;
+                });
+
+            } catch (err) {
+                console.error("Auth Error:", err);
+            }
+        }
+
+        // Event Listeners
+        searchInput.addEventListener('input', filterStudents);
+        sectionFilter.addEventListener('change', filterStudents);
+        
+        prevBtn.addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                renderGrid();
+            }
+        });
+        
+        nextBtn.addEventListener('click', () => {
+            const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderGrid();
+            }
+        });
+
+        init();
+    </script>
+</body>
+</html>

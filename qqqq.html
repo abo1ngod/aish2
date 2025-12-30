@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لجنة السرور - ثانوية عشيرة</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0a0e1a;
+            --secondary: #131a2e;
+            --accent: #1a2744;
+            --gold: #ffd700;
+            --text: #ffffff;
+            --text-muted: #8892a8;
+            --border: rgba(255, 215, 0, 0.3);
+            --table-header: #1a2744;
+            --table-row-odd: rgba(255, 255, 255, 0.03);
+            --table-row-even: rgba(255, 255, 255, 0.07);
+        }
+
+        .light {
+            --primary: #e8ecf3;
+            --secondary: #f5f7fa;
+            --accent: #3182ce;
+            --text: #1a202c;
+            --text-muted: #4a5568;
+            --border: rgba(49, 130, 206, 0.4);
+            --table-header: #2c5282;
+            --table-row-odd: rgba(0, 0, 0, 0.02);
+            --table-row-even: rgba(0, 0, 0, 0.06);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background: var(--primary);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        /* 16:9 Frame Container */
+        .frame-container {
+            width: 100%;
+            max-width: 1600px;
+            aspect-ratio: 16 / 9;
+            max-height: calc(100vh - 40px);
+            background: linear-gradient(145deg, var(--secondary), var(--primary));
+            border: 4px solid var(--gold);
+            border-radius: 20px;
+            box-shadow:
+                0 0 60px rgba(255, 215, 0, 0.15),
+                inset 0 0 100px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Decorative corners */
+        .frame-container::before,
+        .frame-container::after {
+            content: '';
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            border: 4px solid var(--gold);
+            z-index: 10;
+        }
+
+        .frame-container::before {
+            top: 12px;
+            right: 12px;
+            border-left: none;
+            border-bottom: none;
+            border-radius: 0 8px 0 0;
+        }
+
+        .frame-container::after {
+            top: 12px;
+            left: 12px;
+            border-right: none;
+            border-bottom: none;
+            border-radius: 8px 0 0 0;
+        }
+
+        .corner-bottom-right,
+        .corner-bottom-left {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            border: 4px solid var(--gold);
+            z-index: 10;
+        }
+
+        .corner-bottom-right {
+            bottom: 12px;
+            right: 12px;
+            border-left: none;
+            border-top: none;
+            border-radius: 0 0 8px 0;
+        }
+
+        .corner-bottom-left {
+            bottom: 12px;
+            left: 12px;
+            border-right: none;
+            border-top: none;
+            border-radius: 0 0 0 8px;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 50px;
+            background: linear-gradient(180deg, var(--accent), transparent);
+            border-bottom: 2px solid var(--border);
+        }
+
+        .title-section h1 {
+            font-size: 2.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--gold), #fff5cc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .title-section .subtitle {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            font-weight: 500;
+            margin-top: 3px;
+        }
+
+        /* Timer */
+        .timer-section {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .timer-box {
+            background: linear-gradient(145deg, var(--accent), var(--secondary));
+            padding: 12px 35px;
+            border-radius: 12px;
+            border: 3px solid var(--gold);
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.2);
+            text-align: center;
+        }
+
+        .timer-label {
+            font-size: 0.85rem;
+            color: var(--gold);
+            font-weight: 700;
+            letter-spacing: 2px;
+            margin-bottom: 3px;
+        }
+
+        .timer-display {
+            font-size: 3rem;
+            font-weight: 900;
+            color: var(--text);
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 3px;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        }
+
+        .timer-display.warning {
+            color: #ff6b6b;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .timer-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .timer-btn {
+            background: linear-gradient(145deg, var(--accent), var(--secondary));
+            border: 2px solid var(--gold);
+            color: var(--gold);
+            padding: 8px 18px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Tajawal', sans-serif;
+        }
+
+        .timer-btn:hover {
+            background: var(--gold);
+            color: var(--primary);
+            transform: scale(1.05);
+        }
+
+        /* Table Section */
+        .table-section {
+            flex: 1;
+            padding: 25px 50px 35px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Classic Table */
+        .classic-table {
+            border-collapse: collapse;
+            border: 3px solid var(--gold);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .classic-table thead {
+            background: linear-gradient(180deg, var(--table-header), var(--accent));
+        }
+
+        .classic-table th {
+            padding: 20px 60px;
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--gold);
+            text-align: center;
+            border: 2px solid var(--border);
+            letter-spacing: 1px;
+        }
+
+        .classic-table tbody tr {
+            transition: all 0.3s ease;
+        }
+
+        .classic-table tbody tr:nth-child(odd) {
+            background: var(--table-row-odd);
+        }
+
+        .classic-table tbody tr:nth-child(even) {
+            background: var(--table-row-even);
+        }
+
+        .classic-table tbody tr:hover {
+            background: rgba(255, 215, 0, 0.1);
+        }
+
+        .classic-table td {
+            padding: 18px 60px;
+            text-align: center;
+            border: 1px solid var(--border);
+            font-size: 1.5rem;
+        }
+
+        .committee-name {
+            font-weight: 700;
+            color: var(--text);
+            font-size: 1.6rem;
+        }
+
+        .student-count {
+            font-size: 2.5rem;
+            font-weight: 900;
+            background: linear-gradient(180deg, var(--gold), #cc9900);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Settings Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--secondary);
+            padding: 35px;
+            border-radius: 18px;
+            border: 3px solid var(--gold);
+            max-width: 420px;
+            width: 90%;
+        }
+
+        .modal h2 {
+            color: var(--gold);
+            font-size: 1.5rem;
+            margin-bottom: 22px;
+            text-align: center;
+        }
+
+        .input-group {
+            margin-bottom: 18px;
+        }
+
+        .input-group label {
+            display: block;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .input-wrapper {
+            flex: 1;
+            text-align: center;
+        }
+
+        .input-wrapper span {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            background: var(--accent);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 1.4rem;
+            font-family: 'Tajawal', sans-serif;
+            text-align: center;
+            font-weight: 700;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--gold);
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 22px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s ease;
+            font-family: 'Tajawal', sans-serif;
+        }
+
+        .modal-btn.primary {
+            background: var(--gold);
+            color: var(--primary);
+        }
+
+        .modal-btn.secondary {
+            background: transparent;
+            border: 2px solid var(--text-muted);
+            color: var(--text-muted);
+        }
+
+        .modal-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .frame-container {
+            animation: fadeIn 0.8s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="frame-container">
+        <div class="corner-bottom-right"></div>
+        <div class="corner-bottom-left"></div>
+
+        <!-- Header -->
+        <header class="header">
+            <div class="title-section">
+                <h1>لجنة السرور</h1>
+                <p class="subtitle">ثانوية عشيرة</p>
+            </div>
+
+            <div class="timer-section">
+                <div class="timer-box">
+                    <div class="timer-label">⏱ الوقت المتبقي</div>
+                    <div class="timer-display" id="timer">02:30:00</div>
+                </div>
+                <div class="timer-controls">
+                    <button class="timer-btn" onclick="openSettings()">⚙️ ضبط</button>
+                    <button class="timer-btn" id="startBtn" onclick="toggleTimer()">▶️ بدء</button>
+                    <button class="timer-btn" onclick="resetTimer()">🔄 إعادة</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Table Section -->
+        <section class="table-section">
+            <table class="classic-table">
+                <thead>
+                    <tr>
+                        <th>اللجنة</th>
+                        <th>عدد الطلاب</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="committee-name">الأولى</span></td>
+                        <td><span class="student-count">69</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="committee-name">الثانية</span></td>
+                        <td><span class="student-count">45</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="committee-name">الثالثة</span></td>
+                        <td><span class="student-count">57</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="committee-name">الرابعة</span></td>
+                        <td><span class="student-count">63</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="committee-name">الخامسة</span></td>
+                        <td><span class="student-count">63</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="committee-name">السادسة</span></td>
+                        <td><span class="student-count">50</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="committee-name">السابعة</span></td>
+                        <td><span class="student-count">49</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal-overlay" id="settingsModal">
+        <div class="modal">
+            <h2>⚙️ ضبط العداد التنازلي</h2>
+            <div class="input-group">
+                <label>تحديد الوقت</label>
+                <div class="input-row">
+                    <div class="input-wrapper">
+                        <input type="number" id="inputHours" min="0" max="23" value="2">
+                        <span>ساعات</span>
+                    </div>
+                    <div class="input-wrapper">
+                        <input type="number" id="inputMinutes" min="0" max="59" value="30">
+                        <span>دقائق</span>
+                    </div>
+                    <div class="input-wrapper">
+                        <input type="number" id="inputSeconds" min="0" max="59" value="0">
+                        <span>ثواني</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn primary" onclick="setTimer()">✓ تطبيق</button>
+                <button class="modal-btn secondary" onclick="closeSettings()">✕ إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Dark/Light mode detection
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+            document.documentElement.classList.add('light');
+        }
+        window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('light');
+            } else {
+                document.documentElement.classList.remove('light');
+            }
+        });
+
+        // Timer functionality
+        let totalSeconds = 2 * 3600 + 30 * 60;
+        let timerInterval = null;
+        let isRunning = false;
+
+        function formatTime(seconds) {
+            const h = Math.floor(seconds / 3600);
+            const m = Math.floor((seconds % 3600) / 60);
+            const s = seconds % 60;
+            return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        }
+
+        function updateDisplay() {
+            const timerEl = document.getElementById('timer');
+            timerEl.textContent = formatTime(totalSeconds);
+
+            if (totalSeconds <= 300) {
+                timerEl.classList.add('warning');
+            } else {
+                timerEl.classList.remove('warning');
+            }
+        }
+
+        function toggleTimer() {
+            const btn = document.getElementById('startBtn');
+            if (isRunning) {
+                clearInterval(timerInterval);
+                btn.textContent = '▶️ بدء';
+                isRunning = false;
+            } else {
+                timerInterval = setInterval(() => {
+                    if (totalSeconds > 0) {
+                        totalSeconds--;
+                        updateDisplay();
+                    } else {
+                        clearInterval(timerInterval);
+                        isRunning = false;
+                        btn.textContent = '▶️ بدء';
+                    }
+                }, 1000);
+                btn.textContent = '⏸️ إيقاف';
+                isRunning = true;
+            }
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            isRunning = false;
+            document.getElementById('startBtn').textContent = '▶️ بدء';
+            totalSeconds = 2 * 3600 + 30 * 60;
+            updateDisplay();
+        }
+
+        function openSettings() {
+            document.getElementById('settingsModal').classList.add('active');
+        }
+
+        function closeSettings() {
+            document.getElementById('settingsModal').classList.remove('active');
+        }
+
+        function setTimer() {
+            const hours = parseInt(document.getElementById('inputHours').value) || 0;
+            const minutes = parseInt(document.getElementById('inputMinutes').value) || 0;
+            const seconds = parseInt(document.getElementById('inputSeconds').value) || 0;
+
+            totalSeconds = hours * 3600 + minutes * 60 + seconds;
+            updateDisplay();
+            closeSettings();
+
+            if (isRunning) {
+                clearInterval(timerInterval);
+                isRunning = false;
+                document.getElementById('startBtn').textContent = '▶️ بدء';
+            }
+        }
+
+        document.getElementById('settingsModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeSettings();
+            }
+        });
+
+        updateDisplay();
+    </script>
+</body>
+</html>
+

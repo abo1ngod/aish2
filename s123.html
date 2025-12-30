@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>عدادات الأسماء بالصوت — استماع مستمر</title>
+  <style>
+    body { font-family: Arial; background:#f5f6fa; padding:20px; }
+    .box {
+      max-width:700px; margin:0 auto; background:#fff; padding:20px;
+      border-radius:12px; box-shadow:0 4px 20px rgba(0,0,0,0.08);
+    }
+    h1 { text-align:center; }
+    .row {
+      display:flex; justify-content:space-between; align-items:center;
+      padding:12px; border:1px solid #eee; border-radius:10px; margin-bottom:10px;
+    }
+    .name { font-size:20px; font-weight:bold; }
+    .count {
+      background:#e8f0ff; padding:8px 14px; border-radius:10px;
+      font-size:22px; font-weight:bold;
+      min-width:60px; text-align:center;
+    }
+    button {
+      padding:10px 16px; border:0; border-radius:10px; cursor:pointer; font-size:16px;
+    }
+    .start { background:#007bff; color:white; }
+    .stop { background:#dc3545; color:white; }
+    .reset { background:#6c757d; color:white; }
+    #status { margin-top:15px; font-weight:bold; text-align:center; }
+    #error { margin-top:15px; color:#b00020; font-weight:bold; text-align:center; display:none; }
+  </style>
+</head>
+<body>
+
+<div class="box">
+  <h1>عدادات الأسماء بالصوت</h1>
+
+  <div class="row">
+    <div class="name">أحمد</div>
+    <div class="count" id="count-أحمد">0</div>
+  </div>
+
+  <div class="row">
+    <div class="name">محمد</div>
+    <div class="count" id="count-محمد">0</div>
+  </div>
+
+  <div class="row">
+    <div class="name">سعيد</div>
+    <div class="count" id="count-سعيد">0</div>
+  </div>
+
+  <div style="text-align:center; margin-top:15px;">
+    <button id="startBtn" class="start">بدء الاستماع</button>
+    <button id="resetBtn" class="reset">إعادة الصفر</button>
+  </div>
+
+  <div id="status">الحالة: متوقف</div>
+  <div id="error"></div>
+</div>
+
+<script>
+  const names = ["أحمد","محمد","سعيد"];
+  const counts = { "أحمد":0, "محمد":0, "سعيد":0 };
+  
+  function updateUI(name){
+    document.getElementById("count-"+name).textContent = counts[name];
+  }
+
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let recognition = null;
+  let keepListening = false;
+
+  // Normalizer
+  function normalize(text){
+    return text
+      .replace(/[\u064B-\u065F]/g, "")
+      .replace(/[أإآٱ]/g, "ا")
+      .replace(/ى/g, "ي")
+      .replace(/[ء]/g, "")
+      .replace(/[^\u0600-\u06FF\s]/g, "")
+      .trim()
+      .toLowerCase();
+  }
+
+  // Beep sound
+  function beep(){
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.frequency.value = 900;
+      gain.gain.value = 0.1;
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      setTimeout(()=>{ osc.stop(); ctx.close(); }, 120);
+    } catch {}
+  }
+
+  function startRecognition(){
+    const status = document.getElementById("status");
+    const errorBox = document.getElementById("error");
+    errorBox.style.display = "none";
+
+    if (!SpeechRecognition) {
+      errorBox.style.display = "block";
+      errorBox.textContent = "المتصفح لا يدعم التعرف على الكلام. استخدم Chrome.";
+      return;
+    }
+
+    recognition = new SpeechRecognition();
+    recognition.lang = "ar-SA";
+    recognition.continuous = true;
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 5;
+
+    recognition.onstart = () => {
+      status.textContent = "الحالة: يستمع...";
+    };
+
+    recognition.onerror = (e) => {
+      errorBox.style.display = "block";
+      errorBox.textContent = "خطأ: " + e.error;
+    };
+
+    recognition.onresult = (event) => {
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        if (!event.results[i].isFinal) continue;
+
+        const transcript = event.results[i][0].transcript;
+        const clean = normalize(transcript);
+
+        names.forEach(name => {
+          const n = normalize(name);
+          if (clean.includes(n)) {
+            counts[name]++;
+            updateUI(name);
+            beep();
+          }
+        });
+      }
+    };
+
+    // أهم جزء — الاستماع المستمر
+    recognition.onend = () => {
+      if (keepListening) recognition.start();
+    };
+
+    recognition.start();
+  }
+
+  document.getElementById("startBtn").onclick = () => {
+    if (!keepListening) {
+      keepListening = true;
+      startRecognition();
+      document.getElementById("startBtn").textContent = "إيقاف الاستماع";
+      document.getElementById("startBtn").className = "stop";
+    } else {
+      keepListening = false;
+      if (recognition) recognition.stop();
+      document.getElementById("status").textContent = "الحالة: متوقف";
+      document.getElementById("startBtn").textContent = "بدء الاستماع";
+      document.getElementById("startBtn").className = "start";
+    }
+  };
+
+  document.getElementById("resetBtn").onclick = () => {
+    names.forEach(n => {
+      counts[n] = 0;
+      updateUI(n);
+    });
+  };
+</script>
+
+</body>
+</html>

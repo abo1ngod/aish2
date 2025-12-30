@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تحدي العباقرة - مسابقة الحساب الذهني</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Tajawal', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#6C63FF',
+                        secondary: '#FF6584',
+                        success: '#00B894',
+                        warning: '#FDCB6E',
+                        danger: '#FF7675',
+                        dark: '#2D3436'
+                    },
+                    animation: {
+                        'bounce-short': 'bounce 1s infinite',
+                        'pulse-fast': 'pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #f3f4f6;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        .tab-active {
+            background-color: white;
+            color: #4F46E5;
+            border-bottom: 4px solid #4F46E5;
+            font-weight: bold;
+        }
+
+        .tab-inactive {
+            background-color: #E5E7EB;
+            color: #6B7280;
+            border-bottom: 4px solid transparent;
+        }
+
+        .tab-inactive:hover {
+            background-color: #D1D5DB;
+        }
+
+        /* Timer Bar Animation */
+        .timer-container {
+            width: 100%;
+            height: 10px;
+            background-color: #E5E7EB;
+            border-radius: 9999px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .timer-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #FF6584, #FF7675);
+            width: 100%;
+            transform-origin: right;
+            transition: width linear;
+        }
+
+        /* Option Button Styles */
+        .option-btn {
+            transition: all 0.2s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .option-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Animations */
+        @keyframes popIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .pop-in {
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        .modal-overlay {
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <!-- App Container -->
+    <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden relative min-h-[600px] flex flex-col">
+        
+        <!-- Header -->
+        <header class="bg-indigo-600 text-white p-4 text-center">
+            <h1 class="text-2xl font-black tracking-wide"><i class="fas fa-brain ml-2"></i>تحدي العباقرة</h1>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="flex-grow relative p-6">
+            
+            <!-- HOME SCREEN (Settings) -->
+            <div id="homeScreen" class="flex flex-col gap-6 h-full">
+                
+                <!-- Tabs -->
+                <div class="flex rounded-lg overflow-hidden border border-gray-200 text-lg">
+                    <button onclick="switchTab('add')" id="tab-add" class="flex-1 py-3 tab-active transition-colors duration-200">
+                        <i class="fas fa-plus ml-2"></i> الجمع
+                    </button>
+                    <button onclick="switchTab('mult')" id="tab-mult" class="flex-1 py-3 tab-inactive transition-colors duration-200">
+                        <i class="fas fa-times ml-2"></i> الضرب
+                    </button>
+                </div>
+
+                <div class="space-y-6 mt-4">
+                    <!-- Range Selection -->
+                    <div class="bg-indigo-50 p-4 rounded-xl border border-indigo-100">
+                        <label class="block text-indigo-900 font-bold mb-2"><i class="fas fa-sort-numeric-up-alt ml-2"></i>مجال الأرقام:</label>
+                        <div class="grid grid-cols-2 gap-4">
+                            <label class="cursor-pointer">
+                                <input type="radio" name="range" value="5" class="peer sr-only" checked>
+                                <div class="bg-white peer-checked:bg-indigo-500 peer-checked:text-white peer-checked:border-indigo-600 border border-gray-300 rounded-lg p-3 text-center transition-all shadow-sm">
+                                    من 0 إلى 5
+                                </div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="range" value="9" class="peer sr-only">
+                                <div class="bg-white peer-checked:bg-indigo-500 peer-checked:text-white peer-checked:border-indigo-600 border border-gray-300 rounded-lg p-3 text-center transition-all shadow-sm">
+                                    الكل (0-9)
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Speed Selection -->
+                    <div class="bg-pink-50 p-4 rounded-xl border border-pink-100">
+                        <label class="block text-pink-900 font-bold mb-2"><i class="fas fa-stopwatch ml-2"></i>سرعة الإجابة:</label>
+                        <div class="grid grid-cols-3 gap-2">
+                            <label class="cursor-pointer">
+                                <input type="radio" name="speed" value="3" class="peer sr-only">
+                                <div class="bg-white peer-checked:bg-pink-500 peer-checked:text-white border border-gray-300 rounded-lg p-2 text-center text-sm font-bold transition-all shadow-sm">
+                                    3 ثواني ⚡
+                                </div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="speed" value="5" class="peer sr-only" checked>
+                                <div class="bg-white peer-checked:bg-pink-500 peer-checked:text-white border border-gray-300 rounded-lg p-2 text-center text-sm font-bold transition-all shadow-sm">
+                                    5 ثواني 🐇
+                                </div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="speed" value="7" class="peer sr-only">
+                                <div class="bg-white peer-checked:bg-pink-500 peer-checked:text-white border border-gray-300 rounded-lg p-2 text-center text-sm font-bold transition-all shadow-sm">
+                                    7 ثواني 🐢
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Count Selection -->
+                    <div class="bg-green-50 p-4 rounded-xl border border-green-100">
+                        <label class="block text-green-900 font-bold mb-2"><i class="fas fa-list-ol ml-2"></i>عدد العمليات:</label>
+                        <select id="qCount" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 bg-white">
+                            <option value="5">5 عمليات</option>
+                            <option value="10" selected>10 عمليات</option>
+                            <option value="20">20 عملية</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button onclick="startGame()" class="mt-auto w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-4 rounded-xl text-xl shadow-lg transform hover:scale-[1.02] transition-all">
+                    ابدأ التحدي! 🚀
+                </button>
+            </div>
+
+            <!-- GAME SCREEN -->
+            <div id="gameScreen" class="hidden flex-col h-full justify-between pop-in">
+                <!-- Status Bar -->
+                <div class="flex justify-between items-center text-gray-600 font-bold mb-4">
+                    <span class="bg-gray-200 px-3 py-1 rounded-full text-sm"><span id="currentQNum">1</span> / <span id="totalQNum">10</span></span>
+                    <span class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm">النقاط: <span id="scoreDisplay">0</span></span>
+                </div>
+
+                <!-- Timer -->
+                <div class="timer-container relative">
+                    <div id="timerBar" class="timer-bar"></div>
+                </div>
+
+                <!-- Question Area -->
+                <div class="flex-grow flex flex-col items-center justify-center mb-6">
+                    <div class="text-gray-400 text-sm font-bold mb-2 tracking-widest">المسألة</div>
+                    <div class="bg-white border-4 border-dashed border-indigo-200 rounded-3xl p-8 w-full text-center shadow-sm">
+                        <div id="questionText" class="text-6xl font-black text-gray-800 dir-ltr" style="direction: ltr;">
+                            <!-- populated by js -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Options Grid -->
+                <div id="optionsGrid" class="grid grid-cols-2 gap-4 mb-4">
+                    <!-- Buttons will be injected here -->
+                </div>
+
+                <!-- Feedback Overlay (Absolute) -->
+                <div id="feedbackOverlay" class="absolute inset-0 bg-white/95 z-10 flex flex-col items-center justify-center hidden rounded-lg">
+                    <div id="feedbackIcon" class="text-6xl mb-4"></div>
+                    <div id="feedbackText" class="text-2xl font-black mb-2"></div>
+                    <div id="feedbackSub" class="text-gray-500"></div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- RESULT MODAL -->
+    <div id="resultModal" class="fixed inset-0 modal-overlay hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm p-8 text-center transform scale-100 transition-transform">
+            <div class="mb-4">
+                <i class="fas fa-trophy text-yellow-400 text-6xl drop-shadow-md animate-bounce-short"></i>
+            </div>
+            <h2 class="text-3xl font-black text-gray-800 mb-2">انتهت الجولة!</h2>
+            <p id="finalMessage" class="text-gray-500 mb-6 font-bold">أداء رائع!</p>
+            
+            <div class="bg-gray-100 rounded-xl p-4 mb-6">
+                <div class="text-sm text-gray-500 mb-1">النتيجة النهائية</div>
+                <div class="text-4xl font-black text-indigo-600"><span id="finalScore">0</span> / <span id="finalTotal">10</span></div>
+            </div>
+
+            <div class="space-y-3">
+                <button onclick="restartGame()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl shadow-md transition-colors">
+                    <i class="fas fa-redo-alt ml-2"></i> إعادة المحاولة
+                </button>
+                <button onclick="goHome()" class="w-full bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 rounded-xl transition-colors">
+                    <i class="fas fa-home ml-2"></i> القائمة الرئيسية
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- State Management ---
+        const state = {
+            mode: 'add', // 'add' or 'mult'
+            rangeMax: 5,
+            timeLimit: 5,
+            totalQuestions: 10,
+            currentQuestionIndex: 0,
+            score: 0,
+            timerId: null,
+            isAnswering: false
+        };
+
+        // --- DOM Elements ---
+        const screens = {
+            home: document.getElementById('homeScreen'),
+            game: document.getElementById('gameScreen'),
+            modal: document.getElementById('resultModal')
+        };
+        const els = {
+            tabAdd: document.getElementById('tab-add'),
+            tabMult: document.getElementById('tab-mult'),
+            qCount: document.getElementById('qCount'),
+            timerBar: document.getElementById('timerBar'),
+            qText: document.getElementById('questionText'),
+            optsGrid: document.getElementById('optionsGrid'),
+            currentQ: document.getElementById('currentQNum'),
+            totalQ: document.getElementById('totalQNum'),
+            score: document.getElementById('scoreDisplay'),
+            feedback: document.getElementById('feedbackOverlay'),
+            fbIcon: document.getElementById('feedbackIcon'),
+            fbText: document.getElementById('feedbackText'),
+            fbSub: document.getElementById('feedbackSub'),
+            finalScore: document.getElementById('finalScore'),
+            finalTotal: document.getElementById('finalTotal'),
+            finalMsg: document.getElementById('finalMessage')
+        };
+
+        // --- Setup & Configuration ---
+        function switchTab(mode) {
+            state.mode = mode;
+            if (mode === 'add') {
+                els.tabAdd.className = 'flex-1 py-3 tab-active transition-colors duration-200';
+                els.tabMult.className = 'flex-1 py-3 tab-inactive transition-colors duration-200';
+            } else {
+                els.tabAdd.className = 'flex-1 py-3 tab-inactive transition-colors duration-200';
+                els.tabMult.className = 'flex-1 py-3 tab-active transition-colors duration-200';
+            }
+        }
+
+        function startGame() {
+            // Get Settings
+            const rangeRadio = document.querySelector('input[name="range"]:checked');
+            state.rangeMax = parseInt(rangeRadio.value);
+            
+            const speedRadio = document.querySelector('input[name="speed"]:checked');
+            state.timeLimit = parseInt(speedRadio.value);
+            
+            state.totalQuestions = parseInt(els.qCount.value);
+            state.currentQuestionIndex = 0;
+            state.score = 0;
+
+            // UI Update
+            screens.home.classList.add('hidden');
+            screens.game.classList.remove('hidden');
+            screens.game.classList.add('flex');
+            screens.modal.classList.add('hidden');
+            
+            updateScoreBoard();
+            nextQuestion();
+        }
+
+        function updateScoreBoard() {
+            els.currentQ.textContent = state.currentQuestionIndex + 1;
+            els.totalQ.textContent = state.totalQuestions;
+            els.score.textContent = state.score;
+        }
+
+        // --- Game Logic ---
+        function generateQuestion() {
+            let num1 = Math.floor(Math.random() * (state.rangeMax + 1)); // 0 to Max
+            let num2 = Math.floor(Math.random() * (state.rangeMax + 1)); // 0 to Max
+            let correctAnswer;
+            let symbol;
+
+            if (state.mode === 'add') {
+                correctAnswer = num1 + num2;
+                symbol = '+';
+            } else {
+                correctAnswer = num1 * num2;
+                symbol = '×';
+            }
+
+            // Generate distractors (wrong answers)
+            let options = new Set();
+            options.add(correctAnswer);
+
+            while (options.size < 4) {
+                let wrong;
+                // Generate somewhat plausible wrong answers
+                let offset = Math.floor(Math.random() * 5) - 2; // -2 to +2
+                if (state.mode === 'add') {
+                    wrong = correctAnswer + offset;
+                    // Ensure non-negative if desired, though -ve is math. Let's stick to 0+ for simplicity unless user is clever.
+                    // For kids, let's keep it simple. If wrong < 0, make it absolute.
+                    if (wrong < 0) wrong = Math.abs(wrong);
+                } else {
+                    // Multiplication distractors
+                    wrong = (Math.floor(Math.random() * (state.rangeMax + 1))) * (Math.floor(Math.random() * (state.rangeMax + 1)));
+                    // Or close numbers
+                    if (Math.random() > 0.5) wrong = correctAnswer + offset;
+                    if (wrong < 0) wrong = 0;
+                }
+
+                if (wrong !== correctAnswer) {
+                    options.add(wrong);
+                }
+            }
+
+            return {
+                text: `${num1} ${symbol} ${num2}`,
+                correct: correctAnswer,
+                options: Array.from(options).sort(() => Math.random() - 0.5) // Shuffle
+            };
+        }
+
+        function nextQuestion() {
+            if (state.currentQuestionIndex >= state.totalQuestions) {
+                endGame();
+                return;
+            }
+
+            state.isAnswering = false;
+            els.feedback.classList.add('hidden');
+            updateScoreBoard();
+            
+            const q = generateQuestion();
+            els.qText.textContent = q.text;
+
+            // Render Options
+            els.optsGrid.innerHTML = '';
+            q.options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn bg-white border-2 border-indigo-100 hover:border-indigo-500 hover:bg-indigo-50 text-indigo-900 font-black text-2xl py-4 rounded-xl';
+                btn.textContent = opt;
+                btn.onclick = () => checkAnswer(opt, q.correct);
+                els.optsGrid.appendChild(btn);
+            });
+
+            startTimer();
+        }
+
+        function startTimer() {
+            if (state.timerId) clearTimeout(state.timerId);
+            
+            // Reset Animation
+            els.timerBar.style.transition = 'none';
+            els.timerBar.style.width = '100%';
+            
+            // Force reflow
+            void els.timerBar.offsetWidth;
+
+            // Start Animation
+            els.timerBar.style.transition = `width ${state.timeLimit}s linear`;
+            els.timerBar.style.width = '0%';
+
+            state.timerId = setTimeout(() => {
+                handleTimeout();
+            }, state.timeLimit * 1000);
+        }
+
+        function checkAnswer(selected, correct) {
+            if (state.isAnswering) return;
+            state.isAnswering = true;
+            clearTimeout(state.timerId);
+            
+            // Pause timer animation visually
+            const computedStyle = window.getComputedStyle(els.timerBar);
+            const width = computedStyle.getPropertyValue('width');
+            els.timerBar.style.transition = 'none';
+            els.timerBar.style.width = width;
+
+            if (selected === correct) {
+                state.score++;
+                showFeedback(true, false);
+            } else {
+                showFeedback(false, false);
+            }
+        }
+
+        function handleTimeout() {
+            if (state.isAnswering) return;
+            state.isAnswering = true;
+            showFeedback(false, true);
+        }
+
+        function showFeedback(isCorrect, isTimeout) {
+            els.feedback.classList.remove('hidden');
+            
+            if (isCorrect) {
+                els.fbIcon.innerHTML = '🎉';
+                els.fbText.textContent = 'إجابة صحيحة!';
+                els.fbText.className = 'text-3xl font-black mb-2 text-green-600';
+                els.fbSub.textContent = getRandomPraise();
+                playSound('correct');
+            } else if (isTimeout) {
+                els.fbIcon.innerHTML = '⏰';
+                els.fbText.textContent = 'انتهى الوقت!';
+                els.fbText.className = 'text-3xl font-black mb-2 text-orange-500';
+                els.fbSub.textContent = 'حاول أن تكون أسرع في المرة القادمة';
+                playSound('wrong');
+            } else {
+                els.fbIcon.innerHTML = '🤔';
+                els.fbText.textContent = 'إجابة خاطئة';
+                els.fbText.className = 'text-3xl font-black mb-2 text-red-500';
+                els.fbSub.textContent = 'ركز جيداً، أنت تستطيع فعلها!';
+                playSound('wrong');
+            }
+
+            // Wait then move to next
+            setTimeout(() => {
+                state.currentQuestionIndex++;
+                nextQuestion();
+            }, 1500);
+        }
+
+        function getRandomPraise() {
+            const praises = ["يا بطل!", "عبقري!", "ممتاز!", "استمر هكذا!", "رائع جداً!"];
+            return praises[Math.floor(Math.random() * praises.length)];
+        }
+
+        function playSound(type) {
+            // Optional: Simple beep or synth. 
+            // Browsers block auto-audio often, keeping it silent for simplicity/reliability
+            // unless user interaction is guaranteed.
+        }
+
+        function endGame() {
+            screens.game.classList.add('hidden');
+            screens.game.classList.remove('flex');
+            screens.modal.classList.remove('hidden');
+
+            els.finalScore.textContent = state.score;
+            els.finalTotal.textContent = state.totalQuestions;
+
+            const percentage = (state.score / state.totalQuestions) * 100;
+            if (percentage === 100) {
+                els.finalMsg.textContent = "مذهل! علامة كاملة يا عبقري 🌟";
+                els.finalMsg.className = "text-green-600 mb-6 font-bold text-lg";
+            } else if (percentage >= 80) {
+                els.finalMsg.textContent = "عمل رائع جداً! اقتربت من الكمال 💪";
+                els.finalMsg.className = "text-indigo-600 mb-6 font-bold text-lg";
+            } else if (percentage >= 50) {
+                els.finalMsg.textContent = "جيد! ولكن يمكنك تحقيق أفضل من ذلك 📚";
+                els.finalMsg.className = "text-orange-500 mb-6 font-bold text-lg";
+            } else {
+                els.finalMsg.textContent = "لا تيأس! التدريب يصنع المعجزات 🔥";
+                els.finalMsg.className = "text-red-500 mb-6 font-bold text-lg";
+            }
+        }
+
+        function restartGame() {
+            startGame();
+        }
+
+        function goHome() {
+            screens.modal.classList.add('hidden');
+            screens.game.classList.add('hidden');
+            screens.game.classList.remove('flex');
+            screens.home.classList.remove('hidden');
+        }
+
+    </script>
+</body>
+</html>

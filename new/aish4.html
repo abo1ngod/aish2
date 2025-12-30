@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>موقع مميز - قريباً</title>
+    
+    <!-- استدعاء خط Cairo المميز من Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <!-- مكتبة Tailwind CSS للتنسيق السريع والجميل -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- إعدادات التايلويند لاستخدام الخط العربي -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        cairo: ['Cairo', 'sans-serif'],
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* تنسيق الخلفية المتحركة */
+        body {
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+            font-family: 'Cairo', sans-serif;
+            overflow: hidden; /* لمنع شريط التمرير */
+        }
+
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* تأثير الزجاج */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+    </style>
+</head>
+<body class="h-screen w-full flex items-center justify-center text-white p-4">
+
+    <!-- الحاوية الرئيسية بتأثير الزجاج -->
+    <div class="glass-panel rounded-3xl p-10 md:p-16 max-w-3xl w-full text-center relative animate-float">
+        
+        <!-- أيقونة بسيطة أو شعار -->
+        <div class="mb-8 flex justify-center">
+            <div class="bg-white/20 p-4 rounded-full">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                </svg>
+            </div>
+        </div>
+
+        <!-- النص الرئيسي -->
+        <h1 class="text-5xl md:text-7xl font-extrabold mb-6 tracking-tight drop-shadow-lg leading-tight">
+            موقع مميز
+        </h1>
+        
+        <!-- النص الفرعي -->
+        <h2 class="text-2xl md:text-4xl font-semibold text-white/90 mb-8 drop-shadow-md">
+            تحت التصميم.. انتظرونا
+        </h2>
+
+        <!-- خط فاصل جمالي -->
+        <div class="w-24 h-1 bg-white/50 mx-auto rounded-full mb-8"></div>
+
+        <!-- رسالة إضافية صغيرة -->
+        <p class="text-lg text-white/80 font-light mb-10 max-w-lg mx-auto">
+            نعمل بجد لإطلاق شيء رائع وفريد من نوعه. نراكم قريباً!
+        </p>
+
+        <!-- زر تفاعلي (وهمي للعرض) -->
+        <button class="bg-white text-purple-600 hover:bg-purple-50 font-bold py-3 px-8 rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg">
+            أبلغني عند الإطلاق
+        </button>
+
+        <!-- تذييل الصفحة -->
+        <div class="mt-12 text-sm text-white/60">
+            &copy; 2024 جميع الحقوق محفوظة
+        </div>
+    </div>
+
+</body>
+</html>
+

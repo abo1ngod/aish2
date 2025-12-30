@@ -1,0 +1,1306 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منصة الدراسات الإسلامية - المرحلة الثانوية</title>
+    <!-- استيراد الخطوط -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- مكتبة تصدير PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <style>
+        :root {
+            --primary: #0f766e;
+            --primary-light: #14b8a6;
+            --accent: #f59e0b;
+            --bg-body: #f3f4f6;
+            --surface: #ffffff;
+            --text-main: #111827;
+            --text-sub: #4b5563;
+            --success: #10b981;
+            --danger: #ef4444;
+            --border: #e5e7eb;
+            --radius: 12px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            max-width: 950px;
+            margin: 0 auto;
+            padding: 20px;
+            flex: 1;
+            width: 100%;
+        }
+
+        /* --- الهيدر --- */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--surface);
+            padding: 15px 20px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 25px;
+            border-bottom: 4px solid var(--primary);
+        }
+
+        .logo-area h1 { font-size: 1.25rem; font-weight: 800; color: var(--primary); margin-bottom: 4px;}
+        .logo-area span { font-size: 0.9rem; color: var(--text-sub); }
+
+        .header-actions { display: flex; gap: 10px; }
+        .icon-btn {
+            background: #f3f4f6; border: none; color: #4b5563;
+            width: 40px; height: 40px; border-radius: 50%;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: 0.2s; font-size: 1.1rem;
+        }
+        .icon-btn:hover { background: var(--primary); color: white; transform: translateY(-2px); }
+        
+        .logout-btn { background: #fee2e2; color: #991b1b; }
+        .logout-btn:hover { background: #ef4444; color: white; }
+
+        /* --- الفوتر --- */
+        footer {
+            text-align: center; padding: 20px; color: #6b7280; font-size: 0.85rem; margin-top: auto;
+        }
+        .admin-link {
+            color: #9ca3af; text-decoration: none; font-size: 0.8rem; cursor: pointer; transition: 0.3s;
+        }
+        .admin-link:hover { color: var(--primary); text-decoration: underline; }
+
+        /* --- البطاقات العامة --- */
+        .card {
+            background: var(--surface); padding: 30px; border-radius: var(--radius);
+            box-shadow: var(--shadow); margin-bottom: 25px; animation: fadeIn 0.4s ease-out;
+            border: 1px solid var(--border);
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- الأزرار --- */
+        .btn {
+            background-color: var(--primary); color: white; border: none;
+            padding: 12px 24px; border-radius: 8px; cursor: pointer;
+            font-weight: 700; font-family: 'Tajawal', sans-serif;
+            transition: 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            font-size: 1rem; width: 100%;
+        }
+        .btn:hover { background-color: #0d5f58; transform: translateY(-2px); }
+        .btn-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); }
+        .btn-outline:hover { background: var(--primary); color: white; }
+        .btn-secondary { background: #e5e7eb; color: #374151; }
+        .btn-secondary:hover { background: #d1d5db; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-danger:hover { background: #dc2626; }
+        
+        input, select, textarea {
+            width: 100%; padding: 14px; border: 2px solid var(--border); border-radius: 8px;
+            margin-bottom: 15px; font-family: inherit; transition: 0.3s; background: #f9fafb;
+        }
+        input:focus, select:focus, textarea:focus { border-color: var(--primary-light); background: #fff; }
+
+        /* --- شبكة الدروس --- */
+        .lesson-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        .lesson-card {
+            background: var(--surface); border-radius: var(--radius); padding: 20px;
+            box-shadow: var(--shadow); cursor: pointer; border: 1px solid transparent;
+            transition: all 0.3s; position: relative; overflow: hidden;
+            display: flex; flex-direction: column; justify-content: space-between; height: 100%;
+        }
+        .lesson-card:hover { transform: translateY(-5px); border-color: var(--primary-light); }
+        .lesson-card h3 { font-size: 1.1rem; color: var(--text-main); margin-bottom: 10px; line-height: 1.4; }
+        .status-pill { 
+            display: inline-block; padding: 4px 12px; border-radius: 20px; 
+            font-size: 0.8rem; font-weight: bold; background: #f3f4f6; color: #9ca3af;
+        }
+        .status-pill.done { background: #d1fae5; color: var(--success); }
+        .lesson-card.hidden-lesson { opacity: 0.6; border: 1px dashed #999; background: #f9fafb; }
+
+        /* --- عرض الدرس --- */
+        .lesson-reference {
+            background: #fff; border-right: 5px solid var(--primary);
+            padding: 25px; border-radius: 8px; margin-bottom: 30px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.03);
+            max-height: 400px; overflow-y: auto;
+        }
+        .lesson-body {
+            font-family: 'Amiri', serif; font-size: 1.3rem; line-height: 2.2;
+            color: #333; text-align: justify;
+        }
+        .lesson-body p { margin-bottom: 15px; }
+
+        /* --- الأسئلة --- */
+        .question-card {
+            background: #f9fafb; border: 1px solid var(--border);
+            padding: 20px; border-radius: 12px; margin-bottom: 20px;
+        }
+        .question-text { font-weight: 700; margin-bottom: 15px; font-size: 1.1rem; color: var(--text-main); }
+        .options-grid { display: flex; flex-direction: column; gap: 10px; }
+        .option-label {
+            display: flex; align-items: center; padding: 12px 15px;
+            background: white; border: 2px solid var(--border); border-radius: 8px;
+            cursor: pointer; transition: all 0.2s; position: relative;
+        }
+        .option-label:hover { border-color: var(--primary-light); background: #f0fdfa; }
+        .option-label input { width: auto; margin: 0 0 0 10px; }
+        
+        .option-label.selected { border-color: var(--primary); background: #e0f2fe; }
+
+        .review-mode .option-label.correct { border-color: var(--success); background: #d1fae5; color: #065f46; }
+        .review-mode .option-label.wrong { border-color: var(--danger); background: #fee2e2; color: #991b1b; text-decoration: line-through; }
+        .review-mode .option-label { pointer-events: none; }
+
+        /* --- التنقل والشهادة --- */
+        .nav-buttons { display: flex; gap: 15px; margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--border); }
+        
+        .certificate-container {
+            border: 10px double var(--primary); padding: 40px; text-align: center;
+            background: white; color: #333; position: relative; margin: 20px 0;
+            width: 100%; max-width: 800px; margin: 0 auto;
+        }
+        .cert-title { font-family: 'Amiri', serif; font-size: 3rem; color: var(--primary); margin-bottom: 10px; }
+
+        /* --- لوحة التحكم --- */
+        .admin-controls { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+        
+        .admin-table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            font-size: 0.85rem; 
+            min-width: 600px; 
+        }
+        .admin-table th, .admin-table td { 
+            padding: 10px; 
+            border-bottom: 1px solid var(--border); 
+            text-align: right; 
+            white-space: nowrap; 
+        }
+        .admin-table th { background: #f9fafb; color: var(--text-sub); }
+        
+        .action-btn-sm { 
+            width: 28px; height: 28px;
+            margin-left: 3px; 
+            border-radius: 6px; 
+            border:none; 
+            cursor: pointer; 
+            color:white;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-edit-sm { background: var(--text-sub); }
+        .btn-del-sm { background: var(--danger); }
+        .btn-hide-sm { background: var(--accent); }
+
+        .view-section { display: none; }
+        .view-section.active { display: block; animation: fadeIn 0.3s; }
+
+        /* --- النافذة المنبثقة --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); z-index: 1000;
+            display: none; justify-content: center; align-items: center;
+            backdrop-filter: blur(5px);
+        }
+        .modal-content {
+            background: white; padding: 30px; border-radius: 20px;
+            max-width: 500px; width: 90%; text-align: center;
+            animation: popUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        @keyframes popUp { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+        
+        .modal-icon { font-size: 4rem; margin-bottom: 15px; color: var(--accent); }
+        .modal-title { font-size: 1.8rem; color: var(--primary); margin-bottom: 10px; font-family: 'Amiri'; }
+        
+        /* مؤشر التحميل */
+        #loading-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.9); z-index: 2000;
+            display: flex; justify-content: center; align-items: center; flex-direction: column;
+        }
+        .spinner {
+            width: 50px; height: 50px; border: 5px solid #e5e7eb;
+            border-top: 5px solid var(--primary); border-radius: 50%;
+            animation: spin 1s linear infinite; margin-bottom: 15px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* شريط التقدم */
+        .progress-container {
+            width: 100%; background: #e5e7eb; height: 10px; border-radius: 5px; margin: 15px 0; overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%; background: var(--success); width: 0%; transition: width 0.5s ease;
+        }
+
+        /* رسالة التنبيه المخصصة */
+        #toast-container {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            z-index: 3000; display: flex; flex-direction: column; gap: 10px;
+        }
+        .toast {
+            background: #333; color: white; padding: 12px 24px; border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15); animation: slideUp 0.3s;
+            display: flex; align-items: center; gap: 10px; min-width: 300px;
+        }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <!-- مؤشر التحميل -->
+    <div id="loading-overlay">
+        <div class="spinner"></div>
+        <p>جاري تحميل البيانات...</p>
+    </div>
+
+    <!-- رسائل التنبيه -->
+    <div id="toast-container"></div>
+
+    <div class="container">
+        <!-- الهيدر -->
+        <header>
+            <div class="logo-area">
+                <h1>منصة الدراسات الإسلامية</h1>
+                <span>المرحلة الثانوية - الفصل الدراسي الأول</span>
+            </div>
+            <div class="header-actions">
+                <button id="home-btn" onclick="showDashboard()" class="icon-btn" title="الرئيسية" style="display:none;"><i class="fas fa-home"></i></button>
+                <button id="logout-btn" onclick="logout()" class="icon-btn logout-btn" title="تسجيل خروج" style="display:none;"><i class="fas fa-sign-out-alt"></i></button>
+            </div>
+        </header>
+
+        <!-- 1. واجهة تسجيل الدخول/التسجيل -->
+        <section id="auth-view" class="view-section active">
+            <div class="card" style="max-width: 500px; margin: 0 auto; text-align: center;">
+                <i class="fas fa-quran" style="font-size: 3rem; color: var(--primary); margin-bottom: 20px;"></i>
+                
+                <!-- تسجيل الدخول -->
+                <div id="login-box">
+                    <h2 style="margin-bottom: 20px;">تسجيل الدخول</h2>
+                    <form id="login-form">
+                        <input type="text" id="login-username" placeholder="اسم المستخدم" required>
+                        <input type="password" id="login-password" placeholder="كلمة المرور" required>
+                        <button type="submit" class="btn">دخول <i class="fas fa-arrow-left"></i></button>
+                    </form>
+                    <p style="margin-top: 15px; font-size: 0.9rem;">
+                        ليس لديك حساب؟ <a href="#" onclick="toggleAuth('register')" style="color: var(--primary);">سجل الآن</a>
+                    </p>
+                </div>
+
+                <!-- تسجيل طالب جديد -->
+                <div id="register-box" style="display: none;">
+                    <h2 style="margin-bottom: 20px;">حساب جديد</h2>
+                    <form id="register-form">
+                        <input type="text" id="reg-fullname" placeholder="الاسم الثلاثي" required>
+                        <input type="text" id="reg-section" placeholder="رقم الشعبة/الصف" required>
+                        <input type="text" id="reg-username" placeholder="اسم المستخدم (للدخول)" required>
+                        <input type="password" id="reg-password" placeholder="كلمة المرور" required>
+                        <button type="submit" class="btn">تسجيل حساب <i class="fas fa-user-plus"></i></button>
+                    </form>
+                    <p style="margin-top: 15px; font-size: 0.9rem;">
+                        لديك حساب؟ <a href="#" onclick="toggleAuth('login')" style="color: var(--primary);">تسجيل الدخول</a>
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. لوحة التحكم الرئيسية للطالب -->
+        <section id="dashboard-view" class="view-section">
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                    <div>
+                        <h2 id="user-display" style="margin-bottom: 5px;">مرحباً، طالب</h2>
+                        <p id="progress-text" style="color: var(--text-sub);">تم إنجاز 0 من 0 درس</p>
+                    </div>
+                    <button id="cert-btn" onclick="showCertificate()" class="btn" style="width: auto; background: var(--accent); display: none;">
+                        <i class="fas fa-certificate"></i> إصدار الشهادة
+                    </button>
+                </div>
+                <div class="progress-container">
+                    <div id="main-progress-bar" class="progress-bar"></div>
+                </div>
+            </div>
+
+            <h3 style="margin-bottom: 15px; border-right: 4px solid var(--primary); padding-right: 10px;">دروس المنهج</h3>
+            <div id="lessons-list" class="lesson-grid">
+                <!-- سيتم تعبئة الدروس هنا بواسطة JS -->
+            </div>
+        </section>
+
+        <!-- 3. عرض الدرس -->
+        <section id="lesson-view" class="view-section">
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2 id="view-lesson-title" style="color: var(--primary);">عنوان الدرس</h2>
+                    <span class="status-pill" id="lesson-status-pill">قراءة</span>
+                </div>
+                
+                <div class="lesson-reference">
+                    <div id="lesson-read-area" class="lesson-body">
+                        <!-- محتوى الدرس -->
+                    </div>
+                </div>
+
+                <div class="nav-buttons">
+                    <button onclick="showDashboard()" class="btn btn-secondary" style="flex:1">
+                        <i class="fas fa-list"></i> القائمة
+                    </button>
+                    <button onclick="switchToQuizMode()" class="btn" style="flex:2">
+                        <i class="fas fa-clipboard-check"></i> الانتقال للاختبار
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. عرض الاختبار -->
+        <section id="quiz-view" class="view-section">
+            <div class="card">
+                <div style="margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 15px;">
+                    <h2 id="quiz-title">اختبار الدرس</h2>
+                    <div style="font-size: 0.9rem; color: var(--text-sub); margin-top: 5px;">
+                        اقرأ الملخص أدناه إذا احتجت للمراجعة، ثم أجب عن الأسئلة.
+                    </div>
+                </div>
+
+                <!-- ملخص سريع للمراجعة -->
+                <div style="background: #fffbeb; padding: 15px; border-radius: 8px; margin-bottom: 25px; border: 1px solid #fcd34d; font-size: 0.9rem; max-height: 150px; overflow-y: auto;">
+                    <strong><i class="fas fa-lightbulb" style="color: var(--accent);"></i> ملخص للمساعدة:</strong>
+                    <div id="quiz-reference-text" style="margin-top: 5px; color: #4b5563;"></div>
+                </div>
+
+                <form id="quiz-form">
+                    <div id="quiz-questions-area">
+                        <!-- الأسئلة -->
+                    </div>
+                    
+                    <div id="result-display-area" style="text-align: center; margin: 20px 0; font-weight: bold; font-size: 1.2rem;"></div>
+
+                    <div class="nav-buttons">
+                        <button type="button" onclick="showDashboard()" class="btn btn-secondary" style="flex:1">خروج</button>
+                        <button type="submit" id="submit-quiz-btn" class="btn" style="flex:2">تسليم الإجابات</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- 5. عرض الشهادة -->
+        <section id="certificate-view" class="view-section">
+            <div class="card">
+                <button onclick="showDashboard()" class="btn btn-secondary" style="width: auto; margin-bottom: 20px;">
+                    <i class="fas fa-arrow-right"></i> عودة
+                </button>
+                
+                <div id="cert-element" class="certificate-container">
+                    <div style="border: 2px solid var(--primary); padding: 30px; position: relative;">
+                        <!-- زخرفة بسيطة -->
+                        <i class="fas fa-certificate" style="position: absolute; top: -25px; left: 50%; transform: translateX(-50%); font-size: 3rem; color: var(--accent); background: white; padding: 0 10px;"></i>
+                        
+                        <h1 class="cert-title">شهادة إتمام</h1>
+                        <p style="font-size: 1.2rem; margin: 20px 0;">تشهد منصة الدراسات الإسلامية بأن الطالب/ة</p>
+                        <h2 id="cert-name" style="font-size: 2.5rem; color: var(--text-main); margin: 20px 0; border-bottom: 2px dashed #ccc; display: inline-block; padding-bottom: 10px;">اسم الطالب</h2>
+                        <p style="font-size: 1.2rem;">قد أتم بنجاح دراسة واختبار جميع دروس المنهج المقرر.</p>
+                        
+                        <div style="margin-top: 40px; display: flex; justify-content: space-around; align-items: flex-end;">
+                            <div>
+                                <p style="font-weight: bold;">التاريخ</p>
+                                <p id="cert-date">--/--/----</p>
+                            </div>
+                            <div>
+                                <div style="width: 80px; height: 80px; border: 3px solid var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--primary); font-weight: bold; transform: rotate(-15deg); opacity: 0.7;">
+                                    معتمد
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-top: 20px;">
+                    <button onclick="exportCertificatePDF()" class="btn" style="max-width: 300px;">
+                        <i class="fas fa-file-pdf"></i> تحميل كملف PDF
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. لوحة المعلم (دخول) -->
+        <section id="admin-login-view" class="view-section">
+            <div class="card" style="max-width: 400px; margin: 50px auto; text-align: center;">
+                <h2 style="color: var(--primary); margin-bottom: 20px;">دخول المعلم</h2>
+                <input type="password" id="admin-pin" placeholder="أدخل رمز المرور" style="text-align: center; letter-spacing: 5px;">
+                <button onclick="verifyAdmin()" class="btn">دخول</button>
+                <button onclick="showSection('auth-view')" class="btn btn-secondary" style="margin-top: 10px;">عودة</button>
+            </div>
+        </section>
+
+        <!-- 7. لوحة تحكم المعلم -->
+        <section id="admin-dashboard-view" class="view-section">
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2>لوحة التحكم</h2>
+                    <button onclick="logoutAdmin()" class="btn btn-danger" style="width: auto;">خروج</button>
+                </div>
+
+                <div class="admin-controls">
+                    <button id="btn-tab-students" onclick="showAdminTab('students')" class="btn" style="width: auto;">الطلاب</button>
+                    <button id="btn-tab-content" onclick="showAdminTab('content')" class="btn btn-outline" style="width: auto;">المحتوى</button>
+                </div>
+
+                <!-- تبويب الطلاب -->
+                <div id="admin-tab-students">
+                    <div class="admin-controls">
+                        <input type="text" id="student-search" placeholder="بحث عن طالب..." onkeyup="filterStudents()" style="max-width: 300px; margin-bottom: 0;">
+                        <button onclick="openAddStudentModal()" class="btn" style="width: auto; background: var(--success);"><i class="fas fa-plus"></i> إضافة</button>
+                        <button onclick="exportStudentsExcel()" class="btn btn-outline" style="width: auto;"><i class="fas fa-file-excel"></i> تصدير</button>
+                        <div style="position: relative; display: inline-block;">
+                            <button onclick="document.getElementById('import-file').click()" class="btn btn-secondary" style="width: auto;"><i class="fas fa-upload"></i> استيراد</button>
+                            <input type="file" id="import-file" style="display: none;" accept=".csv" onchange="importStudentsExcel()">
+                        </div>
+                    </div>
+                    
+                    <div class="table-wrapper">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>الاسم</th>
+                                    <th>المستخدم</th>
+                                    <th>الشعبة</th>
+                                    <th>الإنجاز</th>
+                                    <th>إجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="students-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- تبويب المحتوى -->
+                <div id="admin-tab-content" style="display: none;">
+                    <div id="admin-lessons-list"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- الفوتر -->
+        <footer>
+            <p>جميع الحقوق محفوظة &copy; 2024</p>
+            <p><a href="#" onclick="showAdminLogin()" class="admin-link">بوابة المعلم</a></p>
+        </footer>
+    </div>
+
+    <!-- Modals -->
+    <!-- 1. نافذة التحفيز -->
+    <div id="motivation-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div id="modal-icon" class="modal-icon"></div>
+            <h2 id="modal-title" class="modal-title"></h2>
+            <p id="modal-msg" style="margin-bottom: 20px; color: #4b5563;"></p>
+            <button onclick="closeMotivationModal()" class="btn">متابعة</button>
+        </div>
+    </div>
+
+    <!-- 2. نافذة تعديل الدرس -->
+    <div id="edit-modal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 600px;">
+            <h3>تعديل الدرس</h3>
+            <input type="hidden" id="edit-id">
+            <input type="text" id="edit-title" placeholder="العنوان" style="margin-top: 15px;">
+            <textarea id="edit-summary" rows="6" placeholder="الملخص"></textarea>
+            <div style="display: flex; gap: 10px;">
+                <button onclick="saveLessonEdit()" class="btn">حفظ</button>
+                <button onclick="document.getElementById('edit-modal').style.display='none'" class="btn btn-secondary">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. نافذة إضافة/تعديل طالب -->
+    <div id="student-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 id="student-modal-title">بيانات الطالب</h3>
+            <input type="hidden" id="st-index">
+            <input type="text" id="st-name" placeholder="الاسم الكامل">
+            <input type="text" id="st-username" placeholder="اسم المستخدم">
+            <input type="text" id="st-password" placeholder="كلمة المرور">
+            <input type="text" id="st-section" placeholder="الشعبة">
+            <div style="display: flex; gap: 10px;">
+                <button onclick="saveStudentData()" class="btn">حفظ البيانات</button>
+                <button onclick="document.getElementById('student-modal').style.display='none'" class="btn btn-secondary">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Integration -->
+    <script type="module">
+        // استيراد المكتبات عبر CDN المتوافقة مع المتصفح (Module)
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // بيانات مشروعك (كما طلبت)
+        const firebaseConfig = {
+          apiKey: "AIzaSyBxPO6RKsQ1Cq-mqlCpFTrCuIyxnYdB37U",
+          authDomain: "studentsystem-c1ab1.firebaseapp.com",
+          databaseURL: "https://studentsystem-c1ab1-default-rtdb.firebaseio.com",
+          projectId: "studentsystem-c1ab1",
+          storageBucket: "studentsystem-c1ab1.firebasestorage.app",
+          messagingSenderId: "112215023848",
+          appId: "1:112215023848:web:0adba326a527ee7e37e95d"
+        };
+
+        // تهيئة التطبيق
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app); // استخدام Firestore
+        
+        console.log("Firestore is ready!");
+        
+        // استخدام معرف التطبيق
+        const appId = "islamic-studies-app-v2";
+
+        // تصدير المتغيرات للاستخدام العام
+        window.fb = {
+            auth, db, appId, doc, getDoc, setDoc, updateDoc, arrayUnion
+        };
+
+        // منطق المصادقة والاتصال
+        // تم إزالة المتغير المحلي appInitialized واستبداله بالتحقق العام
+
+        const initAuth = async () => {
+            try {
+                // تسجيل الدخول المجهول للوصول للقاعدة
+                await signInAnonymously(auth);
+            } catch (e) {
+                console.error("Auth Error", e);
+                window.showToast("⚠️ فشل الاتصال بقاعدة البيانات", "error");
+                // تشغيل الوضع المحلي كخطة بديلة
+                if (!window.appInitialized) {
+                    window.initApp();
+                }
+            }
+        };
+
+        onAuthStateChanged(auth, (user) => {
+            if (user && !window.appInitialized) {
+                console.log("Connected as:", user.uid);
+                window.initApp(); // بدء التطبيق بعد التأكد من الاتصال
+            }
+        });
+
+        // مؤقت أمان
+        setTimeout(() => {
+            // التحقق من المتغير العام بدلاً من المحلي
+            if (!window.appInitialized) {
+                console.warn("Firebase timeout - forcing local mode");
+                window.showToast("⚠️ بطء في الاتصال - تم التحويل للوضع المحلي", "error");
+                window.initApp();
+            }
+        }, 5000); // 5 ثواني مهلة
+
+        initAuth();
+    </script>
+
+    <script>
+        // --- Data Definitions ---
+        window.fullInitialLessons = [
+            {
+                id: 1, type: 'text', title: "الدرس (1): التعريف بعلم التفسير ونشأته",
+                summary: `<p>يُعد علم التفسير مفتاحاً لفهم كلام الله عز وجل، ويبدأ الدرس بتعريف التفسير لغةً واصطلاحاً. ففي اللغة، يدور معناه حول الكشف والبيان والإيضاح، أما في الاصطلاح الشرعي فهو العلم الذي يُعنى ببيان معاني القرآن الكريم وتوضيح دلالاته. وقد مرّ هذا العلم الشريف بمراحل تاريخية متدرجة حتى وصل إلينا بشكله الحالي.</p><p>المرحلة الأولى هي مرحلة "الفهم والتلقي"، وقد انقسمت إلى فترتين: الأولى عهد النبي ﷺ، حيث كان الصحابة يتلقون القرآن غضاً طرياً، وكان النبي ﷺ يبين لهم ما قد يُشكل عليهم من المعاني، كما حدث عندما فسر لهم "الظلم" في سورة الأنعام بـ "الشرك". والفترة الثانية هي عهد الصحابة، حيث تميزوا بسلامة القصد، ومشاهدة التنزيل، والفصاحة العربية، وكان منهجهم ألا يتجاوزوا عشر آيات حتى يتعلموا ما فيها من العلم والعمل.</p><p>أما المرحلة الثانية فهي "الكتابة والتدوين"، وبدأت بتدوين التفسير كجزء من أبواب الحديث النبوي على يد علماء مثل شعبة بن الحجاج، ثم تطور الأمر في الفترة اللاحقة لاستقلال التفسير كعلم قائم بذاته يُفسر الآيات سورة سورة، كما فعل ابن جرير الطبري.</p><p>وفيما بعد، تمايزت مناهج المفسرين إلى مدرستين رئيستين: الأولى "التفسير بالمأثور"، وهو التفسير الذي يعتمد على الآثار المنقولة (القرآن، السنة، أقوال الصحابة والتابعين) وهو أعلى الطرق منزلة. والمدرسة الثانية "التفسير بالرأي"، وهو يعتمد على الاجتهاد، وينقسم إلى "محمود" (مبني على علم) و"مذموم" (مبني على جهل وهوى).</p>`,
+                mcq: [{ q: "أعلى طرق التفسير منزلة هو التفسير بـ:", opts: ["الرأي المحمود", "المأثور", "اللغة العربية"], ans: 1 }, { q: "كان الصحابة لا يتجاوزون ... آيات حتى يتعلموا ما فيها:", opts: ["خمس", "عشر", "عشرين"], ans: 1 }, { q: "من أبرز علماء مرحلة استقلال التفسير وتدوينه كعلم مستقل:", opts: ["ابن جرير الطبري", "سفيان بن عيينة", "ابن مسعود"], ans: 0 }],
+                tf: [{ q: "بدأ تدوين التفسير مستقلاً عن الحديث منذ عهد النبي ﷺ.", ans: false }, { q: "التفسير بالرأي المحمود هو الاجتهاد الصادر عن هوى وجهل.", ans: false }, { q: "تميز تفسير الصحابة بأنهم أهل اللسان العربي وشهدوا التنزيل.", ans: true }]
+            },
+            {
+                id: 2, type: 'text', title: "الدرس (2): أهمية علم التفسير وضوابطه",
+                summary: `<p>يتناول هذا الدرس مكانة علم التفسير العالية، حيث يستمد شرفه من شرف موضوعه وهو كلام الله تعالى. وتبرز أهميته في أنه السبيل لتدبر القرآن الذي أمرنا الله به في قوله: {كِتَابٌ أَنزَلْنَاهُ إِلَيْكَ مُبَارَكٌ لِّيَدَّبَّرُوا آيَاتِهِ}، ولأنه الطريق لتحقيق الخيرية المذكورة في حديث "خيركم من تعلم القرآن وعلمه".</p><p>ولأن التفسير قولٌ على الله، فقد وضع العلماء ضوابط صارمة للمفسر حتى لا يقع في الانحراف. أول هذه الضوابط وأهمها "سلامة العقيدة"؛ لأن فساد العقيدة يؤدي إلى تحريف معاني القرآن لتوافق الهوى.</p><p>ثانياً: الاعتماد على أصح طرق التفسير بالترتيب: تفسير القرآن بالقرآن (وهو الأقوى)، ثم تفسير القرآن بالسنة النبوية (لأن الرسول هو المبين للقرآن)، ثم بأقوال الصحابة (لأنهم أعلم الناس بالتنزيل)، ثم بأقوال التابعين.</p><p>ثالثاً: معرفة اللغة العربية ومراعاة سياق الآية؛ فالسياق هو الموجه للمعنى، وإهماله قد يؤدي لفهم قاصر أو مغلوط، كما في قوله تعالى {ذُقْ إِنَّكَ أَنتَ الْعَزِيزُ الْكَرِيمُ}، فالسياق هنا يفيد الإهانة والتهكم لا المدح. فالمفسر الناجح هو الذي يجمع بين العلم الشرعي واللغوي وضوابط العقيدة السليمة.</p>`,
+                mcq: [{ q: "أصح طرق التفسير التي يجب أن يبدأ بها المفسر هي:", opts: ["تفسير القرآن بالسنة", "تفسير القرآن بالقرآن", "تفسير القرآن بالرأي"], ans: 1 }, { q: "قوله تعالى {ذُقْ إِنَّكَ أَنتَ الْعَزِيزُ الْكَرِيمُ} سياقها يدل على:", opts: ["المدح والثناء", "التحقير والتهكم", "الوصف الحقيقي"], ans: 1 }, { q: "من ضوابط المفسر التي تحميه من حمل الألفاظ على هواه:", opts: ["سلامة العقيدة", "كثرة الحفظ", "جمال الخط"], ans: 0 }],
+                tf: [{ q: "يجوز لمن يتقن اللغة العربية فقط أن يفسر القرآن دون الرجوع للسنة.", ans: false }, { q: "تفسير القرآن بأقوال الصحابة مقدم على تفسيره بأقوال التابعين.", ans: true }, { q: "مراعاة السياق ضروري لفهم مراد الله في الآيات.", ans: true }]
+            },
+            {
+                id: 3, type: 'text', title: "الدرس (3): أبرز المؤلفات الموثوقة في التفسير",
+                summary: `<p>يستعرض الدرس المكتبة التفسيرية الإسلامية، مرشداً الطالب إلى أهم الكتب الموثوقة التي يجب الرجوع إليها.</p><p>أولاً: "جامع البيان عن تأويل آي القرآن" للإمام الطبري (ت 310هـ)، وهو "شيخ المفسرين"، وكتابه أصح التفاسير وأجمعها، يعتمد على ذكر الأسانيد وأقوال السلف.</p><p>ثانياً: "تفسير القرآن العظيم" لابن كثير (ت 774هـ)، ويأتي في المرتبة الثانية، ويتميز بأنه من أفضل كتب التفسير بالمأثور، حيث يفسر الآية بالآية، ثم بالحديث، ثم بأقوال الصحابة.</p><p>ثالثاً: "الدر المنثور في التفسير بالمأثور" للسيوطي (ت 911هـ)، وهو موسوعة حديثية جمعت الروايات المنقولة في التفسير.</p><p>رابعاً: "تيسير الكريم الرحمن" للعلامة السعدي (ت 1376هـ)، وهو تفسير معاصر يتميز بالسهولة، والتركيز على المعنى الإجمالي، واستنباط الفوائد السلوكية والتربوية، وخلوه من التعقيد.</p><p>خامساً: "أضواء البيان" للشنقيطي (ت 1393هـ)، وتميز بميزتين: تفسير القرآن بالقرآن، والعناية الفائقة بالأحكام الفقهية والمسائل الأصولية. هذه الكتب تمثل مراجع أساسية لكل باحث وطالب علم.</p>`,
+                mcq: [{ q: "الكتاب الذي يُعد أصح التفاسير ويعتمد عليه المفسرون هو:", opts: ["تفسير الطبري", "تفسير السعدي", "تفسير الجلالين"], ans: 0 }, { q: "يتميز تفسير \"أضواء البيان\" للشنقيطي بـ:", opts: ["جمع الروايات الضعيفة", "العناية بالأحكام الفقهية وتفسير القرآن بالقرآن", "الاختصار الشديد"], ans: 1 }, { q: "مؤلف كتاب \"تفسير القرآن العظيم\" هو:", opts: ["جلال الدين السيوطي", "ابن كثير الدمشقي", "عبد الرحمن السعدي"], ans: 1 }],
+                tf: [{ q: "كتاب \"الدر المنثور\" للسيوطي يعتمد على التفسير بالرأي العقلي.", ans: false }, { q: "يتميز تفسير السعدي بذكر المعنى الإجمالي بأسلوب سهل وميسر.", ans: true }, { q: "منهج ابن كثير في التفسير يبدأ بذكر الأحاديث قبل الآيات المناسبة.", ans: false }]
+            },
+            {
+                id: 4, type: 'text', title: "الدرس (4): التقنية في خدمة القرآن الكريم وتفسيره",
+                summary: `<p>يبرز هذا الدرس دور التقنية الحديثة في تيسير الوصول إلى القرآن وعلومه، مستعرضاً نماذج رقمية موثوقة يجب اعتمادها بدلاً من المصادر المجهولة.</p><p>أولاً: تطبيق "مصحف مدرستي"، وهو تطبيق رسمي تشرف عليه وزارة التعليم، يربط الطالب بمنهجه الدراسي، ويتيح التلاوة، والتفسير، وتسجيل الصوت لإرساله للمعلم كواجب مدرسي.</p><p>ثانياً: إصدارات "مجمع الملك فهد لطباعة المصحف الشريف"، الذي لم يكتفِ بالطباعة الورقية، بل أنشأ 16 موقعاً متخصصاً، وتطبيقات تقدم نسخاً رقمية عالية الدقة، مع تفاسير وترجمات ومواد لعلوم القرآن، مما يجعله مرجعاً عالمياً موثوقاً.</p><p>ثالثاً: تطبيق "آيات" التابع لجامعة الملك سعود، وهو برنامج شامل يتميز بواجهة تتيح خيارات متعددة مثل: التصفح، البحث عن الكلمات، الاستماع لنخبة من القراء، وتوفير مكتبة تفاسير يمكن الوصول إليها بضغطة زر. يهدف الدرس إلى توعية الطالب بأهمية تحري "الموثوقية" في المصادر الرقمية، فليس كل ما على الإنترنت صحيح، ولذلك تم تحديد هذه المصادر الرسمية لضمان تلقي العلم الشرعي الصحيح.</p>`,
+                mcq: [{ q: "التطبيق الذي يتيح للطالب حل الواجبات وإرسال التسجيل الصوتي للمعلم هو:", opts: ["آيات", "مصحف مدرستي", "الباحث القرآني"], ans: 1 }, { q: "الجهة المشرفة على تطبيق وبرنامج \"آيات\" هي:", opts: ["وزارة التعليم", "جامعة الملك سعود", "مجمع الملك فهد"], ans: 1 }, { q: "عدد المواقع المتخصصة التي أنشأها مجمع الملك فهد لخدمة القرآن:", opts: ["10 مواقع", "16 موقعاً", "5 مواقع"], ans: 1 }],
+                tf: [{ q: "جميع تطبيقات القرآن الموجودة في متاجر الهواتف موثوقة وصحيحة.", ans: false }, { q: "يقدم مجمع الملك فهد خدمات رقمية تشمل ترجمات معاني القرآن.", ans: true }, { q: "تتيح التقنية الحديثة الوصول السريع لكتب التفسير المعتمدة.", ans: true }]
+            }
+        ];
+
+        // --- Core Logic ---
+        
+        // State variables
+        window.db = { users: [], lessons: [], adminPin: "1234" };
+        window.currentUser = null;
+        window.activeLessonId = null;
+        window.appInitialized = false; // متغير لمنع التهيئة المزدوجة
+
+        // Custom Toast Notification instead of alert
+        window.showToast = function(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            
+            let icon = 'info-circle';
+            if (type === 'success') icon = 'check-circle';
+            if (type === 'error') icon = 'exclamation-circle';
+            
+            toast.style.borderRight = `5px solid ${type === 'success' ? '#10b981' : (type === 'error' ? '#ef4444' : '#0f766e')}`;
+            
+            toast.innerHTML = `<i class="fas fa-${icon}"></i> <span>${message}</span>`;
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(20px)';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        };
+
+        // Initialize Application
+        window.initApp = async function() {
+            if (window.appInitialized) return;
+            window.appInitialized = true;
+
+            const loadingOverlay = document.getElementById('loading-overlay');
+            if (loadingOverlay) loadingOverlay.style.display = 'flex';
+            
+            try {
+                // In a real scenario with Firestore, we fetch a single document containing the whole school data
+                // or use collections. For simplicity and reliability in this preview:
+                if (window.fb && window.fb.auth.currentUser) {
+                    // استخدام مجموعة 'artifacts' ومستند 'schoolData'
+                    // تصحيح المسار ليكون عدد المقاطع زوجياً: artifacts (col) / appId (doc) / public (col) / data (doc) / main (col) / schoolData (doc)
+                    const docRef = window.fb.doc(window.fb.db, 'artifacts', window.fb.appId, 'public', 'data', 'main', 'schoolData');
+                    const snapshot = await window.fb.getDoc(docRef);
+                    
+                    if (snapshot.exists()) {
+                        const data = snapshot.data();
+                        window.db.users = data.users || [];
+                        // دمج الدروس الموجودة مع الافتراضية إذا كانت فارغة
+                        window.db.lessons = (data.lessons && data.lessons.length > 0) ? data.lessons : window.fullInitialLessons;
+                        window.db.adminPin = data.adminPin || "1234";
+                        window.showToast("✅ تم الاتصال بقاعدة البيانات (Firebase)", "success");
+                    } else {
+                        // أول مرة: إنشاء قاعدة البيانات
+                        window.db.lessons = window.fullInitialLessons;
+                        await window.fb.setDoc(docRef, window.db);
+                        window.showToast("✅ تم إنشاء وتوصيل قاعدة البيانات", "success");
+                    }
+                } else {
+                    // Fallback local mode
+                    window.db.lessons = window.fullInitialLessons;
+                }
+            } catch (error) {
+                console.error("Firebase Init Error:", error);
+                window.showToast("⚠️ وضع العمل المحلي (بدون إنترنت)", "info");
+                window.db.lessons = window.fullInitialLessons;
+            } finally {
+                // ضمان إخفاء شاشة التحميل في كل الأحوال
+                if (loadingOverlay) loadingOverlay.style.display = 'none';
+                showSection('auth-view');
+            }
+        };
+
+        // Save Data Logic
+        window.saveDB = async function() {
+            try {
+                if (window.fb && window.fb.auth.currentUser) {
+                     // يجب أن يتطابق المسار تماماً مع القراءة (زوجي المقاطع)
+                     const docRef = window.fb.doc(window.fb.db, 'artifacts', window.fb.appId, 'public', 'data', 'main', 'schoolData');
+                     await window.fb.setDoc(docRef, window.db);
+                }
+            } catch (error) {
+                console.error("Save Error:", error);
+                window.showToast("فشل الحفظ في السحابة، تم الحفظ محلياً", "error");
+            }
+        };
+
+        // --- UI Interactions ---
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Event Listeners for Forms
+            const regForm = document.getElementById('register-form');
+            if (regForm) {
+                regForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const username = document.getElementById('reg-username').value.trim();
+                    if (window.db.users.find(u => u.username === username)) { 
+                        window.showToast("اسم المستخدم موجود مسبقاً", "error"); 
+                        return; 
+                    }
+                    
+                    const newUser = {
+                        username: username, 
+                        password: document.getElementById('reg-password').value,
+                        name: document.getElementById('reg-fullname').value, 
+                        section: document.getElementById('reg-section').value,
+                        progress: {} 
+                    };
+                    
+                    window.db.users.push(newUser);
+                    window.saveDB(); 
+                    window.showToast("تم إنشاء الحساب بنجاح", "success"); 
+                    toggleAuth('login');
+                });
+            }
+
+            const loginForm = document.getElementById('login-form');
+            if (loginForm) {
+                loginForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const u = document.getElementById('login-username').value.trim();
+                    const p = document.getElementById('login-password').value;
+                    const user = window.db.users.find(usr => usr.username === u && usr.password === p);
+                    
+                    if (user) { 
+                        window.currentUser = user; 
+                        if(!window.currentUser.progress) window.currentUser.progress = {}; 
+                        window.showToast("تم تسجيل الدخول", "success");
+                        showDashboard(); 
+                    } else { 
+                        window.showToast("بيانات الدخول غير صحيحة", "error"); 
+                    }
+                });
+            }
+        });
+
+        window.toggleAuth = function(type) {
+            document.getElementById('login-box').style.display = type === 'login' ? 'block' : 'none';
+            document.getElementById('register-box').style.display = type === 'register' ? 'block' : 'none';
+        }
+
+        window.logout = function() { 
+            window.currentUser = null; 
+            showSection('auth-view'); 
+        }
+
+        window.showSection = function(sectionId) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            const section = document.getElementById(sectionId);
+            if (section) section.classList.add('active');
+            window.scrollTo(0,0);
+            
+            const logoutBtn = document.getElementById('logout-btn');
+            const homeBtn = document.getElementById('home-btn');
+            
+            if(sectionId === 'auth-view' || sectionId === 'admin-login-view') {
+                if(logoutBtn) logoutBtn.style.display = 'none';
+                if(homeBtn) homeBtn.style.display = 'none';
+            } else if (sectionId === 'dashboard-view' || sectionId.includes('lesson') || sectionId.includes('quiz')) {
+                if(logoutBtn) logoutBtn.style.display = 'flex';
+                if(homeBtn) homeBtn.style.display = 'flex';
+            }
+        }
+
+        window.showDashboard = function() {
+            if(!window.currentUser) return showSection('auth-view');
+            const userDisplay = document.getElementById('user-display');
+            if(userDisplay) {
+                userDisplay.textContent = `مرحباً، ${window.currentUser.name}`;
+            }
+            renderLessonsList();
+            updateProgress();
+            showSection('dashboard-view');
+        }
+
+        window.updateProgress = function() {
+            const visibleLessons = window.db.lessons.filter(l => !l.hidden);
+            const total = visibleLessons.length;
+            const completed = visibleLessons.filter(l => window.currentUser.progress[l.id] && window.currentUser.progress[l.id].score >= 50).length;
+            const pct = total > 0 ? Math.round((completed/total)*100) : 0;
+            
+            const progText = document.getElementById('progress-text');
+            if(progText) progText.textContent = `تم إنجاز ${completed} من ${total} درس`;
+            
+            const progBar = document.getElementById('main-progress-bar');
+            if(progBar) progBar.style.width = pct + "%";
+            
+            const certBtn = document.getElementById('cert-btn');
+            if(certBtn) {
+                certBtn.style.display = (pct >= 100 && total > 0) ? 'inline-block' : 'none';
+            }
+        }
+
+        window.renderLessonsList = function() {
+            const container = document.getElementById('lessons-list');
+            if(!container) return;
+            container.innerHTML = '';
+            
+            window.db.lessons.filter(l => !l.hidden).forEach(lesson => {
+                const prog = window.currentUser.progress[lesson.id];
+                const isDone = prog && prog.score >= 50;
+                
+                const card = document.createElement('div');
+                card.className = 'lesson-card';
+                if(isDone) card.style.borderColor = '#10b981';
+                card.onclick = () => openTextLesson(lesson.id);
+                
+                let statusHtml = isDone 
+                    ? `<span class="status-pill done"><i class="fas fa-check"></i> منجز (${prog.score}%)</span>` 
+                    : `<span class="status-pill">لم يبدأ</span>`;
+
+                card.innerHTML = `
+                    <div>
+                        <h3 style="display:flex; align-items:flex-start; gap:8px;">
+                            ${isDone ? '<i class="fas fa-check-circle" style="color:var(--success); margin-top:3px;"></i>' : '<i class="far fa-circle" style="color:#ccc; margin-top:3px;"></i>'}
+                            ${lesson.title}
+                        </h3>
+                    </div>
+                    <div style="margin-top:15px; display:flex; justify-content:space-between; align-items:center;">
+                        ${statusHtml}
+                        <i class="fas fa-arrow-left" style="color:var(--primary-light); font-size: 0.9rem;"></i>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        window.openTextLesson = function(id) {
+            window.activeLessonId = id;
+            const lesson = window.db.lessons.find(l => l.id === id);
+            document.getElementById('view-lesson-title').textContent = lesson.title;
+            document.getElementById('lesson-read-area').innerHTML = lesson.summary;
+            
+            const pill = document.getElementById('lesson-status-pill');
+            const prog = window.currentUser.progress[id];
+            if(prog && prog.score >= 50) {
+                pill.className = "status-pill done";
+                pill.textContent = "مكتمل";
+            } else {
+                pill.className = "status-pill";
+                pill.textContent = "قيد الدراسة";
+            }
+            
+            showSection('lesson-view');
+        }
+
+        window.switchToQuizMode = function() {
+            const lesson = window.db.lessons.find(l => l.id === window.activeLessonId);
+            const userProgress = window.currentUser.progress[window.activeLessonId];
+            
+            const isReview = userProgress && userProgress.score >= 50;
+            
+            document.getElementById('quiz-title').textContent = isReview ? `مراجعة: ${lesson.title}` : `اختبار: ${lesson.title}`;
+            document.getElementById('quiz-reference-text').innerHTML = lesson.summary;
+            document.getElementById('result-display-area').innerHTML = '';
+            
+            const submitBtn = document.getElementById('submit-quiz-btn');
+            if(submitBtn) {
+                submitBtn.style.display = isReview ? 'none' : 'block';
+                submitBtn.textContent = "تسليم الإجابات";
+                submitBtn.className = "btn";
+            }
+
+            renderQuestions(lesson, isReview, userProgress);
+            showSection('quiz-view');
+        }
+
+        window.renderQuestions = function(lesson, isReview, prog) {
+            const container = document.getElementById('quiz-questions-area');
+            if(!container) return;
+            container.innerHTML = '';
+            if(isReview) container.classList.add('review-mode'); else container.classList.remove('review-mode');
+
+            const createQ = (q, idx, type) => {
+                let userAns = (prog && prog.answers) ? prog.answers[`${type}-${idx}`] : null;
+                if(type === 'tf' && typeof userAns === 'string') userAns = (userAns === 'true');
+
+                let html = `<div class="question-card">
+                    <div class="question-text">${idx+1}. ${q.q}</div>
+                    <div class="options-grid">`;
+
+                if(type === 'mcq') {
+                    q.opts.forEach((opt, i) => {
+                        let cls = 'option-label';
+                        let checked = '';
+                        let icon = '<i class="far fa-circle" style="color:#ccc; margin-left:10px;"></i>';
+                        
+                        if(isReview) {
+                            if(i === q.ans) { cls += ' correct'; icon = '<i class="fas fa-check-circle" style="color:green; margin-left:10px;"></i>'; }
+                            else if(i === userAns && i !== q.ans) { cls += ' wrong'; icon = '<i class="fas fa-times-circle" style="color:red; margin-left:10px;"></i>'; }
+                            if(i === userAns) checked = 'checked';
+                        } else {
+                            if(i === userAns) { checked = 'checked'; cls += ' selected'; }
+                        }
+                        
+                        html += `<label class="${cls}">
+                            <input type="radio" name="${type}-${idx}" value="${i}" ${checked} ${isReview?'disabled':''} required style="display:none;" onchange="selectOption(this)">
+                            ${icon}
+                            <span>${opt}</span>
+                        </label>`;
+                    });
+                } else {
+                    const opts = [{val:true, txt:"صواب"}, {val:false, txt:"خطأ"}];
+                    opts.forEach(o => {
+                        let cls = 'option-label';
+                        let checked = '';
+                        let icon = '<i class="far fa-circle" style="color:#ccc; margin-left:10px;"></i>';
+                        
+                        if(isReview) {
+                            if(o.val === q.ans) { cls += ' correct'; icon = '<i class="fas fa-check-circle" style="color:green; margin-left:10px;"></i>'; }
+                            else if(userAns === o.val && userAns !== q.ans) { cls += ' wrong'; icon = '<i class="fas fa-times-circle" style="color:red; margin-left:10px;"></i>'; }
+                            if(userAns === o.val) checked = 'checked';
+                        } else {
+                            if(userAns === o.val) { checked = 'checked'; cls += ' selected'; }
+                        }
+                        
+                        html += `<label class="${cls}">
+                            <input type="radio" name="${type}-${idx}" value="${o.val}" ${checked} ${isReview?'disabled':''} required style="display:none;" onchange="selectOption(this)">
+                            ${icon}
+                            <span>${o.txt}</span>
+                        </label>`;
+                    });
+                }
+                html += `</div></div>`;
+                return html;
+            };
+
+            let qCounter = 0;
+            if(lesson.mcq) lesson.mcq.forEach((q, i) => { container.innerHTML += createQ(q, i, 'mcq'); qCounter++; });
+            if(lesson.tf) lesson.tf.forEach((q, i) => { container.innerHTML += createQ(q, i, 'tf'); qCounter++; });
+        }
+
+        // Helper to visualize selection
+        window.selectOption = function(radio) {
+            const container = radio.closest('.options-grid');
+            container.querySelectorAll('.option-label').forEach(l => {
+                l.classList.remove('selected');
+                l.querySelector('i').className = 'far fa-circle';
+            });
+            const label = radio.closest('.option-label');
+            label.classList.add('selected');
+            label.querySelector('i').className = 'fas fa-dot-circle';
+            label.querySelector('i').style.color = 'var(--primary)';
+        }
+
+        // Quiz Submission
+        const quizForm = document.getElementById('quiz-form');
+        if(quizForm) {
+            quizForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const lesson = window.db.lessons.find(l => l.id === window.activeLessonId);
+                let score = 0, total = (lesson.mcq?.length||0) + (lesson.tf?.length||0), answers = {};
+                
+                if(lesson.mcq) lesson.mcq.forEach((q, i) => { 
+                    const el = document.querySelector(`input[name="mcq-${i}"]:checked`); 
+                    if(el) { answers[`mcq-${i}`] = parseInt(el.value); if(parseInt(el.value)===q.ans) score++; } 
+                });
+                if(lesson.tf) lesson.tf.forEach((q, i) => { 
+                    const el = document.querySelector(`input[name="tf-${i}"]:checked`); 
+                    if(el) { answers[`tf-${i}`] = el.value; if((el.value==='true')===q.ans) score++; } 
+                });
+                
+                const pct = Math.round((score/total)*100);
+                
+                // Save Result
+                const uIdx = window.db.users.findIndex(u => u.username === window.currentUser.username);
+                window.db.users[uIdx].progress[window.activeLessonId] = { score: pct, answers: answers };
+                window.currentUser = window.db.users[uIdx]; 
+                window.saveDB();
+
+                if (pct < 50) {
+                    window.showToast(`للأسف، درجتك ${pct}%. حاول مجدداً!`, "error");
+                    // Re-render to show answers and allow retry
+                    // Wait slightly to allow toast to be seen
+                } else {
+                    showMotivationModal(pct);
+                }
+            });
+        }
+
+        window.showMotivationModal = function(score) {
+            const modal = document.getElementById('motivation-modal');
+            const icon = document.getElementById('modal-icon');
+            const title = document.getElementById('modal-title');
+            const msg = document.getElementById('modal-msg');
+            
+            modal.style.display = 'flex';
+            
+            if(score === 100) {
+                icon.innerHTML = '🏆'; title.innerText = 'أسطوري!'; msg.innerText = `درجة كاملة ${score}%! أنت فخر لنا.`;
+            } else if (score >= 80) {
+                icon.innerHTML = '🌟'; title.innerText = 'ممتاز جداً!'; msg.innerText = `حققت ${score}%، استمر في هذا الإبداع.`;
+            } else {
+                icon.innerHTML = '👍'; title.innerText = 'أحسنت!'; msg.innerText = `لقد اجتزت الاختبار بنسبة ${score}%.`;
+            }
+        }
+
+        window.closeMotivationModal = function() {
+            document.getElementById('motivation-modal').style.display = 'none';
+            switchToQuizMode(); window.scrollTo(0,0);
+        }
+
+        // --- Export PDF ---
+        window.exportCertificatePDF = function() {
+            const element = document.getElementById('cert-element');
+            const opt = {
+                margin:       10,
+                filename:     `شهادة_${window.currentUser.name}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true }, 
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
+            };
+
+            const originalDisplay = element.style.display;
+            element.style.display = 'block';
+
+            html2pdf().set(opt).from(element).save().then(() => {
+                 // Keep it visible
+            });
+        }
+
+        window.showCertificate = function() {
+            document.getElementById('cert-name').textContent = window.currentUser.name;
+            document.getElementById('cert-date').textContent = new Date().toLocaleDateString('ar-SA');
+            showSection('certificate-view');
+        }
+
+        // --- Admin Functions ---
+        window.showAdminLogin = function() { showSection('admin-login-view'); }
+        
+        window.verifyAdmin = function() {
+            if(document.getElementById('admin-pin').value === window.db.adminPin) {
+                showAdminTab('students');
+                showSection('admin-dashboard-view');
+            } else {
+                window.showToast("رمز المرور غير صحيح", "error");
+            }
+        }
+        
+        window.logoutAdmin = function() { showSection('auth-view'); }
+
+        window.showAdminTab = function(tab) {
+            document.getElementById('admin-tab-students').style.display = tab==='students'?'block':'none';
+            document.getElementById('admin-tab-content').style.display = tab==='content'?'block':'none';
+            document.getElementById('btn-tab-students').className = tab==='students'?'btn':'btn btn-outline';
+            document.getElementById('btn-tab-content').className = tab==='content'?'btn':'btn btn-outline';
+            
+            if(tab === 'students') renderStudentsTable();
+            if(tab === 'content') renderAdminLessonsList();
+        }
+
+        window.filterStudents = function() {
+            const query = document.getElementById('student-search').value.toLowerCase();
+            renderStudentsTable(query);
+        }
+
+        window.renderStudentsTable = function(searchQuery = "") {
+            const tbody = document.getElementById('students-table-body'); 
+            tbody.innerHTML = '';
+            const visibleLessonsCount = window.db.lessons.filter(l => !l.hidden).length;
+
+            window.db.users.forEach((u, index) => {
+                if(searchQuery && !u.name.toLowerCase().includes(searchQuery)) return;
+
+                let completedVisible = 0;
+                if(u.progress) completedVisible = window.db.lessons.filter(l => !l.hidden && u.progress[l.id] && u.progress[l.id].score >= 50).length;
+                const pct = visibleLessonsCount > 0 ? Math.round((completedVisible/visibleLessonsCount)*100) : 0;
+                
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${u.name}</td>
+                        <td>${u.username}</td>
+                        <td>${u.section}</td>
+                        <td>
+                            <div style="background:#e5e7eb; border-radius:4px; height:8px; width:80px; display:inline-block;">
+                                <div style="background:var(--success); width:${pct}%; height:100%; border-radius:4px;"></div>
+                            </div>
+                            <span style="font-size:0.8rem; margin-right:5px;">${pct}%</span>
+                        </td>
+                        <td>
+                            <div style="display:flex; justify-content:flex-end;">
+                                <button onclick="openEditStudentModal(${index})" class="action-btn-sm btn-edit-sm" title="تعديل"><i class="fas fa-edit"></i></button>
+                                <button onclick="deleteStudent(${index})" class="action-btn-sm btn-del-sm" title="حذف"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </td>
+                    </tr>`;
+            });
+        }
+
+        window.openAddStudentModal = function() {
+            document.getElementById('student-modal-title').textContent = "إضافة طالب جديد";
+            document.getElementById('st-index').value = "-1";
+            document.getElementById('st-name').value = "";
+            document.getElementById('st-username').value = "";
+            document.getElementById('st-password').value = "";
+            document.getElementById('st-section').value = "";
+            document.getElementById('student-modal').style.display = 'flex';
+        }
+
+        window.openEditStudentModal = function(index) {
+            const u = window.db.users[index];
+            document.getElementById('student-modal-title').textContent = "تعديل بيانات الطالب";
+            document.getElementById('st-index').value = index;
+            document.getElementById('st-name').value = u.name;
+            document.getElementById('st-username').value = u.username;
+            document.getElementById('st-password').value = u.password;
+            document.getElementById('st-section').value = u.section;
+            document.getElementById('student-modal').style.display = 'flex';
+        }
+
+        window.saveStudentData = function() {
+            const index = parseInt(document.getElementById('st-index').value);
+            const name = document.getElementById('st-name').value;
+            const user = document.getElementById('st-username').value;
+            const pass = document.getElementById('st-password').value;
+            const sect = document.getElementById('st-section').value;
+
+            if(!name || !user || !pass) { window.showToast("املأ البيانات المطلوبة", "error"); return; }
+
+            if(index === -1) {
+                if(window.db.users.find(u => u.username === user)) { window.showToast("اسم المستخدم مستخدم", "error"); return; }
+                window.db.users.push({name, username:user, password:pass, section:sect, progress:{}});
+            } else {
+                window.db.users[index].name = name;
+                window.db.users[index].username = user;
+                window.db.users[index].password = pass;
+                window.db.users[index].section = sect;
+            }
+            window.saveDB();
+            document.getElementById('student-modal').style.display = 'none';
+            renderStudentsTable();
+            window.showToast("تم الحفظ", "success");
+        }
+
+        window.deleteStudent = function(index) {
+            if(confirm("هل أنت متأكد من حذف الطالب وسجلاته؟")) {
+                window.db.users.splice(index, 1);
+                window.saveDB();
+                renderStudentsTable();
+                window.showToast("تم الحذف", "info");
+            }
+        }
+
+        window.renderAdminLessonsList = function() {
+            const container = document.getElementById('admin-lessons-list'); container.innerHTML = '';
+            window.db.lessons.forEach(l => {
+                const isHidden = l.hidden === true;
+                const opacity = isHidden ? '0.5' : '1';
+                const hideIcon = isHidden ? 'fa-eye-slash' : 'fa-eye';
+                const hideColor = isHidden ? 'var(--danger)' : 'var(--success)';
+
+                container.innerHTML += `
+                    <div style="padding:15px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center; background:${isHidden?'#f9fafb':'#fff'}; opacity:${opacity}">
+                        <strong>${l.title}</strong>
+                        <div>
+                            <button onclick="editLesson(${l.id})" class="action-btn-sm btn-edit-sm" title="تعديل"><i class="fas fa-edit"></i></button>
+                            <button onclick="toggleLessonVisibility(${l.id})" class="action-btn-sm" style="background:${hideColor}" title="${isHidden?'إظهار':'إخفاء'}"><i class="fas ${hideIcon}"></i></button>
+                            <button onclick="deleteLesson(${l.id})" class="action-btn-sm btn-del-sm" title="حذف"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        window.toggleLessonVisibility = function(id) {
+            const l = window.db.lessons.find(x => x.id === id);
+            if(l) { l.hidden = !l.hidden; window.saveDB(); renderAdminLessonsList(); }
+        }
+
+        window.deleteLesson = function(id) {
+            if(confirm("حذف الدرس نهائياً؟")) {
+                window.db.lessons = window.db.lessons.filter(l => l.id !== id);
+                window.saveDB();
+                renderAdminLessonsList();
+            }
+        }
+
+        window.editLesson = function(id) {
+            const l = window.db.lessons.find(x => x.id === id);
+            document.getElementById('edit-id').value = l.id;
+            document.getElementById('edit-title').value = l.title;
+            document.getElementById('edit-summary').value = l.summary;
+            document.getElementById('edit-modal').style.display = 'flex';
+        }
+
+        window.saveLessonEdit = function() {
+            const id = parseInt(document.getElementById('edit-id').value);
+            const l = window.db.lessons.find(x => x.id === id);
+            if(l) {
+                l.title = document.getElementById('edit-title').value;
+                l.summary = document.getElementById('edit-summary').value;
+                window.saveDB();
+                document.getElementById('edit-modal').style.display = 'none';
+                renderAdminLessonsList();
+                window.showToast("تم تحديث الدرس", "success");
+            }
+        }
+
+        window.exportStudentsExcel = function() {
+            let csvContent = "\uFEFFالاسم,اسم المستخدم,كلمة المرور,الشعبة,الإنجاز\n";
+            const visibleLessonsCount = window.db.lessons.filter(l => !l.hidden).length;
+
+            window.db.users.forEach(u => {
+                let completedVisible = 0;
+                if(u.progress) completedVisible = window.db.lessons.filter(l => !l.hidden && u.progress[l.id] && u.progress[l.id].score >= 50).length;
+                const pct = visibleLessonsCount > 0 ? Math.round((completedVisible/visibleLessonsCount)*100) : 0;
+                csvContent += `"${u.name}","${u.username}","${u.password}","${u.section}","${pct}%"\n`;
+            });
+            
+            const encodedUri = encodeURI("data:text/csv;charset=utf-8," + csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "students.csv");
+            document.body.appendChild(link);
+            link.click();
+        }
+
+        window.importStudentsExcel = function() {
+            const fileInput = document.getElementById('import-file');
+            const file = fileInput.files[0];
+            if (!file) { window.showToast("اختر ملف CSV", "error"); return; }
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const lines = e.target.result.split('\n');
+                let count = 0;
+                for(let i=1; i<lines.length; i++) {
+                    const line = lines[i].trim();
+                    if(line) {
+                        const parts = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(s => s.replace(/^"|"$/g, '').trim());
+                        if(parts.length >= 4) {
+                            const [name, username, password, section] = parts;
+                            if(!window.db.users.find(u => u.username === username)) {
+                                window.db.users.push({name, username, password, section, progress:{}});
+                                count++;
+                            }
+                        }
+                    }
+                }
+                window.saveDB();
+                renderStudentsTable();
+                window.showToast(`تم استيراد ${count} طالب`, "success");
+            };
+            reader.readAsText(file);
+        }
+
+    </script>
+</body>
+</html>
+
+
+

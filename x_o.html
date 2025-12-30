@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لعبة X O - تحدي الأصدقاء</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+        }
+        .cell {
+            height: 100px;
+            width: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        .cell:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        .cell.x-text { color: #f87171; }
+        .cell.o-text { color: #60a5fa; }
+        .winning-cell {
+            background-color: rgba(52, 211, 153, 0.4) !important;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .hidden { display: none; }
+    </style>
+</head>
+<body class="p-4">
+
+    <!-- شاشة إدخال الأسماء -->
+    <div id="setup-screen" class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md text-center">
+        <h1 class="text-3xl font-bold mb-6 text-gray-800">لعبة X & O</h1>
+        <div class="space-y-4">
+            <div>
+                <label class="block text-right mb-1 text-gray-600">اسم اللاعب الأول (X):</label>
+                <input type="text" id="player1-input" placeholder="أدخل الاسم..." class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+            </div>
+            <div>
+                <label class="block text-right mb-1 text-gray-600">اسم اللاعب الثاني (O):</label>
+                <input type="text" id="player2-input" placeholder="أدخل الاسم..." class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+            </div>
+            <button onclick="startGame()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-lg transition duration-300 transform hover:scale-105">
+                ابدأ اللعبة الآن
+            </button>
+        </div>
+    </div>
+
+    <!-- شاشة اللعبة -->
+    <div id="game-screen" class="hidden w-full max-w-md">
+        <div class="bg-white p-6 rounded-2xl shadow-2xl">
+            <!-- لوحة النتائج -->
+            <div class="flex justify-between mb-6 border-b pb-4">
+                <div class="text-center flex-1">
+                    <p id="p1-display-name" class="font-bold text-gray-700">اللاعب 1</p>
+                    <p id="p1-score" class="text-3xl font-bold text-red-500">0</p>
+                    <span class="text-xs text-gray-400">فوز (X)</span>
+                </div>
+                <div class="flex flex-col justify-center items-center px-4">
+                    <span class="text-2xl font-bold text-gray-300">VS</span>
+                </div>
+                <div class="text-center flex-1">
+                    <p id="p2-display-name" class="font-bold text-gray-700">اللاعب 2</p>
+                    <p id="p2-score" class="text-3xl font-bold text-blue-500">0</p>
+                    <span class="text-xs text-gray-400">فوز (O)</span>
+                </div>
+            </div>
+
+            <!-- معلومات الدور -->
+            <div id="status" class="text-center text-xl font-bold mb-4 text-indigo-700 h-8">
+                دور: <span id="current-player-name"></span>
+            </div>
+
+            <!-- شبكة اللعب -->
+            <div class="grid grid-cols-3 gap-2 bg-gray-100 p-2 rounded-xl mb-6">
+                <div class="cell rounded-lg" data-index="0"></div>
+                <div class="cell rounded-lg" data-index="1"></div>
+                <div class="cell rounded-lg" data-index="2"></div>
+                <div class="cell rounded-lg" data-index="3"></div>
+                <div class="cell rounded-lg" data-index="4"></div>
+                <div class="cell rounded-lg" data-index="5"></div>
+                <div class="cell rounded-lg" data-index="6"></div>
+                <div class="cell rounded-lg" data-index="7"></div>
+                <div class="cell rounded-lg" data-index="8"></div>
+            </div>
+
+            <!-- أزرار التحكم -->
+            <div class="flex gap-2">
+                <button onclick="resetBoard()" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 rounded-lg transition">
+                    جولة جديدة
+                </button>
+                <button onclick="resetEverything()" class="flex-1 bg-red-100 hover:bg-red-200 text-red-600 font-bold py-2 rounded-lg transition">
+                    تصفير الكل
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- رسالة الفوز المخصصة -->
+    <div id="modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+        <div class="bg-white p-8 rounded-2xl text-center shadow-2xl max-w-xs w-full">
+            <div id="modal-icon" class="text-6xl mb-4">🏆</div>
+            <h2 id="modal-title" class="text-2xl font-bold mb-2 text-gray-800">مبروك!</h2>
+            <p id="modal-message" class="text-gray-600 mb-6 font-semibold"></p>
+            <button onclick="closeModal()" class="w-full bg-indigo-600 text-white py-2 rounded-lg font-bold">متابعة</button>
+        </div>
+    </div>
+
+    <script>
+        let player1 = { name: "اللاعب 1", score: 0 };
+        let player2 = { name: "اللاعب 2", score: 0 };
+        let currentPlayer = "X";
+        let gameState = ["", "", "", "", "", "", "", "", ""];
+        let gameActive = true;
+
+        const winningConditions = [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8], // الصفوف
+            [0, 3, 6], [1, 4, 7], [2, 5, 8], // الأعمدة
+            [0, 4, 8], [2, 4, 6]             // الأقطار
+        ];
+
+        function startGame() {
+            const p1 = document.getElementById('player1-input').value.trim();
+            const p2 = document.getElementById('player2-input').value.trim();
+
+            if (p1) player1.name = p1;
+            if (p2) player2.name = p2;
+
+            document.getElementById('p1-display-name').innerText = player1.name;
+            document.getElementById('p2-display-name').innerText = player2.name;
+            document.getElementById('current-player-name').innerText = player1.name;
+
+            document.getElementById('setup-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+        }
+
+        const cells = document.querySelectorAll('.cell');
+        cells.forEach(cell => cell.addEventListener('click', handleCellClick));
+
+        function handleCellClick(e) {
+            const clickedCell = e.target;
+            const clickedCellIndex = parseInt(clickedCell.getAttribute('data-index'));
+
+            if (gameState[clickedCellIndex] !== "" || !gameActive) return;
+
+            gameState[clickedCellIndex] = currentPlayer;
+            clickedCell.innerText = currentPlayer;
+            clickedCell.classList.add(currentPlayer === "X" ? "x-text" : "o-text");
+
+            checkResult();
+        }
+
+        function checkResult() {
+            let roundWon = false;
+            let winningLine = [];
+
+            for (let i = 0; i < winningConditions.length; i++) {
+                const [a, b, c] = winningConditions[i];
+                if (gameState[a] && gameState[a] === gameState[b] && gameState[a] === gameState[c]) {
+                    roundWon = true;
+                    winningLine = [a, b, c];
+                    break;
+                }
+            }
+
+            if (roundWon) {
+                gameActive = false;
+                const winnerName = (currentPlayer === "X") ? player1.name : player2.name;
+                
+                // تحديث النقاط
+                if (currentPlayer === "X") {
+                    player1.score++;
+                    document.getElementById('p1-score').innerText = player1.score;
+                } else {
+                    player2.score++;
+                    document.getElementById('p2-score').innerText = player2.score;
+                }
+
+                // تمييز المربعات الفائزة
+                winningLine.forEach(idx => cells[idx].classList.add('winning-cell'));
+                
+                showModal("🏆", "فوز مستحق!", `اللاعب ${winnerName} فاز بهذه الجولة!`);
+                return;
+            }
+
+            let roundDraw = !gameState.includes("");
+            if (roundDraw) {
+                gameActive = false;
+                showModal("🤝", "تعادل!", "انتهت الجولة بالتعادل بين الطرفين.");
+                return;
+            }
+
+            // تبديل الدور
+            currentPlayer = currentPlayer === "X" ? "O" : "X";
+            document.getElementById('current-player-name').innerText = (currentPlayer === "X") ? player1.name : player2.name;
+        }
+
+        function resetBoard() {
+            gameActive = true;
+            currentPlayer = "X";
+            gameState = ["", "", "", "", "", "", "", "", ""];
+            document.getElementById('current-player-name').innerText = player1.name;
+            cells.forEach(cell => {
+                cell.innerText = "";
+                cell.className = "cell rounded-lg";
+            });
+        }
+
+        function resetEverything() {
+            player1.score = 0;
+            player2.score = 0;
+            document.getElementById('p1-score').innerText = "0";
+            document.getElementById('p2-score').innerText = "0";
+            resetBoard();
+            document.getElementById('setup-screen').classList.remove('hidden');
+            document.getElementById('game-screen').classList.add('hidden');
+        }
+
+        function showModal(icon, title, message) {
+            document.getElementById('modal-icon').innerText = icon;
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-message').innerText = message;
+            document.getElementById('modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.add('hidden');
+            resetBoard();
+        }
+    </script>
+</body>
+</html>

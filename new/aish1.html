@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منصة الرأي الحر</title>
+    <!-- استدعاء Tailwind CSS للتصميم -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- خط تجوال العربي -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Tajawal', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 pb-20">
+
+    <!-- رأس الصفحة -->
+    <header class="bg-white shadow-sm border-b border-slate-200 sticky top-0 z-50">
+        <div class="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
+            <h1 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                <span class="bg-blue-600 text-white p-1.5 rounded-lg shadow-sm">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                </span>
+                منصة الرأي الحر
+            </h1>
+            
+            <!-- منطقة العدادات -->
+            <div class="flex flex-col items-end">
+                <span id="postCount" class="text-xs font-bold bg-slate-100 px-3 py-1 rounded-full text-slate-600 border border-slate-200 mb-1">
+                    جاري التحميل...
+                </span>
+                <span id="pageViews" class="text-[10px] text-slate-400 font-medium flex items-center gap-1">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    0 زيارة للصفحة
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-2xl mx-auto px-4 py-6 space-y-8">
+        
+        <!-- نموذج الإضافة -->
+        <div class="bg-white rounded-2xl shadow-sm p-6 border border-slate-200 relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-cyan-400"></div>
+            <h2 class="font-bold mb-4 text-slate-700 flex items-center gap-2">
+                <svg width="20" height="20" class="text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                أضف مشاركتك الجديدة
+            </h2>
+            <textarea id="contentInput" class="w-full p-4 rounded-xl border border-slate-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-50 outline-none resize-none h-32 bg-slate-50 mb-4 transition-all" placeholder="اكتب قصيدتك أو رأيك هنا..."></textarea>
+            <div class="flex flex-col sm:flex-row gap-3">
+                <input id="authorInput" type="text" class="sm:w-1/2 p-3 rounded-xl border border-slate-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-50 outline-none bg-slate-50 text-sm transition-all" placeholder="الاسم (اختياري)">
+                <button onclick="addPost()" id="submitBtn" class="sm:w-1/2 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white px-6 py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-200">
+                    نشر المشاركة
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" transform="rotate(180)"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- حاوية المنشورات -->
+        <div id="postsContainer" class="space-y-6">
+            <div class="animate-pulse space-y-4">
+                <div class="h-40 bg-slate-200 rounded-2xl"></div>
+                <div class="h-40 bg-slate-200 rounded-2xl"></div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- سكريبت التطبيق -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        // أضفت setDoc و getDoc للتعامل مع عداد الزيارات
+        import { getFirestore, collection, addDoc, onSnapshot, updateDoc, setDoc, getDoc, doc, increment, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        // إعدادات قاعدة البيانات الخاصة بك
+        const firebaseConfig = {
+            apiKey: "AIzaSyBxPO6RKsQ1Cq-mqlCpFTrCuIyxnYdB37U",
+            authDomain: "studentsystem-c1ab1.firebaseapp.com",
+            databaseURL: "https://studentsystem-c1ab1-default-rtdb.firebaseio.com",
+            projectId: "studentsystem-c1ab1",
+            storageBucket: "studentsystem-c1ab1.firebasestorage.app",
+            messagingSenderId: "112215023848",
+            appId: "1:112215023848:web:0adba326a527ee7e37e95d"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        
+        const COLLECTION_NAME = "public_opinions";
+        const STATS_DOC_ID = "global_stats"; // معرف مستند الإحصائيات
+        let currentUser = null;
+
+        // 1. تسجيل الدخول
+        signInAnonymously(auth)
+            .then((userCredential) => {
+                currentUser = userCredential.user;
+                console.log("تم الاتصال. المعرف:", currentUser.uid);
+                startApp();
+                incrementPageViews(); // زيادة عداد زيارات الصفحة عند الدخول
+            })
+            .catch((error) => {
+                console.error("خطأ:", error);
+            });
+
+        function startApp() {
+            const q = query(collection(db, COLLECTION_NAME), orderBy("timestamp", "desc"));
+            
+            onSnapshot(q, (snapshot) => {
+                const container = document.getElementById('postsContainer');
+                document.getElementById('postCount').innerText = snapshot.size + " مشاركة";
+                container.innerHTML = "";
+
+                if (snapshot.empty) {
+                    container.innerHTML = `<div class="text-center text-slate-400 py-10">لا توجد مشاركات بعد.</div>`;
+                    return;
+                }
+
+                snapshot.forEach((docSnapshot) => {
+                    createPostElement(docSnapshot.id, docSnapshot.data(), container);
+                });
+            });
+
+            // الاستماع لتغييرات عداد زيارات الصفحة
+            const statsRef = doc(db, 'app_metadata', STATS_DOC_ID);
+            onSnapshot(statsRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    const views = docSnap.data().totalPageViews || 0;
+                    document.getElementById('pageViews').innerHTML = `
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                        ${views} زيارة للصفحة
+                    `;
+                }
+            });
+        }
+
+        // دالة جديدة: زيادة عداد زيارات الصفحة (مستند منفصل)
+        async function incrementPageViews() {
+            const statsRef = doc(db, 'app_metadata', STATS_DOC_ID);
+            try {
+                // محاولة تحديث العداد
+                await updateDoc(statsRef, {
+                    totalPageViews: increment(1)
+                });
+            } catch (error) {
+                // إذا لم يكن المستند موجوداً، نقوم بإنشائه (لأول مرة فقط)
+                if (error.code === 'not-found') {
+                    await setDoc(statsRef, { totalPageViews: 1 });
+                }
+            }
+        }
+
+        function createPostElement(id, post, container) {
+            const views = post.views || 0;
+            const likes = post.likes || 0;
+            const dislikes = post.dislikes || 0;
+
+            const isRejected = views > 5 && (dislikes / views) > 0.50; 
+            const isFeatured = views > 5 && (likes / views) > 0.80;
+
+            const likePercent = views > 0 ? (likes / views) * 100 : 0;
+            const dislikePercent = views > 0 ? (dislikes / views) * 100 : 0;
+
+            const div = document.createElement('div');
+            let cardClass = "relative bg-white p-6 rounded-2xl border transition-all duration-500 ";
+            if (isRejected) cardClass += "border-red-200 bg-red-50";
+            else if (isFeatured) cardClass += "border-amber-300 shadow-md ring-1 ring-amber-100 bg-gradient-to-br from-white to-amber-50";
+            else cardClass += "border-slate-200 shadow-sm hover:shadow-md";
+
+            div.className = cardClass;
+
+            let innerHTML = '';
+
+            if (isRejected) {
+                innerHTML = `
+                    <div class="text-center py-8 opacity-75">
+                        <div class="text-red-500 font-bold text-xl mb-2 flex justify-center items-center gap-2">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+                            محتوى مرفوض
+                        </div>
+                        <p class="text-sm text-red-400">تجاوزت نسبة الرفض 50% من المشاهدات (${views})</p>
+                    </div>
+                `;
+            } else {
+                const badge = isFeatured ? 
+                    `<div class="absolute -top-3 right-6 bg-amber-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg flex items-center gap-1 z-10">★ محتوى مميز</div>` : '';
+
+                innerHTML = `
+                    ${badge}
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-11 h-11 rounded-full ${isFeatured ? 'bg-amber-200 text-amber-700' : 'bg-slate-100 text-slate-500'} flex items-center justify-center font-bold text-xl shadow-inner">
+                                ${post.author ? post.author.charAt(0) : '?'}
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-slate-900">${escapeHtml(post.author || 'زائر مجهول')}</h3>
+                                <span class="text-xs text-slate-400 block mt-0.5">
+                                    ${post.timestamp ? new Date(post.timestamp.seconds * 1000).toLocaleDateString('ar-EG') : 'الآن'}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="text-xs bg-slate-50 text-slate-500 px-2 py-1.5 rounded-lg border border-slate-100 flex items-center gap-1.5 font-medium">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                            ${views} مشاهدة
+                        </div>
+                    </div>
+                    
+                    <div class="mb-5 relative">
+                        <p class="text-slate-700 whitespace-pre-wrap leading-8 text-lg ${isFeatured ? 'font-medium text-slate-900' : ''}">
+                            ${escapeHtml(post.content)}
+                        </p>
+                    </div>
+                    
+                    <div class="flex items-center gap-3 border-t border-slate-100 pt-4">
+                        <button onclick="window.handleVote('${id}', 'likes')" class="group flex-1 bg-slate-50 hover:bg-green-50 active:bg-green-100 text-slate-600 hover:text-green-700 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all">
+                            <svg width="18" height="18" class="group-hover:scale-110 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
+                            تأييد <span class="bg-white px-2 py-0.5 rounded shadow-sm text-xs border border-slate-100">${likes}</span>
+                        </button>
+                        <button onclick="window.handleVote('${id}', 'dislikes')" class="group flex-1 bg-slate-50 hover:bg-red-50 active:bg-red-100 text-slate-600 hover:text-red-700 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all">
+                            <svg width="18" height="18" class="group-hover:scale-110 transition-transform mt-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"></path></svg>
+                            رفض <span class="bg-white px-2 py-0.5 rounded shadow-sm text-xs border border-slate-100">${dislikes}</span>
+                        </button>
+                    </div>
+                    
+                    <div class="mt-4 h-1.5 w-full bg-slate-100 rounded-full overflow-hidden flex">
+                        <div class="bg-green-500 h-full" style="width: ${likePercent}%"></div>
+                        <div class="bg-red-500 h-full" style="width: ${dislikePercent}%"></div>
+                    </div>
+                `;
+
+                setTimeout(() => observeView(id, div), 500);
+            }
+
+            div.innerHTML = innerHTML;
+            container.appendChild(div);
+        }
+
+        window.addPost = async () => {
+            const contentIn = document.getElementById('contentInput');
+            const authorIn = document.getElementById('authorInput');
+            const btn = document.getElementById('submitBtn');
+
+            if (!contentIn.value.trim()) { contentIn.focus(); return; }
+
+            btn.disabled = true;
+            btn.innerHTML = `<span class="animate-spin ml-2">⏳</span> جاري النشر...`;
+
+            try {
+                await addDoc(collection(db, COLLECTION_NAME), {
+                    content: contentIn.value,
+                    author: authorIn.value.trim() || "زائر مجهول",
+                    timestamp: serverTimestamp(),
+                    views: 0,
+                    likes: 0,
+                    dislikes: 0
+                });
+                contentIn.value = "";
+                authorIn.value = "";
+            } catch (e) {
+                alert("خطأ: " + e.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `نشر المشاركة <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" transform="rotate(180)"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>`;
+            }
+        };
+
+        // تعديل: التصويت لا يزيد المشاهدات (views)
+        window.handleVote = async (id, type) => {
+            if (localStorage.getItem(`voted_${id}`)) {
+                alert("لقد قمت بالتصويت مسبقاً.");
+                return;
+            }
+            
+            const docRef = doc(db, COLLECTION_NAME, id);
+            await updateDoc(docRef, {
+                [type]: increment(1)
+                // تم إزالة: views: increment(1)
+            });
+            localStorage.setItem(`voted_${id}`, 'true');
+        };
+
+        function observeView(id, element) {
+            const observer = new IntersectionObserver((entries) => {
+                if (entries[0].isIntersecting) {
+                    if (!localStorage.getItem(`viewed_${id}`)) {
+                        const docRef = doc(db, COLLECTION_NAME, id);
+                        updateDoc(docRef, { views: increment(1) });
+                        localStorage.setItem(`viewed_${id}`, 'true');
+                    }
+                    observer.disconnect();
+                }
+            }, { threshold: 0.5 });
+            observer.observe(element);
+        }
+
+        function escapeHtml(text) {
+            if (!text) return text;
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>
+
+

@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>معرض عناصر واجهة المستخدم الشامل</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* === المتغيرات والألوان === */
+        :root {
+            --primary-color: #6366f1;
+            --secondary-color: #ec4899;
+            --accent-color: #8b5cf6;
+            --text-dark: #1e293b;
+            --text-light: #64748b;
+            --bg-light: #f8fafc;
+            --white: #ffffff;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --radius: 12px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* === الإعدادات العامة === */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 60px 0;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            color: white;
+            border-radius: 0 0 30px 30px;
+            margin-bottom: 40px;
+            box-shadow: var(--shadow);
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        /* === الأقسام === */
+        section {
+            background: var(--white);
+            padding: 30px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 30px;
+            border: 1px solid #e2e8f0;
+        }
+
+        h2.section-title {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            margin-bottom: 25px;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* === 1. الخطوط Typography === */
+        .typography-grid {
+            display: grid;
+            gap: 15px;
+        }
+        
+        /* === 2. الأزرار Buttons === */
+        .btn-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 8px;
+            font-family: inherit;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-primary { background-color: var(--primary-color); color: white; }
+        .btn-secondary { background-color: var(--secondary-color); color: white; }
+        .btn-outline { background-color: transparent; border: 2px solid var(--primary-color); color: var(--primary-color); }
+        .btn-outline:hover { background-color: var(--primary-color); color: white; }
+        .btn-round { border-radius: 50px; }
+
+        /* === 3. الأيقونات Icons === */
+        .icons-grid {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        .icon-box {
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            background-color: #e0e7ff;
+            color: var(--primary-color);
+            border-radius: 50%;
+            transition: var(--transition);
+        }
+
+        .icon-box:hover {
+            background-color: var(--primary-color);
+            color: white;
+            transform: rotate(360deg);
+        }
+
+        /* === 4. الإطارات والموديلات Cards === */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            padding: 20px;
+            border-radius: var(--radius);
+            background: white;
+            border: 1px solid #e2e8f0;
+            transition: var(--transition);
+        }
+
+        .card:hover {
+            border-color: var(--primary-color);
+        }
+
+        .card-img {
+            width: 100%;
+            height: 120px;
+            background-color: #cbd5e1;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #64748b;
+        }
+
+        /* === 5. التبويبات Tabs === */
+        .tabs-container {
+            border: 1px solid #e2e8f0;
+            border-radius: var(--radius);
+            overflow: hidden;
+        }
+
+        .tabs-header {
+            display: flex;
+            background-color: #f1f5f9;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 600;
+            color: var(--text-light);
+            transition: var(--transition);
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-btn.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+            background-color: white;
+        }
+
+        .tab-content {
+            padding: 20px;
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* === 6. المودال Modal === */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal {
+            background: white;
+            padding: 30px;
+            border-radius: var(--radius);
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            transform: scale(0.7);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.open {
+            display: flex;
+        }
+
+        .modal-overlay.open .modal {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-light);
+            margin-top: 40px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="container">
+            <h1>أهلاً بك في معرض التصميم</h1>
+            <p>صفحة HTML واحدة تجمع نماذج للتصميم الحديث (Modern UI)</p>
+        </div>
+    </header>
+
+    <div class="container">
+        
+        <section>
+            <h2 class="section-title"><i class="fas fa-font"></i> الخطوط والطباعة (Typography)</h2>
+            <div class="typography-grid">
+                <h1>هذا عنوان رئيسي H1 (خط عريض)</h1>
+                <h2>هذا عنوان فرعي H2 (لتقسيم الأقسام)</h2>
+                <h3>هذا عنوان H3 (للعناوين الأصغر)</h3>
+                <p>هذا نموذج لفقرة نصية عادية. الخط المستخدم هو "Cairo"، وهو خط عربي حديث ومقروء جداً، مناسب جداً للمواقع الإلكترونية والتطبيقات. يتميز بوضوح الحروف وتناسقها.</p>
+                <small>هذا نص صغير للملاحظات الهامشية.</small>
+            </div>
+        </section>
+
+        <section>
+            <h2 class="section-title"><i class="fas fa-mouse-pointer"></i> الأزرار والانتقالات (Buttons & Transitions)</h2>
+            <p style="margin-bottom: 15px;">جرب تمرير الماوس فوق الأزرار لمشاهدة التأثيرات:</p>
+            <div class="btn-container">
+                <button class="btn btn-primary">زر أساسي <i class="fas fa-check"></i></button>
+                <button class="btn btn-secondary">زر ثانوي <i class="fas fa-star"></i></button>
+                <button class="btn btn-outline">زر بإطار فقط <i class="fas fa-arrow-left"></i></button>
+                <button class="btn btn-primary btn-round">زر دائري الحواف</button>
+                <button class="btn" style="background: #ef4444; color: white;">زر خطر <i class="fas fa-trash"></i></button>
+            </div>
+        </section>
+
+        <section>
+            <h2 class="section-title"><i class="fas fa-icons"></i> الأيقونات التفاعلية (Icons)</h2>
+            <div class="icons-grid">
+                <div class="icon-box"><i class="fas fa-home"></i></div>
+                <div class="icon-box"><i class="fas fa-user"></i></div>
+                <div class="icon-box"><i class="fas fa-cog"></i></div>
+                <div class="icon-box"><i class="fas fa-bell"></i></div>
+                <div class="icon-box"><i class="fas fa-heart"></i></div>
+            </div>
+        </section>
+
+        <section>
+            <h2 class="section-title"><i class="fas fa-layer-group"></i> الإطارات والبطاقات (Cards & Frames)</h2>
+            <div class="cards-grid">
+                <div class="card">
+                    <div class="card-img"><i class="fas fa-image fa-2x"></i></div>
+                    <h3>عنوان البطاقة 1</h3>
+                    <p style="color: var(--text-light); margin-top: 5px;">هذا نموذج لبطاقة محتوى تحتوي على صورة وعنوان ونص توضيحي بسيط.</p>
+                </div>
+                <div class="card" style="border-top: 4px solid var(--secondary-color);">
+                    <div class="card-img" style="background: #fce7f3; color: var(--secondary-color);"><i class="fas fa-video fa-2x"></i></div>
+                    <h3>بطاقة مميزة</h3>
+                    <p style="color: var(--text-light); margin-top: 5px;">يمكن تمييز البطاقات باستخدام حدود ملونة مختلفة أو خلفيات مختلفة.</p>
+                </div>
+                <div class="card" style="border-style: dashed;">
+                    <div class="card-img"><i class="fas fa-file-alt fa-2x"></i></div>
+                    <h3>إطار منقط</h3>
+                    <p style="color: var(--text-light); margin-top: 5px;">نموذج لاستخدام إطار بنمط Dashed لإعطاء طابع مختلف.</p>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2 class="section-title"><i class="fas fa-folder"></i> التبويبات (Tabs)</h2>
+            <div class="tabs-container">
+                <div class="tabs-header">
+                    <button class="tab-btn active" onclick="openTab(event, 'tab1')">التبويب الأول</button>
+                    <button class="tab-btn" onclick="openTab(event, 'tab2')">التبويب الثاني</button>
+                    <button class="tab-btn" onclick="openTab(event, 'tab3')">التبويب الثالث</button>
+                </div>
+                <div id="tab1" class="tab-content active">
+                    <h3>محتوى القسم الأول</h3>
+                    <p>هذا هو المحتوى الافتراضي الذي يظهر عند تحميل الصفحة. التبويبات مفيدة جداً لتنظيم المحتوى الكبير في مساحة صغيرة.</p>
+                </div>
+                <div id="tab2" class="tab-content">
+                    <h3>محتوى القسم الثاني</h3>
+                    <p>مرحباً بك في القسم الثاني! لاحظ كيف تم الانتقال بسلاسة دون إعادة تحميل الصفحة.</p>
+                    <button class="btn btn-outline" style="margin-top: 10px;">إجراء داخلي</button>
+                </div>
+                <div id="tab3" class="tab-content">
+                    <h3>محتوى القسم الثالث</h3>
+                    <p>هنا يمكن وضع صور، جداول، أو أي عناصر HTML أخرى.</p>
+                    <ul>
+                        <li>نقطة 1</li>
+                        <li>نقطة 2</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2 class="section-title"><i class="fas fa-window-maximize"></i> النوافذ المنبثقة (Modals)</h2>
+            <p>اضغط على الزر أدناه لفتح النافذة المنبثقة:</p>
+            <br>
+            <button class="btn btn-primary" onclick="toggleModal(true)">فتح النافذة (Open Modal)</button>
+        </section>
+
+    </div>
+
+    <footer>
+        <p>تم التصميم بواسطة Gemini AI &copy; 2023</p>
+    </footer>
+
+    <div class="modal-overlay" id="myModal" onclick="toggleModal(false)">
+        <div class="modal" onclick="event.stopPropagation()"> <div style="text-align: center; margin-bottom: 20px;">
+                <i class="fas fa-check-circle fa-4x" style="color: var(--secondary-color);"></i>
+            </div>
+            <h2 style="text-align: center; margin-bottom: 10px;">عنوان النافذة المنبثقة</h2>
+            <p style="text-align: center; color: var(--text-light); margin-bottom: 20px;">
+                هذه رسالة تظهر فوق المحتوى. الخلفية معتمة للتركيز على هذا الإشعار. يمكنك وضع نماذج تسجيل دخول أو رسائل تأكيد هنا.
+            </p>
+            <div style="text-align: center;">
+                <button class="btn btn-secondary" onclick="toggleModal(false)">إغلاق النافذة</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // دالة التبويبات (Tabs Logic)
+        function openTab(evt, tabName) {
+            // إخفاء جميع المحتويات
+            var tabContents = document.getElementsByClassName("tab-content");
+            for (var i = 0; i < tabContents.length; i++) {
+                tabContents[i].classList.remove("active");
+            }
+
+            // إزالة الكلاس active من جميع الأزرار
+            var tabBtns = document.getElementsByClassName("tab-btn");
+            for (var i = 0; i < tabBtns.length; i++) {
+                tabBtns[i].classList.remove("active");
+            }
+
+            // إظهار التبويب المطلوب وتفعيل الزر
+            document.getElementById(tabName).classList.add("active");
+            evt.currentTarget.classList.add("active");
+        }
+
+        // دالة المودال (Modal Logic)
+        function toggleModal(show) {
+            const modal = document.getElementById('myModal');
+            if (show) {
+                modal.classList.add('open');
+            } else {
+                modal.classList.remove('open');
+            }
+        }
+    </script>
+</body>
+</html>

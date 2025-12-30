@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام ثانوية عشيرة (بنين) - الآمن</title>
+    
+    <!-- Tailwind CSS (Fast CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts (Cairo) -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Cairo', sans-serif; background-color: #f1f5f9; }
+        .fade-in { animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .modal-backdrop { background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); }
+        
+        /* Loading Spinner */
+        .spinner {
+            width: 20px; height: 20px;
+            border: 3px solid #ffffff; border-bottom-color: transparent;
+            border-radius: 50%; display: inline-block;
+            animation: rotation 1s linear infinite;
+        }
+        @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#0f766e', // Teal 700 - مريح للعين وأكثر احترافية
+                        secondary: '#1e293b', // Slate 800
+                        accent: '#f59e0b', // Amber 500
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="text-slate-800 min-h-screen flex flex-col overflow-x-hidden">
+
+    <!-- Global Loader -->
+    <div id="appLoader" class="fixed inset-0 z-[100] bg-white flex flex-col items-center justify-center transition-opacity duration-500">
+        <div class="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p class="text-slate-500 font-semibold animate-pulse">جاري الاتصال بالنظام...</p>
+    </div>
+
+    <!-- Header -->
+    <nav class="bg-secondary text-white shadow-lg sticky top-0 z-40 border-b border-slate-700">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="bg-white/10 p-2 rounded-lg">
+                    <i class="fa-solid fa-graduation-cap text-2xl text-accent"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold leading-tight">ثانوية عشيرة (بنين)</h1>
+                    <p class="text-[10px] text-slate-400 font-mono">SECURE SYSTEM V3.0</p>
+                </div>
+            </div>
+            <button onclick="window.appLogout()" id="logoutBtn" class="hidden bg-red-500/10 hover:bg-red-600 text-red-100 hover:text-white px-4 py-2 rounded-lg text-sm transition border border-red-500/20 flex items-center gap-2">
+                <i class="fa-solid fa-power-off"></i> <span class="hidden sm:inline">تسجيل خروج</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Toaster Notification -->
+    <div id="toast" class="fixed top-24 left-4 z-50 transform -translate-x-[150%] transition-all duration-300 bg-white shadow-2xl rounded-lg p-4 flex items-center gap-3 border-r-4 border-green-500 max-w-sm">
+        <div id="toastIcon" class="text-green-500 text-xl"><i class="fa-solid fa-check-circle"></i></div>
+        <div>
+            <h4 id="toastTitle" class="font-bold text-sm">إشعار</h4>
+            <p id="toastMessage" class="text-xs text-slate-500">تمت العملية</p>
+        </div>
+    </div>
+
+    <!-- MAIN CONTAINER -->
+    <main class="container mx-auto px-4 py-6 flex-grow relative">
+
+        <!-- ================= LOGIN SECTION ================= -->
+        <div id="loginSection" class="max-w-md mx-auto fade-in hidden mt-10">
+            <div class="bg-white rounded-2xl shadow-xl overflow-hidden ring-1 ring-slate-900/5">
+                <div class="bg-gradient-to-br from-primary to-teal-900 p-8 text-center text-white relative">
+                    <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
+                    <h2 class="text-2xl font-bold mb-1 relative z-10">بوابة الدخول الموحد</h2>
+                    <p class="text-teal-100 text-sm relative z-10">الرجاء إدخال بيانات السجل المدني</p>
+                </div>
+                
+                <div class="p-8 pt-6">
+                    <!-- Login Type Selector -->
+                    <div class="grid grid-cols-3 gap-2 bg-slate-100 p-1 rounded-xl mb-6">
+                        <button onclick="window.setLoginType('student')" id="tabLoginStudent" class="py-2 text-sm font-bold rounded-lg transition-all bg-white text-primary shadow-sm">طالب</button>
+                        <button onclick="window.setLoginType('teacher')" id="tabLoginTeacher" class="py-2 text-sm font-bold rounded-lg transition-all text-slate-500 hover:bg-white/50">معلم</button>
+                        <button onclick="window.setLoginType('admin')" id="tabLoginAdmin" class="py-2 text-sm font-bold rounded-lg transition-all text-slate-500 hover:bg-white/50">إدارة</button>
+                    </div>
+
+                    <form onsubmit="window.handleLogin(event)" class="space-y-5">
+                        <div class="space-y-1">
+                            <label class="text-xs font-bold text-slate-500">السجل المدني</label>
+                            <div class="relative">
+                                <input type="text" id="loginId" required class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition font-mono" placeholder="10xxxxxxxx">
+                                <i class="fa-regular fa-id-card absolute left-3 top-3 text-slate-400"></i>
+                            </div>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-xs font-bold text-slate-500">كلمة المرور</label>
+                            <div class="relative">
+                                <input type="password" id="loginPass" required class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition" placeholder="••••••••">
+                                <i class="fa-solid fa-lock absolute left-3 top-3 text-slate-400"></i>
+                            </div>
+                        </div>
+                        <button type="submit" id="btnLogin" class="w-full bg-primary hover:bg-teal-800 text-white font-bold py-3 rounded-lg shadow-lg shadow-primary/30 transition transform active:scale-[0.98] flex justify-center items-center gap-2">
+                            <span>تسجيل الدخول</span>
+                        </button>
+                    </form>
+
+                    <div class="mt-6 text-center pt-4 border-t border-slate-100">
+                        <button onclick="window.navTo('registerSection')" class="text-sm text-primary font-bold hover:underline">إنشاء حساب جديد</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= REGISTER SECTION ================= -->
+        <div id="registerSection" class="hidden max-w-3xl mx-auto fade-in">
+            <div class="bg-white rounded-2xl shadow-xl overflow-hidden ring-1 ring-slate-900/5">
+                <div class="bg-secondary p-4 flex justify-between items-center text-white">
+                    <h2 class="font-bold flex items-center gap-2"><i class="fa-solid fa-user-plus"></i> تسجيل مستخدم جديد</h2>
+                    <button onclick="window.navTo('loginSection')" class="text-slate-300 hover:text-white transition"><i class="fa-solid fa-arrow-left"></i> عودة</button>
+                </div>
+                
+                <div class="p-6 md:p-8">
+                    <!-- Type Selection -->
+                    <div class="flex justify-center gap-6 mb-8 border-b border-slate-100 pb-6">
+                        <label class="cursor-pointer group">
+                            <input type="radio" name="regType" value="student" checked onchange="window.toggleRegFields()" class="peer hidden">
+                            <div class="flex flex-col items-center gap-2 px-6 py-3 rounded-xl border-2 border-transparent peer-checked:border-primary peer-checked:bg-primary/5 transition group-hover:bg-slate-50">
+                                <i class="fa-solid fa-user-graduate text-2xl text-slate-400 peer-checked:text-primary"></i>
+                                <span class="font-bold text-sm text-slate-600 peer-checked:text-primary">طالب</span>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer group">
+                            <input type="radio" name="regType" value="teacher" onchange="window.toggleRegFields()" class="peer hidden">
+                            <div class="flex flex-col items-center gap-2 px-6 py-3 rounded-xl border-2 border-transparent peer-checked:border-primary peer-checked:bg-primary/5 transition group-hover:bg-slate-50">
+                                <i class="fa-solid fa-chalkboard-user text-2xl text-slate-400 peer-checked:text-primary"></i>
+                                <span class="font-bold text-sm text-slate-600 peer-checked:text-primary">معلم</span>
+                            </div>
+                        </label>
+                    </div>
+
+                    <form onsubmit="window.handleRegister(event)" class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <!-- Image Upload -->
+                        <div class="md:col-span-2 flex flex-col items-center mb-2">
+                            <div class="relative group cursor-pointer" onclick="document.getElementById('regPhotoInput').click()">
+                                <img id="regPhotoPreview" src="https://ui-avatars.com/api/?name=User&background=f1f5f9&color=64748b" class="w-24 h-24 rounded-full object-cover ring-4 ring-white shadow-lg">
+                                <div class="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-300">
+                                    <i class="fa-solid fa-camera text-white"></i>
+                                </div>
+                            </div>
+                            <span class="text-xs text-slate-500 mt-2">اضغط لتغيير الصورة</span>
+                            <input type="file" id="regPhotoInput" hidden accept="image/*" onchange="window.previewImage(this, 'regPhotoPreview')">
+                        </div>
+
+                        <!-- Basic Fields -->
+                        <div class="space-y-1">
+                            <label class="text-xs font-bold text-slate-600">الاسم الرباعي</label>
+                            <input type="text" id="regName" required class="w-full px-4 py-2 border rounded-lg focus:ring-primary focus:border-primary text-sm">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-xs font-bold text-slate-600">السجل المدني</label>
+                            <input type="text" id="regId" required pattern="\d+" class="w-full px-4 py-2 border rounded-lg focus:ring-primary focus:border-primary text-sm font-mono">
+                        </div>
+                        <div class="space-y-1 md:col-span-2">
+                            <label class="text-xs font-bold text-slate-600">كلمة المرور</label>
+                            <input type="password" id="regPass" required class="w-full px-4 py-2 border rounded-lg focus:ring-primary focus:border-primary text-sm">
+                        </div>
+
+                        <!-- Student Specific -->
+                        <div class="student-only md:col-span-2 grid grid-cols-2 gap-4">
+                            <div class="space-y-1">
+                                <label class="text-xs font-bold text-slate-600">الصف</label>
+                                <select id="regGrade" onchange="window.updateSections('regGrade', 'regSection')" class="w-full px-4 py-2 border rounded-lg focus:ring-primary text-sm bg-white">
+                                    <option value="1">الأول ثانوي</option>
+                                    <option value="2">الثاني ثانوي</option>
+                                    <option value="3">الثالث ثانوي</option>
+                                </select>
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-xs font-bold text-slate-600">الشعبة</label>
+                                <select id="regSection" class="w-full px-4 py-2 border rounded-lg focus:ring-primary text-sm bg-white"></select>
+                            </div>
+                        </div>
+
+                        <!-- Teacher Specific -->
+                        <div class="teacher-only hidden md:col-span-2 space-y-4 bg-slate-50 p-4 rounded-lg border border-slate-200">
+                            <div class="space-y-1">
+                                <label class="text-xs font-bold text-slate-600">التخصص</label>
+                                <input type="text" id="regSpecialty" class="w-full px-4 py-2 border rounded-lg focus:ring-primary text-sm bg-white">
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-slate-600 block">الشعب المسندة للمعلم</label>
+                                <div id="regTeacherSections" class="grid grid-cols-4 gap-2"></div>
+                            </div>
+                        </div>
+
+                        <!-- Dynamic Fields -->
+                        <div id="regDynamicFields" class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+
+                        <div class="md:col-span-2 mt-4">
+                            <button type="submit" id="btnRegSubmit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg shadow transition flex justify-center items-center gap-2">
+                                <span>حفظ البيانات وتسجيل</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= DASHBOARD ================= -->
+        <div id="dashboardSection" class="hidden fade-in space-y-6">
+            
+            <!-- User Profile Card -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="bg-slate-800 h-24 relative overflow-hidden">
+                    <div class="absolute inset-0 bg-gradient-to-r from-primary/50 to-transparent"></div>
+                </div>
+                <div class="px-6 pb-6 relative">
+                    <div class="flex flex-col md:flex-row items-center md:items-end -mt-12 gap-5 mb-6">
+                        <img id="dashPhoto" src="" class="w-24 h-24 rounded-full border-4 border-white bg-slate-100 shadow-md object-cover">
+                        <div class="flex-1 text-center md:text-right">
+                            <h2 id="dashName" class="text-2xl font-bold text-slate-800"></h2>
+                            <div class="flex items-center justify-center md:justify-start gap-2 mt-1">
+                                <span id="dashRoleBadge" class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider"></span>
+                                <span class="text-slate-400 text-xs font-mono" id="dashId"></span>
+                            </div>
+                        </div>
+                        <button onclick="window.openEditModal(window.currentUser.id)" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 px-4 py-2 rounded-lg text-sm shadow-sm transition flex items-center gap-2">
+                            <i class="fa-solid fa-user-pen"></i> تعديل
+                        </button>
+                    </div>
+
+                    <!-- Context Info -->
+                    <div id="dashContextInfo" class="grid grid-cols-1 md:grid-cols-3 gap-4 border-t border-slate-100 pt-4"></div>
+                </div>
+            </div>
+
+            <!-- ADMIN PANEL -->
+            <div id="panelAdmin" class="hidden bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="border-b border-slate-100 bg-slate-50/50 p-4 flex flex-wrap justify-between items-center gap-4">
+                    <h3 class="font-bold text-lg text-slate-700"><i class="fa-solid fa-cogs text-primary"></i> لوحة التحكم</h3>
+                    <div class="flex gap-2 text-xs">
+                        <button onclick="window.exportData()" class="bg-white border border-slate-200 hover:border-primary text-slate-600 hover:text-primary px-3 py-2 rounded-lg transition shadow-sm"><i class="fa-solid fa-download"></i> تصدير JSON</button>
+                        <button onclick="document.getElementById('fileImportJSON').click()" class="bg-white border border-slate-200 hover:border-green-600 text-slate-600 hover:text-green-600 px-3 py-2 rounded-lg transition shadow-sm"><i class="fa-solid fa-upload"></i> استيراد JSON</button>
+                        <input type="file" id="fileImportJSON" hidden accept=".json" onchange="window.importData(this)">
+                    </div>
+                </div>
+
+                <div class="p-4">
+                    <!-- Admin Tabs -->
+                    <div class="flex gap-1 bg-slate-100 p-1 rounded-lg mb-6 w-fit">
+                        <button onclick="window.setAdminTab('students')" id="btnAdmStudents" class="px-4 py-1.5 rounded-md text-sm font-bold transition bg-white shadow-sm text-primary">الطلاب</button>
+                        <button onclick="window.setAdminTab('teachers')" id="btnAdmTeachers" class="px-4 py-1.5 rounded-md text-sm font-bold transition text-slate-500 hover:bg-white/50">المعلمين</button>
+                        <button onclick="window.setAdminTab('settings')" id="btnAdmSettings" class="px-4 py-1.5 rounded-md text-sm font-bold transition text-slate-500 hover:bg-white/50">الإعدادات</button>
+                    </div>
+
+                    <!-- View: Lists -->
+                    <div id="viewAdminList">
+                        <div class="flex flex-col md:flex-row gap-3 mb-4">
+                            <div class="relative flex-1">
+                                <input type="text" id="adminSearch" onkeyup="window.renderAdminTable()" placeholder="بحث بالاسم أو السجل..." class="w-full pl-10 pr-4 py-2 border rounded-lg text-sm">
+                                <i class="fa-solid fa-search absolute left-3 top-2.5 text-slate-400"></i>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="window.exportCSV()" class="bg-green-50 text-green-700 px-4 py-2 rounded-lg text-sm font-bold hover:bg-green-100 border border-green-200"><i class="fa-solid fa-file-excel"></i> Excel</button>
+                                <button onclick="document.getElementById('fileImportCSV').click()" class="bg-blue-50 text-blue-700 px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-100 border border-blue-200"><i class="fa-solid fa-file-import"></i> استيراد</button>
+                                <input type="file" id="fileImportCSV" hidden accept=".csv" onchange="window.importCSV(this)">
+                                <button onclick="window.openAddUserModal()" class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-teal-800 shadow-sm"><i class="fa-solid fa-plus"></i> إضافة</button>
+                            </div>
+                        </div>
+                        
+                        <div class="overflow-x-auto border rounded-lg">
+                            <table class="w-full text-sm text-right">
+                                <thead class="bg-slate-50 text-slate-600 font-bold border-b">
+                                    <tr>
+                                        <th class="p-3 w-16">الصورة</th>
+                                        <th class="p-3">الاسم</th>
+                                        <th class="p-3">السجل</th>
+                                        <th class="p-3">التفاصيل</th>
+                                        <th class="p-3 w-24">إجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminTableBody" class="divide-y divide-slate-100"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- View: Settings -->
+                    <div id="viewAdminSettings" class="hidden max-w-xl">
+                        <h4 class="font-bold mb-3 text-slate-700">حقول البيانات الإضافية</h4>
+                        <div class="flex gap-2 mb-4">
+                            <select id="fieldTarget" class="bg-slate-50 border rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-primary">
+                                <option value="student">للطلاب</option>
+                                <option value="teacher">للمعلمين</option>
+                            </select>
+                            <input type="text" id="fieldName" placeholder="اسم الحقل (مثلاً: تاريخ الميلاد)" class="flex-1 bg-white border rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-primary">
+                            <button onclick="window.addField()" class="bg-slate-800 text-white px-4 py-2 rounded-lg text-sm hover:bg-slate-700">إضافة</button>
+                        </div>
+                        <div id="fieldsList" class="space-y-2"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TEACHER PANEL -->
+            <div id="panelTeacher" class="hidden bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="font-bold text-lg text-slate-700"><i class="fa-solid fa-users-viewfinder text-primary"></i> سجل متابعة الطلاب</h3>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                    <div class="md:col-span-2 relative">
+                        <input type="text" id="teacherSearch" onkeyup="window.renderTeacherStudents()" placeholder="بحث سريع..." class="w-full pl-10 pr-4 py-2 border rounded-lg text-sm outline-none focus:border-primary">
+                        <i class="fa-solid fa-search absolute left-3 top-2.5 text-slate-400"></i>
+                    </div>
+                    <select id="teacherFilterGrade" onchange="window.renderTeacherStudents()" class="border rounded-lg px-3 py-2 text-sm bg-white">
+                        <option value="all">كل الصفوف</option>
+                        <option value="1">أول ثانوي</option>
+                        <option value="2">ثاني ثانوي</option>
+                        <option value="3">ثالث ثانوي</option>
+                    </select>
+                    <select id="teacherFilterSection" onchange="window.renderTeacherStudents()" class="border rounded-lg px-3 py-2 text-sm bg-white">
+                        <option value="all">كل الشعب</option>
+                    </select>
+                </div>
+
+                <div id="teacherGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- EDIT MODAL -->
+    <div id="modalOverlay" class="fixed inset-0 modal-backdrop z-[90] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto animate-[fadeIn_0.2s_ease-out]">
+            <div class="bg-slate-800 p-4 flex justify-between items-center sticky top-0 z-10 text-white">
+                <h3 class="font-bold" id="modalTitle">تعديل بيانات</h3>
+                <button onclick="window.closeModal()" class="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center transition"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <form onsubmit="window.saveModal(event)" class="p-6 space-y-4">
+                <input type="hidden" id="modalUid">
+                
+                <div class="flex items-center gap-4 border-b border-slate-100 pb-4">
+                    <div class="relative group cursor-pointer" onclick="document.getElementById('modalPhotoInp').click()">
+                        <img id="modalPhotoPrev" src="" class="w-20 h-20 rounded-full border bg-slate-50 object-cover">
+                        <div class="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition"><i class="fa-solid fa-pen text-white"></i></div>
+                    </div>
+                    <input type="file" id="modalPhotoInp" hidden onchange="window.previewImage(this, 'modalPhotoPrev')">
+                    <div class="flex-1">
+                        <label class="block text-xs font-bold text-slate-500 mb-1">الاسم الكامل</label>
+                        <input type="text" id="modalName" required class="w-full px-3 py-2 border rounded-lg text-sm">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1">السجل المدني</label>
+                        <input type="text" id="modalId" class="w-full px-3 py-2 border rounded-lg text-sm bg-slate-50 text-slate-500 font-mono" readonly>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1">كلمة المرور</label>
+                        <input type="text" id="modalPass" required class="w-full px-3 py-2 border rounded-lg text-sm font-mono">
+                    </div>
+                </div>
+
+                <!-- Admin Role Change -->
+                <div id="modalRoleDiv" class="hidden">
+                    <label class="block text-xs font-bold text-slate-500 mb-1">نوع الحساب</label>
+                    <select id="modalRole" class="w-full px-3 py-2 border rounded-lg text-sm bg-yellow-50 border-yellow-200 text-yellow-800 font-bold">
+                        <option value="student">طالب</option>
+                        <option value="teacher">معلم</option>
+                        <option value="admin">مدير</option>
+                    </select>
+                </div>
+
+                <!-- Context Fields -->
+                <div id="modalStudent" class="hidden grid grid-cols-2 gap-4 bg-blue-50/50 p-4 rounded-lg border border-blue-100">
+                    <div>
+                        <label class="text-xs font-bold text-slate-500">الصف</label>
+                        <select id="modalGrade" onchange="window.updateSections('modalGrade', 'modalSection')" class="w-full px-3 py-2 border rounded-lg text-sm bg-white">
+                            <option value="1">أول ثانوي</option>
+                            <option value="2">ثاني ثانوي</option>
+                            <option value="3">ثالث ثانوي</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-slate-500">الشعبة</label>
+                        <select id="modalSection" class="w-full px-3 py-2 border rounded-lg text-sm bg-white"></select>
+                    </div>
+                </div>
+
+                <div id="modalTeacher" class="hidden bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-3">
+                    <div>
+                        <label class="text-xs font-bold text-slate-500">التخصص</label>
+                        <input type="text" id="modalSpecialty" class="w-full px-3 py-2 border rounded-lg text-sm bg-white">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-slate-500 block mb-2">الشعب المسندة</label>
+                        <div id="modalTeacherSecs" class="grid grid-cols-4 gap-2"></div>
+                    </div>
+                </div>
+
+                <div id="modalCustom" class="grid grid-cols-2 gap-4"></div>
+
+                <div class="pt-4 border-t border-slate-100 flex justify-end gap-2">
+                    <button type="button" onclick="window.closeModal()" class="px-5 py-2 rounded-lg text-sm font-bold text-slate-600 hover:bg-slate-100">إلغاء</button>
+                    <button type="submit" id="btnModalSave" class="px-5 py-2 rounded-lg text-sm font-bold bg-primary text-white hover:bg-teal-800 shadow-sm">حفظ التغييرات</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- LOGIC MODULE -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, query, where, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // FIREBASE CONFIG
+        const app = initializeApp({
+            apiKey: "AIzaSyBxPO6RKsQ1Cq-mqlCpFTrCuIyxnYdB37U",
+            authDomain: "studentsystem-c1ab1.firebaseapp.com",
+            databaseURL: "https://studentsystem-c1ab1-default-rtdb.firebaseio.com",
+            projectId: "studentsystem-c1ab1",
+            storageBucket: "studentsystem-c1ab1.firebasestorage.app",
+            messagingSenderId: "112215023848",
+            appId: "1:112215023848:web:0adba326a527ee7e37e95d"
+        });
+        const db = getFirestore(app);
+
+        // STATE
+        let currentUser = null;
+        let appConfig = { studentFields: [], teacherFields: [] };
+        let cachedUsers = []; // For Admin View only
+        let isNewUser = false;
+        let editTargetId = null;
+
+        // --- INIT ---
+        window.addEventListener('load', async () => {
+            // Setup UI Helpers
+            setupUI();
+            
+            // Check Session
+            const uid = sessionStorage.getItem('uid');
+            if(uid) {
+                await fetchUserAndLoad(uid);
+            } else {
+                showView('loginSection');
+                document.getElementById('appLoader').classList.add('opacity-0', 'pointer-events-none');
+            }
+        });
+
+        // --- AUTH ---
+        window.handleLogin = async (e) => {
+            e.preventDefault();
+            setLoading('btnLogin', true);
+            
+            const id = document.getElementById('loginId').value.trim();
+            const pass = document.getElementById('loginPass').value.trim();
+            const type = getActiveLoginTab(); // Helper function
+
+            try {
+                const snap = await getDoc(doc(db, "users", id));
+                if(snap.exists()) {
+                    const u = snap.data();
+                    if(u.password === pass && u.type === type) {
+                        sessionStorage.setItem('uid', id);
+                        currentUser = u;
+                        window.currentUser = u; // Global Expose
+                        showToast(`مرحباً ${u.name}`);
+                        loadDashboard();
+                    } else {
+                        showToast('بيانات الدخول غير صحيحة', 'error');
+                    }
+                } else {
+                    // Auto-create Admin if it's the first run and ID is 'admin'
+                    if(id === 'admin' && pass === '123' && type === 'admin') {
+                        const adminUser = { id: 'admin', name: 'مدير النظام', password: '123', type: 'admin', photo: 'https://ui-avatars.com/api/?name=Admin&background=0f172a&color=fff', customData: {} };
+                        await setDoc(doc(db, "users", "admin"), adminUser);
+                        currentUser = adminUser;
+                        window.currentUser = adminUser;
+                        sessionStorage.setItem('uid', 'admin');
+                        loadDashboard();
+                    } else {
+                        showToast('المستخدم غير موجود', 'error');
+                    }
+                }
+            } catch(err) {
+                console.error(err);
+                showToast('خطأ في الاتصال', 'error');
+            }
+            setLoading('btnLogin', false);
+        };
+
+        window.handleRegister = async (e) => {
+            e.preventDefault();
+            setLoading('btnRegSubmit', true);
+            
+            const id = document.getElementById('regId').value.trim();
+            
+            try {
+                const snap = await getDoc(doc(db, "users", id));
+                if(snap.exists()) {
+                    showToast('السجل المدني مسجل مسبقاً', 'error');
+                    setLoading('btnRegSubmit', false);
+                    return;
+                }
+
+                const type = document.querySelector('input[name="regType"]:checked').value;
+                const name = document.getElementById('regName').value.trim();
+                const password = document.getElementById('regPass').value.trim();
+                let photo = document.getElementById('regPhotoPreview').src;
+                if(photo.includes('ui-avatars')) photo = `https://ui-avatars.com/api/?name=${name}&background=random`;
+
+                const newUser = { id, name, password, type, photo, registeredAt: new Date().toISOString(), customData: {} };
+                
+                // Specifics
+                if(type === 'student') {
+                    newUser.grade = document.getElementById('regGrade').value;
+                    newUser.section = document.getElementById('regSection').value;
+                } else {
+                    newUser.specialty = document.getElementById('regSpecialty').value;
+                    newUser.sections = getCheckedValues('regTeacherSections');
+                }
+
+                // Custom Fields
+                const fields = type === 'student' ? appConfig.studentFields : appConfig.teacherFields;
+                fields.forEach(f => {
+                    const inp = document.querySelector(`input[data-custom="${f}"]`);
+                    if(inp) newUser.customData[f] = inp.value;
+                });
+
+                await setDoc(doc(db, "users", id), newUser);
+                showToast('تم التسجيل بنجاح');
+                window.navTo('loginSection');
+                
+            } catch(err) {
+                console.error(err);
+                showToast('فشل التسجيل', 'error');
+            }
+            setLoading('btnRegSubmit', false);
+        };
+
+        async function fetchUserAndLoad(uid) {
+            try {
+                // Get Config First
+                const confSnap = await getDoc(doc(db, "settings", "config"));
+                if(confSnap.exists()) appConfig = confSnap.data();
+                else await setDoc(doc(db, "settings", "config"), appConfig);
+
+                const snap = await getDoc(doc(db, "users", uid));
+                if(snap.exists()) {
+                    currentUser = snap.data();
+                    window.currentUser = currentUser;
+                    loadDashboard();
+                } else {
+                    sessionStorage.removeItem('uid');
+                    showView('loginSection');
+                }
+            } catch(e) {
+                console.error(e);
+                showView('loginSection');
+            } finally {
+                document.getElementById('appLoader').classList.add('opacity-0', 'pointer-events-none');
+            }
+        }
+
+        function loadDashboard() {
+            showView('dashboardSection');
+            
+            // Populate Profile
+            document.getElementById('dashName').innerText = currentUser.name;
+            document.getElementById('dashId').innerText = currentUser.id;
+            document.getElementById('dashPhoto').src = currentUser.photo;
+            
+            const roles = {admin: 'مدير النظام', teacher: 'معلم', student: 'طالب'};
+            const colors = {admin: 'bg-red-100 text-red-800', teacher: 'bg-yellow-100 text-yellow-800', student: 'bg-blue-100 text-blue-800'};
+            
+            const badge = document.getElementById('dashRoleBadge');
+            badge.innerText = roles[currentUser.type];
+            badge.className = `px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${colors[currentUser.type]}`;
+
+            // Context Info
+            const ctxBox = document.getElementById('dashContextInfo');
+            ctxBox.innerHTML = '';
+            
+            if(currentUser.type === 'student') {
+                const g = {1:'الأول', 2:'الثاني', 3:'الثالث'};
+                ctxBox.innerHTML = `
+                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 text-center">
+                        <div class="text-xs text-slate-400 font-bold mb-1">الصف الدراسي</div>
+                        <div class="font-bold text-primary">${g[currentUser.grade]} ثانوي</div>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 text-center">
+                        <div class="text-xs text-slate-400 font-bold mb-1">الشعبة</div>
+                        <div class="font-bold text-primary">رقم ${currentUser.section}</div>
+                    </div>
+                `;
+            } else if(currentUser.type === 'teacher') {
+                 ctxBox.innerHTML = `
+                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 text-center">
+                        <div class="text-xs text-slate-400 font-bold mb-1">التخصص</div>
+                        <div class="font-bold text-primary">${currentUser.specialty || 'عام'}</div>
+                    </div>
+                `;
+                document.getElementById('panelTeacher').classList.remove('hidden');
+                // Lazy load students for teacher
+                window.renderTeacherStudents(); 
+            } else if(currentUser.type === 'admin') {
+                document.getElementById('panelAdmin').classList.remove('hidden');
+                window.setAdminTab('students');
+                renderSettingsList();
+            }
+        }
+
+        // --- ADMIN FEATURES ---
+        let adminTab = 'students';
+        window.setAdminTab = async (t) => {
+            adminTab = t;
+            ['students','teachers','settings'].forEach(x => {
+                const btn = document.getElementById(`btnAdm${x.charAt(0).toUpperCase()+x.slice(1)}`);
+                if(x===t) {
+                    btn.className = 'px-4 py-1.5 rounded-md text-sm font-bold transition bg-white shadow-sm text-primary';
+                } else {
+                    btn.className = 'px-4 py-1.5 rounded-md text-sm font-bold transition text-slate-500 hover:bg-white/50';
+                }
+            });
+
+            if(t === 'settings') {
+                document.getElementById('viewAdminList').classList.add('hidden');
+                document.getElementById('viewAdminSettings').classList.remove('hidden');
+            } else {
+                document.getElementById('viewAdminSettings').classList.add('hidden');
+                document.getElementById('viewAdminList').classList.remove('hidden');
+                // Fetch Data Only When Needed (Lazy)
+                await fetchUsersForAdmin(t === 'students' ? 'student' : 'teacher');
+            }
+        };
+
+        async function fetchUsersForAdmin(type) {
+            document.getElementById('adminTableBody').innerHTML = '<tr><td colspan="5" class="p-8 text-center text-slate-400"><div class="spinner border-slate-400 mb-2"></div><br>جاري تحميل البيانات...</td></tr>';
+            
+            const q = query(collection(db, "users"), where("type", "==", type));
+            const snap = await getDocs(q);
+            cachedUsers = [];
+            snap.forEach(d => cachedUsers.push(d.data()));
+            window.renderAdminTable();
+        }
+
+        window.renderAdminTable = () => {
+            const tbody = document.getElementById('adminTableBody');
+            tbody.innerHTML = '';
+            const search = document.getElementById('adminSearch').value.toLowerCase();
+            
+            const filtered = cachedUsers.filter(u => u.name.toLowerCase().includes(search) || u.id.includes(search));
+
+            if(filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-slate-400">لا توجد بيانات</td></tr>';
+                return;
+            }
+
+            filtered.forEach(u => {
+                let info = '';
+                if(u.type === 'student') info = `<span class="bg-blue-50 text-blue-700 px-2 py-0.5 rounded text-xs font-bold">صف ${u.grade} / ش ${u.section}</span>`;
+                if(u.type === 'teacher') info = `<span class="bg-yellow-50 text-yellow-700 px-2 py-0.5 rounded text-xs font-bold">${u.specialty}</span>`;
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition border-b border-slate-50 last:border-0">
+                        <td class="p-3"><img src="${u.photo}" class="w-10 h-10 rounded-full border bg-white object-cover"></td>
+                        <td class="p-3 font-bold text-slate-700">${u.name}</td>
+                        <td class="p-3 font-mono text-slate-500">${u.id}</td>
+                        <td class="p-3">${info}</td>
+                        <td class="p-3">
+                            <button onclick="window.openEditModal('${u.id}')" class="text-blue-600 hover:bg-blue-100 p-2 rounded-lg transition"><i class="fa-solid fa-pen-to-square"></i></button>
+                            <button onclick="window.deleteUser('${u.id}')" class="text-red-600 hover:bg-red-100 p-2 rounded-lg transition"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+        };
+
+        // --- TEACHER VIEW ---
+        window.renderTeacherStudents = async () => {
+            const grid = document.getElementById('teacherGrid');
+            const search = document.getElementById('teacherSearch').value.toLowerCase();
+            const grade = document.getElementById('teacherFilterGrade').value;
+            const sec = document.getElementById('teacherFilterSection').value;
+            
+            // Only fetch once or use simplified cache logic for teacher view to keep it fast
+            // Ideally, query firestore with composite index, but for this demo, client side filter on 'student' type collection is safest for missing indexes.
+            
+            if(grid.innerHTML === '') grid.innerHTML = '<div class="col-span-3 text-center py-10"><div class="spinner border-slate-400"></div></div>';
+
+            const q = query(collection(db, "users"), where("type", "==", "student"));
+            const snap = await getDocs(q);
+            let students = [];
+            snap.forEach(d => students.push(d.data()));
+
+            // Filter
+            students = students.filter(s => {
+                return (s.name.toLowerCase().includes(search) || s.id.includes(search)) &&
+                       (grade === 'all' || s.grade == grade) &&
+                       (sec === 'all' || s.section == sec);
+            });
+
+            grid.innerHTML = '';
+            if(students.length === 0) {
+                grid.innerHTML = '<div class="col-span-3 text-center py-10 text-slate-400">لا يوجد طلاب مطابقين</div>';
+                return;
+            }
+
+            students.forEach(s => {
+                grid.innerHTML += `
+                    <div class="bg-slate-50 border border-slate-100 rounded-xl p-4 flex gap-4 hover:shadow-md transition group">
+                        <img src="${s.photo}" class="w-16 h-16 rounded-full object-cover border-2 border-white shadow-sm group-hover:scale-105 transition">
+                        <div>
+                            <h4 class="font-bold text-slate-800 text-lg">${s.name}</h4>
+                            <p class="text-slate-400 text-xs font-mono mb-2">${s.id}</p>
+                            <span class="bg-white border border-slate-200 text-primary px-2 py-1 rounded text-xs font-bold">
+                                الصف ${s.grade} - شعبة ${s.section}
+                            </span>
+                        </div>
+                    </div>
+                `;
+            });
+        };
+
+        // --- MODAL & EDIT ---
+        window.openEditModal = async (uid) => {
+            isNewUser = false;
+            editTargetId = uid;
+            
+            const snap = await getDoc(doc(db, "users", uid));
+            const u = snap.data();
+
+            document.getElementById('modalTitle').innerText = `تعديل: ${u.name}`;
+            document.getElementById('modalId').value = u.id;
+            document.getElementById('modalId').readOnly = true;
+            document.getElementById('modalId').classList.add('bg-slate-50', 'text-slate-500');
+            document.getElementById('modalName').value = u.name;
+            document.getElementById('modalPass').value = u.password;
+            document.getElementById('modalPhotoPrev').src = u.photo;
+
+            // Role Handling
+            const roleDiv = document.getElementById('modalRoleDiv');
+            const roleSel = document.getElementById('modalRole');
+            if(currentUser.type === 'admin' && currentUser.id !== uid) {
+                roleDiv.classList.remove('hidden');
+                roleSel.value = u.type;
+                roleSel.onchange = (e) => toggleModalContext(e.target.value);
+            } else {
+                roleDiv.classList.add('hidden');
+            }
+
+            toggleModalContext(u.type);
+
+            // Populate specifics
+            if(u.type === 'student') {
+                document.getElementById('modalGrade').value = u.grade;
+                window.updateSections('modalGrade', 'modalSection');
+                document.getElementById('modalSection').value = u.section;
+            } else if(u.type === 'teacher') {
+                document.getElementById('modalSpecialty').value = u.specialty || '';
+                document.querySelectorAll('#modalTeacherSecs input').forEach(c => c.checked = (u.sections||[]).includes(c.value));
+            }
+
+            // Custom fields
+            renderCustomInputs('modalCustom', u.type, u.customData);
+            
+            document.getElementById('modalOverlay').classList.remove('hidden');
+        };
+
+        window.openAddUserModal = () => {
+            isNewUser = true;
+            editTargetId = null;
+            document.forms[1].reset(); // Reset the modal form (index 1)
+            document.getElementById('modalTitle').innerText = "إضافة مستخدم جديد";
+            document.getElementById('modalId').readOnly = false;
+            document.getElementById('modalId').classList.remove('bg-slate-50', 'text-slate-500');
+            document.getElementById('modalPhotoPrev').src = "https://ui-avatars.com/api/?name=New&background=random";
+            
+            document.getElementById('modalRoleDiv').classList.remove('hidden');
+            const r = document.getElementById('modalRole');
+            r.value = 'student';
+            r.onchange = (e) => toggleModalContext(e.target.value);
+            toggleModalContext('student');
+            
+            document.getElementById('modalOverlay').classList.remove('hidden');
+        };
+
+        window.saveModal = async (e) => {
+            e.preventDefault();
+            setLoading('btnModalSave', true);
+            
+            const id = isNewUser ? document.getElementById('modalId').value.trim() : editTargetId;
+            const role = isNewUser || (currentUser.type==='admin' && currentUser.id !== id) ? document.getElementById('modalRole').value : (isNewUser ? 'student' : (await getDoc(doc(db,"users",id))).data().type);
+
+            // Check ID collision
+            if(isNewUser) {
+                const check = await getDoc(doc(db, "users", id));
+                if(check.exists()) { showToast('السجل موجود مسبقاً', 'error'); setLoading('btnModalSave',false); return; }
+            }
+
+            const data = {
+                id,
+                type: role,
+                name: document.getElementById('modalName').value.trim(),
+                password: document.getElementById('modalPass').value.trim(),
+                photo: document.getElementById('modalPhotoPrev').src,
+                registeredAt: new Date().toISOString(),
+                customData: {}
+            };
+
+            // Context
+            if(role === 'student') {
+                data.grade = document.getElementById('modalGrade').value;
+                data.section = document.getElementById('modalSection').value;
+            } else if(role === 'teacher') {
+                data.specialty = document.getElementById('modalSpecialty').value;
+                data.sections = getCheckedValues('modalTeacherSecs');
+            }
+
+            // Custom Data
+            const fields = role === 'student' ? appConfig.studentFields : appConfig.teacherFields;
+            fields.forEach(f => {
+                const inp = document.querySelector(`#modalCustom input[data-custom="${f}"]`);
+                if(inp) data.customData[f] = inp.value;
+            });
+
+            await setDoc(doc(db, "users", id), data);
+            
+            // UI Updates
+            if(id === currentUser.id) { currentUser = data; loadDashboard(); }
+            if(currentUser.type === 'admin') await fetchUsersForAdmin(role);
+
+            showToast('تم الحفظ بنجاح');
+            window.closeModal();
+            setLoading('btnModalSave', false);
+        };
+
+        window.deleteUser = async (id) => {
+            if(!confirm('حذف نهائي لهذا المستخدم؟')) return;
+            if(id === currentUser.id) return showToast('لا يمكنك حذف نفسك', 'error');
+            await deleteDoc(doc(db, "users", id));
+            await fetchUsersForAdmin(adminTab === 'students' ? 'student' : 'teacher');
+            showToast('تم الحذف');
+        };
+
+        // --- SETTINGS ---
+        function renderSettingsList() {
+            const el = document.getElementById('fieldsList');
+            el.innerHTML = '';
+            appConfig.studentFields.forEach((f, i) => el.innerHTML += makeFieldRow(f, 'student', i));
+            appConfig.teacherFields.forEach((f, i) => el.innerHTML += makeFieldRow(f, 'teacher', i));
+        }
+        const makeFieldRow = (t, type, i) => `
+            <div class="flex justify-between items-center bg-slate-50 p-2 rounded border text-sm">
+                <span>${t} <span class="text-xs text-slate-400">(${type==='student'?'طالب':'معلم'})</span></span>
+                <button onclick="window.delField('${type}', ${i})" class="text-red-500 hover:bg-red-50 p-1 rounded"><i class="fa-solid fa-trash"></i></button>
+            </div>`;
+
+        window.addField = async () => {
+            const t = document.getElementById('fieldTarget').value;
+            const n = document.getElementById('fieldName').value.trim();
+            if(!n) return;
+            
+            if(t === 'student') appConfig.studentFields.push(n);
+            else appConfig.teacherFields.push(n);
+            
+            await updateDoc(doc(db, "settings", "config"), appConfig);
+            renderSettingsList();
+            document.getElementById('fieldName').value = '';
+        };
+        window.delField = async (t, i) => {
+            if(t==='student') appConfig.studentFields.splice(i, 1);
+            else appConfig.teacherFields.splice(i, 1);
+            await updateDoc(doc(db, "settings", "config"), appConfig);
+            renderSettingsList();
+        };
+
+        // --- IMPORT/EXPORT (Standard + CSV) ---
+        window.exportData = async () => {
+            const snap = await getDocs(collection(db, "users"));
+            const users = []; snap.forEach(d=>users.push(d.data()));
+            const blob = new Blob([JSON.stringify({users, config: appConfig})], {type: "application/json"});
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'backup.json'; a.click();
+        }
+        window.importData = (input) => {
+            const f = input.files[0]; if(!f) return;
+            const r = new FileReader();
+            r.onload = async (e) => {
+                const d = JSON.parse(e.target.result);
+                const b = writeBatch(db);
+                if(d.config) b.set(doc(db, "settings", "config"), d.config);
+                d.users.forEach(u => b.set(doc(db, "users", u.id), u));
+                await b.commit();
+                alert('تم الاستيراد. سيتم تحديث الصفحة.');
+                location.reload();
+            };
+            r.readAsText(f);
+        }
+        window.exportCSV = () => {
+            const type = adminTab === 'students' ? 'student' : 'teacher';
+            let csv = "\uFEFFالسجل,الاسم,كلمة المرور,التفاصيل\n";
+            cachedUsers.forEach(u => {
+                const det = type==='student' ? `${u.grade}-${u.section}` : u.specialty;
+                csv += `${u.id},${u.name},${u.password},${det}\n`;
+            });
+            const a = document.createElement('a'); a.href = 'data:text/csv;charset=utf-8,'+encodeURI(csv); a.download = 'data.csv'; a.click();
+        }
+
+        // --- HELPER FUNCTIONS ---
+        window.setLoginType = (t) => {
+            ['student','teacher','admin'].forEach(x => {
+                const btn = document.getElementById(`tabLogin${x.charAt(0).toUpperCase()+x.slice(1)}`);
+                if(x===t) { btn.classList.add('bg-white','text-primary','shadow-sm'); btn.classList.remove('text-slate-500','hover:bg-white/50'); btn.dataset.active="true"; }
+                else { btn.classList.remove('bg-white','text-primary','shadow-sm'); btn.classList.add('text-slate-500','hover:bg-white/50'); delete btn.dataset.active; }
+            });
+        };
+        const getActiveLoginTab = () => {
+            if(document.getElementById('tabLoginStudent').dataset.active) return 'student';
+            if(document.getElementById('tabLoginTeacher').dataset.active) return 'teacher';
+            return 'admin';
+        };
+
+        window.toggleRegFields = () => {
+            const t = document.querySelector('input[name="regType"]:checked').value;
+            document.querySelectorAll('.student-only').forEach(e => e.classList.toggle('hidden', t!=='student'));
+            document.querySelectorAll('.teacher-only').forEach(e => e.classList.toggle('hidden', t!=='teacher'));
+            window.updateSections('regGrade','regSection');
+            renderCustomInputs('regDynamicFields', t);
+        };
+
+        window.updateSections = (gId, sId) => {
+            const g = document.getElementById(gId).value;
+            const s = document.getElementById(sId);
+            s.innerHTML = '';
+            let start=1, end=4;
+            if(g==2) {start=5;end=8;} if(g==3) {start=9;end=12;}
+            for(let i=start; i<=end; i++) s.innerHTML += `<option value="${i}">شعبة ${i}</option>`;
+        };
+
+        // Checkbox Gen
+        const genChecks = (id) => {
+            const el = document.getElementById(id); if(!el) return;
+            el.innerHTML = '';
+            for(let i=1; i<=12; i++) el.innerHTML += `<label class="flex items-center gap-2 text-xs font-bold cursor-pointer bg-white p-2 rounded border hover:border-primary"><input type="checkbox" value="${i}" class="text-primary rounded focus:ring-0"> شعبة ${i}</label>`;
+        };
+        const populateFilter = () => {
+            const el = document.getElementById('teacherFilterSection');
+            for(let i=1; i<=12; i++) el.innerHTML += `<option value="${i}">شعبة ${i}</option>`;
+        }
+
+        // Setup
+        function setupUI() {
+            window.setLoginType('student');
+            genChecks('regTeacherSections');
+            genChecks('modalTeacherSecs');
+            populateFilter();
+        }
+
+        // Utils
+        window.navTo = (id) => {
+            ['loginSection','registerSection'].forEach(s => document.getElementById(s).classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
+        };
+        function showView(id) {
+            ['loginSection','registerSection','dashboardSection'].forEach(s => document.getElementById(s).classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
+            if(id === 'dashboardSection') {
+                document.getElementById('logoutBtn').classList.remove('hidden');
+            } else {
+                document.getElementById('logoutBtn').classList.add('hidden');
+            }
+        }
+        function toggleModalContext(type) {
+            document.getElementById('modalStudent').classList.toggle('hidden', type!=='student');
+            document.getElementById('modalTeacher').classList.toggle('hidden', type!=='teacher');
+            renderCustomInputs('modalCustom', type);
+        }
+        function renderCustomInputs(id, type, vals={}) {
+            const el = document.getElementById(id);
+            el.innerHTML = '';
+            const f = type === 'student' ? appConfig.studentFields : appConfig.teacherFields;
+            f.forEach(k => el.innerHTML += `<div><label class="text-xs font-bold text-slate-500">${k}</label><input type="text" data-custom="${k}" value="${vals[k]||''}" class="w-full px-3 py-2 border rounded-lg text-sm"></div>`);
+        }
+        window.closeModal = () => document.getElementById('modalOverlay').classList.add('hidden');
+        window.appLogout = () => { sessionStorage.removeItem('uid'); location.reload(); };
+        window.previewImage = (inp, imgId) => { if(inp.files[0]) { const r=new FileReader(); r.onload=e=>document.getElementById(imgId).src=e.target.result; r.readAsDataURL(inp.files[0]); } };
+        function getCheckedValues(id) { return Array.from(document.querySelectorAll(`#${id} input:checked`)).map(c=>c.value); }
+        function setLoading(btnId, state) {
+            const b = document.getElementById(btnId);
+            if(state) { b.dataset.old = b.innerHTML; b.innerHTML = '<div class="spinner"></div>'; b.disabled = true; }
+            else { b.innerHTML = b.dataset.old; b.disabled = false; }
+        }
+        function showToast(msg, type='success') {
+            const t = document.getElementById('toast');
+            document.getElementById('toastTitle').innerText = type==='error'?'خطأ':'تم بنجاح';
+            document.getElementById('toastMessage').innerText = msg;
+            document.getElementById('toastIcon').className = type==='error'?'text-red-500 text-xl':'text-green-500 text-xl';
+            document.getElementById('toastIcon').innerHTML = type==='error'?'<i class="fa-solid fa-circle-xmark"></i>':'<i class="fa-solid fa-circle-check"></i>';
+            t.classList.remove('border-green-500','border-red-500');
+            t.classList.add(type==='error'?'border-red-500':'border-green-500');
+            
+            t.classList.remove('-translate-x-[150%]');
+            setTimeout(() => t.classList.add('-translate-x-[150%]'), 3000);
+        }
+    </script>
+</body>
+</html>
+

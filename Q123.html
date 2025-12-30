@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>مقياس الطلاقة - قارئ النجوم</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #3498db;
+            --success: #27ae60;
+            --warning: #f1c40f;
+            --danger: #e74c3c;
+            --highlight: #ffe600;
+            --bg-color: #f0f4f8;
+            --card-bg: #ffffff;
+            --text-color: #2c3e50;
+            --read-color: #e8f5e9; /* لون خلفية للمقالات المقروءة */
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            user-select: none;
+        }
+
+        /* --- الهيدر --- */
+        .header-area {
+            width: 100%;
+            padding: 15px 20px;
+            background: white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            position: sticky;
+            top: 0;
+        }
+
+        .app-title { font-size: 1.1rem; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 5px; }
+
+        .stats-badge {
+            background: #e3f2fd;
+            color: var(--accent);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            border: 1px solid #bbdefb;
+            display: flex; gap: 5px; align-items: center;
+        }
+
+        /* --- لوحة النصوص --- */
+        .dashboard-container {
+            width: 100%;
+            max-width: 1000px;
+            padding: 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+        }
+        
+        .filter-btn {
+            padding: 8px 20px;
+            border-radius: 25px;
+            border: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
+            font-size: 0.95rem;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .filter-btn:hover { background: #f8f9fa; }
+        .filter-btn.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 4px 6px rgba(44, 62, 80, 0.2); }
+
+        .texts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            width: 100%;
+        }
+
+        .text-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.03);
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            display: flex;
+            flex-direction: column;
+            height: 220px;
+            position: relative;
+            overflow: hidden;
+        }
+        .text-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.08); border-color: var(--accent); }
+
+        /* تمييز المقروء */
+        .text-card.is-read {
+            background: linear-gradient(to bottom right, #ffffff, #f1f8e9);
+            border-color: var(--success);
+        }
+        .text-card.is-read::after {
+            content: "✓";
+            position: absolute;
+            top: 10px; left: 10px;
+            background: var(--success);
+            color: white;
+            width: 25px; height: 25px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.9rem;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(39, 174, 96, 0.3);
+        }
+
+        .level-badge {
+            position: absolute; top: 15px; right: 15px;
+            padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 800; color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .level-easy { background-color: var(--success); }
+        .level-medium { background-color: var(--warning); color: #5d4037; }
+        .level-hard { background-color: var(--danger); }
+
+        .text-title { font-weight: 800; margin-top: 25px; margin-bottom: 10px; font-size: 1.2rem; color: var(--primary); }
+        
+        .read-count-badge {
+            font-size: 0.75rem; color: var(--success); font-weight: bold;
+            background: #e8f5e9; padding: 2px 8px; border-radius: 4px; display: inline-block; margin-bottom: 8px;
+        }
+
+        .text-preview {
+            font-size: 0.95rem; color: #636e72; line-height: 1.6;
+            overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+            flex: 1;
+        }
+
+        .text-meta {
+            margin-top: 15px; padding-top: 10px; border-top: 1px solid #f1f2f6;
+            font-size: 0.85rem; color: #95a5a6; display: flex; justify-content: space-between; align-items: center;
+        }
+
+        /* --- شاشة القراءة --- */
+        .game-section {
+            display: none; width: 100%; height: 100vh; position: fixed; top: 0; left: 0;
+            background: var(--bg-color); z-index: 200; flex-direction: column; align-items: center;
+        }
+
+        .game-header {
+            width: 100%; padding: 15px 20px; background: white;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .game-controls { display: flex; gap: 10px; }
+        .icon-btn { background: #f0f2f5; border: none; width: 45px; height: 45px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; transition: all 0.2s; }
+        .icon-btn:hover { transform: scale(1.1); background: #e4e6eb; }
+        .icon-btn.active { background: var(--primary); color: white; box-shadow: 0 4px 10px rgba(44, 62, 80, 0.3); }
+
+        .text-reader-container {
+            flex: 1; width: 95%; max-width: 900px; background: white; margin: 20px 0;
+            border-radius: 20px; padding: 40px;
+            font-size: 2rem; line-height: 2.2; text-align: justify;
+            overflow-y: auto; border: 1px solid white; box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            position: relative; transition: all 0.3s;
+        }
+
+        /* وضع التركيز */
+        .focus-mode .word-span { opacity: 0.15; filter: blur(1.5px); transition: all 0.4s; }
+        .focus-mode .word-current { opacity: 1; filter: blur(0); transform: scale(1.1); font-weight: bold; }
+        .focus-mode .word-correct { opacity: 0.6; filter: blur(0); }
+
+        .word-span {
+            padding: 4px 6px; border-radius: 6px; margin: 0 2px; display: inline-block;
+            border-bottom: 3px solid transparent; color: var(--text-color); transition: all 0.2s;
+            cursor: default;
+        }
+        
+        .word-current { background-color: var(--highlight); color: #000; border-bottom-color: #f39c12; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .word-correct { color: var(--success); }
+
+        /* الشريط السفلي */
+        .bottom-bar {
+            width: 100%; background: white; padding: 15px 30px;
+            display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.05); border-radius: 20px 20px 0 0;
+        }
+        .timer-display { font-size: 1.8rem; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 10px; font-variant-numeric: tabular-nums; }
+        
+        .mic-wrapper { position: relative; width: 70px; height: 70px; display: flex; align-items: center; justify-content: center; margin-top: -35px; background: white; border-radius: 50%; padding: 5px; box-shadow: 0 -5px 10px rgba(0,0,0,0.05); }
+        .mic-indicator {
+            width: 100%; height: 100%; background: var(--accent); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; font-size: 2rem; color: white;
+            transition: all 0.3s; box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
+        .mic-active { background: #e74c3c; animation: pulse 1.5s infinite; box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4); }
+        @keyframes pulse { 0% {transform: scale(1);} 50% {transform: scale(1.1);} 100% {transform: scale(1);} }
+
+        /* المودال */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 3000; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s; }
+        .modal-overlay.show { opacity: 1; }
+        .modal-content { background: white; width: 90%; max-width: 450px; border-radius: 25px; padding: 40px 30px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.2); transform: translateY(20px); transition: transform 0.3s; }
+        .modal-overlay.show .modal-content { transform: translateY(0); }
+        
+        .encouragement-title { font-size: 2rem; color: var(--success); margin: 0; margin-bottom: 10px; }
+        .encouragement-subtitle { color: #7f8c8d; margin-bottom: 25px; }
+        
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
+        .stat-box { background: #f8f9fa; padding: 15px; border-radius: 15px; }
+        .stat-val { font-size: 1.8rem; font-weight: 800; color: var(--primary); }
+        .stat-label { font-size: 0.85rem; color: #95a5a6; }
+
+        .btn-main { background: var(--primary); color: white; border: none; padding: 15px 40px; border-radius: 50px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: transform 0.2s; box-shadow: 0 5px 15px rgba(44, 62, 80, 0.3); }
+        .btn-main:hover { transform: translateY(-2px); }
+
+        .countdown-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); display: none; justify-content: center; align-items: center; z-index: 50; }
+        .count-num { font-size: 8rem; color: var(--accent); font-weight: 800; animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes popIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        /* الإدارة */
+        textarea { width: 100%; height: 120px; padding: 15px; border: 2px solid #eee; border-radius: 12px; font-family: inherit; margin-bottom: 15px; resize: none; }
+        input[type="text"], select { width: 100%; padding: 15px; border: 2px solid #eee; border-radius: 12px; margin-bottom: 15px; }
+        input:focus, textarea:focus { outline: none; border-color: var(--accent); }
+
+    </style>
+</head>
+<body>
+
+    <div class="header-area">
+        <div class="app-title">⭐ قارئ النجوم</div>
+        <div style="display:flex; align-items:center; gap:10px;">
+            <div class="stats-badge">📚 مقروء: <span id="total-read-count">0</span></div>
+            <button onclick="openAdmin()" style="background:white; border:1px solid #eee; padding:8px; border-radius:10px; cursor:pointer; font-size:1.2rem;">⚙️</button>
+        </div>
+    </div>
+
+    <!-- 1. الشاشة الرئيسية: مكتبة النصوص -->
+    <div class="dashboard-container" id="dashboard">
+        <div style="text-align: center; margin-bottom: 30px;">
+            <h2 style="margin:0 0 10px 0; color:var(--primary);">مكتبة القراءة الممتعة</h2>
+            <p style="color:#7f8c8d; margin:0;">اختر قصة واستمتع بقراءتها كاملة بصوتك العذب</p>
+        </div>
+        
+        <div class="filter-tabs">
+            <button class="filter-btn active" onclick="filterTexts('all', this)">الكل</button>
+            <button class="filter-btn" onclick="filterTexts('easy', this)">🟢 مستوى أول</button>
+            <button class="filter-btn" onclick="filterTexts('medium', this)">🟡 مستوى ثاني</button>
+            <button class="filter-btn" onclick="filterTexts('hard', this)">🔴 مستوى ثالث</button>
+        </div>
+
+        <div class="texts-grid" id="texts-grid"></div>
+    </div>
+
+    <!-- 2. شاشة القراءة -->
+    <div class="game-section" id="game-section">
+        <div class="game-header">
+            <button onclick="exitGame()" style="background:none; border:none; font-size:1.5rem; width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; color:#7f8c8d;">✕</button>
+            
+            <div class="game-controls">
+                <button id="focus-btn" class="icon-btn" onclick="toggleFocusMode()" title="وضع التركيز">👁️</button>
+            </div>
+            
+            <div style="font-weight:bold; color:var(--success); font-size:0.9rem;">تقدمك: <span id="progress-percent">0%</span></div>
+        </div>
+
+        <div class="text-reader-container" id="text-display"></div>
+
+        <div class="bottom-bar">
+            <div class="timer-display">
+                <span style="font-size:1rem; color:#bdc3c7;">الوقت</span>
+                <span id="timer-val">00:00</span>
+            </div>
+            
+            <div class="mic-wrapper">
+                <div id="mic-indicator" class="mic-indicator">🎙️</div>
+            </div>
+
+            <div style="font-size:0.8rem; color:#95a5a6; width:80px; text-align:left;">
+                <span id="debug-word" style="opacity:0.5;">...</span>
+            </div>
+        </div>
+
+        <div id="countdown-layer" class="countdown-layer">
+            <div id="countdown-val" class="count-num">3</div>
+        </div>
+    </div>
+
+    <!-- نافذة النتيجة والتحفيز -->
+    <div id="result-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div style="font-size:4rem; margin-bottom:10px;">🎉</div>
+            <h2 class="encouragement-title" id="encourage-msg">أحسنت!</h2>
+            <div class="encouragement-subtitle">أنهيت قراءة النص بالكامل</div>
+            
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-val" id="final-time">00:00</div>
+                    <div class="stat-label">الوقت المستغرق</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-val" id="text-repeats" style="color:var(--accent);">1</div>
+                    <div class="stat-label">مرات القراءة</div>
+                </div>
+            </div>
+
+            <div style="background:#f0f8ff; padding:10px; border-radius:10px; margin-bottom:20px; font-size:0.9rem; color:#555;">
+                ✨ كلما قرأت أكثر، أصبحت طلاقتك أفضل!
+            </div>
+
+            <button class="btn-main" onclick="closeResult()">العودة للمكتبة</button>
+        </div>
+    </div>
+
+    <!-- نافذة كلمة المرور -->
+    <div id="pass-modal" class="modal-overlay">
+        <div class="modal-content" style="max-width:350px;">
+            <h3>🔐 بوابة المعلم</h3>
+            <p style="color:#777; font-size:0.9rem; margin-bottom:15px;">أدخل الرمز السري للتعديل على المحتوى</p>
+            <input type="password" id="admin-pass" placeholder="الرمز السري" style="text-align:center; font-size:1.2rem; letter-spacing:5px;">
+            <button class="btn-main" onclick="checkPass()" style="width:100%;">دخول</button>
+            <button onclick="document.getElementById('pass-modal').classList.remove('show'); setTimeout(()=>document.getElementById('pass-modal').style.display='none',300);" style="background:none; border:none; color:#7f8c8d; margin-top:15px; cursor:pointer;">إلغاء</button>
+        </div>
+    </div>
+
+    <!-- لوحة التحكم -->
+    <div id="admin-modal" class="modal-overlay">
+        <div class="modal-content" style="max-width:600px; text-align:right;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:20px; border-bottom:1px solid #eee; padding-bottom:10px;">
+                <h3 style="margin:0; color:var(--primary);">⚙️ إدارة القصص والمقالات</h3>
+                <button onclick="closeAdmin()" style="color:red; background:none; border:none; font-size:1.5rem; cursor:pointer;">✕</button>
+            </div>
+
+            <div style="max-height:60vh; overflow-y:auto; padding:5px;">
+                <label style="font-weight:bold; display:block; margin-bottom:5px;">إضافة نص جديد:</label>
+                <input type="text" id="new-text-title" placeholder="عنوان القصة...">
+                <select id="new-text-level">
+                    <option value="easy">🟢 مستوى أول (سهل)</option>
+                    <option value="medium">🟡 مستوى ثاني (متوسط)</option>
+                    <option value="hard">🔴 مستوى ثالث (متقدم)</option>
+                </select>
+                <textarea id="new-text-content" placeholder="اكتب نص القصة هنا..."></textarea>
+                <button onclick="addNewText()" class="btn-main" style="width:100%; margin-top:5px; font-size:0.9rem; padding:10px;">+ إضافة للمكتبة</button>
+                
+                <h4 style="margin-top:30px; margin-bottom:10px; color:var(--primary);">المكتبة الحالية:</h4>
+                <div id="admin-texts-list"></div>
+                
+                <div style="margin-top:20px; display:flex; gap:10px; border-top:1px solid #eee; padding-top:20px;">
+                    <button onclick="restoreDefaultTexts()" style="flex:1; padding:10px; background:#bdc3c7; color:white; border:none; border-radius:10px; cursor:pointer;">استعادة القصص الأصلية</button>
+                    <button onclick="resetProgress()" style="flex:1; padding:10px; background:#e74c3c; color:white; border:none; border-radius:10px; cursor:pointer;">تصفير تقدم الطلاب</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- البيانات ---
+        let texts = [];
+        let currentFilter = 'all';
+
+        // --- متغيرات اللعب ---
+        let currentTextObj = null;
+        let currentTextWords = []; 
+        let currentWordIndex = 0;
+        let timerSeconds = 0; // Stopwatch (count up)
+        let timerInterval = null;
+        let recognition;
+        let isRunning = false;
+        let focusMode = false;
+
+        function init() {
+            loadData();
+            setupSpeech();
+        }
+
+        function loadData() {
+            // تخزين النصوص
+            const tData = localStorage.getItem('star_reader_texts_v1');
+            if (tData) {
+                texts = JSON.parse(tData);
+            } else {
+                texts = getDefaultTexts();
+                saveTexts();
+            }
+            renderDashboard();
+            updateTotalReadCount();
+        }
+
+        function saveTexts() { 
+            localStorage.setItem('star_reader_texts_v1', JSON.stringify(texts)); 
+        }
+
+        function updateTotalReadCount() {
+            const total = texts.reduce((acc, curr) => acc + (curr.readCount || 0), 0);
+            document.getElementById('total-read-count').innerText = total;
+        }
+
+        // --- 10 مقالات متنوعة ---
+        function getDefaultTexts() {
+            return [
+                // مستوى سهل
+                { id: 101, level: "easy", readCount: 0, title: "القطة نوسة", content: "كانت القطة نوسة تحب اللعب بالكرة الصوفية الملونة. في كل صباح تجري نوسة خلف الكرة في حديقة المنزل بسعادة ومرح." },
+                { id: 102, level: "easy", readCount: 0, title: "أحب مدرستي", content: "مدرستي جميلة ونظيفة، فيها أتعلم القراءة والكتابة والرسم. أنا أحب معلمتي وأصدقائي، ونلعب معاً في وقت الفسحة." },
+                { id: 103, level: "easy", readCount: 0, title: "العصفور الصغير", content: "سقط عصفور صغير من العش، شاهده أحمد وحمله برفق. أعاد أحمد العصفور إلى أمه، ففرحت الأم وغردت بصوت جميل." },
+                { id: 104, level: "easy", readCount: 0, title: "الشمس والقمر", content: "تشرق الشمس في الصباح لتعطينا النور والدفء. ويظهر القمر في الليل لينير الظلام وتلمع حوله النجوم كأنها مصابيح صغيرة." },
+                
+                // مستوى متوسط
+                { id: 201, level: "medium", readCount: 0, title: "رحلة إلى الشاطئ", content: "في عطلة نهاية الأسبوع، ذهبت العائلة إلى شاطئ البحر. كان الموج هادئاً والرمال ذهبية ناعمة. بنى الأطفال قلعة كبيرة من الرمال وزينوها بالأصداف البحرية الملونة." },
+                { id: 202, level: "medium", readCount: 0, title: "أهمية الرياضة", content: "الرياضة مفيدة جداً لصحة الإنسان، فهي تقوي العضلات وتنشط العقل. ممارسة الرياضة بانتظام تجعل الجسم قوياً وتحمينا من الأمراض، كما أنها تشعرنا بالسعادة والنشاط طوال اليوم." },
+                { id: 203, level: "medium", readCount: 0, title: "النملة المجتهدة", content: "كانت النملة الصغيرة تجمع الحبوب في فصل الصيف لتأكلها في الشتاء. سألتها الفراشة: لماذا لا تلعبين معنا؟ قالت النملة: العمل أولاً ثم اللعب، فالاجتهاد سر النجاح." },
+                
+                // مستوى صعب
+                { id: 301, level: "hard", readCount: 0, title: "تكنولوجيا المستقبل", content: "يشهد العالم تطوراً هائلاً في مجال التكنولوجيا والذكاء الاصطناعي. أصبحت الروبوتات تساعد الإنسان في إجراء العمليات الدقيقة وفي المصانع الكبرى. هذا التطور يفتح آفاقاً جديدة للبشرية ويجعل حياتنا أسهل وأكثر سرعة." },
+                { id: 302, level: "hard", readCount: 0, title: "الحفاظ على البيئة", content: "البيئة هي المكان الذي نعيش فيه، وحمايتها واجب على كل فرد. يجب علينا تقليل التلوث وزراعة الأشجار، وعدم رمي النفايات في الأماكن العامة. الحفاظ على كوكب الأرض يضمن حياة صحية ومستقرة للأجيال القادمة." },
+                { id: 303, level: "hard", readCount: 0, title: "تاريخ الكتابة", content: "بدأت الكتابة قديماً بالرسم على جدران الكهوف، ثم تطورت إلى رموز وحروف. اخترع القدماء الورق والحبر لتدوين العلوم والمعرفة. بفضل الكتابة، استطعنا معرفة أخبار الأمم السابقة وحفظ تاريخ البشرية من الضياع." }
+            ];
+        }
+
+        // --- لوحة القيادة ---
+        function filterTexts(level, btn) {
+            currentFilter = level;
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderDashboard();
+        }
+
+        function renderDashboard() {
+            const grid = document.getElementById('texts-grid');
+            grid.innerHTML = "";
+            
+            const filteredTexts = currentFilter === 'all' ? texts : texts.filter(t => t.level === currentFilter);
+            
+            if(filteredTexts.length === 0) {
+                grid.innerHTML = `<div style="text-align:center; width:100%; grid-column:1/-1; padding:40px; color:#bdc3c7;">لا توجد قصص في هذا المستوى حالياً.</div>`;
+                return;
+            }
+
+            filteredTexts.forEach((txt) => {
+                const wordCount = txt.content.trim().split(/\s+/).length;
+                let badgeClass = "level-easy";
+                let levelText = "مستوى أول";
+                if(txt.level === 'medium') { badgeClass = "level-medium"; levelText = "مستوى ثاني"; }
+                if(txt.level === 'hard') { badgeClass = "level-hard"; levelText = "مستوى ثالث"; }
+
+                const isRead = (txt.readCount && txt.readCount > 0);
+                const readClass = isRead ? 'is-read' : '';
+                const readBadgeHTML = isRead ? `<div class="read-count-badge">👍 قُرئت ${txt.readCount} مرات</div>` : '';
+
+                grid.innerHTML += `
+                    <div class="text-card ${readClass}" onclick="prepareGame(${txt.id})">
+                        <div class="level-badge ${badgeClass}">${levelText}</div>
+                        <div class="text-title">${txt.title}</div>
+                        ${readBadgeHTML}
+                        <div class="text-preview">${txt.content}</div>
+                        <div class="text-meta">
+                            <span>📝 ${wordCount} كلمة</span>
+                            <span style="color:var(--accent); font-weight:bold;">اقرأ الآن ⬅</span>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // --- منطق القراءة ---
+        function prepareGame(textId) {
+            document.getElementById('dashboard').style.display = 'none';
+            document.getElementById('game-section').style.display = 'flex';
+            
+            // إعداد النص
+            currentTextObj = texts.find(t => t.id === textId);
+            currentTextWords = currentTextObj.content.trim().split(/\s+/);
+            
+            const displayArea = document.getElementById('text-display');
+            displayArea.innerHTML = "";
+            displayArea.classList.remove('focus-mode');
+            document.getElementById('focus-btn').classList.remove('active');
+            focusMode = false;
+
+            currentTextWords.forEach((word, i) => {
+                const span = document.createElement('span');
+                span.innerText = word;
+                span.className = "word-span";
+                span.id = `word-${i}`;
+                displayArea.appendChild(span);
+            });
+
+            currentWordIndex = 0;
+            timerSeconds = 0;
+            updateTimerDisplay();
+            document.getElementById('progress-percent').innerText = "0%";
+            
+            highlightCurrentWord();
+            startCountdown();
+        }
+
+        function toggleFocusMode() {
+            focusMode = !focusMode;
+            const container = document.getElementById('text-display');
+            const btn = document.getElementById('focus-btn');
+            
+            if (focusMode) {
+                container.classList.add('focus-mode');
+                btn.classList.add('active');
+            } else {
+                container.classList.remove('focus-mode');
+                btn.classList.remove('active');
+            }
+        }
+
+        function highlightCurrentWord() {
+            // تلوين الكلمات السابقة بالأخضر
+            for(let i=0; i<currentWordIndex; i++) {
+                const el = document.getElementById(`word-${i}`);
+                if(el) {
+                    el.className = "word-span word-correct";
+                }
+            }
+
+            // تلوين الكلمة الحالية
+            if(currentWordIndex < currentTextWords.length) {
+                const el = document.getElementById(`word-${currentWordIndex}`);
+                if(el) {
+                    el.classList.remove('word-correct');
+                    el.classList.add('word-current');
+                    el.scrollIntoView({behavior: "smooth", block: "center"});
+                }
+            }
+
+            // تحديث نسبة التقدم
+            let pct = Math.round((currentWordIndex / currentTextWords.length) * 100);
+            document.getElementById('progress-percent').innerText = pct + "%";
+        }
+
+        function startCountdown() {
+            const layer = document.getElementById('countdown-layer');
+            const num = document.getElementById('countdown-val');
+            layer.style.display = 'flex';
+            let count = 3;
+            num.innerText = count;
+
+            const iv = setInterval(() => {
+                count--;
+                if(count > 0) num.innerText = count;
+                else {
+                    clearInterval(iv);
+                    layer.style.display = 'none';
+                    startGame();
+                }
+            }, 1000);
+        }
+
+        function startGame() {
+            isRunning = true;
+            try { recognition.start(); } catch(e) {}
+            
+            // عداد تصاعدي (Stopwatch)
+            timerInterval = setInterval(() => {
+                timerSeconds++;
+                updateTimerDisplay();
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            let m = Math.floor(timerSeconds / 60);
+            let s = timerSeconds % 60;
+            document.getElementById('timer-val').innerText = 
+                (m < 10 ? "0"+m : m) + ":" + (s < 10 ? "0"+s : s);
+        }
+
+        function setupSpeech() {
+            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                const SpeechAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+                recognition = new SpeechAPI();
+                recognition.lang = 'ar-SA';
+                recognition.continuous = true;
+                recognition.interimResults = true;
+
+                recognition.onstart = () => document.getElementById('mic-indicator').classList.add('mic-active');
+                recognition.onend = () => {
+                    document.getElementById('mic-indicator').classList.remove('mic-active');
+                    if (isRunning) recognition.start();
+                };
+                
+                recognition.onresult = (event) => {
+                    const transcript = event.results[event.results.length - 1][0].transcript;
+                    document.getElementById('debug-word').innerText = transcript;
+                    processInput(transcript);
+                };
+            } else {
+                alert("للأسف، متصفحك لا يدعم التعرف الصوتي. يرجى استخدام Chrome أو Edge.");
+            }
+        }
+
+        function processInput(spoken) {
+            if(!isRunning || currentWordIndex >= currentTextWords.length) return;
+
+            const spokenClean = normalizeArabic(spoken);
+            const targetRaw = currentTextWords[currentWordIndex];
+            const targetClean = normalizeArabic(targetRaw.replace(/[،.؛:!؟"()]/g, ''));
+
+            // التحقق
+            if (spokenClean.includes(targetClean)) {
+                currentWordIndex++;
+                highlightCurrentWord();
+                
+                // شرط الفوز: الوصول لنهاية النص
+                if(currentWordIndex >= currentTextWords.length) {
+                    completeGame();
+                }
+            }
+        }
+
+        function normalizeArabic(text) {
+            return text.trim()
+                .replace(/[أإآ]/g, 'ا')
+                .replace(/ة/g, 'ه')
+                .replace(/ى/g, 'ي')
+                .replace(/[ًٌٍَُِّْ]/g, ''); 
+        }
+
+        function completeGame() {
+            isRunning = false;
+            clearInterval(timerInterval);
+            try { recognition.stop(); } catch(e) {}
+
+            // تحديث البيانات
+            currentTextObj.readCount = (currentTextObj.readCount || 0) + 1;
+            saveTexts();
+            updateTotalReadCount();
+
+            // تجهيز المودال
+            const msgs = ["ممتاز!", "قارئ رائع!", "بطل القراءة!", "أداء مذهل!"];
+            document.getElementById('encourage-msg').innerText = msgs[Math.floor(Math.random() * msgs.length)];
+            
+            let m = Math.floor(timerSeconds / 60);
+            let s = timerSeconds % 60;
+            document.getElementById('final-time').innerText = (m < 10 ? "0"+m : m) + ":" + (s < 10 ? "0"+s : s);
+            document.getElementById('text-repeats').innerText = currentTextObj.readCount;
+
+            // إظهار المودال
+            const modal = document.getElementById('result-modal');
+            modal.style.display = 'flex';
+            setTimeout(() => modal.classList.add('show'), 10);
+        }
+
+        function closeResult() {
+            const modal = document.getElementById('result-modal');
+            modal.classList.remove('show');
+            setTimeout(() => {
+                modal.style.display = 'none';
+                exitGame();
+            }, 300);
+        }
+
+        function exitGame() {
+            isRunning = false;
+            clearInterval(timerInterval);
+            try { recognition.stop(); } catch(e) {}
+            document.getElementById('game-section').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'flex';
+            renderDashboard();
+        }
+
+        // --- الإدارة ---
+        function openAdmin() { 
+            const modal = document.getElementById('pass-modal');
+            modal.style.display = 'flex'; 
+            document.getElementById('admin-pass').value = ''; 
+            setTimeout(() => modal.classList.add('show'), 10);
+        }
+        
+        function checkPass() {
+            if(document.getElementById('admin-pass').value === "1234") {
+                const passModal = document.getElementById('pass-modal');
+                passModal.classList.remove('show');
+                setTimeout(() => passModal.style.display = 'none', 300);
+                
+                renderAdminTexts();
+                const adminModal = document.getElementById('admin-modal');
+                adminModal.style.display = 'block';
+                setTimeout(() => adminModal.classList.add('show'), 10);
+            } else alert("الرمز غير صحيح");
+        }
+
+        function closeAdmin() {
+            const adminModal = document.getElementById('admin-modal');
+            adminModal.classList.remove('show');
+            setTimeout(() => adminModal.style.display = 'none', 300);
+            renderDashboard();
+        }
+
+        function renderAdminTexts() {
+            const list = document.getElementById('admin-texts-list');
+            list.innerHTML = "";
+            texts.forEach((t) => {
+                let badge = t.level === 'easy' ? '🟢' : (t.level === 'medium' ? '🟡' : '🔴');
+                list.innerHTML += `
+                    <div style="display:flex; justify-content:space-between; padding:10px; background:#f9f9f9; border-radius:8px; margin-bottom:8px; align-items:center;">
+                        <div style="font-size:0.9rem; width:85%;">
+                            <span style="font-weight:bold;">${badge} ${t.title}</span> <span style="font-size:0.8rem; color:#888;">(قُرئت: ${t.readCount || 0})</span><br>
+                            <span style="color:#777; font-size:0.8rem;">${t.content.substring(0,50)}...</span>
+                        </div>
+                        <button onclick="deleteText(${t.id})" style="color:white; background:#ff7675; width:30px; height:30px; border-radius:50%; border:none; cursor:pointer;">✕</button>
+                    </div>`;
+            });
+        }
+        
+        function addNewText() {
+            const title = document.getElementById('new-text-title').value.trim();
+            const content = document.getElementById('new-text-content').value.trim();
+            const level = document.getElementById('new-text-level').value;
+
+            if(title && content) {
+                const newId = Date.now();
+                texts.push({ id: newId, title: title, content: content, level: level, readCount: 0 });
+                saveTexts(); 
+                renderAdminTexts(); 
+                document.getElementById('new-text-title').value = "";
+                document.getElementById('new-text-content').value = "";
+            } else {
+                alert("الرجاء تعبئة العنوان والنص");
+            }
+        }
+
+        function deleteText(id) {
+            if(confirm("حذف هذه القصة؟")) {
+                texts = texts.filter(t => t.id !== id);
+                saveTexts(); renderAdminTexts();
+            }
+        }
+        
+        function restoreDefaultTexts() { 
+            if(confirm("هل أنت متأكد؟ سيتم حذف القصص المضافة والعودة للمجموعة الأصلية.")) { 
+                texts = getDefaultTexts(); saveTexts(); renderAdminTexts(); 
+            } 
+        }
+
+        function resetProgress() {
+            if(confirm("سيتم تصفير عداد القراءة لكل القصص. هل توافق؟")) {
+                texts.forEach(t => t.readCount = 0);
+                saveTexts();
+                renderAdminTexts();
+                updateTotalReadCount();
+            }
+        }
+
+        init();
+
+    </script>
+</body>
+</html>
+

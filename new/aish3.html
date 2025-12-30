@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>النظام التعليمي المتكامل</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+
+    <style>
+        body { font-family: 'Cairo', sans-serif; }
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+        
+        .input-field {
+            width: 100%; padding: 0.6rem; border: 1px solid #d1d5db; border-radius: 0.5rem;
+            outline: none; transition: all 0.2s; font-size: 0.9rem;
+        }
+        .input-field:focus { border-color: #4f46e5; ring: 2px solid #e0e7ff; }
+        
+        .btn-click:active { transform: scale(0.95); }
+        .modal-overlay { background-color: rgba(0,0,0,0.5); backdrop-filter: blur(2px); }
+        .clickable-name:hover { text-decoration: underline; color: #4f46e5; cursor: pointer; }
+
+        .sub-tab-active { background-color: #e0e7ff; color: #4338ca; border-bottom: 3px solid #4338ca; }
+        .sub-tab-inactive { color: #6b7280; background-color: #f9fafb; }
+        .sub-tab-inactive:hover { background-color: #f3f4f6; }
+        
+        .question-block { transition: all 0.3s; }
+        
+        /* تحسين مظهر خيارات الاختبار */
+        .quiz-option:checked + div {
+            background-color: #e0e7ff;
+            border-color: #4f46e5;
+            color: #3730a3;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen text-gray-800">
+
+<nav class="bg-white shadow sticky top-0 z-40 border-b border-gray-200">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+        <div class="flex items-center gap-3">
+            <i data-lucide="graduation-cap" class="text-indigo-700 w-7 h-7"></i>
+            <h1 class="text-xl font-bold text-indigo-800">النظام التعليمي الشامل</h1>
+        </div>
+        <div class="flex items-center gap-2">
+            <span id="system-status" class="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></span>
+            <span id="status-text" class="text-xs font-bold text-gray-500">جاري الاتصال...</span>
+        </div>
+    </div>
+</nav>
+
+<main class="max-w-6xl mx-auto p-4 space-y-6">
+    
+    <!-- Tabs Navigation -->
+    <div class="flex p-1 bg-gray-200 rounded-lg shadow-inner">
+        <button id="tab-control" class="flex-1 py-2 rounded-md font-bold transition-all bg-white text-indigo-700 shadow-sm">لوحة التحكم</button>
+        <button id="tab-leaderboard" class="flex-1 py-2 rounded-md font-bold transition-all text-gray-600 hover:bg-gray-50">لوحة الشرف</button>
+        <button id="tab-student-portal" class="flex-1 py-2 rounded-md font-bold transition-all text-gray-600 hover:bg-gray-50 flex items-center justify-center gap-2">
+            <i data-lucide="user-check" class="w-4 h-4"></i> بوابة الطالب
+        </button>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed top-6 left-6 z-50 hidden px-6 py-4 rounded-lg shadow-xl text-white font-bold transition-all duration-300 transform translate-y-0"></div>
+
+    <!-- Admin Control View -->
+    <section id="control-view" class="fade-in space-y-6">
+        <div id="login-panel" class="max-w-md mx-auto bg-white p-8 rounded-xl shadow-lg text-center mt-10">
+            <div class="mb-6 flex justify-center"><div class="bg-indigo-100 p-4 rounded-full"><i data-lucide="lock" class="w-8 h-8 text-indigo-600"></i></div></div>
+            <h2 class="text-2xl font-bold mb-2 text-gray-800">دخول المعلم</h2>
+            <form id="login-form" class="space-y-4 mt-6">
+                <input id="login-user" placeholder="اسم المستخدم" class="input-field text-center" />
+                <input id="login-pass" type="password" placeholder="كلمة المرور" class="input-field text-center" />
+                <button type="submit" class="w-full bg-indigo-600 text-white py-3 rounded-lg font-bold hover:bg-indigo-700 shadow-lg shadow-indigo-200 transition">دخول</button>
+            </form>
+            <div class="mt-4 text-xs text-gray-400">الافتراضي: admin / 1234</div>
+        </div>
+
+        <div id="dashboard-panel" class="hidden space-y-6">
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-wrap justify-between items-center gap-4">
+                <div class="flex items-center gap-2">
+                    <span class="text-sm font-bold text-gray-500">المعلم: <span id="display-username" class="text-indigo-600">Admin</span></span>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="toggleSettings()" class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm hover:bg-gray-200 flex items-center gap-2 border border-gray-300"><i data-lucide="settings" class="w-4 h-4"></i> الإعدادات</button>
+                    <button onclick="logout()" class="bg-red-50 text-red-600 px-4 py-2 rounded-lg text-sm hover:bg-red-100 flex items-center gap-2 border border-red-100"><i data-lucide="log-out" class="w-4 h-4"></i> خروج</button>
+                </div>
+            </div>
+
+            <div class="flex border-b border-gray-300">
+                <button onclick="switchAdminSubTab('students')" id="sub-tab-admin-students" class="sub-tab-active flex-1 py-3 font-bold text-sm transition-colors">إدارة الطلاب والنقاط</button>
+                <button onclick="switchAdminSubTab('lessons')" id="sub-tab-admin-lessons" class="sub-tab-inactive flex-1 py-3 font-bold text-sm transition-colors">إدارة الدروس والمحتوى</button>
+            </div>
+
+            <div id="admin-view-students" class="fade-in grid lg:grid-cols-12 gap-6">
+                <div class="lg:col-span-4 space-y-6">
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 border-t-4 border-t-indigo-500">
+                        <h3 class="font-bold text-indigo-900 mb-4 flex items-center gap-2 border-b pb-2"><i data-lucide="star" class="w-5 h-5 text-yellow-500"></i> رصد النقاط</h3>
+                        <form id="points-form" class="space-y-4">
+                            <div><label class="text-xs font-bold text-gray-600 block mb-1">1. الطالب</label><select id="form-student" class="input-field bg-gray-50 focus:bg-white" required><option value="">-- اختر --</option></select></div>
+                            <div><label class="text-xs font-bold text-gray-600 block mb-1">2. النوع</label><select id="form-type" class="input-field" onchange="updateItemsDropdown()"><option value="pos">إيجابي (+)</option><option value="neg">سلبي (-)</option></select></div>
+                            <div><label class="text-xs font-bold text-gray-600 block mb-1">3. البند</label><select id="form-item" class="input-field" required><option value="">-- اختر --</option></select></div>
+                            <!-- Date input is kept for UI but logic overrides it with current datetime -->
+                            <div><label class="text-xs font-bold text-gray-600 block mb-1">4. التاريخ (يتم حفظ الوقت الحالي تلقائياً)</label><input type="date" id="form-date" class="input-field text-right bg-gray-50" readonly /></div>
+                            <div><label class="text-xs font-bold text-gray-600 block mb-1">5. ملاحظة</label><textarea id="form-note" rows="2" class="input-field resize-none"></textarea></div>
+                            <button type="submit" class="w-full bg-indigo-600 text-white py-3 rounded-lg font-bold hover:bg-indigo-700 shadow transition">اعتماد الرصد (الآن)</button>
+                        </form>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+                        <h3 id="student-form-title" class="font-bold text-gray-700 mb-3 text-sm flex items-center gap-2"><i data-lucide="user-plus" class="w-4 h-4"></i> إدارة الطلاب</h3>
+                        <form id="student-form" class="space-y-3">
+                            <input type="hidden" id="edit-student-id">
+                            <div><input id="student-name" placeholder="الاسم" class="input-field font-bold" required /></div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div><label class="text-[10px] text-gray-500">السجل</label><input id="student-nid" placeholder="112233" class="input-field text-center text-sm" required /></div>
+                                <div><label class="text-[10px] text-gray-500">كلمة المرور</label><input id="student-pass" placeholder="****" class="input-field text-center text-sm" required /></div>
+                            </div>
+                            <div class="flex gap-2 pt-2">
+                                <button type="submit" id="student-submit-btn" class="flex-1 bg-gray-800 text-white py-2 rounded font-bold hover:bg-black transition text-sm">حفظ</button>
+                                <button type="button" id="cancel-edit-btn" onclick="cancelEdit()" class="hidden bg-gray-200 text-gray-600 px-3 rounded hover:bg-gray-300">إلغاء</button>
+                            </div>
+                        </form>
+                        <div class="mt-4 pt-4 border-t flex flex-col gap-2">
+                            <label class="btn bg-white border border-gray-300 text-gray-600 py-2 rounded text-center cursor-pointer hover:bg-gray-50 text-sm font-bold block"><span>📂 استيراد Excel</span><input id="excel-file" type="file" accept=".xlsx, .xls" class="hidden"/></label>
+                            <button onclick="exportExcel()" class="bg-green-50 text-green-700 border border-green-200 py-2 rounded text-sm font-bold hover:bg-green-100">📥 تصدير</button>
+                            <div class="flex gap-2">
+                                <button onclick="resetAllPoints()" class="flex-1 bg-yellow-50 text-yellow-700 border border-yellow-200 py-2 rounded text-sm font-bold hover:bg-yellow-100" title="تصفير نقاط الجميع">🔄 تصفير النقاط</button>
+                                <button onclick="deleteAll()" class="flex-1 bg-red-50 text-red-700 border border-red-200 py-2 rounded text-sm font-bold hover:bg-red-100" title="حذف جميع الطلاب">🗑️ حذف الطلاب</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="lg:col-span-8 bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col h-[850px]">
+                    <div class="p-4 border-b bg-gray-50 flex justify-between items-center"><h3 class="font-bold text-gray-700">سجل الطلاب (<span id="count-badge">0</span>)</h3><input id="search-box" placeholder="بحث..." class="input-field w-60" /></div>
+                    <div class="overflow-y-auto flex-1"><table class="w-full text-right"><thead class="bg-gray-50 text-gray-500 text-xs font-bold sticky top-0 shadow-sm z-10"><tr><th class="p-4">الاسم</th><th class="p-4 text-center">السجل</th><th class="p-4 text-center">النقاط</th><th class="p-4 text-center">التحكم</th></tr></thead><tbody id="students-table" class="divide-y divide-gray-100 text-sm"></tbody></table></div>
+                </div>
+            </div>
+
+            <div id="admin-view-lessons" class="hidden fade-in space-y-6">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 relative">
+                    <div id="edit-indicator" class="hidden absolute top-0 left-0 right-0 bg-yellow-50 text-yellow-800 text-xs py-1 px-4 text-center border-b border-yellow-200 rounded-t-xl font-bold">تعديل درس حالي...</div>
+                    <h2 class="text-lg font-bold mb-4 text-gray-700 mt-2">إضافة درس جديد</h2>
+                    <div class="space-y-4">
+                        <input type="hidden" id="edit-topic-id">
+                        <div><label class="block text-sm font-medium mb-1">عنوان الدرس</label><input type="text" id="new-title" class="input-field" placeholder="مثال: آداب الطريق"></div>
+                        <div><label class="block text-sm font-medium mb-1">المحتوى التعليمي</label><textarea id="new-content" rows="6" class="input-field leading-loose" placeholder="اكتب محتوى الدرس هنا..."></textarea></div>
+                        <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                            <div class="flex flex-col md:flex-row justify-between items-center mb-4 gap-3 border-b border-blue-200 pb-3">
+                                <h3 class="font-bold text-blue-800 text-sm">بنك الأسئلة</h3>
+                                <div class="flex items-center gap-2">
+                                    <input type="number" id="auto-count" value="5" min="1" max="10" class="w-16 p-1 text-center rounded border border-gray-300 text-sm" title="العدد">
+                                    <button onclick="generateSmartQuestions()" class="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded hover:bg-indigo-700"><i data-lucide="sparkles" class="w-3 h-3 inline"></i> توليد آلي</button>
+                                    <button onclick="addQuestionField()" class="text-xs bg-white text-blue-600 border border-blue-200 px-3 py-1.5 rounded hover:bg-blue-100">+ سؤال يدوي</button>
+                                </div>
+                            </div>
+                            <div id="questions-container" class="space-y-4"></div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="saveTopic()" id="btn-save" class="flex-1 bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 shadow">نشر الدرس</button>
+                            <button onclick="cancelTopicEdit()" id="btn-cancel" class="hidden px-4 bg-gray-200 text-gray-600 rounded-lg hover:bg-gray-300 font-bold">إلغاء</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 p-6 rounded-xl border border-gray-200">
+                    <h3 class="font-bold text-gray-700 mb-4 flex items-center gap-2"><i data-lucide="archive" class="w-4 h-4"></i> مكتبة الدروس</h3>
+                    <div id="manage-list" class="space-y-3"></div>
+                </div>
+            </div>
+
+            <div id="settings-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay p-4">
+                <div class="bg-white w-full max-w-lg rounded-xl shadow-2xl p-6 fade-in">
+                    <div class="flex justify-between items-center mb-6 border-b pb-2"><h3 class="font-bold text-xl text-gray-800">الإعدادات العامة</h3><button onclick="toggleSettings()" class="text-gray-400 hover:text-red-500"><i data-lucide="x"></i></button></div>
+                    <div class="mb-6">
+                        <h4 class="text-sm font-bold text-gray-600 mb-3">تغيير بيانات الدخول</h4>
+                        <div class="grid grid-cols-2 gap-3"><input id="new-username" placeholder="اسم المستخدم" class="input-field" /><input id="new-password" placeholder="كلمة المرور" class="input-field" /></div>
+                        <button onclick="saveCredentials()" class="mt-3 w-full bg-indigo-600 text-white px-4 py-2 rounded font-bold hover:bg-indigo-700 text-sm">حفظ البيانات الجديدة</button>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-bold text-gray-600 mb-3">إدارة بنود النقاط</h4>
+                        <div class="flex gap-2 mb-3">
+                            <input id="item-label" placeholder="اسم البند" class="flex-1 input-field" /><select id="item-type-select" class="input-field w-24 text-sm"><option value="pos">+</option><option value="neg">-</option></select><input id="item-value" type="number" placeholder="القيمة" class="w-20 input-field text-center" /><button onclick="addItem()" class="bg-green-600 text-white px-4 rounded hover:bg-green-700 font-bold text-lg">+</button>
+                        </div>
+                        <div id="items-list" class="flex flex-wrap gap-2 max-h-40 overflow-y-auto p-2 bg-gray-50 rounded border"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Leaderboard View -->
+    <section id="leaderboard-view" class="hidden fade-in">
+        <div class="bg-white rounded-xl shadow-lg border border-yellow-100 overflow-hidden max-w-4xl mx-auto">
+            <div class="bg-gradient-to-r from-indigo-600 to-purple-600 p-8 text-white text-center">
+                <h2 class="text-3xl font-bold mb-2">🏅 لوحة المتميزين 🏅</h2>
+                <p class="opacity-90">الأكثر نقاطاً واجتهاداً</p>
+                <div class="mt-4 max-w-md mx-auto">
+                    <input id="search-leaderboard" placeholder="بحث عن طالب في اللوحة..." class="w-full p-2 rounded text-gray-800 text-center shadow-inner focus:outline-none focus:ring-2 focus:ring-yellow-300" />
+                </div>
+            </div>
+            <div class="p-6"><table class="w-full text-right"><thead class="bg-gray-50 text-gray-500 text-sm font-bold uppercase"><tr><th class="p-4 w-24 text-center">#</th><th class="p-4">الطالب</th><th class="p-4 text-center">الرصيد</th></tr></thead><tbody id="leaderboard-table" class="divide-y divide-gray-100"></tbody></table></div>
+        </div>
+    </section>
+
+    <!-- Student Portal View -->
+    <section id="student-portal-view" class="hidden fade-in">
+        <div id="student-login-panel" class="max-w-md mx-auto bg-white p-8 rounded-xl shadow-lg text-center mt-10 border-t-4 border-t-green-500">
+            <div class="mb-6 flex justify-center"><div class="bg-green-100 p-4 rounded-full"><i data-lucide="user-check" class="w-8 h-8 text-green-600"></i></div></div>
+            <h2 class="text-2xl font-bold mb-2 text-gray-800">بوابة الطالب</h2>
+            <form id="student-login-form" class="space-y-4">
+                <input id="st-login-nid" placeholder="السجل المدني" class="input-field text-center" required />
+                <input id="st-login-pass" type="password" placeholder="كلمة المرور" class="input-field text-center" required />
+                <button type="submit" class="w-full bg-green-600 text-white py-3 rounded-lg font-bold hover:bg-green-700 shadow transition">دخول</button>
+            </form>
+        </div>
+
+        <div id="student-dashboard" class="hidden max-w-5xl mx-auto space-y-6 pb-20">
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-wrap justify-between items-center gap-4">
+                <div><h2 class="text-2xl font-bold text-gray-800">مرحباً، <span id="st-dash-name" class="text-green-600"></span></h2><p class="text-gray-500 text-sm mt-1">السجل: <span id="st-dash-nid" class="font-mono"></span></p></div>
+                <div class="flex items-center gap-4">
+                    <div class="text-center bg-green-50 px-6 py-2 rounded-lg border border-green-100"><div class="text-xs text-green-800 font-bold">رصيدك</div><div id="st-dash-points" class="text-3xl font-bold text-green-600">0</div></div>
+                    <button onclick="logoutStudent()" class="bg-red-50 text-red-600 p-3 rounded-lg hover:bg-red-100 border border-red-100" title="خروج"><i data-lucide="log-out" class="w-5 h-5"></i></button>
+                </div>
+            </div>
+
+            <div class="flex border-b border-gray-200">
+                <button onclick="switchStudentSubTab('profile')" id="sub-tab-st-profile" class="sub-tab-active flex-1 py-3 font-bold text-sm transition-colors">ملفي والنقاط</button>
+                <button onclick="switchStudentSubTab('lessons')" id="sub-tab-st-lessons" class="sub-tab-inactive flex-1 py-3 font-bold text-sm transition-colors">الدروس والاختبارات</button>
+            </div>
+
+            <div id="st-view-profile" class="fade-in space-y-6">
+                <div class="bg-white p-6 rounded-xl shadow-md border border-indigo-100 bg-gradient-to-br from-white to-indigo-50">
+                    <div class="flex justify-between items-center mb-6 border-b pb-4">
+                        <h3 class="font-bold text-xl text-indigo-900 flex items-center gap-2"><i data-lucide="heart-handshake" class="text-indigo-600"></i> نقرات مباركة</h3>
+                        <div class="text-sm bg-white px-3 py-1 rounded shadow-sm border text-gray-600">المجموع: <span id="athkar-total" class="font-bold text-indigo-600 text-lg">0</span></div>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <button onclick="clickAthkar('istighfar')" class="btn-click bg-white border-2 border-slate-200 hover:border-slate-400 p-4 rounded-xl flex flex-col items-center gap-2 shadow-sm"><span class="text-2xl">📿</span><span class="font-bold text-slate-700">استغفار</span><span id="count-istighfar" class="bg-slate-100 text-slate-800 px-3 py-0.5 rounded-full text-sm font-mono font-bold">0</span></button>
+                        <button onclick="clickAthkar('tasbih')" class="btn-click bg-white border-2 border-emerald-200 hover:border-emerald-400 p-4 rounded-xl flex flex-col items-center gap-2 shadow-sm"><span class="text-2xl">🌿</span><span class="font-bold text-emerald-700">تسبيح</span><span id="count-tasbih" class="bg-emerald-100 text-emerald-800 px-3 py-0.5 rounded-full text-sm font-mono font-bold">0</span></button>
+                        <button onclick="clickAthkar('tahmid')" class="btn-click bg-white border-2 border-amber-200 hover:border-amber-400 p-4 rounded-xl flex flex-col items-center gap-2 shadow-sm"><span class="text-2xl">🤲</span><span class="font-bold text-amber-700">تحميد</span><span id="count-tahmid" class="bg-amber-100 text-amber-800 px-3 py-0.5 rounded-full text-sm font-mono font-bold">0</span></button>
+                        <button onclick="clickAthkar('takbir')" class="btn-click bg-white border-2 border-rose-200 hover:border-rose-400 p-4 rounded-xl flex flex-col items-center gap-2 shadow-sm"><span class="text-2xl">🕌</span><span class="font-bold text-rose-700">تكبير</span><span id="count-takbir" class="bg-rose-100 text-rose-800 px-3 py-0.5 rounded-full text-sm font-mono font-bold">0</span></button>
+                    </div>
+                    <div class="mt-4 text-center text-xs text-gray-500 bg-white/50 p-2 rounded">100 نقرة = <span class="text-indigo-600 font-bold">نقطة حسنة (الأذكار)</span></div>
+                </div>
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="p-4 bg-gray-50 border-b font-bold text-gray-700">سجل النقاط</div>
+                    <div class="overflow-x-auto"><table class="w-full text-right"><thead class="bg-gray-100 text-gray-600 text-sm"><tr><th class="p-4">التاريخ</th><th class="p-4">البند</th><th class="p-4">ملاحظة</th><th class="p-4 text-center">القيمة</th></tr></thead><tbody id="st-dash-table" class="divide-y divide-gray-100 text-sm"></tbody></table></div>
+                </div>
+            </div>
+
+            <div id="st-view-lessons" class="hidden fade-in">
+                <div id="lessons-list-view"><div id="topics-grid" class="grid gap-4"></div><div id="empty-lessons" class="hidden text-center py-12"><i data-lucide="layers" class="w-16 h-16 mx-auto text-gray-300 mb-3"></i><p class="text-gray-500">لا توجد دروس متاحة.</p></div></div>
+                
+                <!-- Lesson Reader View -->
+                <div id="lesson-read-view" class="hidden pb-10">
+                    <button onclick="backToLessons()" class="mb-4 text-gray-500 hover:text-blue-600 flex items-center gap-1 text-sm font-bold bg-white px-3 py-1 rounded-full shadow-sm w-fit"><i data-lucide="arrow-right" class="w-4 h-4"></i> عودة</button>
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
+                        <div class="bg-blue-600 h-2 w-full"></div>
+                        <div class="p-6 md:p-8">
+                            <h1 id="article-title" class="text-2xl font-bold text-gray-800 mb-6"></h1>
+                            <div id="article-content" class="prose prose-lg text-gray-600 leading-8 whitespace-pre-line mb-8"></div>
+                            
+                            <!-- Lesson Interactive Section (Quiz or Result) -->
+                            <div id="lesson-action-container" class="mt-8 pt-8 border-t border-gray-100 transition-all">
+                                <!-- Dynamic content here: Either Quiz Button or Passed Message -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Student Details Modal -->
+    <div id="details-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center modal-overlay p-4">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col fade-in">
+            <div class="p-5 border-b flex justify-between items-center bg-gray-50 rounded-t-xl"><div><h3 class="text-xl font-bold text-gray-800" id="modal-student-name"></h3><p class="text-sm text-gray-500">النقاط: <span id="modal-total-points" class="font-bold text-indigo-600"></span></p></div><button onclick="closeModal()" class="text-gray-400 hover:text-red-500"><i data-lucide="x"></i></button></div>
+            <div class="p-0 overflow-y-auto flex-1"><table class="w-full text-right text-sm"><thead class="bg-gray-100 text-gray-600 sticky top-0"><tr><th class="p-3">التاريخ</th><th class="p-3">البند</th><th class="p-3">ملاحظة</th><th class="p-3 text-center">القيمة</th></tr></thead><tbody id="modal-history-body"></tbody></table><div id="no-history-msg" class="hidden p-8 text-center text-gray-400">لا يوجد سجل</div></div>
+            <div class="p-4 border-t bg-gray-50 rounded-b-xl"><button onclick="closeModal()" class="bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300 font-bold text-sm">إغلاق</button></div>
+        </div>
+    </div>
+
+    <!-- Answers Review Modal (New) -->
+    <div id="review-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center modal-overlay p-4">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[80vh] flex flex-col fade-in">
+            <div class="p-5 border-b flex justify-between items-center bg-gray-50 rounded-t-xl">
+                <h3 class="text-xl font-bold text-gray-800 flex items-center gap-2"><i data-lucide="book-check" class="text-indigo-600"></i> مراجعة الإجابات</h3>
+                <button onclick="closeReviewModal()" class="text-gray-400 hover:text-red-500"><i data-lucide="x"></i></button>
+            </div>
+            <div class="p-5 overflow-y-auto flex-1 space-y-4" id="review-list-body"></div>
+            <div class="p-4 border-t bg-gray-50 rounded-b-xl">
+                <button onclick="closeReviewModal()" class="w-full bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 font-bold text-sm">إغلاق</button>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+// Firebase Configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyBxPO6RKsQ1Cq-mqlCpFTrCuIyxnYdB37U",
+  authDomain: "studentsystem-c1ab1.firebaseapp.com",
+  databaseURL: "https://studentsystem-c1ab1-default-rtdb.firebaseio.com",
+  projectId: "studentsystem-c1ab1",
+  storageBucket: "studentsystem-c1ab1.firebasestorage.app",
+  messagingSenderId: "112215023848",
+  appId: "1:112215023848:web:0adba326a527ee7e37e95d"
+};
+
+// Init
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+firebase.auth().signInAnonymously().catch(err => console.error("Auth error:", err));
+
+// Data Globals
+let appData = { students: [] };
+let topics = [];
+let appConfig = {
+    username: 'admin', password: '1234',
+    items: [ { id: '1', label: 'مشاركة', value: 10, type: 'pos' }, { id: '2', label: 'واجب', value: 5, type: 'pos' }, { id: '4', label: 'إزعاج', value: -5, type: 'neg' } ]
+};
+
+// Helper: Get Current DateTime
+function getCurrentDateTime() {
+    const n = new Date();
+    return n.getFullYear() + '-' + String(n.getMonth()+1).padStart(2,'0') + '-' + String(n.getDate()).padStart(2,'0') + ' ' + String(n.getHours()).padStart(2,'0') + ':' + String(n.getMinutes()).padStart(2,'0');
+}
+
+// Listeners
+db.ref('data/schoolData').on('value', s => {
+    if(s.val()) appData = s.val();
+    if(!appData.students) appData.students = [];
+    renderAll();
+    if(studentSessionId) { // Update student interface live
+        const s = appData.students.find(x => x.id == studentSessionId);
+        if(s) renderStudentDashboard(s);
+        // If we are reading a topic, check if we need to update the footer (in case points were added)
+        if (!document.getElementById('lesson-read-view').classList.contains('hidden') && currentTopicIdx !== null) {
+            updateLessonFooter(currentTopicIdx);
+        }
+    }
+});
+db.ref('data/schoolConfig').on('value', s => { if(s.val()) appConfig = s.val(); });
+db.ref('data/schoolTopics').on('value', s => { 
+    topics = s.val() || []; 
+    renderManageList();
+    if(document.getElementById('st-view-lessons').className.includes('fade-in')) renderTopicList(); 
+});
+
+let isAdminLoggedIn = sessionStorage.getItem('admin_logged_in') === 'true';
+let studentSessionId = sessionStorage.getItem('student_logged_in_id');
+let isExcelReady = false;
+let currentTopicIdx = null, editingTopicId = null, currentSessionQuestions = [];
+const ARABIC_STOP_WORDS = new Set(["في", "من", "على", "إلى", "عن", "مع", "هذا", "هذه", "الذي", "التي", "كان", "يكون", "هو", "هي", "هم", "انا", "نحن", "انتم", "لكن", "لان", "كما", "مثل", "عند", "عندما", "حيث", "ان", "هل", "ما", "كيف", "متى", "اين", "لماذا", "و", "او", "ثم", "لا", "لم", "لن"]);
+
+document.addEventListener('DOMContentLoaded', () => {
+    checkExcelLib();
+    if(window.lucide) lucide.createIcons();
+    updateAdminAuthView(); updateStudentAuthView(); setupTabs();
+    document.getElementById('form-date').valueAsDate = new Date();
+});
+
+function checkExcelLib() { setTimeout(() => { if (typeof XLSX !== 'undefined') { isExcelReady = true; document.getElementById('system-status').className = 'w-2 h-2 rounded-full bg-green-500'; document.getElementById('status-text').textContent = 'متصل'; } else { document.getElementById('system-status').className = 'w-2 h-2 rounded-full bg-red-500'; document.getElementById('status-text').textContent = 'Excel غير جاهز'; } }, 1000); }
+
+function saveData() { db.ref('data/schoolData').set(appData); }
+function saveConfig() { db.ref('data/schoolConfig').set(appConfig); }
+function saveTopicsDB() { db.ref('data/schoolTopics').set(topics); }
+
+// TABS
+function setupTabs() {
+    const btns = ['tab-control', 'tab-leaderboard', 'tab-student-portal'];
+    const views = ['control-view', 'leaderboard-view', 'student-portal-view'];
+    btns.forEach((id, idx) => {
+        document.getElementById(id).onclick = () => {
+            btns.forEach(b => document.getElementById(b).className = 'flex-1 py-2 rounded-md font-bold transition-all text-gray-600 hover:bg-gray-50 flex items-center justify-center gap-2');
+            views.forEach(v => document.getElementById(v).classList.add('hidden'));
+            document.getElementById(id).className = 'flex-1 py-2 rounded-md font-bold transition-all bg-white text-indigo-700 shadow-sm flex items-center justify-center gap-2';
+            document.getElementById(views[idx]).classList.remove('hidden');
+        }
+    });
+}
+function switchAdminSubTab(tab) {
+    const isStudents = tab === 'students';
+    document.getElementById('sub-tab-admin-students').className = isStudents ? 'sub-tab-active flex-1 py-3 font-bold text-sm' : 'sub-tab-inactive flex-1 py-3 font-bold text-sm';
+    document.getElementById('sub-tab-admin-lessons').className = !isStudents ? 'sub-tab-active flex-1 py-3 font-bold text-sm' : 'sub-tab-inactive flex-1 py-3 font-bold text-sm';
+    document.getElementById('admin-view-students').className = isStudents ? 'fade-in grid lg:grid-cols-12 gap-6' : 'hidden';
+    document.getElementById('admin-view-lessons').className = !isStudents ? 'hidden fade-in space-y-6' : 'hidden';
+    if(!isStudents) { document.getElementById('admin-view-lessons').classList.remove('hidden'); renderManageList(); }
+}
+function switchStudentSubTab(tab) {
+    const isProfile = tab === 'profile';
+    document.getElementById('sub-tab-st-profile').className = isProfile ? 'sub-tab-active flex-1 py-3 font-bold text-sm' : 'sub-tab-inactive flex-1 py-3 font-bold text-sm';
+    document.getElementById('sub-tab-st-lessons').className = !isProfile ? 'sub-tab-active flex-1 py-3 font-bold text-sm' : 'sub-tab-inactive flex-1 py-3 font-bold text-sm';
+    document.getElementById('st-view-profile').className = isProfile ? 'fade-in space-y-6' : 'hidden';
+    document.getElementById('st-view-lessons').className = !isProfile ? 'hidden fade-in' : 'hidden';
+    if(!isProfile) { document.getElementById('st-view-lessons').classList.remove('hidden'); backToLessons(); renderTopicList(); }
+}
+
+// AUTH
+document.getElementById('login-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    if(document.getElementById('login-user').value === appConfig.username && document.getElementById('login-pass').value === appConfig.password) {
+        isAdminLoggedIn = true; sessionStorage.setItem('admin_logged_in', 'true'); updateAdminAuthView(); showToast('دخول معلم ناجح', 'success');
+    } else showToast('بيانات خاطئة', 'error');
+});
+document.getElementById('student-login-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const s = appData.students.find(x => x.nid === document.getElementById('st-login-nid').value.trim() && x.password === document.getElementById('st-login-pass').value.trim());
+    if(s) { studentSessionId = s.id; sessionStorage.setItem('student_logged_in_id', s.id); updateStudentAuthView(); showToast(`أهلاً ${s.name}`, 'success'); }
+    else showToast('بيانات خاطئة', 'error');
+});
+function logout() { isAdminLoggedIn = false; sessionStorage.removeItem('admin_logged_in'); updateAdminAuthView(); }
+function logoutStudent() { studentSessionId = null; sessionStorage.removeItem('student_logged_in_id'); updateStudentAuthView(); }
+function updateAdminAuthView() { document.getElementById('login-panel').classList.toggle('hidden', isAdminLoggedIn); document.getElementById('dashboard-panel').classList.toggle('hidden', !isAdminLoggedIn); if(isAdminLoggedIn) document.getElementById('display-username').textContent = appConfig.username; }
+function updateStudentAuthView() { 
+    const s = studentSessionId ? appData.students.find(x=>x.id == studentSessionId) : null;
+    document.getElementById('student-login-panel').classList.toggle('hidden', !!s); 
+    document.getElementById('student-dashboard').classList.toggle('hidden', !s); 
+    if(s) renderStudentDashboard(s); else if(studentSessionId) logoutStudent();
+}
+
+// ADMIN SETTINGS
+function toggleSettings() { document.getElementById('settings-modal').classList.toggle('hidden'); document.getElementById('new-username').value = appConfig.username; renderItemsManager(); }
+function saveCredentials() {
+    const u = document.getElementById('new-username').value.trim(), p = document.getElementById('new-password').value.trim();
+    if(u && p) { appConfig.username = u; appConfig.password = p; saveConfig(); document.getElementById('display-username').textContent = u; showToast('تم الحفظ', 'success'); }
+}
+function renderItemsManager() {
+    document.getElementById('items-list').innerHTML = (appConfig.items || []).map((it, i) => 
+        `<div class="inline-flex items-center gap-2 px-3 py-1 rounded text-xs border ${it.type==='pos'?'bg-green-50 text-green-700':'bg-red-50 text-red-700'}"><span>${it.label} (${it.value})</span><button onclick="deleteItem(${i})" class="hover:text-red-600 font-bold">×</button></div>`
+    ).join('');
+}
+function addItem() {
+    const l = document.getElementById('item-label').value.trim(), v = parseInt(document.getElementById('item-value').value), t = document.getElementById('item-type-select').value;
+    if(l && !isNaN(v)) {
+        if(!appConfig.items) appConfig.items = [];
+        appConfig.items.push({ id: Date.now().toString(), label: l, value: (t==='neg' && v>0 ? -v : Math.abs(v)), type: t });
+        saveConfig(); renderItemsManager(); updateItemsDropdown(); 
+        document.getElementById('item-label').value = ''; document.getElementById('item-value').value = '';
+    }
+}
+function deleteItem(i) { if(confirm('حذف؟')) { appConfig.items.splice(i, 1); saveConfig(); renderItemsManager(); updateItemsDropdown(); } }
+
+// STUDENTS & ATHKAR
+window.clickAthkar = function(type) {
+    if(!studentSessionId) return;
+    const s = appData.students.find(x => x.id == studentSessionId); if(!s) return;
+    if(!s.athkar) s.athkar = { istighfar: 0, tasbih: 0, tahmid: 0, takbir: 0, total: 0 };
+    s.athkar[type] = (s.athkar[type] || 0) + 1; s.athkar.total = (s.athkar.total || 0) + 1;
+    if(s.athkar.total % 100 === 0) {
+        let it = (appConfig.items || []).find(i => i.label === 'الأذكار');
+        if(!it) { it = { id: Date.now().toString(), label: 'الأذكار', value: 1, type: 'pos' }; if(!appConfig.items) appConfig.items=[]; appConfig.items.push(it); saveConfig(); }
+        s.points += 1; 
+        if(!s.history) s.history = [];
+        s.history.push({ id: Date.now(), itemName: 'الأذكار', val: 1, date: getCurrentDateTime(), note: 'مكافأة 100 ذكر' });
+        showToast('أحسنت! +1 نقطة', 'success');
+    }
+    saveData(); // Listener updates UI
+};
+
+document.getElementById('points-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const sid = document.getElementById('form-student').value, iid = document.getElementById('form-item').value;
+    const s = appData.students.find(x => x.id == sid), it = (appConfig.items || []).find(x => x.id == iid);
+    if(s && it) {
+        s.points += it.value;
+        if(!s.history) s.history = [];
+        // Force current datetime
+        s.history.push({ id: Date.now(), itemName: it.label, val: it.value, date: getCurrentDateTime(), note: document.getElementById('form-note').value });
+        saveData(); document.getElementById('form-note').value = ''; showToast('تم الرصد', 'success');
+    }
+});
+
+document.getElementById('student-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const nm = document.getElementById('student-name').value.trim(), nid = document.getElementById('student-nid').value.trim(), pass = document.getElementById('student-pass').value.trim(), eid = document.getElementById('edit-student-id').value;
+    if(appData.students.some(x => x.nid === nid && x.id != eid)) return showToast('السجل مكرر', 'error');
+    if(eid) { const s = appData.students.find(x => x.id == eid); if(s) { s.name = nm; s.nid = nid; s.password = pass; } cancelEdit(); }
+    else { appData.students.push({ id: Date.now(), name: nm, nid: nid, password: pass, points: 0, history: [], athkar: { istighfar: 0, tasbih: 0, tahmid: 0, takbir: 0, total: 0 } }); }
+    saveData(); document.getElementById('student-name').value = ''; document.getElementById('student-nid').value = ''; document.getElementById('student-pass').value = '';
+});
+
+// LESSONS MANAGEMENT
+function renderManageList() {
+    document.getElementById('manage-list').innerHTML = topics.map(t => 
+        `<div class="bg-white p-3 rounded border flex justify-between items-center"><span class="font-bold text-sm">${t.title}</span><div class="flex gap-2"><button onclick="editTopic(${t.id})" class="text-blue-500"><i data-lucide="pencil" class="w-4 h-4"></i></button><button onclick="deleteTopic(${t.id})" class="text-red-500"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div></div>`
+    ).join('');
+    lucide.createIcons();
+}
+window.addQuestionField = function(d=null) {
+    const qId = Date.now() + Math.random();
+    document.getElementById('questions-container').insertAdjacentHTML('beforeend', `
+        <div class="bg-white p-4 rounded border shadow-sm question-block relative">
+            <button onclick="this.parentElement.remove()" class="absolute top-2 left-2 text-red-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+            <textarea class="q-text w-full p-2 border rounded text-sm mb-2" rows="2" placeholder="السؤال">${d?d.text:''}</textarea>
+            <div class="grid gap-2">${[0,1,2,3].map(i=>`<div class="flex gap-2 items-center"><input type="radio" name="correct-${qId}" value="${i}" ${d&&d.correctIndex===i?'checked':''}><input class="q-option w-full text-sm border-b" value="${d?d.options[i]:''}" placeholder="خيار ${i+1}"></div>`).join('')}</div>
+        </div>`);
+    lucide.createIcons();
+}
+window.generateSmartQuestions = function() {
+    const txt = document.getElementById('new-content').value, cnt = parseInt(document.getElementById('auto-count').value)||5;
+    if(txt.length < 50) return alert('النص قصير');
+    const sents = txt.split(/[:.؟!\n]+/).filter(s => s.trim().length > 20);
+    const words = [...new Set(txt.split(/[\s،,.:"()\-]+/).filter(w => w.length > 4 && !ARABIC_STOP_WORDS.has(w)))];
+    for(let i=0; i<cnt && i<sents.length; i++) {
+        const s = sents[Math.floor(Math.random()*sents.length)], w = s.split(' ').filter(x=>x.length>4)[0];
+        if(!w) continue;
+        const opts = [w]; while(opts.length<4) { const r = words[Math.floor(Math.random()*words.length)]; if(r && !opts.includes(r)) opts.push(r); }
+        addQuestionField({ text: `أكمل: ${s.replace(w, '(...)')}`, options: opts.sort(()=>Math.random()-0.5), correctIndex: opts.indexOf(w) });
+    }
+}
+window.saveTopic = function() {
+    const t = document.getElementById('new-title').value, c = document.getElementById('new-content').value, qs = [];
+    document.querySelectorAll('.question-block').forEach(b => {
+        const qt = b.querySelector('.q-text').value, ops = Array.from(b.querySelectorAll('.q-option')).map(o=>o.value), sel = b.querySelector('input:checked');
+        if(qt && ops.every(x=>x) && sel) qs.push({ text: qt, options: ops, correctIndex: parseInt(sel.value) });
+    });
+    if(!t || !c || !qs.length) return alert('بيانات ناقصة');
+    const obj = { id: editingTopicId||Date.now(), title: t, content: c, questions: qs };
+    if(editingTopicId) topics[topics.findIndex(x=>x.id==editingTopicId)] = obj; else topics.push(obj);
+    saveTopicsDB(); cancelTopicEdit(); alert('تم الحفظ');
+}
+window.editTopic = function(id) {
+    const t = topics.find(x=>x.id==id); if(!t) return;
+    editingTopicId = id; document.getElementById('edit-indicator').classList.remove('hidden');
+    document.getElementById('new-title').value = t.title; document.getElementById('new-content').value = t.content;
+    document.getElementById('questions-container').innerHTML = ''; t.questions.forEach(q=>addQuestionField(q));
+    document.getElementById('btn-cancel').classList.remove('hidden'); document.getElementById('btn-save').innerText = 'حفظ التعديلات';
+}
+window.deleteTopic = function(id) {
+    if(confirm('هل أنت متأكد من حذف هذا الدرس؟')) {
+        topics = topics.filter(t => t.id !== id);
+        saveTopicsDB();
+        showToast('تم حذف الدرس', 'success');
+    }
+}
+window.cancelTopicEdit = function() {
+    editingTopicId = null; document.getElementById('edit-indicator').classList.add('hidden');
+    document.getElementById('new-title').value = ''; document.getElementById('new-content').value = ''; document.getElementById('questions-container').innerHTML = '';
+    document.getElementById('btn-cancel').classList.add('hidden'); document.getElementById('btn-save').innerText = 'نشر الدرس';
+}
+
+// STUDENT LESSONS
+function renderTopicList() {
+    const grid = document.getElementById('topics-grid'); grid.innerHTML = '';
+    if(!topics.length) return document.getElementById('empty-lessons').classList.remove('hidden');
+    document.getElementById('empty-lessons').classList.add('hidden');
+    topics.forEach((t, i) => {
+        const s = appData.students.find(x => x.id == studentSessionId);
+        const passedRecord = s && s.history && s.history.find(h => h.topicId === t.id && h.itemName === 'قراءة مثمرة');
+        
+        let statusHtml = '';
+        if (passedRecord) {
+            statusHtml = `<span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded font-bold">مجتاز (${passedRecord.val}%)</span>`;
+        }
+        
+        // Single click action to open the combined view
+        grid.innerHTML += `<div onclick="openTopic(${i})" class="cursor-pointer border-l-4 ${passedRecord?'border-green-500 bg-green-50':'border-gray-300 bg-white'} shadow rounded p-5 flex justify-between items-center hover:-translate-y-1 transition group">
+            <div>
+                <h3 class="font-bold text-lg text-gray-800 group-hover:text-indigo-600 transition">${t.title}</h3>
+                <p class="text-xs text-gray-500">${t.questions.length} أسئلة</p>
+            </div>
+            <div class="flex items-center gap-3">
+                ${statusHtml}
+                <i data-lucide="chevron-left" class="w-5 h-5 text-gray-400 group-hover:text-indigo-500"></i>
+            </div>
+        </div>`;
+    });
+    lucide.createIcons();
+}
+
+window.openTopic = function(i) { 
+    currentTopicIdx = i; 
+    const topic = topics[i];
+    document.getElementById('article-title').innerText = topic.title; 
+    document.getElementById('article-content').innerText = topic.content; 
+    
+    // Update the footer based on status (Passed or Not)
+    updateLessonFooter(i);
+
+    document.getElementById('lessons-list-view').classList.add('hidden'); 
+    document.getElementById('lesson-read-view').classList.remove('hidden'); 
+    window.scrollTo(0,0);
+}
+
+function updateLessonFooter(i) {
+    const s = appData.students.find(x => x.id == studentSessionId);
+    const passedRecord = s && s.history && s.history.find(h => h.topicId === topics[i].id && h.itemName === 'قراءة مثمرة');
+    const container = document.getElementById('lesson-action-container');
+    
+    if (passedRecord) {
+        // Show motivational message + Score + Review Button
+        container.innerHTML = `
+            <div class="bg-green-50 border border-green-200 rounded-xl p-6 text-center animate-pulse">
+                <div class="inline-block bg-white p-3 rounded-full shadow-sm mb-3">
+                    <span class="text-4xl">🏆</span>
+                </div>
+                <h3 class="text-xl font-bold text-green-800 mb-2">أحسنت يا بطل!</h3>
+                <p class="text-green-700 mb-2">لقد اجتزت هذا الدرس بنجاح.</p>
+                <div class="font-mono font-bold text-2xl text-green-600">${passedRecord.val}%</div>
+                
+                <button onclick="showAnswers()" class="mt-6 bg-white text-indigo-600 border border-indigo-200 px-5 py-2 rounded-full font-bold text-sm hover:bg-indigo-50 transition shadow-sm flex items-center gap-2 mx-auto cursor-pointer">
+                   <i data-lucide="book-open-check" class="w-4 h-4"></i> استعرض إجاباتك
+                </button>
+            </div>
+        `;
+        lucide.createIcons();
+    } else {
+        // Show CTA to start quiz
+        container.innerHTML = `
+            <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-6 text-center">
+                <div class="inline-block bg-white p-3 rounded-full shadow-sm mb-3">
+                    <i data-lucide="brain-circuit" class="w-8 h-8 text-indigo-600"></i>
+                </div>
+                <h3 class="text-xl font-bold text-indigo-900 mb-2">هل فهمت الدرس جيداً؟</h3>
+                <p class="text-indigo-700 mb-6 text-sm">إذا أردت الحصول على نقاط إضافية، اختبر فهمك الآن.</p>
+                <button onclick="startQuizInline()" class="bg-indigo-600 text-white py-3 px-8 rounded-full font-bold hover:bg-indigo-700 shadow-lg shadow-indigo-200 transition transform hover:-translate-y-1 flex items-center gap-2 mx-auto">
+                    <i data-lucide="play-circle" class="w-5 h-5"></i>
+                    <span>فتح الأسئلة</span>
+                </button>
+            </div>
+        `;
+        lucide.createIcons();
+    }
+}
+
+window.backToLessons = function() { 
+    document.getElementById('lessons-list-view').classList.remove('hidden'); 
+    document.getElementById('lesson-read-view').classList.add('hidden'); 
+    renderTopicList(); 
+}
+
+window.startQuizInline = function() {
+    if (currentTopicIdx === null) return;
+    
+    // Prepare questions
+    currentSessionQuestions = JSON.parse(JSON.stringify(topics[currentTopicIdx].questions)).sort(()=>Math.random()-0.5).slice(0,5);
+    
+    // Render Questions directly into the container below the lesson
+    const container = document.getElementById('lesson-action-container');
+    
+    let questionsHtml = currentSessionQuestions.map((q, i) => {
+        const cor = q.options[q.correctIndex]; q.options.sort(()=>Math.random()-0.5); q.correctIndex = q.options.indexOf(cor);
+        return `
+            <div class="mb-6 bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                <p class="font-bold mb-3 text-gray-800 flex items-start gap-2">
+                    <span class="bg-indigo-100 text-indigo-700 text-xs px-2 py-1 rounded">س${i+1}</span> 
+                    ${q.text}
+                </p>
+                <div class="space-y-2">
+                    ${q.options.map((o,Oi)=>`
+                        <label class="block cursor-pointer relative group">
+                            <input type="radio" name="q-${i}" value="${Oi}" class="peer sr-only quiz-option">
+                            <div class="p-3 rounded border border-gray-200 hover:bg-gray-50 peer-checked:border-indigo-500 peer-checked:bg-indigo-50 transition-all flex items-center gap-3">
+                                <div class="w-4 h-4 rounded-full border border-gray-300 peer-checked:border-indigo-600 peer-checked:bg-indigo-600"></div>
+                                <span class="text-sm font-medium text-gray-600 group-hover:text-gray-900">${o}</span>
+                            </div>
+                        </label>
+                    `).join('')}
+                </div>
+            </div>`;
+    }).join('');
+
+    container.innerHTML = `
+        <div class="fade-in bg-gray-50 p-6 rounded-xl border border-gray-200">
+            <h3 class="font-bold text-lg text-gray-800 mb-4 border-b pb-2 flex items-center gap-2">
+                <i data-lucide="help-circle" class="w-5 h-5 text-indigo-600"></i> اختبار الفهم
+            </h3>
+            <div id="inline-quiz-form">${questionsHtml}</div>
+            <button onclick="submitQuizInline()" class="w-full mt-4 bg-green-600 text-white py-3 rounded-lg font-bold hover:bg-green-700 transition shadow-lg flex justify-center items-center gap-2">
+                <i data-lucide="check-circle" class="w-5 h-5"></i> تسليم الإجابات
+            </button>
+        </div>
+    `;
+    lucide.createIcons();
+    
+    // Scroll to the quiz section smoothly
+    container.scrollIntoView({ behavior: 'smooth' });
+}
+
+window.submitQuizInline = function() {
+    let score = 0;
+    
+    // Create report of this session
+    const report = currentSessionQuestions.map((q, idx) => {
+        const userChoiceIndex = document.querySelector(`input[name="q-${idx}"]:checked`)?.value;
+        const userVal = userChoiceIndex ? parseInt(userChoiceIndex) : -1;
+        const isCorrect = userVal === q.correctIndex;
+        if(isCorrect) score++;
+        return {
+            qText: q.text,
+            options: q.options,
+            uIndex: userVal,
+            cIndex: q.correctIndex,
+            isCorrect: isCorrect
+        };
+    });
+    
+    const pct = Math.round((score / currentSessionQuestions.length) * 100);
+    const isSuccess = pct >= 50;
+    
+    if(isSuccess && studentSessionId) {
+        const s = appData.students.find(x => x.id == studentSessionId);
+        if(s) {
+            let rewardItem = (appConfig.items || []).find(i => i.label === 'قراءة مثمرة');
+            if(!rewardItem) { rewardItem = { id: Date.now().toString(), label: 'قراءة مثمرة', value: 0, type: 'pos' }; if(!appConfig.items) appConfig.items=[]; appConfig.items.push(rewardItem); saveConfig(); }
+            
+            const alreadyPassedIdx = s.history ? s.history.findIndex(h => h.topicId === topics[currentTopicIdx].id && h.itemName === 'قراءة مثمرة') : -1;
+            
+            if (alreadyPassedIdx === -1) {
+                s.points += pct;
+                if(!s.history) s.history = [];
+                s.history.push({
+                    id: Date.now(),
+                    itemName: 'قراءة مثمرة',
+                    val: pct,
+                    date: getCurrentDateTime(),
+                    note: `اجتياز درس: ${topics[currentTopicIdx].title}`,
+                    topicId: topics[currentTopicIdx].id,
+                    report: report // Save report for review
+                });
+                saveData(); 
+                showToast(`أحسنت! تمت إضافة ${pct} نقطة`, 'success');
+            } else {
+                // If already passed but retrying (maybe for practice), update the report to latest
+                s.history[alreadyPassedIdx].report = report;
+                s.history[alreadyPassedIdx].date = getCurrentDateTime(); // Update date on retry
+                saveData();
+            }
+        }
+    }
+
+    const container = document.getElementById('lesson-action-container');
+    
+    if (isSuccess) {
+        // Show Success Message In-Place + Review Button
+        container.innerHTML = `
+            <div class="bg-green-50 border border-green-200 rounded-xl p-8 text-center fade-in">
+                <div class="text-6xl mb-4">🎉</div>
+                <h3 class="text-2xl font-bold text-green-800 mb-2">ممتاز!</h3>
+                <p class="text-green-700 mb-4">درجتك: <span class="font-bold text-xl dir-ltr">${pct}%</span></p>
+                <div class="bg-white p-4 rounded-lg shadow-sm border border-green-100 text-sm text-green-800 mb-4">
+                    تم رصد النقاط بنجاح في رصيدك.
+                </div>
+                <button onclick="showAnswers()" class="bg-white text-indigo-600 border border-indigo-200 px-5 py-2 rounded-full font-bold text-sm hover:bg-indigo-50 transition shadow-sm flex items-center gap-2 mx-auto cursor-pointer">
+                   <i data-lucide="book-open-check" class="w-4 h-4"></i> استعرض إجاباتك
+                </button>
+            </div>
+        `;
+        lucide.createIcons();
+    } else {
+        // Show Failure Message In-Place with Retry Option
+        container.innerHTML = `
+            <div class="bg-red-50 border border-red-200 rounded-xl p-8 text-center fade-in">
+                <div class="text-5xl mb-4">💪</div>
+                <h3 class="text-xl font-bold text-red-800 mb-2">حاول مرة أخرى</h3>
+                <p class="text-red-700 mb-4">درجتك: <span class="font-bold text-xl dir-ltr">${pct}%</span></p>
+                <p class="text-sm text-gray-600 mb-6">يجب أن تحصل على 50% على الأقل. راجع الدرس في الأعلى ثم أعد المحاولة.</p>
+                <button onclick="startQuizInline()" class="bg-white text-red-600 border border-red-200 py-2 px-6 rounded-full font-bold hover:bg-red-50 transition">
+                    إعادة الاختبار
+                </button>
+            </div>
+        `;
+    }
+}
+
+// HELPERS
+function renderAll() { renderStudentsTable(); renderLeaderboard(); renderStudentDropdown(); }
+function renderStudentDropdown() { 
+    const sel = document.getElementById('form-student'); const v = sel.value; sel.innerHTML = '<option value="">-- اختر --</option>'; 
+    appData.students.sort((a,b)=>a.name.localeCompare(b.name)).forEach(s => sel.innerHTML += `<option value="${s.id}">${s.name}</option>`);
+    if(v) sel.value = v;
+}
+function renderStudentsTable() {
+    const b = document.getElementById('students-table'), q = document.getElementById('search-box').value.toLowerCase(); b.innerHTML = '';
+    document.getElementById('count-badge').textContent = appData.students.length;
+    appData.students.filter(s => s.name.toLowerCase().includes(q) || s.nid.includes(q)).forEach(s => {
+        b.innerHTML += `<tr class="hover:bg-gray-50 border-b last:border-0"><td class="p-3 font-bold">${s.name}</td><td class="p-3 text-center text-gray-500 text-xs font-mono">${s.nid}</td><td class="p-3 text-center font-bold text-indigo-600 text-lg dir-ltr">${s.points}</td><td class="p-3 text-center"><button onclick="startEdit(${s.id})" class="text-blue-500 p-1"><i data-lucide="pencil" class="w-4 h-4"></i></button><button onclick="deleteStudent(${s.id})" class="text-red-500 p-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td></tr>`;
+    });
+    lucide.createIcons();
+}
+function renderLeaderboard() {
+    const q = document.getElementById('search-leaderboard').value.toLowerCase();
+    document.getElementById('leaderboard-table').innerHTML = [...appData.students]
+        .filter(s => s.name.toLowerCase().includes(q))
+        .sort((a,b)=>b.points-a.points)
+        .map((s,i) => `<tr class="border-b"><td class="p-4 text-center text-xl">${i==0?'🥇':i==1?'🥈':i==2?'🥉':i+1}</td><td class="p-4 font-bold cursor-pointer hover:text-indigo-600" onclick="showDetails(${s.id})">${s.name}</td><td class="p-4 text-center font-bold text-indigo-700 text-lg">${s.points}</td></tr>`)
+        .join('');
+}
+function renderStudentDashboard(s) {
+    document.getElementById('st-dash-name').textContent = s.name; document.getElementById('st-dash-nid').textContent = s.nid; document.getElementById('st-dash-points').textContent = s.points;
+    const atk = s.athkar || { istighfar: 0, tasbih: 0, tahmid: 0, takbir: 0, total: 0 };
+    document.getElementById('athkar-total').textContent = atk.total; 
+    ['istighfar','tasbih','tahmid','takbir'].forEach(k => document.getElementById(`count-${k}`).textContent = atk[k]);
+    document.getElementById('st-dash-table').innerHTML = (s.history||[]).sort((a,b)=>new Date(b.date)-new Date(a.date)).map(h => 
+        `<tr><td class="p-3 text-gray-600 text-xs">${h.date}</td><td class="p-3 font-bold text-sm">${h.itemName}</td><td class="p-3 text-xs text-gray-500">${h.note||'-'}</td><td class="p-3 text-center font-bold ${h.val>0?'text-green-600':'text-red-600'} dir-ltr">${h.val}</td></tr>`
+    ).join('');
+}
+window.startEdit = function(id) { const s = appData.students.find(x=>x.id==id); if(s) { document.getElementById('student-name').value=s.name; document.getElementById('student-nid').value=s.nid; document.getElementById('student-pass').value=s.password; document.getElementById('edit-student-id').value=s.id; document.getElementById('student-submit-btn').innerText='حفظ التعديل'; document.getElementById('cancel-edit-btn').classList.remove('hidden'); } }
+window.cancelEdit = function() { document.getElementById('student-name').value=''; document.getElementById('student-nid').value=''; document.getElementById('student-pass').value=''; document.getElementById('edit-student-id').value=''; document.getElementById('student-submit-btn').innerText='حفظ'; document.getElementById('cancel-edit-btn').classList.add('hidden'); }
+window.deleteStudent = function(id) { if(confirm('حذف؟')) { appData.students = appData.students.filter(x=>x.id!=id); saveData(); } }
+window.deleteAll = function() { if(confirm('تصفير شامل؟')) { appData.students = []; saveData(); } }
+window.resetAllPoints = function() {
+    if(confirm('هل أنت متأكد من تصفير نقاط جميع الطلاب؟')) {
+        appData.students.forEach(s => { 
+            s.points = 0; 
+            s.history = []; 
+            // Reset clicks (Athkar)
+            s.athkar = { istighfar: 0, tasbih: 0, tahmid: 0, takbir: 0, total: 0 };
+        });
+        saveData(); showToast('تم تصفير النقاط والنقرات', 'success');
+    }
+}
+window.showDetails = function(id) {
+    const s = appData.students.find(x=>x.id==id); if(!s) return;
+    document.getElementById('modal-student-name').textContent = s.name; document.getElementById('modal-total-points').textContent = s.points;
+    document.getElementById('modal-history-body').innerHTML = (s.history||[]).length ? [...s.history].sort((a,b)=>new Date(b.date)-new Date(a.date)).map(h => `<tr><td class="p-3">${h.date}</td><td class="p-3 font-bold">${h.itemName}</td><td class="p-3 text-xs">${h.note||'-'}</td><td class="p-3 text-center font-bold ${h.val>0?'text-green-600':'text-red-600'}">${h.val}</td></tr>`).join('') : '';
+    document.getElementById('no-history-msg').classList.toggle('hidden', (s.history||[]).length > 0);
+    document.getElementById('details-modal').classList.remove('hidden');
+}
+window.closeModal = function() { document.getElementById('details-modal').classList.add('hidden'); }
+window.updateItemsDropdown = function() {
+    const t = document.getElementById('form-type').value, s = document.getElementById('form-item'); s.innerHTML = '<option value="">-- اختر --</option>';
+    (appConfig.items || []).filter(x => x.type === t).forEach(x => s.innerHTML += `<option value="${x.id}">${x.label} (${x.value})</option>`);
+}
+document.getElementById('search-box').addEventListener('input', renderStudentsTable);
+document.getElementById('search-leaderboard').addEventListener('input', renderLeaderboard);
+document.getElementById('excel-file').addEventListener('change', function(e){
+    if(!isExcelReady) return showToast('Excel غير جاهز', 'error');
+    const r = new FileReader(); r.onload = (v) => {
+        try { const d = new Uint8Array(v.target.result), w = XLSX.read(d, {type:'array'}), s = XLSX.utils.sheet_to_json(w.Sheets[w.SheetNames[0]], {header:1});
+        let c=0; s.forEach((r,i)=>{ if(r[0] && typeof r[0]==='string' && r[0].length>2 && !appData.students.some(x=>x.name===r[0].trim())) { appData.students.push({id:Date.now()+Math.random(), name:r[0].trim(), nid:'user_'+(i+1), password:'123', points:0, history:[], athkar:{istighfar:0,tasbih:0,tahmid:0,takbir:0,total:0}}); c++; } });
+        saveData(); showToast(`تم ${c} طالب`, 'success'); e.target.value=''; } catch(err){console.error(err);}
+    }; r.readAsArrayBuffer(e.target.files[0]);
+});
+function exportExcel() {
+    if(!isExcelReady || !appData.students.length) return showToast('لا توجد بيانات', 'error');
+    const ws = XLSX.utils.json_to_sheet(appData.students.map(s=>({الاسم:s.name, السجل:s.nid, النقاط:s.points}))), wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Students"); XLSX.writeFile(wb, "students.xlsx");
+}
+
+// New Functions for Answers Review
+window.showAnswers = function() {
+    if(currentTopicIdx === null || !studentSessionId) return;
+    const s = appData.students.find(x => x.id == studentSessionId);
+    if (!s || !s.history) return;
+
+    // Find the record for this topic
+    const record = s.history.find(h => h.topicId === topics[currentTopicIdx].id && h.itemName === 'قراءة مثمرة');
+    
+    if (!record || !record.report) {
+        // Fallback if no detailed report exists (older data)
+        // Just show correct answers based on current random generation (might not be accurate to history)
+        // or show a friendly message. For consistency, let's show a "Not Available" message.
+        document.getElementById('review-list-body').innerHTML = '<div class="text-center p-8 text-gray-500">تفاصيل الإجابات غير متوفرة لهذا الاختبار القديم.</div>';
+    } else {
+        const html = record.report.map((q, i) => {
+            const isCorrect = q.isCorrect;
+            const userAnsText = q.uIndex !== -1 ? q.options[q.uIndex] : 'لم يتم اختيار إجابة';
+            const correctAnsText = q.options[q.cIndex];
+            
+            return `<div class="bg-white p-4 rounded-lg border ${isCorrect ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}">
+                <p class="font-bold text-gray-800 text-sm mb-3 leading-6 border-b border-gray-200 pb-2">
+                    <span class="text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded text-xs ml-1">سؤال ${i+1}</span> 
+                    ${q.qText}
+                </p>
+                <div class="grid gap-2 text-sm">
+                    <div class="${isCorrect ? 'text-green-700' : 'text-red-700'} font-bold flex items-center gap-2">
+                        <span>إجابتك:</span>
+                        <span>${userAnsText}</span>
+                        ${isCorrect ? '<i data-lucide="check" class="w-4 h-4"></i>' : '<i data-lucide="x" class="w-4 h-4"></i>'}
+                    </div>
+                    ${!isCorrect ? `
+                    <div class="text-green-700 font-bold bg-white/50 p-2 rounded border border-green-100 flex items-center gap-2">
+                        <span class="text-xs text-gray-500">الصحيحة:</span>
+                        <span>${correctAnsText}</span>
+                        <i data-lucide="check-circle" class="w-4 h-4 text-green-500"></i>
+                    </div>` : ''}
+                </div>
+            </div>`;
+        }).join('');
+        document.getElementById('review-list-body').innerHTML = html;
+    }
+    
+    document.getElementById('review-modal').classList.remove('hidden');
+    lucide.createIcons();
+}
+
+window.closeReviewModal = function() {
+    document.getElementById('review-modal').classList.add('hidden');
+}
+
+function showToast(m, t) { const el = document.getElementById('toast'); el.textContent = m; el.className = `fixed top-6 left-6 z-50 px-6 py-4 rounded-lg shadow-xl text-white font-bold transition-all duration-300 ${t==='success'?'bg-green-600':'bg-red-600'}`; el.classList.remove('hidden', 'translate-y-[-20px]', 'opacity-0'); setTimeout(() => { el.classList.add('translate-y-[-20px]', 'opacity-0'); setTimeout(() => el.classList.add('hidden'), 300); }, 3000); }
+</script>
+</body>
+</html>
+

@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>السيرة الذاتية | أحمد المنصور</title>
+    <!-- استيراد خط Cairo من Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- استيراد Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- استيراد أيقونات FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- إعدادات Tailwind المخصصة -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Cairo', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#1e293b', // أزرق داكن
+                        accent: '#ca8a04',  // ذهبي/أصفر غامق
+                        light: '#f8fafc',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* أنماط خاصة للطباعة لإخفاء الأزرار وضمان ظهور الألوان */
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            body {
+                background-color: white;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .shadow-2xl {
+                box-shadow: none !important;
+            }
+            .container-cv {
+                margin: 0;
+                width: 100%;
+                max-width: 100%;
+            }
+        }
+        
+        /* تحسين شكل شريط التمرير */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #888; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555; 
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-slate-800 font-sans antialiased min-h-screen py-8">
+
+    <!-- زر التحميل/الطباعة العائم -->
+    <div class="fixed bottom-6 left-6 z-50 no-print">
+        <button onclick="window.print()" class="bg-accent hover:bg-yellow-600 text-white font-bold py-3 px-6 rounded-full shadow-lg transition duration-300 flex items-center gap-2 transform hover:-translate-y-1">
+            <i class="fas fa-print"></i>
+            <span>طباعة / PDF</span>
+        </button>
+    </div>
+
+    <!-- حاوية السيرة الذاتية -->
+    <div class="container-cv max-w-5xl mx-auto bg-white shadow-2xl rounded-xl overflow-hidden print:rounded-none">
+        
+        <!-- الهيدر (Header) -->
+        <header class="bg-primary text-white p-8 md:p-12 relative overflow-hidden">
+            <!-- زخرفة خلفية -->
+            <div class="absolute top-0 left-0 w-32 h-32 bg-white opacity-5 rounded-full -translate-x-10 -translate-y-10"></div>
+            <div class="absolute bottom-0 right-0 w-48 h-48 bg-accent opacity-10 rounded-full translate-x-20 translate-y-20"></div>
+
+            <div class="flex flex-col md:flex-row items-center gap-8 relative z-10">
+                <!-- الصورة الشخصية -->
+                <div class="relative group">
+                    <div class="w-40 h-40 rounded-full overflow-hidden border-4 border-accent shadow-lg">
+                        <!-- صورة وهمية من Unsplash -->
+                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=300&q=80" 
+                             alt="أحمد المنصور" 
+                             class="w-full h-full object-cover transform transition duration-500 group-hover:scale-110">
+                    </div>
+                </div>
+
+                <!-- المعلومات الرئيسية -->
+                <div class="text-center md:text-right flex-1">
+                    <h1 class="text-4xl md:text-5xl font-bold mb-2">أحمد المنصور</h1>
+                    <p class="text-xl text-accent font-semibold mb-4">مطور برمجيات متكامل (Full Stack Developer)</p>
+                    <p class="text-gray-300 max-w-2xl leading-relaxed">
+                        مطور شغوف بخبرة تزيد عن 5 سنوات في بناء تطبيقات ويب قابلة للتوسع. أتميز بالجمع بين مهارات التصميم الجذاب والكود البرمجي النظيف والفعال. أسعى دائمًا لابتكار حلول تقنية تسهل حياة المستخدمين.
+                    </p>
+                </div>
+            </div>
+        </header>
+
+        <!-- المحتوى الرئيسي (شبكة) -->
+        <div class="grid grid-cols-1 md:grid-cols-12 min-h-[800px]">
+            
+            <!-- العمود الجانبي (المعلومات والمهارات) -->
+            <aside class="md:col-span-4 bg-slate-50 p-8 border-l border-gray-100">
+                
+                <!-- معلومات الاتصال -->
+                <div class="mb-8">
+                    <h3 class="text-xl font-bold text-primary border-b-2 border-accent pb-2 mb-4">
+                        <i class="fas fa-address-card ml-2 text-accent"></i> التواصل
+                    </h3>
+                    <ul class="space-y-4 text-sm">
+                        <li class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-white shadow flex items-center justify-center text-accent">
+                                <i class="fas fa-phone"></i>
+                            </div>
+                            <span dir="ltr">+966 55 123 4567</span>
+                        </li>
+                        <li class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-white shadow flex items-center justify-center text-accent">
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                            <span>ahmed.mansour@email.com</span>
+                        </li>
+                        <li class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-white shadow flex items-center justify-center text-accent">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </div>
+                            <span>الرياض، المملكة العربية السعودية</span>
+                        </li>
+                        <li class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-white shadow flex items-center justify-center text-accent">
+                                <i class="fab fa-linkedin-in"></i>
+                            </div>
+                            <span>linkedin.com/in/ahmed-dev</span>
+                        </li>
+                        <li class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-white shadow flex items-center justify-center text-accent">
+                                <i class="fas fa-globe"></i>
+                            </div>
+                            <span>www.ahmed-portfolio.com</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- المهارات التقنية -->
+                <div class="mb-8">
+                    <h3 class="text-xl font-bold text-primary border-b-2 border-accent pb-2 mb-4">
+                        <i class="fas fa-code ml-2 text-accent"></i> المهارات التقنية
+                    </h3>
+                    <div class="space-y-4">
+                        <!-- مهارة 1 -->
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="font-semibold text-sm">HTML5 / CSS3 / Tailwind</span>
+                                <span class="text-xs text-gray-500">95%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-primary h-2 rounded-full" style="width: 95%"></div>
+                            </div>
+                        </div>
+                        <!-- مهارة 2 -->
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="font-semibold text-sm">JavaScript (ES6+)</span>
+                                <span class="text-xs text-gray-500">90%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-primary h-2 rounded-full" style="width: 90%"></div>
+                            </div>
+                        </div>
+                        <!-- مهارة 3 -->
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="font-semibold text-sm">React.js & Next.js</span>
+                                <span class="text-xs text-gray-500">85%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-primary h-2 rounded-full" style="width: 85%"></div>
+                            </div>
+                        </div>
+                        <!-- مهارة 4 -->
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="font-semibold text-sm">Node.js & Express</span>
+                                <span class="text-xs text-gray-500">80%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-primary h-2 rounded-full" style="width: 80%"></div>
+                            </div>
+                        </div>
+                        <!-- مهارة 5 -->
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="font-semibold text-sm">SQL & MongoDB</span>
+                                <span class="text-xs text-gray-500">75%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-primary h-2 rounded-full" style="width: 75%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- اللغات -->
+                <div>
+                    <h3 class="text-xl font-bold text-primary border-b-2 border-accent pb-2 mb-4">
+                        <i class="fas fa-language ml-2 text-accent"></i> اللغات
+                    </h3>
+                    <ul class="space-y-2">
+                        <li class="flex justify-between">
+                            <span>العربية</span>
+                            <span class="text-gray-500 text-sm">لغة الأم</span>
+                        </li>
+                        <li class="flex justify-between">
+                            <span>الإنجليزية</span>
+                            <span class="text-gray-500 text-sm">متقدم (C1)</span>
+                        </li>
+                    </ul>
+                </div>
+
+            </aside>
+
+            <!-- المحتوى الرئيسي (الخبرات والتعليم) -->
+            <main class="md:col-span-8 p-8 md:p-12">
+                
+                <!-- الخبرات العملية -->
+                <section class="mb-10">
+                    <h2 class="text-2xl font-bold text-primary mb-6 flex items-center gap-3">
+                        <span class="w-10 h-10 bg-primary text-white rounded-lg flex items-center justify-center text-lg">
+                            <i class="fas fa-briefcase"></i>
+                        </span>
+                        الخبرات العملية
+                    </h2>
+
+                    <div class="relative border-r-2 border-gray-200 pr-8 space-y-10 mr-4">
+                        <!-- خبرة 1 -->
+                        <div class="relative">
+                            <div class="absolute -right-[41px] top-1 w-5 h-5 bg-accent rounded-full border-4 border-white"></div>
+                            <h3 class="text-xl font-bold text-gray-800">كبير مطوري الواجهات الأمامية</h3>
+                            <div class="text-accent font-semibold mb-2">شركة الحلول الرقمية المتقدمة | الرياض</div>
+                            <div class="text-sm text-gray-500 mb-3">يناير 2021 - حتى الآن</div>
+                            <ul class="list-disc list-inside text-gray-600 space-y-1 text-sm md:text-base">
+                                <li>قيادة فريق مكون من 5 مطورين لبناء واجهات المستخدم لتطبيقات SaaS.</li>
+                                <li>تحسين أداء الموقع بنسبة 40% باستخدام تقنيات التحميل الحديثة.</li>
+                                <li>تطوير مكتبة مكونات (Design System) موحدة للشركة باستخدام React.</li>
+                            </ul>
+                        </div>
+
+                        <!-- خبرة 2 -->
+                        <div class="relative">
+                            <div class="absolute -right-[41px] top-1 w-5 h-5 bg-gray-300 rounded-full border-4 border-white"></div>
+                            <h3 class="text-xl font-bold text-gray-800">مطور ويب (Full Stack)</h3>
+                            <div class="text-accent font-semibold mb-2">إبداع تك للبرمجيات | جدة</div>
+                            <div class="text-sm text-gray-500 mb-3">يونيو 2018 - ديسمبر 2020</div>
+                            <ul class="list-disc list-inside text-gray-600 space-y-1 text-sm md:text-base">
+                                <li>تطوير وصيانة تطبيقات التجارة الإلكترونية باستخدام Node.js.</li>
+                                <li>دمج بوابات الدفع الإلكتروني وتطوير لوحات تحكم الإدارة.</li>
+                                <li>العمل بشكل وثيق مع فريق التصميم لضمان تجربة مستخدم مثالية.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- التعليم -->
+                <section class="mb-10">
+                    <h2 class="text-2xl font-bold text-primary mb-6 flex items-center gap-3">
+                        <span class="w-10 h-10 bg-primary text-white rounded-lg flex items-center justify-center text-lg">
+                            <i class="fas fa-graduation-cap"></i>
+                        </span>
+                        المؤهلات العلمية
+                    </h2>
+
+                    <div class="grid gap-6">
+                        <div class="bg-slate-50 p-6 rounded-lg border border-gray-100 hover:shadow-md transition">
+                            <h3 class="text-lg font-bold text-gray-800">بكالوريوس علوم الحاسب</h3>
+                            <p class="text-accent">جامعة الملك سعود</p>
+                            <p class="text-sm text-gray-500 mt-1">2014 - 2018 | المعدل: 4.75/5</p>
+                        </div>
+                        <div class="bg-slate-50 p-6 rounded-lg border border-gray-100 hover:shadow-md transition">
+                            <h3 class="text-lg font-bold text-gray-800">شهادة محترف سحابة AWS</h3>
+                            <p class="text-accent">Amazon Web Services</p>
+                            <p class="text-sm text-gray-500 mt-1">صدرت في 2022</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- مشاريع بارزة -->
+                <section>
+                    <h2 class="text-2xl font-bold text-primary mb-6 flex items-center gap-3">
+                        <span class="w-10 h-10 bg-primary text-white rounded-lg flex items-center justify-center text-lg">
+                            <i class="fas fa-project-diagram"></i>
+                        </span>
+                        مشاريع مختارة
+                    </h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="border border-gray-200 rounded-lg p-4 hover:border-accent transition cursor-pointer group">
+                            <h4 class="font-bold text-lg group-hover:text-accent transition">منصة "تسوق"</h4>
+                            <p class="text-sm text-gray-600 mt-2">تطبيق متجر إلكتروني متكامل متعدد التجار مع لوحة تحكم وتحليلات.</p>
+                            <div class="flex gap-2 mt-3">
+                                <span class="text-xs bg-gray-100 px-2 py-1 rounded text-gray-600">React</span>
+                                <span class="text-xs bg-gray-100 px-2 py-1 rounded text-gray-600">Node.js</span>
+                            </div>
+                        </div>
+
+                        <div class="border border-gray-200 rounded-lg p-4 hover:border-accent transition cursor-pointer group">
+                            <h4 class="font-bold text-lg group-hover:text-accent transition">تطبيق "صحتي"</h4>
+                            <p class="text-sm text-gray-600 mt-2">نظام إدارة العيادات الطبية وحجز المواعيد عن بعد.</p>
+                            <div class="flex gap-2 mt-3">
+                                <span class="text-xs bg-gray-100 px-2 py-1 rounded text-gray-600">Vue.js</span>
+                                <span class="text-xs bg-gray-100 px-2 py-1 rounded text-gray-600">Firebase</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </main>
+        </div>
+
+        <!-- التذييل (Footer) -->
+        <footer class="bg-primary text-slate-400 p-6 text-center text-sm border-t border-slate-700">
+            <p>&copy; 2024 أحمد المنصور. جميع الحقوق محفوظة.</p>
+            <div class="mt-2 space-x-4 space-x-reverse">
+                <a href="#" class="hover:text-white transition"><i class="fab fa-twitter"></i></a>
+                <a href="#" class="hover:text-white transition"><i class="fab fa-github"></i></a>
+                <a href="#" class="hover:text-white transition"><i class="fab fa-behance"></i></a>
+            </div>
+        </footer>
+
+    </div>
+
+</body>
+</html>
+
