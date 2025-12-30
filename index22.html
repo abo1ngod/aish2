@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>لوحة بيانات اللجان - 16:9</title>
     <!-- استيراد Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -108,9 +108,9 @@
         }
 
         .bg-card-orange {
-            background: linear-gradient(145deg, #fb923c 0%, #f97316 50%, #ea580c 100%) !important;
+            background: linear-gradient(145deg, #fdba74 0%, #fb923c 50%, #f97316 100%) !important;
             box-shadow:
-                0 20px 40px -15px rgba(249, 115, 22, 0.5),
+                0 20px 40px -15px rgba(251, 146, 60, 0.5),
                 0 0 0 1px rgba(255, 255, 255, 0.1) inset,
                 0 -3px 10px rgba(0, 0, 0, 0.2) inset !important;
         }
@@ -739,8 +739,24 @@
         let timerStarted = false;
         let timerInterval = null;
 
-        // فتح لوحة التحكم بالنقر المزدوج
-        document.getElementById('logo-btn').addEventListener('dblclick', function() {
+        // فتح لوحة التحكم بالنقر المزدوج (دعم الأيفون والأجهزة اللمسية)
+        let lastTap = 0;
+        const logoBtn = document.getElementById('logo-btn');
+
+        // للأجهزة اللمسية (الأيفون والأندرويد)
+        logoBtn.addEventListener('touchend', function(e) {
+            const currentTime = new Date().getTime();
+            const tapLength = currentTime - lastTap;
+            if (tapLength < 500 && tapLength > 0) {
+                e.preventDefault();
+                document.getElementById('control-panel').classList.remove('hidden');
+                renderCommitteesList();
+            }
+            lastTap = currentTime;
+        });
+
+        // للكمبيوتر (الماوس)
+        logoBtn.addEventListener('dblclick', function() {
             document.getElementById('control-panel').classList.remove('hidden');
             renderCommitteesList();
         });
