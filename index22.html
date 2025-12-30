@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -163,21 +163,148 @@
             border: 1px solid rgba(255, 255, 255, 0.3);
         }
 
-        /* تصميم متجاوب للشاشات الصغيرة بالوضع العرضي */
-        @media screen and (max-width: 1024px) and (orientation: landscape) {
+        /* ============================================
+           Mobile-First Design - نظام الجوال أولاً
+           ============================================ */
+
+        /* الأساس: شاشات الجوال الصغيرة (Portrait) */
+        @media screen and (max-width: 640px) and (orientation: portrait) {
+            body {
+                padding: 0.5rem;
+                overflow-y: auto;
+                height: auto;
+                min-height: 100vh;
+            }
+
+            header {
+                height: auto !important;
+                padding: 0.75rem !important;
+                margin-bottom: 0.5rem !important;
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            header > div:first-child {
+                width: 100%;
+                justify-content: center;
+            }
+
+            header h1 {
+                font-size: 1rem !important;
+                text-align: center;
+            }
+
+            header .h-12 {
+                height: 2.5rem !important;
+                width: 2.5rem !important;
+            }
+
+            header .text-2xl {
+                font-size: 1rem !important;
+            }
+
+            #current-date {
+                font-size: 0.9rem !important;
+            }
+
+            main {
+                display: flex !important;
+                flex-direction: column !important;
+                height: auto !important;
+                gap: 0.5rem !important;
+                padding-bottom: 1rem;
+            }
+
+            /* بطاقة العداد في الأعلى */
+            .timer-card {
+                order: -1 !important;
+            }
+
+            .committee-card {
+                padding: 1rem !important;
+                border-radius: 1rem !important;
+                min-height: 100px;
+                touch-action: manipulation;
+            }
+
+            .card-title {
+                font-size: 1.1rem !important;
+            }
+
+            .card-number {
+                font-size: 2.5rem !important;
+            }
+
+            .card-icon {
+                width: 28px !important;
+                height: 28px !important;
+                top: 8px !important;
+                left: 8px !important;
+                border-radius: 8px !important;
+            }
+
+            .card-icon i {
+                font-size: 0.8rem !important;
+            }
+
+            .done-badge {
+                font-size: 0.75rem !important;
+                padding: 3px 10px !important;
+            }
+
+            .glass-panel.rounded-3xl {
+                border-radius: 1rem !important;
+                padding: 1rem !important;
+            }
+
+            #countdown {
+                font-size: 2.5rem !important;
+            }
+
+            .glass-panel h2.text-4xl {
+                font-size: 1.2rem !important;
+                margin-bottom: 0.5rem !important;
+            }
+
+            /* لوحة التحكم للجوال */
+            #control-panel > div {
+                width: 95% !important;
+                padding: 1rem !important;
+                max-height: 95vh !important;
+            }
+
+            #control-panel h2 {
+                font-size: 1.5rem !important;
+            }
+
+            #control-panel .grid-cols-2 {
+                grid-template-columns: 1fr !important;
+            }
+
+            #control-panel input,
+            #control-panel select,
+            #control-panel button {
+                font-size: 16px !important;
+                min-height: 48px;
+                touch-action: manipulation;
+            }
+        }
+
+        /* شاشات الجوال بالوضع العرضي */
+        @media screen and (max-width: 896px) and (orientation: landscape) {
             body {
                 padding: 0.5rem;
             }
 
             header {
                 height: auto !important;
-                min-height: 8vh;
+                min-height: 10vh;
                 padding: 0.5rem 1rem !important;
                 margin-bottom: 0.5rem !important;
             }
 
             header h1 {
-                font-size: 1.25rem !important;
+                font-size: 1.1rem !important;
             }
 
             header .h-12 {
@@ -186,66 +313,22 @@
             }
 
             header .text-2xl {
-                font-size: 1rem !important;
+                font-size: 0.9rem !important;
             }
 
             #current-date {
-                font-size: 1rem !important;
+                font-size: 0.9rem !important;
             }
 
             main {
-                height: 88vh !important;
-                gap: 0.5rem !important;
+                height: 85vh !important;
+                gap: 0.4rem !important;
             }
 
             .committee-card {
-                padding: 0.5rem !important;
-                border-radius: 1rem !important;
-            }
-
-            .card-title {
-                font-size: 1rem !important;
-            }
-
-            .card-number {
-                font-size: 2.5rem !important;
-            }
-
-            .card-icon {
-                width: 24px !important;
-                height: 24px !important;
-                top: 6px !important;
-                left: 6px !important;
-                border-radius: 6px !important;
-            }
-
-            .card-icon i {
-                font-size: 0.7rem !important;
-            }
-
-            .done-badge {
-                font-size: 0.7rem !important;
-                padding: 2px 8px !important;
-            }
-
-            .glass-panel.rounded-3xl {
-                border-radius: 1rem !important;
-                padding: 0.5rem !important;
-            }
-
-            #countdown {
-                font-size: 2rem !important;
-            }
-
-            .glass-panel h2.text-4xl {
-                font-size: 1rem !important;
-                margin-bottom: 0.25rem !important;
-            }
-        }
-
-        @media screen and (max-width: 768px) and (orientation: landscape) {
-            header h1 {
-                font-size: 1rem !important;
+                padding: 0.4rem !important;
+                border-radius: 0.75rem !important;
+                touch-action: manipulation;
             }
 
             .card-title {
@@ -256,8 +339,224 @@
                 font-size: 2rem !important;
             }
 
+            .card-icon {
+                width: 22px !important;
+                height: 22px !important;
+                top: 5px !important;
+                left: 5px !important;
+                border-radius: 5px !important;
+            }
+
+            .card-icon i {
+                font-size: 0.6rem !important;
+            }
+
+            .done-badge {
+                font-size: 0.6rem !important;
+                padding: 2px 6px !important;
+            }
+
+            .glass-panel.rounded-3xl {
+                border-radius: 0.75rem !important;
+                padding: 0.4rem !important;
+            }
+
             #countdown {
                 font-size: 1.5rem !important;
+            }
+
+            .glass-panel h2.text-4xl {
+                font-size: 0.85rem !important;
+                margin-bottom: 0.2rem !important;
+            }
+        }
+
+        /* شاشات الجوال الصغيرة جداً بالوضع العرضي */
+        @media screen and (max-width: 680px) and (orientation: landscape) {
+            header h1 {
+                font-size: 0.9rem !important;
+            }
+
+            .card-title {
+                font-size: 0.75rem !important;
+            }
+
+            .card-number {
+                font-size: 1.5rem !important;
+            }
+
+            #countdown {
+                font-size: 1.2rem !important;
+            }
+
+            .card-icon {
+                display: none !important;
+            }
+        }
+
+        /* الأجهزة اللوحية */
+        @media screen and (min-width: 641px) and (max-width: 1024px) and (orientation: portrait) {
+            body {
+                padding: 1rem;
+            }
+
+            header h1 {
+                font-size: 1.5rem !important;
+            }
+
+            main {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 0.75rem !important;
+            }
+
+            .card-title {
+                font-size: 1.25rem !important;
+            }
+
+            .card-number {
+                font-size: 3.5rem !important;
+            }
+
+            .committee-card {
+                min-height: 150px;
+                touch-action: manipulation;
+            }
+        }
+
+        /* شاشات الأجهزة اللوحية بالوضع العرضي */
+        @media screen and (min-width: 897px) and (max-width: 1024px) and (orientation: landscape) {
+            body {
+                padding: 0.75rem;
+            }
+
+            header {
+                height: auto !important;
+                min-height: 10vh;
+                padding: 0.75rem 1.5rem !important;
+            }
+
+            header h1 {
+                font-size: 1.5rem !important;
+            }
+
+            main {
+                height: 86vh !important;
+                gap: 0.5rem !important;
+            }
+
+            .card-title {
+                font-size: 1.2rem !important;
+            }
+
+            .card-number {
+                font-size: 3rem !important;
+            }
+
+            #countdown {
+                font-size: 2.5rem !important;
+            }
+        }
+
+        /* الشاشات الكبيرة - سطح المكتب */
+        @media screen and (min-width: 1025px) {
+            body {
+                padding: 1.5rem;
+            }
+
+            .committee-card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4) !important;
+            }
+
+            #logo-btn:hover {
+                transform: scale(1.05);
+            }
+
+            header h1 {
+                font-size: 1.875rem;
+            }
+
+            main {
+                height: 84vh;
+            }
+
+            .card-title {
+                font-size: 1.75rem;
+            }
+
+            .card-number {
+                font-size: 5rem;
+            }
+        }
+
+        /* الشاشات الكبيرة جداً */
+        @media screen and (min-width: 1440px) {
+            body {
+                padding: 2rem;
+            }
+
+            header h1 {
+                font-size: 2rem;
+            }
+
+            .card-title {
+                font-size: 2rem;
+            }
+
+            .card-number {
+                font-size: 6rem;
+            }
+
+            #countdown {
+                font-size: 4rem;
+            }
+
+            .card-icon {
+                width: 50px;
+                height: 50px;
+            }
+        }
+
+        /* دعم اللمس للأجهزة المحمولة */
+        @media (hover: none) and (pointer: coarse) {
+            .committee-card,
+            #logo-btn,
+            button,
+            select,
+            input {
+                touch-action: manipulation;
+                -webkit-tap-highlight-color: transparent;
+            }
+
+            .committee-card:active {
+                transform: scale(0.98);
+            }
+
+            #logo-btn:active {
+                transform: scale(0.95);
+            }
+
+            button:active {
+                transform: scale(0.97);
+            }
+        }
+
+        /* دعم الماوس للشاشات الكبيرة */
+        @media (hover: hover) and (pointer: fine) {
+            .committee-card {
+                cursor: default;
+            }
+
+            #logo-btn {
+                cursor: pointer;
+            }
+
+            button {
+                cursor: pointer;
+            }
+
+            button:hover {
+                filter: brightness(1.1);
             }
         }
     </style>
@@ -398,7 +697,7 @@
         </div>
 
         <!-- بطاقة الوقت المتبقي -->
-        <div class="glass-panel rounded-3xl p-5 flex flex-col justify-center items-center relative overflow-hidden border-2 border-dashed border-slate-500/50 bg-white/5 shadow-2xl">
+        <div class="timer-card glass-panel rounded-3xl p-5 flex flex-col justify-center items-center relative overflow-hidden border-2 border-dashed border-slate-500/50 bg-white/5 shadow-2xl">
             <div class="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
             <h2 class="text-4xl font-black text-white text-center mb-3 drop-shadow-lg relative z-10">الوقت المتبقي</h2>
             <div id="countdown" class="timer-glow text-6xl font-bold text-emerald-400 drop-shadow-lg relative z-10">00:00:00</div>
