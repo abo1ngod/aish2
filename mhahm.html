@@ -4,873 +4,125 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>منظم الرحلات</title>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg-primary: #faf8f5;
-            --bg-secondary: #ffffff;
-            --text-primary: #2d3436;
-            --text-secondary: #636e72;
-            --accent: #e17055;
-            --accent-light: #fab1a0;
-            --success: #00b894;
-            --border: #dfe6e9;
-            --shadow: rgba(45, 52, 54, 0.08);
-        }
-
-        .dark {
-            --bg-primary: #1a1d21;
-            --bg-secondary: #252a30;
-            --text-primary: #f5f6fa;
-            --text-secondary: #a4a9b3;
-            --accent: #e17055;
-            --accent-light: #74412f;
-            --success: #00b894;
-            --border: #3d4450;
-            --shadow: rgba(0, 0, 0, 0.3);
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Tajawal', sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            min-height: 100vh;
-            transition: background 0.3s, color 0.3s;
-        }
-
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        header {
-            text-align: center;
-            padding: 30px 0;
-            position: relative;
-        }
-
-        header::before {
-            content: '✈️';
-            font-size: 3rem;
-            display: block;
-            margin-bottom: 10px;
-            animation: float 3s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-
-        h1 {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--accent);
-        }
-
-        .sections {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-top: 20px;
-        }
-
-        @media (max-width: 650px) {
-            .sections {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .section {
-            background: var(--bg-secondary);
-            border-radius: 16px;
-            padding: 20px;
-            box-shadow: 0 4px 20px var(--shadow);
-        }
-
-        .section-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid var(--border);
-        }
-
-        .section-header span {
-            font-size: 1.5rem;
-        }
-
-        .section-header h2 {
-            font-size: 1.2rem;
-            font-weight: 700;
-        }
-
-        .input-group {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        input {
-            flex: 1;
-            padding: 12px 15px;
-            border: 2px solid var(--border);
-            border-radius: 10px;
-            font-family: inherit;
-            font-size: 16px;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            transition: border-color 0.3s;
-        }
-
-        input:focus {
-            outline: none;
-            border-color: var(--accent);
-        }
-
-        input::placeholder {
-            color: var(--text-secondary);
-        }
-
-        .expense-inputs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .expense-inputs input:first-child {
-            flex: 2;
-        }
-
-        .expense-inputs input:last-child {
-            flex: 1;
-        }
-
-        button {
-            padding: 12px 20px;
-            border: none;
-            border-radius: 10px;
-            font-family: inherit;
-            font-size: 16px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: transform 0.2s, opacity 0.2s;
-        }
-
-        button:hover {
-            opacity: 0.9;
-        }
-
-        button:active {
-            transform: scale(0.97);
-        }
-
-        .btn-add {
-            background: var(--accent);
-            color: white;
-        }
-
-        .list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            max-height: 350px;
-            overflow-y: auto;
-        }
-
-        .list::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .list::-webkit-scrollbar-thumb {
-            background: var(--border);
-            border-radius: 3px;
-        }
-
-        .item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 15px;
-            background: var(--bg-primary);
-            border-radius: 10px;
-            animation: slideIn 0.3s ease;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateX(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        .task-item {
-            cursor: pointer;
-        }
-
-        .task-item.completed .task-text {
-            text-decoration: line-through;
-            color: var(--text-secondary);
-        }
-
-        .checkbox {
-            width: 22px;
-            height: 22px;
-            border: 2px solid var(--border);
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            transition: all 0.3s;
-        }
-
-        .task-item.completed .checkbox {
-            background: var(--success);
-            border-color: var(--success);
-        }
-
-        .checkbox::after {
-            content: '✓';
-            color: white;
-            font-size: 14px;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-
-        .task-item.completed .checkbox::after {
-            opacity: 1;
-        }
-
-        .task-text, .expense-name {
-            flex: 1;
-            font-size: 1rem;
-        }
-
-        .expense-amount {
-            font-weight: 700;
-            color: var(--accent);
-            white-space: nowrap;
-        }
-
-        .delete-btn {
-            background: none;
-            border: none;
-            color: var(--text-secondary);
-            font-size: 1.2rem;
-            padding: 5px;
-            cursor: pointer;
-            opacity: 0.5;
-            transition: opacity 0.3s, color 0.3s;
-        }
-
-        .delete-btn:hover {
-            opacity: 1;
-            color: #d63031;
-        }
-
-        .total-bar {
-            margin-top: 20px;
-            padding: 15px;
-            background: linear-gradient(135deg, var(--accent), var(--accent-light));
-            border-radius: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: white;
-        }
-
-        .dark .total-bar {
-            background: linear-gradient(135deg, var(--accent), #c0392b);
-        }
-
-        .total-label {
-            font-size: 1rem;
-            font-weight: 500;
-        }
-
-        .total-amount {
-            font-size: 1.4rem;
-            font-weight: 700;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 30px;
-            color: var(--text-secondary);
-        }
-
-        .empty-state span {
-            font-size: 2.5rem;
-            display: block;
-            margin-bottom: 10px;
-            opacity: 0.5;
-        }
-
-        /* ===== RESPONSIVE DESIGN ===== */
-
-        /* Large screens (desktop) */
-        @media (min-width: 1200px) {
-            .container {
-                max-width: 1000px;
-                padding: 30px;
-            }
-
-            header::before {
-                font-size: 4rem;
-            }
-
-            h1 {
-                font-size: 2.5rem;
-            }
-
-            .sections {
-                gap: 30px;
-            }
-
-            .section {
-                padding: 25px;
-            }
-
-            .list {
-                max-height: 400px;
-            }
-        }
-
-        /* Medium screens (tablets) */
-        @media (min-width: 768px) and (max-width: 1199px) {
-            .container {
-                max-width: 900px;
-                padding: 25px;
-            }
-
-            .sections {
-                gap: 25px;
-            }
-        }
-
-        /* Small tablets and large phones (landscape) */
-        @media (min-width: 650px) and (max-width: 767px) {
-            .container {
-                padding: 15px;
-            }
-
-            .sections {
-                gap: 15px;
-            }
-
-            .section {
-                padding: 15px;
-            }
-
-            h1 {
-                font-size: 1.7rem;
-            }
-
-            header::before {
-                font-size: 2.5rem;
-            }
-
-            header {
-                padding: 20px 0;
-            }
-        }
-
-        /* Mobile portrait */
-        @media (max-width: 649px) {
-            .container {
-                padding: 12px;
-            }
-
-            header {
-                padding: 20px 0;
-            }
-
-            header::before {
-                font-size: 2.5rem;
-            }
-
-            h1 {
-                font-size: 1.6rem;
-            }
-
-            .sections {
-                grid-template-columns: 1fr;
-                gap: 15px;
-            }
-
-            .section {
-                padding: 15px;
-                border-radius: 14px;
-            }
-
-            .section-header {
-                margin-bottom: 15px;
-                padding-bottom: 12px;
-            }
-
-            .section-header span {
-                font-size: 1.3rem;
-            }
-
-            .section-header h2 {
-                font-size: 1.1rem;
-            }
-
-            .list {
-                max-height: 280px;
-            }
-
-            .item {
-                padding: 10px 12px;
-                gap: 10px;
-            }
-
-            .empty-state {
-                padding: 20px;
-            }
-
-            .empty-state span {
-                font-size: 2rem;
-            }
-        }
-
-        /* Very small phones */
-        @media (max-width: 380px) {
-            .container {
-                padding: 10px;
-            }
-
-            h1 {
-                font-size: 1.4rem;
-            }
-
-            header::before {
-                font-size: 2rem;
-            }
-
-            .section {
-                padding: 12px;
-            }
-
-            input {
-                padding: 10px 12px;
-                font-size: 16px;
-            }
-
-            button {
-                padding: 10px 15px;
-                font-size: 15px;
-            }
-
-            .expense-inputs {
-                flex-direction: column;
-            }
-
-            .expense-inputs input:first-child,
-            .expense-inputs input:last-child {
-                flex: 1;
-            }
-
-            .task-text, .expense-name {
-                font-size: 0.95rem;
-            }
-
-            .expense-amount {
-                font-size: 0.9rem;
-            }
-
-            .total-bar {
-                padding: 12px;
-            }
-
-            .total-label {
-                font-size: 0.9rem;
-            }
-
-            .total-amount {
-                font-size: 1.2rem;
-            }
-        }
-
-        /* Landscape mode for phones */
-        @media (max-height: 500px) and (orientation: landscape) {
-            header {
-                padding: 10px 0;
-            }
-
-            header::before {
-                font-size: 2rem;
-                margin-bottom: 5px;
-            }
-
-            h1 {
-                font-size: 1.4rem;
-            }
-
-            .sections {
-                grid-template-columns: 1fr 1fr;
-                gap: 15px;
-                margin-top: 10px;
-            }
-
-            .section {
-                padding: 12px;
-            }
-
-            .section-header {
-                margin-bottom: 10px;
-                padding-bottom: 8px;
-            }
-
-            .list {
-                max-height: 180px;
-            }
-
-            .input-group {
-                margin-bottom: 10px;
-            }
-
-            .expense-inputs {
-                margin-bottom: 10px;
-            }
-
-            .empty-state {
-                padding: 15px;
-            }
-
-            .empty-state span {
-                font-size: 1.8rem;
-            }
-        }
-
-        /* Tablet landscape */
-        @media (min-width: 768px) and (max-width: 1024px) and (orientation: landscape) {
-            .sections {
-                grid-template-columns: 1fr 1fr;
-            }
-
-            .list {
-                max-height: 300px;
-            }
-        }
-
-        /* Touch device optimizations */
-        @media (hover: none) and (pointer: coarse) {
-            .delete-btn {
-                opacity: 0.7;
-                padding: 8px;
-                font-size: 1.4rem;
-            }
-
-            .item {
-                padding: 14px 15px;
-            }
-
-            .checkbox {
-                width: 26px;
-                height: 26px;
-            }
-
-            button {
-                min-height: 48px;
-            }
-
-            input {
-                min-height: 48px;
-            }
-        }
-
-        /* Safe area for notched devices */
-        @supports (padding: max(0px)) {
-            .container {
-                padding-left: max(12px, env(safe-area-inset-left));
-                padding-right: max(12px, env(safe-area-inset-right));
-                padding-bottom: max(20px, env(safe-area-inset-bottom));
-            }
-        }
-
-        /* High contrast mode support */
-        @media (prefers-contrast: high) {
-            :root {
-                --border: #636e72;
-            }
-
-            .dark {
-                --border: #a4a9b3;
-            }
-
-            input {
-                border-width: 3px;
-            }
-
-            .checkbox {
-                border-width: 3px;
-            }
-        }
-
-        /* Reduced motion preference */
-        @media (prefers-reduced-motion: reduce) {
-            * {
-                animation: none !important;
-                transition: none !important;
-            }
-        }
+        :root { --bg: #faf8f5; --card: #fff; --text: #2d3436; --accent: #e17055; --border: #dfe6e9; }
+        .dark { --bg: #1a1d21; --card: #252a30; --text: #f5f6fa; --border: #3d4450; }
+        body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: var(--text); margin: 0; min-height: 100vh; transition: 0.3s; padding: 20px; }
+        * { box-sizing: border-box; outline: none; }
+        
+        .container { max-width: 900px; margin: 0 auto; }
+        header { text-align: center; padding: 20px; font-size: 1.5rem; color: var(--accent); }
+        header::before { content: '✈️'; display: block; font-size: 3rem; animation: float 3s ease-in-out infinite; }
+        @keyframes float { 50% { transform: translateY(-10px); } }
+
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .card { background: var(--card); padding: 20px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .head { border-bottom: 2px solid var(--border); padding-bottom: 10px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; font-weight: bold; font-size: 1.2rem; }
+        
+        input, button { padding: 12px; border: 2px solid var(--border); border-radius: 8px; font: inherit; background: var(--bg); color: var(--text); }
+        input:focus { border-color: var(--accent); }
+        .row { display: flex; gap: 10px; margin-bottom: 15px; }
+        .btn-add { background: var(--accent); color: white; border: none; cursor: pointer; font-weight: bold; }
+        .btn-add:hover { opacity: 0.9; }
+        
+        .list { max-height: 300px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+        .item { display: flex; align-items: center; gap: 10px; padding: 10px; background: var(--bg); border-radius: 8px; animation: pop 0.3s; }
+        @keyframes pop { from { transform: scale(0.9); opacity: 0; } }
+        
+        .check { width: 20px; height: 20px; border: 2px solid var(--border); border-radius: 5px; cursor: pointer; display: flex; justify-content: center; align-items: center; }
+        .done .check { background: #00b894; border-color: #00b894; }
+        .done .check::after { content: '✓'; color: #fff; font-size: 12px; }
+        .done span { text-decoration: line-through; opacity: 0.6; }
+        .del { margin-right: auto; background: none; border: none; color: #e17055; font-size: 1.2rem; cursor: pointer; padding: 0 5px; }
+        
+        .total { margin-top: 15px; padding: 15px; background: var(--accent); color: white; border-radius: 8px; display: flex; justify-content: space-between; font-weight: bold; }
+        .empty { text-align: center; color: var(--border); padding: 20px; font-size: 1.2rem; }
+        
+        @media (prefers-color-scheme: dark) { :root { --bg: #1a1d21; --card: #252a30; --text: #f5f6fa; --border: #3d4450; } }
     </style>
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>منظم الرحلات</h1>
-        </header>
-
-        <div class="sections">
+        <header><h1>منظم الرحلات</h1></header>
+        <div class="grid">
             <!-- قسم المهام -->
-            <div class="section">
-                <div class="section-header">
-                    <span>📝</span>
-                    <h2>المهام</h2>
+            <div class="card">
+                <div class="head"><span>📝</span> المهام</div>
+                <div class="row">
+                    <input id="tIn" style="flex:1" placeholder="مهمة جديدة..." onkeypress="if(event.key==='Enter') add('task')">
+                    <button class="btn-add" onclick="add('task')">إضافة</button>
                 </div>
-                <div class="input-group">
-                    <input type="text" id="taskInput" placeholder="أضف مهمة جديدة...">
-                    <button class="btn-add" onclick="addTask()">إضافة</button>
-                </div>
-                <div class="list" id="taskList">
-                    <div class="empty-state" id="tasksEmpty">
-                        <span>📋</span>
-                        <p>لا توجد مهام بعد</p>
-                    </div>
-                </div>
+                <div id="tList" class="list"></div>
             </div>
-
             <!-- قسم المصروفات -->
-            <div class="section">
-                <div class="section-header">
-                    <span>💰</span>
-                    <h2>المصروفات</h2>
+            <div class="card">
+                <div class="head"><span>💰</span> المصروفات</div>
+                <div class="row">
+                    <input id="eName" style="flex:2" placeholder="الاسم...">
+                    <input id="eAm" type="number" style="flex:1" placeholder="المبلغ" onkeypress="if(event.key==='Enter') add('expense')">
                 </div>
-                <div class="expense-inputs">
-                    <input type="text" id="expenseName" placeholder="اسم المصروف...">
-                    <input type="number" id="expenseAmount" placeholder="المبلغ">
-                </div>
-                <button class="btn-add" style="width: 100%; margin-bottom: 15px;" onclick="addExpense()">إضافة مصروف</button>
-                <div class="list" id="expenseList">
-                    <div class="empty-state" id="expensesEmpty">
-                        <span>💸</span>
-                        <p>لا توجد مصروفات بعد</p>
-                    </div>
-                </div>
-                <div class="total-bar" id="totalBar" style="display: none;">
-                    <span class="total-label">المجموع الكلي</span>
-                    <span class="total-amount" id="totalAmount">0 ريال</span>
-                </div>
+                <button class="btn-add" style="width:100%; margin-bottom:15px" onclick="add('expense')">إضافة مصروف</button>
+                <div id="eList" class="list"></div>
+                <div id="total" class="total" style="display:none"><span>المجموع</span><span id="tVal">0</span></div>
             </div>
         </div>
     </div>
 
     <script>
-        // Dark mode detection
-        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            document.documentElement.classList.add('dark');
-        }
-        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
-            if (event.matches) {
-                document.documentElement.classList.add('dark');
+        // إعدادات الوضع الليلي والبيانات
+        if (window.matchMedia('(prefers-color-scheme: dark)').matches) document.body.classList.add('dark');
+        
+        let data = JSON.parse(localStorage.getItem('tripData')) || { tasks: [], expenses: [] };
+        
+        const save = () => {
+            localStorage.setItem('tripData', JSON.stringify(data));
+            render();
+        };
+
+        const escape = (str) => new Option(str).innerHTML;
+
+        function add(type) {
+            if (type === 'task') {
+                const val = document.getElementById('tIn').value.trim();
+                if (val) { data.tasks.push({ id: Date.now(), txt: val, done: false }); document.getElementById('tIn').value = ''; }
             } else {
-                document.documentElement.classList.remove('dark');
+                const name = document.getElementById('eName').value.trim();
+                const am = parseFloat(document.getElementById('eAm').value);
+                if (name && am > 0) { data.expenses.push({ id: Date.now(), name, am }); document.getElementById('eName').value = ''; document.getElementById('eAm').value = ''; }
             }
-        });
-
-        let tasks = [];
-        let expenses = [];
-        let db = null;
-
-        // ===== IndexedDB للحفظ المحلي =====
-        function initDB() {
-            return new Promise((resolve, reject) => {
-                const request = indexedDB.open('TripPlannerDB', 1);
-
-                request.onerror = () => reject(request.error);
-                request.onsuccess = () => {
-                    db = request.result;
-                    resolve(db);
-                };
-
-                request.onupgradeneeded = (event) => {
-                    const database = event.target.result;
-                    if (!database.objectStoreNames.contains('data')) {
-                        database.createObjectStore('data', { keyPath: 'key' });
-                    }
-                };
-            });
+            save();
         }
 
-        function saveData() {
-            if (!db) return;
-            const transaction = db.transaction(['data'], 'readwrite');
-            const store = transaction.objectStore('data');
-            store.put({ key: 'tasks', value: tasks });
-            store.put({ key: 'expenses', value: expenses });
-        }
+        const toggle = (id) => { const t = data.tasks.find(x => x.id === id); if(t) t.done = !t.done; save(); };
+        const del = (type, id) => { data[type] = data[type].filter(x => x.id !== id); save(); };
 
-        function loadData() {
-            return new Promise((resolve) => {
-                if (!db) { resolve(); return; }
-                const transaction = db.transaction(['data'], 'readonly');
-                const store = transaction.objectStore('data');
+        function render() {
+            // رسم المهام
+            const tList = document.getElementById('tList');
+            tList.innerHTML = data.tasks.length ? data.tasks.map(t => `
+                <div class="item ${t.done ? 'done' : ''}">
+                    <div class="check" onclick="toggle(${t.id})"></div>
+                    <span>${escape(t.txt)}</span>
+                    <button class="del" onclick="del('tasks', ${t.id})">×</button>
+                </div>`).join('') : '<div class="empty">لا توجد مهام</div>';
 
-                const tasksReq = store.get('tasks');
-                const expensesReq = store.get('expenses');
-
-                transaction.oncomplete = () => {
-                    if (tasksReq.result) tasks = tasksReq.result.value;
-                    if (expensesReq.result) expenses = expensesReq.result.value;
-                    resolve();
-                };
-
-                transaction.onerror = () => resolve();
-            });
-        }
-
-        // ===== وظائف المهام =====
-        function addTask() {
-            const input = document.getElementById('taskInput');
-            const text = input.value.trim();
-            if (!text) return;
-
-            tasks.push({ id: Date.now(), text, completed: false });
-            input.value = '';
-            renderTasks();
-            saveData();
-        }
-
-        function toggleTask(id) {
-            const task = tasks.find(t => t.id === id);
-            if (task) {
-                task.completed = !task.completed;
-                renderTasks();
-                saveData();
-            }
-        }
-
-        function deleteTask(id) {
-            tasks = tasks.filter(t => t.id !== id);
-            renderTasks();
-            saveData();
-        }
-
-        function renderTasks() {
-            const list = document.getElementById('taskList');
-            const empty = document.getElementById('tasksEmpty');
-
-            if (tasks.length === 0) {
-                list.innerHTML = '';
-                list.appendChild(empty);
-                empty.style.display = 'block';
-                return;
-            }
-
-            empty.style.display = 'none';
-            list.innerHTML = tasks.map(task => `
-                <div class="item task-item ${task.completed ? 'completed' : ''}" onclick="toggleTask(${task.id})">
-                    <div class="checkbox"></div>
-                    <span class="task-text">${escapeHtml(task.text)}</span>
-                    <button class="delete-btn" onclick="event.stopPropagation(); deleteTask(${task.id})">×</button>
-                </div>
-            `).join('');
-        }
-
-        // ===== وظائف المصروفات =====
-        function addExpense() {
-            const nameInput = document.getElementById('expenseName');
-            const amountInput = document.getElementById('expenseAmount');
-            const name = nameInput.value.trim();
-            const amount = parseFloat(amountInput.value);
-
-            if (!name || isNaN(amount) || amount <= 0) return;
-
-            expenses.push({ id: Date.now(), name, amount });
-            nameInput.value = '';
-            amountInput.value = '';
-            renderExpenses();
-            saveData();
-        }
-
-        function deleteExpense(id) {
-            expenses = expenses.filter(e => e.id !== id);
-            renderExpenses();
-            saveData();
-        }
-
-        function renderExpenses() {
-            const list = document.getElementById('expenseList');
-            const empty = document.getElementById('expensesEmpty');
-            const totalBar = document.getElementById('totalBar');
-            const totalAmount = document.getElementById('totalAmount');
-
-            if (expenses.length === 0) {
-                list.innerHTML = '';
-                list.appendChild(empty);
-                empty.style.display = 'block';
-                totalBar.style.display = 'none';
-                return;
-            }
-
-            empty.style.display = 'none';
-            totalBar.style.display = 'flex';
-
-            const total = expenses.reduce((sum, e) => sum + e.amount, 0);
-            totalAmount.textContent = total.toLocaleString('ar-SA') + ' ريال';
-
-            list.innerHTML = expenses.map(expense => `
+            // رسم المصروفات
+            const eList = document.getElementById('eList');
+            eList.innerHTML = data.expenses.length ? data.expenses.map(e => `
                 <div class="item">
-                    <span class="expense-name">${escapeHtml(expense.name)}</span>
-                    <span class="expense-amount">${expense.amount.toLocaleString('ar-SA')} ريال</span>
-                    <button class="delete-btn" onclick="deleteExpense(${expense.id})">×</button>
-                </div>
-            `).join('');
+                    <span style="flex:1">${escape(e.name)}</span>
+                    <span style="font-weight:bold; color:var(--accent)">${e.am.toLocaleString()} ريال</span>
+                    <button class="del" onclick="del('expenses', ${e.id})">×</button>
+                </div>`).join('') : '<div class="empty">لا توجد مصروفات</div>';
+
+            // حساب المجموع
+            const total = data.expenses.reduce((a, b) => a + b.am, 0);
+            document.getElementById('total').style.display = data.expenses.length ? 'flex' : 'none';
+            document.getElementById('tVal').textContent = total.toLocaleString() + ' ريال';
         }
 
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        // ===== أحداث لوحة المفاتيح =====
-        document.getElementById('taskInput').addEventListener('keypress', e => {
-            if (e.key === 'Enter') addTask();
-        });
-
-        document.getElementById('expenseAmount').addEventListener('keypress', e => {
-            if (e.key === 'Enter') addExpense();
-        });
-
-        // ===== تهيئة التطبيق =====
-        async function initApp() {
-            try {
-                await initDB();
-                await loadData();
-            } catch (e) {
-                console.log('IndexedDB غير متاح، البيانات لن تُحفظ');
-            }
-            renderTasks();
-            renderExpenses();
-        }
-
-        initApp();
+        render(); // التشغيل الأولي
     </script>
 </body>
 </html>
