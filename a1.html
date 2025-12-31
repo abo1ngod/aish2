@@ -249,8 +249,8 @@
 
         .quote-text {
             animation: fadeQuote 10s ease-in-out infinite;
-            /* تم تكبير الخط بنسبة 200% مع إضافة important */
-            font-size: clamp(4.5rem, 12vw, 12rem) !important;
+            /* تمت إعادة الخط للحجم الطبيعي (100%) */
+            font-size: clamp(2.25rem, 6vw, 6rem) !important;
             line-height: 1.4;
         }
 
@@ -267,8 +267,8 @@
             }
 
             .quote-text {
-                /* تم تكبير الخط بنسبة 200% مع إضافة important */
-                font-size: clamp(1.5rem, 6vw, 2rem) !important;
+                /* تمت إعادة الخط للحجم الطبيعي (100%) */
+                font-size: clamp(1.5rem, 6vw, 2.25rem) !important;
             }
 
             .quotes-close-btn {
@@ -301,8 +301,8 @@
             }
 
             .quote-text {
-                /* تم تكبير الخط بنسبة 200% مع إضافة important */
-                font-size: clamp(2rem, 6vw, 5rem) !important;
+                /* تمت إعادة الخط للحجم الطبيعي (100%) */
+                font-size: clamp(1.5rem, 4.5vw, 3rem) !important;
             }
         }
 
@@ -315,16 +315,16 @@
             }
 
             .quote-text {
-                /* تم تكبير الخط بنسبة 200% مع إضافة important للشاشات الكبيرة */
-                font-size: clamp(5rem, 10vw, 10rem) !important;
+                /* تمت إعادة الخط للحجم الطبيعي (100%) */
+                font-size: clamp(4.5rem, 9vw, 9rem) !important;
             }
         }
 
         /* الشاشات الكبيرة جداً */
         @media screen and (min-width: 1440px) {
             .quote-text {
-                /* تم تكبير الخط بنسبة 200% مع إضافة important للشاشات الكبيرة جداً */
-                font-size: clamp(5rem, 10vw, 10rem)
+                /* تمت إعادة الخط للحجم الطبيعي (100%) */
+                font-size: clamp(5.5rem, 9vw, 11rem) !important;
             }
         }
 
@@ -928,11 +928,13 @@
             { id: 7, name: 'اللجنة السابعة', count: 49, status: 'ongoing' }
         ];
 
-        // متغيرات المؤقت
+        // متغيرات المؤقت والصوت
         let timerDuration = 60 * 60 * 1000; // ساعة واحدة بالمللي ثانية
         let targetTime = null;
         let timerStarted = false;
         let timerInterval = null;
+        const timerSound = new Audio('sounds/assa.mp3');
+        let soundPlayed = false;
 
         // متغيرات الأقوال والحكم
         let quotes = [];
@@ -1120,6 +1122,7 @@
             timerDuration = duration * 60 * 1000;
             targetTime = new Date().getTime() + timerDuration;
             timerStarted = true;
+            soundPlayed = false;
 
             // حفظ في Firebase
             rootRef.update({
@@ -1135,6 +1138,9 @@
         document.getElementById('reset-timer-btn').addEventListener('click', function() {
             timerStarted = false;
             targetTime = null;
+            soundPlayed = false;
+            timerSound.pause();
+            timerSound.currentTime = 0;
 
             committees.forEach(c => c.status = 'ongoing');
 
@@ -1221,6 +1227,12 @@
             const now = new Date().getTime();
             const distance = targetTime - now;
 
+            // تشغيل الصوت عند 5 ثواني
+            if (distance <= 5000 && distance > 0 && !soundPlayed) {
+                timerSound.play().catch(error => console.log("Audio play prevented:", error));
+                soundPlayed = true;
+            }
+
             if (distance < 0) {
                 timerElement.innerHTML = "00:00:00";
                 timerElement.style.color = "#ef4444";
@@ -1298,4 +1310,4 @@
 
     </script>
 </body>
-</html>
+</html> 
