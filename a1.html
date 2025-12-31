@@ -4,9 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>لوحة بيانات اللجان - 16:9</title>
+    <!-- استيراد Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- استيراد خط تجوال -->
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+    <!-- استيراد أيقونات FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
@@ -245,8 +249,8 @@
 
         .quote-text {
             animation: fadeQuote 10s ease-in-out infinite;
-            /* تم تكبير الخط بنسبة 200% */
-            font-size: clamp(4.5rem, 12vw, 12rem);
+            /* تم تكبير الخط بنسبة 200% مع إضافة important */
+            font-size: clamp(4.5rem, 12vw, 12rem) !important;
             line-height: 1.4;
         }
 
@@ -263,8 +267,8 @@
             }
 
             .quote-text {
-                /* تم تكبير الخط بنسبة 200% */
-                font-size: clamp(3rem, 12vw, 4.5rem);
+                /* تم تكبير الخط بنسبة 200% مع إضافة important */
+                font-size: clamp(3rem, 12vw, 4.5rem) !important;
             }
 
             .quotes-close-btn {
@@ -297,8 +301,8 @@
             }
 
             .quote-text {
-                /* تم تكبير الخط بنسبة 200% */
-                font-size: clamp(3rem, 9vw, 6rem);
+                /* تم تكبير الخط بنسبة 200% مع إضافة important */
+                font-size: clamp(3rem, 9vw, 6rem) !important;
             }
         }
 
@@ -311,16 +315,16 @@
             }
 
             .quote-text {
-                /* تم تكبير الخط بنسبة 200% */
-                font-size: clamp(9rem, 18vw, 18rem);
+                /* تم تكبير الخط بنسبة 200% مع إضافة important للشاشات الكبيرة */
+                font-size: clamp(9rem, 18vw, 18rem) !important;
             }
         }
 
         /* الشاشات الكبيرة جداً */
         @media screen and (min-width: 1440px) {
             .quote-text {
-                /* تم تكبير الخط بنسبة 200% */
-                font-size: clamp(11rem, 18vw, 22rem);
+                /* تم تكبير الخط بنسبة 200% مع إضافة important للشاشات الكبيرة جداً */
+                font-size: clamp(11rem, 18vw, 22rem) !important;
             }
         }
 
@@ -724,6 +728,7 @@
 </head>
 <body class="p-6 box-border">
 
+    <!-- لوحة التحكم -->
     <div id="control-panel" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center">
         <div class="bg-slate-800 rounded-2xl p-8 w-[90%] max-w-4xl max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-6">
@@ -731,6 +736,7 @@
                 <button id="close-panel" class="text-white text-3xl hover:text-red-400">&times;</button>
             </div>
 
+            <!-- إعدادات المؤقت -->
             <div class="bg-slate-700 rounded-xl p-6 mb-6">
                 <h3 class="text-xl font-bold text-white mb-4">إعدادات المؤقت</h3>
                 <div class="grid grid-cols-2 gap-4">
@@ -746,12 +752,15 @@
                 </div>
             </div>
 
+            <!-- حالة اللجان -->
             <div class="bg-slate-700 rounded-xl p-6">
                 <h3 class="text-xl font-bold text-white mb-4">حالة اللجان</h3>
                 <div class="space-y-3" id="committees-list">
-                    </div>
+                    <!-- سيتم إنشاؤها ديناميكياً -->
+                </div>
             </div>
 
+            <!-- الأقوال والحكم -->
             <div class="bg-slate-700 rounded-xl p-6 mt-6">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-xl font-bold text-white">الأقوال والحكم</h3>
@@ -767,7 +776,8 @@
                     </button>
                 </div>
                 <div class="space-y-2 max-h-48 overflow-y-auto" id="quotes-list">
-                    </div>
+                    <!-- سيتم إنشاؤها ديناميكياً -->
+                </div>
             </div>
 
             <div class="mt-6 flex gap-4">
@@ -781,6 +791,7 @@
         </div>
     </div>
 
+    <!-- الرأس (يأخذ مساحة صغيرة وثابتة) -->
     <header class="glass-panel rounded-2xl p-4 mb-4 flex justify-between items-center h-[12vh]">
         <div class="flex items-center gap-4 h-full">
             <div id="logo-btn" class="h-12 w-12 bg-orange-600/20 rounded-lg flex items-center justify-center text-orange-400 border border-orange-500/30 cursor-pointer select-none">
@@ -791,13 +802,16 @@
             </div>
         </div>
 
+        <!-- قسم التاريخ -->
         <div class="flex items-center gap-6 bg-black/20 px-6 py-2 rounded-xl border border-white/5">
             <div id="current-date" class="text-2xl font-bold text-emerald-400"></div>
         </div>
     </header>
 
+    <!-- منطقة المحتوى (شبكة 4x2 تملأ باقي الشاشة) -->
     <main class="grid grid-cols-4 grid-rows-2 gap-4 flex-grow h-[84vh]">
 
+        <!-- البطاقة 1 -->
         <div id="card-1" class="committee-card rounded-3xl p-6 flex flex-col justify-center items-center relative overflow-hidden bg-card-green">
             <div class="card-icon z-20">
                 <i class="fa-solid fa-users text-white text-lg"></i>
@@ -807,6 +821,7 @@
             <span class="done-badge text-white mt-3 relative z-10 hidden" id="done-1">تم الإنجاز ✓</span>
         </div>
 
+        <!-- البطاقة 2 -->
         <div id="card-2" class="committee-card rounded-3xl p-6 flex flex-col justify-center items-center relative overflow-hidden bg-card-green">
             <div class="card-icon z-20">
                 <i class="fa-solid fa-users text-white text-lg"></i>
@@ -816,6 +831,7 @@
             <span class="done-badge text-white mt-3 relative z-10 hidden" id="done-2">تم الإنجاز ✓</span>
         </div>
 
+        <!-- البطاقة 3 -->
         <div id="card-3" class="committee-card rounded-3xl p-6 flex flex-col justify-center items-center relative overflow-hidden bg-card-green">
             <div class="card-icon z-20">
                 <i class="fa-solid fa-users text-white text-lg"></i>
@@ -825,6 +841,7 @@
             <span class="done-badge text-white mt-3 relative z-10 hidden" id="done-3">تم الإنجاز ✓</span>
         </div>
 
+        <!-- البطاقة 4 -->
         <div id="card-4" class="committee-card rounded-3xl p-6 flex flex-col justify-center items-center relative overflow-hidden bg-card-green">
             <div class="card-icon z-20">
                 <i class="fa-solid fa-users text-white text-lg"></i>
@@ -834,6 +851,7 @@
             <span class="done-badge text-white mt-3 relative z-10 hidden" id="done-4">تم الإنجاز ✓</span>
         </div>
 
+        <!-- البطاقة 5 -->
         <div id="card-5" class="committee-card rounded-3xl p-6 flex flex-col justify-center items-center relative overflow-hidden bg-card-green">
             <div class="card-icon z-20">
                 <i class="fa-solid fa-users text-white text-lg"></i>
@@ -843,6 +861,7 @@
             <span class="done-badge text-white mt-3 relative z-10 hidden" id="done-5">تم الإنجاز ✓</span>
         </div>
 
+        <!-- البطاقة 6 -->
         <div id="card-6" class="committee-card rounded-3xl p-6 flex flex-col justify-center items-center relative overflow-hidden bg-card-green">
             <div class="card-icon z-20">
                 <i class="fa-solid fa-users text-white text-lg"></i>
@@ -852,6 +871,7 @@
             <span class="done-badge text-white mt-3 relative z-10 hidden" id="done-6">تم الإنجاز ✓</span>
         </div>
 
+        <!-- البطاقة 7 -->
         <div id="card-7" class="committee-card rounded-3xl p-6 flex flex-col justify-center items-center relative overflow-hidden bg-card-green">
             <div class="card-icon z-20">
                 <i class="fa-solid fa-users text-white text-lg"></i>
@@ -861,6 +881,7 @@
             <span class="done-badge text-white mt-3 relative z-10 hidden" id="done-7">تم الإنجاز ✓</span>
         </div>
 
+        <!-- بطاقة الوقت المتبقي -->
         <div class="timer-card glass-panel rounded-3xl p-5 flex flex-col justify-center items-center relative overflow-hidden border-2 border-dashed border-slate-500/50 bg-white/5 shadow-2xl">
             <div class="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
             <h2 class="text-4xl font-black text-white text-center mb-3 drop-shadow-lg relative z-10">الوقت المتبقي</h2>
@@ -869,6 +890,7 @@
 
     </main>
 
+    <!-- نافذة الأقوال المنبثقة -->
     <div id="quotes-popup" class="quotes-popup hidden">
         <button id="quotes-close-btn" class="quotes-close-btn">×</button>
         <div class="flex items-center gap-4">
