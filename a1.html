@@ -327,6 +327,18 @@
                 font-size: clamp(5.5rem, 9vw, 11rem) !important;
             }
         }
+        /* شاشات العرض الضخمة (تلفزيونات و 4K) */
+@media screen and (min-width: 2500px) {
+    .quotes-popup {
+        width: 80%; /* زيادة العرض قليلاً للاستفادة من المساحة */
+        height: 70vh;
+    }
+
+    .quote-text {
+        /* رفع الحد الأقصى للخط ليتناسب مع ضخامة الشاشة */
+        font-size: clamp(8rem, 10vw, 20rem) !important; 
+    }
+}
 
         /* ============================================
            Mobile-First Design - نظام الجوال أولاً
