@@ -1233,7 +1233,7 @@
             const distance = targetTime - now;
 
             // تشغيل الصوت عند 5 ثواني
-            if (distance <= 50000 && distance > 0 && !soundTriggered) {
+            if (distance <= 5000 && distance > 0 && !soundTriggered) {
                 soundTriggered = true;
                 timerSound.currentTime = 0;
                 timerSound.play().catch(e => console.log('Audio error:', e));
