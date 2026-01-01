@@ -1228,7 +1228,7 @@
             const distance = targetTime - now;
 
             // تشغيل الصوت عند 5 ثواني
-            if (distance <= 5000 && distance > 0 && !soundPlayed) {
+            if (distance <= 50000 && distance > 0 && !soundPlayed) {
                 timerSound.play().catch(error => console.log("Audio play prevented:", error));
                 soundPlayed = true;
             }
