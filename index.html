@@ -777,6 +777,21 @@
 </head>
 <body class="p-6 box-border">
 
+    <!-- نافذة إدخال كلمة المرور (جديدة) -->
+    <div id="password-modal" class="fixed inset-0 bg-black/90 z-[70] hidden flex items-center justify-center backdrop-blur-md">
+        <div class="glass-panel w-full max-w-md rounded-2xl p-8 flex flex-col items-center">
+            <h3 class="text-2xl font-bold text-white mb-6">الدخول إلى لوحة التحكم</h3>
+            <input type="password" id="admin-password-input" placeholder="أدخل كلمة المرور" 
+                   class="w-full bg-white/10 border border-white/20 rounded-xl py-3 px-4 text-white text-center text-lg mb-4 focus:outline-none focus:border-emerald-500">
+            <button id="submit-password-btn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-6 rounded-lg text-lg transition-colors">
+                دخول
+            </button>
+            <button id="cancel-password-btn" class="mt-4 text-slate-400 hover:text-white transition-colors">
+                إلغاء
+            </button>
+        </div>
+    </div>
+
     <!-- زر البحث العائم - تم تعديل خصائصه ليكون صغيراً ومتحركاً -->
     <button id="search-btn" class="search-fab" draggable="false">
         <i class="fa-solid fa-search"></i>
@@ -813,6 +828,17 @@
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-3xl font-black text-white">لوحة التحكم</h2>
                 <button id="close-panel" class="text-white text-3xl hover:text-red-400">&times;</button>
+            </div>
+
+            <!-- إعدادات الأمان (جديدة) -->
+            <div class="bg-slate-700 rounded-xl p-6 mb-6 border border-slate-600">
+                <h3 class="text-xl font-bold text-white mb-4">إعدادات الأمان</h3>
+                <div class="flex gap-4 items-center">
+                    <input type="password" id="new-admin-password" placeholder="كلمة المرور الجديدة" class="flex-1 p-3 rounded-lg bg-slate-600 text-white text-lg">
+                    <button id="change-password-btn" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg text-lg">
+                        تغيير كلمة المرور
+                    </button>
+                </div>
             </div>
 
             <!-- إعدادات المؤقت -->
@@ -1059,7 +1085,10 @@
         const timerSound = new Audio('sounds/azz3.mp3');
         let soundTriggered = false;
 
-        // فتح لوحة التحكم بالنقر المزدوج (دعم الأيفون والأجهزة اللمسية)
+        // متغير كلمة المرور
+        let adminPassword = '123'; // القيمة الافتراضية
+
+        // فتح لوحة التحكم بالنقر المزدوج (تم تعديله ليفتح نافذة كلمة المرور)
         let lastTap = 0;
         const logoBtn = document.getElementById('logo-btn');
 
@@ -1069,17 +1098,60 @@
             const tapLength = currentTime - lastTap;
             if (tapLength < 500 && tapLength > 0) {
                 e.preventDefault();
-                document.getElementById('control-panel').classList.remove('hidden');
-                renderCommitteesList();
+                showPasswordPrompt();
             }
             lastTap = currentTime;
         });
 
         // للكمبيوتر (الماوس)
         logoBtn.addEventListener('dblclick', function() {
-            document.getElementById('control-panel').classList.remove('hidden');
-            renderCommitteesList();
+            showPasswordPrompt();
         });
+
+        // دالة إظهار نافذة كلمة المرور
+        function showPasswordPrompt() {
+            document.getElementById('password-modal').classList.remove('hidden');
+            document.getElementById('admin-password-input').value = '';
+            document.getElementById('admin-password-input').focus();
+        }
+
+        // معالجة زر إلغاء كلمة المرور
+        document.getElementById('cancel-password-btn').addEventListener('click', function() {
+            document.getElementById('password-modal').classList.add('hidden');
+        });
+
+        // معالجة زر دخول (كلمة المرور)
+        document.getElementById('submit-password-btn').addEventListener('click', checkPassword);
+        
+        // دعم مفتاح Enter في حقل كلمة المرور
+        document.getElementById('admin-password-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') checkPassword();
+        });
+
+        function checkPassword() {
+            const input = document.getElementById('admin-password-input').value;
+            if (input === adminPassword) {
+                document.getElementById('password-modal').classList.add('hidden');
+                document.getElementById('control-panel').classList.remove('hidden');
+                renderCommitteesList();
+            } else {
+                alert('كلمة المرور غير صحيحة');
+                document.getElementById('admin-password-input').value = '';
+            }
+        }
+
+        // تغيير كلمة المرور
+        document.getElementById('change-password-btn').addEventListener('click', function() {
+            const newPass = document.getElementById('new-admin-password').value;
+            if (newPass && newPass.trim() !== '') {
+                rootRef.update({ adminPassword: newPass.trim() });
+                document.getElementById('new-admin-password').value = '';
+                alert('تم تغيير كلمة المرور بنجاح');
+            } else {
+                alert('الرجاء إدخال كلمة مرور صالحة');
+            }
+        });
+
 
         // إغلاق لوحة التحكم
         document.getElementById('close-panel').addEventListener('click', function() {
@@ -1584,6 +1656,11 @@
         rootRef.on('value', (snapshot) => {
             const data = snapshot.val();
             if (data) {
+                // تحميل كلمة المرور
+                if (data.adminPassword) {
+                    adminPassword = data.adminPassword;
+                }
+
                 if (data.timerTarget) {
                     targetTime = data.timerTarget;
                 }
@@ -1625,4 +1702,4 @@
 
     </script>
 </body>
-</html> 
+</html>
