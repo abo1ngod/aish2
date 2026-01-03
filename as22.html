@@ -1,0 +1,2176 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>لوحة بيانات اللجان</title>
+    <!-- استيراد Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- استيراد خط تجوال -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+    <!-- استيراد أيقونات FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <!-- SheetJS لاستيراد ملفات Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <style>
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: #0f172a;
+            /* خلفية غنية وأكثر عمقاً للشاشات الكبيرة */
+            background-image:
+                radial-gradient(circle at 10% 10%, rgba(56, 189, 248, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 90% 90%, rgba(139, 92, 246, 0.15) 0%, transparent 40%),
+                radial-gradient(at 50% 0%, #1e293b 0, #0f172a 80%);
+            color: white;
+            height: 100vh; /* ارتفاع كامل */
+            width: 100vw;  /* عرض كامل */
+            overflow: hidden; /* منع السكرول */
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* حاوية زجاجية موحدة */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        /* تنسيق الأرقام الضخمة */
+        .big-number {
+            font-variant-numeric: tabular-nums;
+            background: linear-gradient(180deg, #fff, #cbd5e1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 2px 10px rgba(0,0,0,0.3));
+        }
+
+        /* تحسين التباين للعرض على البروجيكتور/التلفاز */
+        .card-header {
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding-bottom: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* وميض المؤقت */
+        @keyframes pulse-red {
+            0% { text-shadow: 0 0 10px rgba(239, 68, 68, 0.5); }
+            50% { text-shadow: 0 0 20px rgba(239, 68, 68, 0.8), 0 0 40px rgba(239, 68, 68, 0.4); }
+            100% { text-shadow: 0 0 10px rgba(239, 68, 68, 0.5); }
+        }
+
+        .timer-glow {
+            font-family: 'Courier New', monospace; /* خط رقمي */
+            letter-spacing: 2px;
+        }
+
+        .committee-card {
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            position: relative;
+        }
+
+        .committee-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, rgba(255,255,255,0.4), rgba(255,255,255,0.1));
+            border-radius: 24px 24px 0 0;
+        }
+
+        .committee-card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 24px;
+            background: radial-gradient(ellipse at 30% 0%, rgba(255,255,255,0.15) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .bg-card-green {
+            background: linear-gradient(145deg, #22c55e 0%, #16a34a 50%, #15803d 100%) !important;
+            box-shadow:
+                0 20px 40px -15px rgba(34, 197, 94, 0.5),
+                0 0 0 1px rgba(255, 255, 255, 0.1) inset,
+                0 -3px 10px rgba(0, 0, 0, 0.2) inset !important;
+        }
+
+        .bg-card-orange {
+            background: linear-gradient(145deg, #fdba74 0%, #fb923c 50%, #f97316 100%) !important;
+            box-shadow:
+                0 20px 40px -15px rgba(251, 146, 60, 0.5),
+                0 0 0 1px rgba(255, 255, 255, 0.1) inset,
+                0 -3px 10px rgba(0, 0, 0, 0.2) inset !important;
+        }
+
+        .bg-card-red {
+            background: linear-gradient(145deg, #f87171 0%, #ef4444 50%, #dc2626 100%) !important;
+            box-shadow:
+                0 20px 40px -15px rgba(239, 68, 68, 0.5),
+                0 0 0 1px rgba(255, 255, 255, 0.1) inset,
+                0 -3px 10px rgba(0, 0, 0, 0.2) inset !important;
+        }
+
+        .card-icon {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .card-number {
+            font-size: 5rem;
+            font-weight: 900;
+            text-shadow: 0 4px 15px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.2);
+            background: linear-gradient(180deg, #ffffff 0%, #e2e8f0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1;
+        }
+
+        .card-title {
+            font-size: 1.75rem;
+            font-weight: 900;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            letter-spacing: 0.5px;
+        }
+
+        .done-badge {
+            background: rgba(255, 255, 255, 0.25);
+            padding: 4px 16px;
+            border-radius: 20px;
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        /* نافذة الأقوال والحكم */
+        .quotes-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 40;
+            width: 60vw;
+            height: 60vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(20px);
+            border-radius: 2rem;
+            padding: 2.5rem 3rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.2) inset;
+            border: 3px solid rgba(255, 255, 255, 0.25);
+            animation: popupAppear 0.6s ease-out;
+            transition: background 1s ease;
+        }
+
+        .quotes-close-btn {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.3s ease, background 0.3s ease, transform 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .quotes-popup:hover .quotes-close-btn {
+            opacity: 1;
+        }
+
+        .quotes-close-btn:hover {
+            background: rgba(239, 68, 68, 0.8);
+            transform: scale(1.1);
+        }
+
+        .quotes-popup.bg-style-1 {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.95) 0%, rgba(139, 92, 246, 0.95) 100%);
+        }
+        .quotes-popup.bg-style-2 {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.95) 0%, rgba(5, 150, 105, 0.95) 100%);
+        }
+        .quotes-popup.bg-style-3 {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.95) 0%, rgba(217, 119, 6, 0.95) 100%);
+        }
+        .quotes-popup.bg-style-4 {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.95) 0%, rgba(185, 28, 28, 0.95) 100%);
+        }
+        .quotes-popup.bg-style-5 {
+            background: linear-gradient(135deg, rgba(14, 165, 233, 0.95) 0%, rgba(2, 132, 199, 0.95) 100%);
+        }
+        .quotes-popup.bg-style-6 {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.95) 0%, rgba(126, 34, 206, 0.95) 100%);
+        }
+
+        @keyframes popupAppear {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+
+        @keyframes fadeQuote {
+            0%, 100% { opacity: 0; transform: scale(0.95); }
+            10%, 90% { opacity: 1; transform: scale(1); }
+        }
+
+        .quote-text {
+            animation: fadeQuote 10s ease-in-out infinite;
+            font-size: clamp(2.25rem, 6vw, 6rem);
+            line-height: 1.4;
+        }
+
+        /* تنسيق زر البحث العائم - تم تعديل الحجم والموقع */
+        .search-fab {
+            position: fixed;
+            /* تم تعديل الموقع: 1 بوصة للأسفل تقريباً (1rem + 96px) */
+            top: calc(1rem + 96px);
+            left: 1rem;
+            /* تم تصغير الحجم بنسبة 50% (كان 60px) */
+            width: 30px;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: grab; /* مؤشر السحب */
+            z-index: 100;
+            color: white;
+            /* تصغير حجم الخط ليتناسب مع الزر الصغير */
+            font-size: 0.8rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            transition: box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s;
+        }
+
+        .search-fab:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .search-fab:active {
+            cursor: grabbing;
+        }
+
+        /* إخفاء الزر في الشاشات العرضية الصغيرة (مثل الجوال بالعرض) */
+        @media screen and (max-width: 1024px) and (orientation: landscape) {
+            .search-fab {
+                display: none !important;
+            }
+        }
+
+        /* زر رسائل الزوار العائم */
+        .message-fab {
+            position: fixed;
+            bottom: 1.5rem;
+            left: 1.5rem;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 100;
+            color: white;
+            font-size: 1.3rem;
+            box-shadow: 0 4px 20px rgba(139, 92, 246, 0.5);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .message-fab:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 25px rgba(139, 92, 246, 0.7);
+        }
+
+        .message-fab:active {
+            transform: scale(0.95);
+        }
+
+        /* نافذة رسائل الزوار المنبثقة */
+        .visitor-message-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 65;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            backdrop-filter: blur(8px);
+            padding: 1rem;
+        }
+
+        .visitor-message-content {
+            background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 1.5rem 1.5rem 0 0;
+            width: 100%;
+            max-width: 500px;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            animation: slideUp 0.4s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(100%);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* الشاشات الطولية - في الأعلى */
+        @media screen and (orientation: portrait) {
+            .quotes-popup {
+                top: 15vh;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 92%;
+                height: auto;
+                padding: 1.25rem 1.5rem;
+                border-radius: 1.25rem;
+            }
+
+            .quote-text {
+                font-size: clamp(1.5rem, 6vw, 2.25rem);
+            }
+
+            .quotes-close-btn {
+                opacity: 1;
+                width: 32px;
+                height: 32px;
+                font-size: 1.2rem;
+                top: 0.5rem;
+                left: 0.5rem;
+            }
+
+            @keyframes popupAppear {
+                from {
+                    opacity: 0;
+                    transform: translateX(-50%) translateY(-20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateX(-50%) translateY(0);
+                }
+            }
+
+            .message-fab {
+                bottom: 1rem;
+                left: 1rem;
+                width: 45px;
+                height: 45px;
+                font-size: 1.1rem;
+            }
+
+            .visitor-message-content {
+                max-height: 90vh;
+                border-radius: 1.25rem 1.25rem 0 0;
+            }
+        }
+
+        /* الشاشات العرضية الصغيرة */
+        @media screen and (max-width: 896px) and (orientation: landscape) {
+            .quotes-popup {
+                width: 70%;
+                height: 50vh;
+                padding: 5rem 5rem;
+            }
+
+            .quote-text {
+                font-size: clamp(1.5rem, 2vw, 2rem);
+            }
+
+            .message-fab {
+                display: none !important;
+            }
+        }
+
+        /* الشاشات الكبيرة */
+        @media screen and (min-width: 1025px) {
+            .quotes-popup {
+                width: 70%;
+                height: 50%;
+                max-width: 1000px;
+				max-height: 600px;
+            }
+
+            /* تم التعديل: مضاعفة الحجم + !important */
+            .quote-text {
+                font-size: clamp(3rem, 5vw, 6rem) !important;
+                line-height: 1.2 !important;
+            }
+
+            .message-fab {
+                display: none !important;
+            }
+        }
+
+        /* الشاشات الكبيرة جداً */
+      @media screen and (min-width: 1440px) {
+            .quotes-popup {
+                width: 100%;
+                height: 100%;
+                max-width: 1200px;
+				max-height: 650px;
+            }
+
+             /* تم التعديل: مضاعفة الحجم + !important */
+            .quote-text {
+                font-size: clamp(5rem, 8vw, 10rem) !important;
+                line-height: 1.2 !important;
+            }
+        }
+
+        /* ============================================
+           Mobile-First Design - نظام الجوال أولاً
+           ============================================ */
+
+        /* الأساس: شاشات الجوال الصغيرة (Portrait) */
+        @media screen and (max-width: 640px) and (orientation: portrait) {
+            body {
+                padding: 0.5rem;
+                overflow-y: auto;
+                height: auto;
+                min-height: 100vh;
+            }
+
+            header {
+                height: auto !important;
+                padding: 0.75rem !important;
+                margin-bottom: 0.5rem !important;
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            header > div:first-child {
+                width: 100%;
+                justify-content: center;
+            }
+
+            header h1 {
+                font-size: 1rem !important;
+                text-align: center;
+            }
+
+            header .h-12 {
+                height: 2.5rem !important;
+                width: 2.5rem !important;
+            }
+
+            header .text-2xl {
+                font-size: 1rem !important;
+            }
+
+            #current-date {
+                font-size: 0.9rem !important;
+            }
+
+            main {
+                display: flex !important;
+                flex-direction: column !important;
+                height: auto !important;
+                gap: 0.5rem !important;
+                padding-bottom: 1rem;
+            }
+
+            /* بطاقة العداد في الأعلى */
+            .timer-card {
+                order: -1 !important;
+            }
+
+            .committee-card {
+                padding: 1rem !important;
+                border-radius: 1rem !important;
+                min-height: 100px;
+                touch-action: manipulation;
+            }
+
+            .card-title {
+                font-size: 1.1rem !important;
+            }
+
+            .card-number {
+                font-size: 2.5rem !important;
+            }
+
+            .card-icon {
+                width: 28px !important;
+                height: 28px !important;
+                top: 8px !important;
+                left: 8px !important;
+                border-radius: 8px !important;
+            }
+
+            .card-icon i {
+                font-size: 0.8rem !important;
+            }
+
+            .done-badge {
+                font-size: 0.75rem !important;
+                padding: 3px 10px !important;
+            }
+
+            .glass-panel.rounded-3xl {
+                border-radius: 1rem !important;
+                padding: 1rem !important;
+            }
+
+            #countdown {
+                font-size: 2.5rem !important;
+            }
+
+            .glass-panel h2.text-4xl {
+                font-size: 1.2rem !important;
+                margin-bottom: 0.5rem !important;
+            }
+
+            /* لوحة التحكم للجوال */
+            #control-panel > div {
+                width: 95% !important;
+                padding: 1rem !important;
+                max-height: 95vh !important;
+            }
+
+            #control-panel h2 {
+                font-size: 1.5rem !important;
+            }
+
+            #control-panel .grid-cols-2 {
+                grid-template-columns: 1fr !important;
+            }
+
+            #control-panel input,
+            #control-panel select,
+            #control-panel button {
+                font-size: 16px !important;
+                min-height: 48px;
+                touch-action: manipulation;
+            }
+        }
+
+        /* شاشات الجوال بالوضع العرضي */
+        @media screen and (max-width: 896px) and (orientation: landscape) {
+            body {
+                padding: 0.5rem;
+            }
+
+            header {
+                height: auto !important;
+                min-height: 10vh;
+                padding: 0.5rem 1rem !important;
+                margin-bottom: 0.5rem !important;
+            }
+
+            header h1 {
+                font-size: 1.1rem !important;
+            }
+
+            header .h-12 {
+                height: 2rem !important;
+                width: 2rem !important;
+            }
+
+            header .text-2xl {
+                font-size: 0.9rem !important;
+            }
+
+            #current-date {
+                font-size: 0.9rem !important;
+            }
+
+            main {
+                height: 85vh !important;
+                gap: 0.4rem !important;
+            }
+
+            .committee-card {
+                padding: 0.4rem !important;
+                border-radius: 0.75rem !important;
+                touch-action: manipulation;
+            }
+
+            .card-title {
+                font-size: 0.85rem !important;
+            }
+
+            .card-number {
+                font-size: 2rem !important;
+            }
+
+            .card-icon {
+                width: 22px !important;
+                height: 22px !important;
+                top: 5px !important;
+                left: 5px !important;
+                border-radius: 5px !important;
+            }
+
+            .card-icon i {
+                font-size: 0.6rem !important;
+            }
+
+            .done-badge {
+                font-size: 0.6rem !important;
+                padding: 2px 6px !important;
+            }
+
+            .glass-panel.rounded-3xl {
+                border-radius: 0.75rem !important;
+                padding: 0.4rem !important;
+            }
+
+            #countdown {
+                font-size: 1.5rem !important;
+            }
+
+            .glass-panel h2.text-4xl {
+                font-size: 0.85rem !important;
+                margin-bottom: 0.2rem !important;
+            }
+        }
+
+        /* شاشات الجوال الصغيرة جداً بالوضع العرضي */
+        @media screen and (max-width: 680px) and (orientation: landscape) {
+            header h1 {
+                font-size: 0.9rem !important;
+            }
+
+            .card-title {
+                font-size: 0.75rem !important;
+            }
+
+            .card-number {
+                font-size: 1.5rem !important;
+            }
+
+            #countdown {
+                font-size: 1.2rem !important;
+            }
+
+            .card-icon {
+                display: none !important;
+            }
+        }
+
+        /* الأجهزة اللوحية */
+        @media screen and (min-width: 641px) and (max-width: 1024px) and (orientation: portrait) {
+            body {
+                padding: 1rem;
+            }
+
+            header h1 {
+                font-size: 1.5rem !important;
+            }
+
+            main {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 0.75rem !important;
+            }
+
+            .card-title {
+                font-size: 1.25rem !important;
+            }
+
+            .card-number {
+                font-size: 3.5rem !important;
+            }
+
+            .committee-card {
+                min-height: 150px;
+                touch-action: manipulation;
+            }
+        }
+
+        /* شاشات الأجهزة اللوحية بالوضع العرضي */
+        @media screen and (min-width: 897px) and (max-width: 1024px) and (orientation: landscape) {
+            body {
+                padding: 0.75rem;
+            }
+
+            header {
+                height: auto !important;
+                min-height: 10vh;
+                padding: 0.75rem 1.5rem !important;
+            }
+
+            header h1 {
+                font-size: 1.5rem !important;
+            }
+
+            main {
+                height: 86vh !important;
+                gap: 0.5rem !important;
+            }
+
+            .card-title {
+                font-size: 1.2rem !important;
+            }
+
+            .card-number {
+                font-size: 3rem !important;
+            }
+
+            #countdown {
+                font-size: 2.5rem !important;
+            }
+        }
+
+        /* الشاشات الكبيرة - سطح المكتب */
+        @media screen and (min-width: 1025px) {
+            body {
+                padding: 1.5rem;
+            }
+
+            .committee-card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4) !important;
+            }
+
+            #logo-btn:hover {
+                transform: scale(1.05);
+            }
+
+            header h1 {
+                font-size: 1.875rem;
+            }
+
+            main {
+                height: 84vh;
+            }
+
+            .card-title {
+                font-size: 1.75rem;
+            }
+
+            .card-number {
+                font-size: 5rem;
+            }
+        }
+
+        /* الشاشات الكبيرة جداً */
+        @media screen and (min-width: 1440px) {
+            body {
+                padding: 2rem;
+            }
+
+            header h1 {
+                font-size: 2rem;
+            }
+
+            .card-title {
+                font-size: 2rem;
+            }
+
+            .card-number {
+                font-size: 6rem;
+            }
+
+            #countdown {
+                font-size: 4rem;
+            }
+
+            .card-icon {
+                width: 50px;
+                height: 50px;
+            }
+        }
+
+        /* دعم اللمس للأجهزة المحمولة */
+        @media (hover: none) and (pointer: coarse) {
+            .committee-card,
+            #logo-btn,
+            button,
+            select,
+            input {
+                touch-action: manipulation;
+                -webkit-tap-highlight-color: transparent;
+            }
+
+            .committee-card:active {
+                transform: scale(0.98);
+            }
+
+            #logo-btn:active {
+                transform: scale(0.95);
+            }
+
+            button:active {
+                transform: scale(0.97);
+            }
+        }
+
+        /* دعم الماوس للشاشات الكبيرة */
+        @media (hover: hover) and (pointer: fine) {
+            .committee-card {
+                cursor: default;
+            }
+
+            #logo-btn {
+                cursor: pointer;
+            }
+
+            button {
+                cursor: pointer;
+            }
+
+            button:hover {
+                filter: brightness(1.1);
+            }
+        }
+
+        /* تبويبات لوحة التحكم */
+        .control-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 0.5rem;
+            overflow-x: auto;
+        }
+
+        .control-tab {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem 0.5rem 0 0;
+            background: rgba(255, 255, 255, 0.05);
+            color: #94a3b8;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            border: none;
+        }
+
+        .control-tab:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .control-tab.active {
+            background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* تنسيق قائمة الرسائل */
+        .message-item {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            transition: all 0.3s ease;
+        }
+
+        .message-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .message-item.unread {
+            border-right: 4px solid #8b5cf6;
+            background: rgba(139, 92, 246, 0.1);
+        }
+
+        .message-time {
+            font-size: 0.75rem;
+            color: #64748b;
+        }
+
+        /* شريط التمرير المخصص */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 3px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+    </style>
+</head>
+<body class="p-6 box-border">
+
+    <!-- نافذة إدخال كلمة المرور (جديدة) -->
+    <div id="password-modal" class="fixed inset-0 bg-black/90 z-[70] hidden flex items-center justify-center backdrop-blur-md">
+        <div class="glass-panel w-full max-w-md rounded-2xl p-8 flex flex-col items-center">
+            <h3 class="text-2xl font-bold text-white mb-6">الدخول إلى لوحة التحكم</h3>
+            <input type="password" id="admin-password-input" placeholder="أدخل كلمة المرور"
+                   class="w-full bg-white/10 border border-white/20 rounded-xl py-3 px-4 text-white text-center text-lg mb-4 focus:outline-none focus:border-emerald-500">
+            <button id="submit-password-btn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-6 rounded-lg text-lg transition-colors">
+                دخول
+            </button>
+            <button id="cancel-password-btn" class="mt-4 text-slate-400 hover:text-white transition-colors">
+                إلغاء
+            </button>
+        </div>
+    </div>
+
+    <!-- نافذة التأكيد المخصصة -->
+    <div id="confirm-modal" class="fixed inset-0 bg-black/80 z-[80] hidden flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-slate-800 border border-slate-600 rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl">
+            <p id="confirm-message" class="text-white text-lg text-center mb-6"></p>
+            <div class="flex gap-3">
+                <button id="confirm-cancel" class="flex-1 px-4 py-3 text-slate-300 hover:bg-slate-700 rounded-lg font-bold transition-colors">
+                    إلغاء
+                </button>
+                <button id="confirm-ok" class="flex-1 px-4 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg font-bold transition-colors">
+                    تأكيد
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- زر البحث العائم - تم تعديل خصائصه ليكون صغيراً ومتحركاً -->
+    <button id="search-btn" class="search-fab" draggable="false">
+        <i class="fa-solid fa-search"></i>
+    </button>
+
+    <!-- زر رسائل الزوار العائم - يظهر في تبويب العرض فقط -->
+    <button id="message-fab" class="message-fab">
+        <i class="fa-solid fa-envelope"></i>
+    </button>
+
+    <!-- نافذة رسائل الزوار المنبثقة -->
+    <div id="visitor-message-modal" class="visitor-message-modal hidden">
+        <div class="visitor-message-content" onclick="event.stopPropagation()">
+            <!-- شريط العنوان -->
+            <div class="flex justify-between items-center p-4 border-b border-white/10">
+                <h3 class="text-xl font-bold text-white">إرسال رسالة</h3>
+                <button id="close-visitor-modal" class="text-slate-400 hover:text-white text-2xl transition-colors w-8 h-8 flex items-center justify-center">
+                    <i class="fa-solid fa-times"></i>
+                </button>
+            </div>
+
+            <!-- محتوى النموذج -->
+            <div class="p-4 flex-1 overflow-y-auto custom-scrollbar">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-slate-300 mb-2 text-sm">الاسم (اختياري)</label>
+                        <input type="text" id="visitor-name" placeholder="اكتب اسمك..."
+                               class="w-full bg-white/10 border border-white/20 rounded-xl py-3 px-4 text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 text-base">
+                    </div>
+                    <div>
+                        <label class="block text-slate-300 mb-2 text-sm">الرسالة <span class="text-red-400">*</span></label>
+                        <textarea id="visitor-message" placeholder="اكتب رسالتك هنا..." rows="5"
+                                  class="w-full bg-white/10 border border-white/20 rounded-xl py-3 px-4 text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 resize-none text-base"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- زر الإرسال -->
+            <div class="p-4 border-t border-white/10">
+                <button id="send-visitor-message" class="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold py-3 px-6 rounded-xl text-lg transition-all flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-paper-plane"></i>
+                    إرسال الرسالة
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة البحث عن الطلاب -->
+    <div id="student-search-modal" class="fixed inset-0 bg-black/80 z-[60] hidden flex items-center justify-center backdrop-blur-sm">
+        <div class="glass-panel w-[90%] max-w-2xl h-[80vh] rounded-2xl p-6 flex flex-col relative" onclick="event.stopPropagation()">
+            <!-- زر الإغلاق -->
+            <button id="close-search-modal" class="absolute top-4 left-4 text-white hover:text-red-400 text-2xl transition-colors w-8 h-8 flex items-center justify-center">
+                <i class="fa-solid fa-times"></i>
+            </button>
+
+            <h2 class="text-2xl font-bold text-white mb-6 text-center">بحث عن طالب</h2>
+
+            <!-- حقل البحث -->
+            <div class="relative mb-6">
+                <input type="text" id="student-search-input" placeholder="ابحث بالاسم أو اللجنة..."
+                       class="w-full bg-white/10 border border-white/20 rounded-xl py-3 px-10 text-white placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all text-lg">
+                <i class="fa-solid fa-search absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
+            </div>
+
+            <!-- قائمة النتائج -->
+            <div id="search-results" class="flex-1 overflow-y-auto space-y-3 custom-scrollbar">
+                <!-- سيتم تعبئة النتائج هنا -->
+                <div class="text-center text-slate-400 mt-10">ابدأ الكتابة للبحث...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- لوحة التحكم -->
+    <div id="control-panel" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center">
+        <div class="bg-slate-800 rounded-2xl p-8 w-[90%] max-w-4xl max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-3xl font-black text-white">لوحة التحكم</h2>
+                <button id="close-panel" class="text-white text-3xl hover:text-red-400">&times;</button>
+            </div>
+
+            <!-- تبويبات لوحة التحكم -->
+            <div class="control-tabs">
+                <button class="control-tab active" data-tab="main-tab">الرئيسية</button>
+                <button class="control-tab" data-tab="messages-tab">
+                    رسائل الزوار
+                    <span id="unread-badge" class="hidden bg-red-500 text-white text-xs px-2 py-0.5 rounded-full mr-1">0</span>
+                </button>
+            </div>
+
+            <!-- محتوى التبويب الرئيسي -->
+            <div id="main-tab" class="tab-content active">
+                <!-- إعدادات المؤقت -->
+                <div class="bg-slate-700 rounded-xl p-6 mb-6">
+                    <h3 class="text-xl font-bold text-white mb-4">إعدادات المؤقت</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-slate-300 mb-2">المدة (ساعات : دقائق : ثواني)</label>
+                            <div class="flex gap-2">
+                                <div class="flex-1">
+                                    <input type="number" id="timer-hours" value="1" min="0" class="w-full p-3 rounded-lg bg-slate-600 text-white text-lg text-center" placeholder="س">
+                                    <span class="text-xs text-slate-400 text-center block mt-1">ساعة</span>
+                                </div>
+                                <div class="flex-1">
+                                    <input type="number" id="timer-minutes" value="0" min="0" max="59" class="w-full p-3 rounded-lg bg-slate-600 text-white text-lg text-center" placeholder="د">
+                                    <span class="text-xs text-slate-400 text-center block mt-1">دقيقة</span>
+                                </div>
+                                <div class="flex-1">
+                                    <input type="number" id="timer-seconds" value="0" min="0" max="59" class="w-full p-3 rounded-lg bg-slate-600 text-white text-lg text-center" placeholder="ث">
+                                    <span class="text-xs text-slate-400 text-center block mt-1">ثانية</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-end">
+                            <button id="start-timer-btn" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 px-6 rounded-lg text-lg">
+                                بدء المؤقت
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- حالة اللجان -->
+                <div class="bg-slate-700 rounded-xl p-6">
+                    <h3 class="text-xl font-bold text-white mb-4">حالة اللجان</h3>
+                    <div class="space-y-3" id="committees-list">
+                        <!-- سيتم إنشاؤها ديناميكياً -->
+                    </div>
+                    <!-- زر إعادة التعيين داخل مجموعة حالة اللجان -->
+                    <div class="mt-6 pt-4 border-t border-slate-600">
+                        <button id="reset-timer-btn" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-6 rounded-lg text-lg flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-rotate-left"></i>
+                            إعادة تعيين الكل
+                        </button>
+                    </div>
+                </div>
+
+                <!-- الأقوال والحكم (تم تعديله لإضافة مجموعة) -->
+                <div class="bg-slate-700 rounded-xl p-6 mt-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-bold text-white">الأقوال والحكم</h3>
+                        <label class="flex items-center gap-3 cursor-pointer">
+                            <span class="text-slate-300">إظهار النافذة</span>
+                            <input type="checkbox" id="quotes-toggle" class="w-5 h-5 rounded">
+                        </label>
+                    </div>
+                    <div class="flex gap-2 mb-4 items-start">
+                        <!-- تم التعديل: تحويل input إلى textarea لدعم الأسطر المتعددة -->
+                        <textarea id="new-quote" placeholder="أدخل القول أو مجموعة أقوال (كل قول في سطر)..." class="flex-1 p-3 rounded-lg bg-slate-600 text-white text-lg h-24 resize-none custom-scrollbar"></textarea>
+                        <button id="add-quote-btn" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-6 py-3 rounded-lg h-24">
+                            <i class="fa-solid fa-plus"></i>
+                        </button>
+                    </div>
+                    <div class="space-y-2 max-h-48 overflow-y-auto" id="quotes-list">
+                        <!-- سيتم إنشاؤها ديناميكياً -->
+                    </div>
+                </div>
+
+                <!-- استيراد الطلاب -->
+                <div class="bg-slate-700 rounded-xl p-6 mt-6">
+                    <h3 class="text-xl font-bold text-white mb-4">إدارة بيانات الطلاب</h3>
+                    <div class="flex flex-col gap-4">
+                        <div class="flex gap-4 items-center flex-wrap">
+                            <input type="file" id="excel-upload" accept=".xlsx, .xls" class="hidden">
+                            <button onclick="document.getElementById('excel-upload').click()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg text-lg flex items-center gap-2">
+                                <i class="fa-solid fa-file-excel"></i>
+                                استيراد ملف Excel
+                            </button>
+                            <button id="delete-students-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg text-lg flex items-center gap-2">
+                                <i class="fa-solid fa-trash"></i>
+                                حذف جميع الطلاب
+                            </button>
+                        </div>
+                        <span id="import-status" class="text-slate-300 h-6"></span>
+                        <p class="text-sm text-slate-400">يجب أن يحتوي ملف Excel على أعمدة: "الاسم" و "اللجنة"</p>
+                    </div>
+                </div>
+
+                <!-- إعدادات الأمان - في أسفل لوحة التحكم -->
+                <div class="bg-slate-700 rounded-xl p-6 mt-6 border border-slate-600">
+                    <h3 class="text-xl font-bold text-white mb-4">إعدادات الأمان</h3>
+                    <div class="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center">
+                        <input type="password" id="new-admin-password" placeholder="كلمة المرور الجديدة" class="flex-1 p-3 rounded-lg bg-slate-600 text-white text-lg">
+                        <button id="change-password-btn" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg text-lg whitespace-nowrap">
+                            تغيير كلمة المرور
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- محتوى تبويب الرسائل -->
+            <div id="messages-tab" class="tab-content">
+                <div class="bg-slate-700 rounded-xl p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-bold text-white">رسائل الزوار</h3>
+                        <button id="clear-all-messages" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg text-sm flex items-center gap-2">
+                            <i class="fa-solid fa-trash"></i>
+                            حذف الكل
+                        </button>
+                    </div>
+                    <div id="messages-list" class="space-y-3 max-h-[60vh] overflow-y-auto custom-scrollbar">
+                        <!-- سيتم تعبئة الرسائل هنا -->
+                        <div class="text-center text-slate-400 py-8">لا توجد رسائل</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- الرأس (يأخذ مساحة صغيرة وثابتة) -->
+    <header class="glass-panel rounded-2xl p-4 mb-4 flex justify-between items-center h-[12vh]">
+        <div class="flex items-center gap-4 h-full">
+            <div id="logo-btn" class="h-12 w-12 bg-orange-600/20 rounded-lg flex items-center justify-center text-orange-400 border border-orange-500/30 cursor-pointer select-none">
+                <i class="fa-solid fa-chart-simple text-2xl"></i>
+            </div>
+            <div class="flex flex-col justify-center">
+                <h1 class="text-3xl font-black text-white tracking-wide">ثانوية عشيرة - لجنة الضبط والتحكم</h1>
+            </div>
+        </div>
+
+        <!-- قسم التاريخ -->
+        <div class="flex items-center gap-6 bg-black/20 px-6 py-2 rounded-xl border border-white/5">
+            <div id="current-date" class="text-2xl font-bold text-emerald-400"></div>
+        </div>
+    </header>
+
+    <!-- منطقة المحتوى (شبكة 4x2 تملأ باقي الشاشة) -->
+    <main class="grid grid-cols-4 grid-rows-2 gap-4 flex-grow h-[84vh]">
+
+        <!-- البطاقة 1 -->
+        <div id="card-1" class="committee-card rounded-3xl p-6 flex flex-col justify-center items-center relative overflow-hidden bg-card-green">
+            <div class="card-icon z-20">
+                <i class="fa-solid fa-users text-white text-lg"></i>
+            </div>
+            <h2 class="card-title text-white text-center relative z-10">اللجنة الأولى</h2>
+            <span class="card-number mt-2 relative z-10" id="count-1">69</span>
+            <span class="done-badge text-white mt-3 relative z-10 hidden" id="done-1">تم الإنجاز ✓</span>
+        </div>
+
+        <!-- البطاقة 2 -->
+        <div id="card-2" class="committee-card rounded-3xl p-6 flex flex-col justify-center items-center relative overflow-hidden bg-card-green">
+            <div class="card-icon z-20">
+                <i class="fa-solid fa-users text-white text-lg"></i>
+            </div>
+            <h2 class="card-title text-white text-center relative z-10">اللجنة الثانية</h2>
+            <span class="card-number mt-2 relative z-10" id="count-2">45</span>
+            <span class="done-badge text-white mt-3 relative z-10 hidden" id="done-2">تم الإنجاز ✓</span>
+        </div>
+
+        <!-- البطاقة 3 -->
+        <div id="card-3" class="committee-card rounded-3xl p-6 flex flex-col justify-center items-center relative overflow-hidden bg-card-green">
+            <div class="card-icon z-20">
+                <i class="fa-solid fa-users text-white text-lg"></i>
+            </div>
+            <h2 class="card-title text-white text-center relative z-10">اللجنة الثالثة</h2>
+            <span class="card-number mt-2 relative z-10" id="count-3">57</span>
+            <span class="done-badge text-white mt-3 relative z-10 hidden" id="done-3">تم الإنجاز ✓</span>
+        </div>
+
+        <!-- البطاقة 4 -->
+        <div id="card-4" class="committee-card rounded-3xl p-6 flex flex-col justify-center items-center relative overflow-hidden bg-card-green">
+            <div class="card-icon z-20">
+                <i class="fa-solid fa-users text-white text-lg"></i>
+            </div>
+            <h2 class="card-title text-white text-center relative z-10">اللجنة الرابعة</h2>
+            <span class="card-number mt-2 relative z-10" id="count-4">63</span>
+            <span class="done-badge text-white mt-3 relative z-10 hidden" id="done-4">تم الإنجاز ✓</span>
+        </div>
+
+        <!-- البطاقة 5 -->
+        <div id="card-5" class="committee-card rounded-3xl p-6 flex flex-col justify-center items-center relative overflow-hidden bg-card-green">
+            <div class="card-icon z-20">
+                <i class="fa-solid fa-users text-white text-lg"></i>
+            </div>
+            <h2 class="card-title text-white text-center relative z-10">اللجنة الخامسة</h2>
+            <span class="card-number mt-2 relative z-10" id="count-5">63</span>
+            <span class="done-badge text-white mt-3 relative z-10 hidden" id="done-5">تم الإنجاز ✓</span>
+        </div>
+
+        <!-- البطاقة 6 -->
+        <div id="card-6" class="committee-card rounded-3xl p-6 flex flex-col justify-center items-center relative overflow-hidden bg-card-green">
+            <div class="card-icon z-20">
+                <i class="fa-solid fa-users text-white text-lg"></i>
+            </div>
+            <h2 class="card-title text-white text-center relative z-10">اللجنة السادسة</h2>
+            <span class="card-number mt-2 relative z-10" id="count-6">50</span>
+            <span class="done-badge text-white mt-3 relative z-10 hidden" id="done-6">تم الإنجاز ✓</span>
+        </div>
+
+        <!-- البطاقة 7 -->
+        <div id="card-7" class="committee-card rounded-3xl p-6 flex flex-col justify-center items-center relative overflow-hidden bg-card-green">
+            <div class="card-icon z-20">
+                <i class="fa-solid fa-users text-white text-lg"></i>
+            </div>
+            <h2 class="card-title text-white text-center relative z-10">اللجنة السابعة</h2>
+            <span class="card-number mt-2 relative z-10" id="count-7">49</span>
+            <span class="done-badge text-white mt-3 relative z-10 hidden" id="done-7">تم الإنجاز ✓</span>
+        </div>
+
+        <!-- بطاقة الوقت المتبقي -->
+        <div class="timer-card glass-panel rounded-3xl p-5 flex flex-col justify-center items-center relative overflow-hidden border-2 border-dashed border-slate-500/50 bg-white/5 shadow-2xl">
+            <div class="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
+            <h2 class="text-4xl font-black text-white text-center mb-3 drop-shadow-lg relative z-10">الوقت المتبقي</h2>
+            <div id="countdown" class="timer-glow text-6xl font-bold text-emerald-400 drop-shadow-lg relative z-10">00:00:00</div>
+        </div>
+
+    </main>
+
+    <!-- نافذة الأقوال المنبثقة -->
+    <div id="quotes-popup" class="quotes-popup hidden">
+        <button id="quotes-close-btn" class="quotes-close-btn"></button>
+        <div class="flex items-center gap-4">
+            <div class="text-4xl">💡</div>
+            <!-- تم التعديل: إزالة text-2xl لمنع التعارض -->
+            <p id="quote-display" class="quote-text font-bold text-white text-center flex-1"></p>
+            <div class="text-4xl">✨</div>
+        </div>
+    </div>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBxPO6RKsQ1Cq-mqlCpFTrCuIyxnYdB37U",
+            authDomain: "studentsystem-c1ab1.firebaseapp.com",
+            databaseURL: "https://studentsystem-c1ab1-default-rtdb.firebaseio.com",
+            projectId: "studentsystem-c1ab1",
+            storageBucket: "studentsystem-c1ab1.firebasestorage.app",
+            messagingSenderId: "112215023848",
+            appId: "1:112215023848:web:0adba326a527ee7e37e95d"
+        };
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.database();
+        const rootRef = db.ref('cont');
+
+        // بيانات اللجان
+        const committees = [
+            { id: 1, name: 'اللجنة الأولى', count: 69, status: 'ongoing' },
+            { id: 2, name: 'اللجنة الثانية', count: 45, status: 'ongoing' },
+            { id: 3, name: 'اللجنة الثالثة', count: 57, status: 'ongoing' },
+            { id: 4, name: 'اللجنة الرابعة', count: 63, status: 'ongoing' },
+            { id: 5, name: 'اللجنة الخامسة', count: 63, status: 'ongoing' },
+            { id: 6, name: 'اللجنة السادسة', count: 50, status: 'ongoing' },
+            { id: 7, name: 'اللجنة السابعة', count: 49, status: 'ongoing' }
+        ];
+
+        // بيانات الطلاب (للذاكرة المحلية)
+        let studentsData = [];
+
+        // متغيرات المؤقت
+        let timerDuration = 60 * 60 * 1000; // ساعة واحدة بالمللي ثانية
+        let targetTime = null;
+        let timerStarted = false;
+        let timerInterval = null;
+
+        // متغيرات الأقوال والحكم
+        let quotes = [];
+        let currentQuoteIndex = 0;
+        let quotesVisible = false;
+        let quotesInterval = null;
+
+        // متغيرات الصوت المضاف
+        const timerSound = new Audio('sounds/azz3.mp3');
+        let soundTriggered = false;
+
+        // متغير كلمة المرور
+        let adminPassword = '123'; // القيمة الافتراضية
+
+        // متغيرات رسائل الزوار
+        let visitorMessages = [];
+
+        // دالة نافذة التأكيد المخصصة
+        function showConfirmDialog(message, onConfirm) {
+            const modal = document.getElementById('confirm-modal');
+            const messageEl = document.getElementById('confirm-message');
+            const cancelBtn = document.getElementById('confirm-cancel');
+            const okBtn = document.getElementById('confirm-ok');
+
+            messageEl.textContent = message;
+            modal.classList.remove('hidden');
+
+            const cleanup = () => {
+                modal.classList.add('hidden');
+                cancelBtn.removeEventListener('click', handleCancel);
+                okBtn.removeEventListener('click', handleOk);
+            };
+
+            const handleCancel = () => {
+                cleanup();
+            };
+
+            const handleOk = () => {
+                cleanup();
+                onConfirm();
+            };
+
+            cancelBtn.addEventListener('click', handleCancel);
+            okBtn.addEventListener('click', handleOk);
+        }
+
+        // فتح لوحة التحكم بالنقر المزدوج (تم تعديله ليفتح نافذة كلمة المرور)
+        let lastTap = 0;
+        const logoBtn = document.getElementById('logo-btn');
+
+        // للأجهزة اللمسية (الأيفون والأندرويد)
+        logoBtn.addEventListener('touchend', function(e) {
+            const currentTime = new Date().getTime();
+            const tapLength = currentTime - lastTap;
+            if (tapLength < 500 && tapLength > 0) {
+                e.preventDefault();
+                showPasswordPrompt();
+            }
+            lastTap = currentTime;
+        });
+
+        // للكمبيوتر (الماوس)
+        logoBtn.addEventListener('dblclick', function() {
+            showPasswordPrompt();
+        });
+
+        // دالة إظهار نافذة كلمة المرور
+        function showPasswordPrompt() {
+            document.getElementById('password-modal').classList.remove('hidden');
+            document.getElementById('admin-password-input').value = '';
+            document.getElementById('admin-password-input').focus();
+        }
+
+        // معالجة زر إلغاء كلمة المرور
+        document.getElementById('cancel-password-btn').addEventListener('click', function() {
+            document.getElementById('password-modal').classList.add('hidden');
+        });
+
+        // معالجة زر دخول (كلمة المرور)
+        document.getElementById('submit-password-btn').addEventListener('click', checkPassword);
+
+        // دعم مفتاح Enter في حقل كلمة المرور
+        document.getElementById('admin-password-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') checkPassword();
+        });
+
+        function checkPassword() {
+            const input = document.getElementById('admin-password-input').value;
+            if (input === adminPassword) {
+                document.getElementById('password-modal').classList.add('hidden');
+                document.getElementById('control-panel').classList.remove('hidden');
+                renderCommitteesList();
+                updateUnreadBadge();
+            } else {
+                // إظهار رسالة خطأ بطريقة بديلة
+                const passwordInput = document.getElementById('admin-password-input');
+                passwordInput.classList.add('border-red-500');
+                passwordInput.placeholder = 'كلمة المرور غير صحيحة';
+                passwordInput.value = '';
+                setTimeout(() => {
+                    passwordInput.classList.remove('border-red-500');
+                    passwordInput.placeholder = 'أدخل كلمة المرور';
+                }, 2000);
+            }
+        }
+
+        // تغيير كلمة المرور
+        document.getElementById('change-password-btn').addEventListener('click', function() {
+            const newPass = document.getElementById('new-admin-password').value;
+            if (newPass && newPass.trim() !== '') {
+                rootRef.update({ adminPassword: newPass.trim() });
+                document.getElementById('new-admin-password').value = '';
+                // إظهار رسالة نجاح
+                this.textContent = 'تم التغيير ✓';
+                this.classList.remove('bg-purple-600');
+                this.classList.add('bg-emerald-600');
+                setTimeout(() => {
+                    this.innerHTML = 'تغيير كلمة المرور';
+                    this.classList.remove('bg-emerald-600');
+                    this.classList.add('bg-purple-600');
+                }, 2000);
+            }
+        });
+
+
+        // إغلاق لوحة التحكم
+        document.getElementById('close-panel').addEventListener('click', function() {
+            document.getElementById('control-panel').classList.add('hidden');
+        });
+
+        // التبويبات في لوحة التحكم
+        document.querySelectorAll('.control-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const tabId = this.dataset.tab;
+
+                // تحديث التبويبات النشطة
+                document.querySelectorAll('.control-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+
+                // تحديث المحتوى
+                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+                document.getElementById(tabId).classList.add('active');
+
+                // تحديث قائمة الرسائل عند فتح التبويب
+                if (tabId === 'messages-tab') {
+                    renderMessagesList();
+                    markAllMessagesAsRead();
+                }
+            });
+        });
+
+        // دالة تبديل حالة اللجنة (Interactive Toggle)
+        function toggleCommitteeStatus(index) {
+            const committee = committees[index];
+            // عكس الحالة
+            committee.status = committee.status === 'ongoing' ? 'done' : 'ongoing';
+
+            // تحديث القائمة فوراً
+            renderCommitteesList();
+
+            // تحديث البطاقات فوراً
+            updateAllCards();
+
+            // حفظ التغيير في Firebase فوراً
+            rootRef.child('committees').set(committees);
+        }
+
+        // إنشاء قائمة اللجان في لوحة التحكم (تم تحديثها للأزرار التفاعلية)
+        function renderCommitteesList() {
+            const container = document.getElementById('committees-list');
+            container.innerHTML = '';
+
+            committees.forEach((committee, index) => {
+                const div = document.createElement('div');
+                div.className = 'flex items-center justify-between bg-slate-600 p-4 rounded-lg';
+
+                const isDone = committee.status === 'done';
+                const btnClass = isDone
+                    ? 'bg-emerald-500 hover:bg-emerald-600'
+                    : 'bg-orange-500 hover:bg-orange-600';
+                const btnText = isDone ? 'منجزة' : 'مستمرة';
+                const icon = isDone ? '<i class="fa-solid fa-check ml-2"></i>' : '<i class="fa-solid fa-spinner ml-2"></i>';
+
+                div.innerHTML = `
+                    <span class="text-white text-lg font-bold">${committee.name}</span>
+                    <button onclick="toggleCommitteeStatus(${index})"
+                            class="${btnClass} text-white font-bold py-2 px-6 rounded-lg text-lg transition-all duration-300 min-w-[140px] flex items-center justify-center">
+                        ${btnText} ${icon}
+                    </button>
+                `;
+                container.appendChild(div);
+            });
+
+            // تحديث قائمة الأقوال
+            renderQuotesList();
+            document.getElementById('quotes-toggle').checked = quotesVisible;
+        }
+
+        // إنشاء قائمة الأقوال في لوحة التحكم
+        function renderQuotesList() {
+            const container = document.getElementById('quotes-list');
+            container.innerHTML = '';
+
+            if (quotes.length === 0) {
+                container.innerHTML = '<p class="text-slate-400 text-center py-4">لا توجد أقوال مضافة</p>';
+                return;
+            }
+
+            quotes.forEach((quote, index) => {
+                const div = document.createElement('div');
+                div.className = 'flex items-center justify-between bg-slate-600 p-3 rounded-lg';
+                div.innerHTML = `
+                    <span class="text-white flex-1 ml-3">${quote}</span>
+                    <div class="flex gap-2">
+                        <button onclick="editQuote(${index})" class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded">
+                            <i class="fa-solid fa-edit"></i>
+                        </button>
+                        <button onclick="deleteQuote(${index})" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // إضافة قول جديد (تم التعديل لدعم المجموعة)
+        document.getElementById('add-quote-btn').addEventListener('click', function() {
+            const input = document.getElementById('new-quote');
+            const quoteText = input.value.trim();
+            if (quoteText) {
+                // تقسيم النص إلى أسطر
+                const lines = quoteText.split('\n');
+                lines.forEach(line => {
+                    const cleanLine = line.trim();
+                    if (cleanLine) {
+                        quotes.push(cleanLine);
+                    }
+                });
+                input.value = '';
+                renderQuotesList();
+                saveQuotesToFirebase();
+            }
+        });
+
+        // تعديل قول
+        function editQuote(index) {
+            const input = document.getElementById('new-quote');
+            input.value = quotes[index];
+            input.focus();
+            quotes.splice(index, 1);
+            renderQuotesList();
+        }
+
+        // حذف قول
+        function deleteQuote(index) {
+            quotes.splice(index, 1);
+            renderQuotesList();
+            saveQuotesToFirebase();
+        }
+
+        // حفظ الأقوال في Firebase
+        function saveQuotesToFirebase() {
+            rootRef.update({
+                quotes: quotes,
+                quotesVisible: quotesVisible
+            });
+        }
+
+        // التحكم في ظهور نافذة الأقوال
+        document.getElementById('quotes-toggle').addEventListener('change', function() {
+            quotesVisible = this.checked;
+            updateQuotesPopup();
+            saveQuotesToFirebase();
+        });
+
+        // إغلاق نافذة الأقوال بالزر
+        document.getElementById('quotes-close-btn').addEventListener('click', function() {
+             document.getElementById('quotes-popup').classList.add('hidden');
+        });
+
+        // تحديث نافذة الأقوال
+        function updateQuotesPopup() {
+            const popup = document.getElementById('quotes-popup');
+
+            if (quotesVisible && quotes.length > 0) {
+                popup.classList.remove('hidden');
+                showNextQuote();
+
+                if (quotesInterval) clearInterval(quotesInterval);
+                quotesInterval = setInterval(showNextQuote, 10000);
+            } else {
+                popup.classList.add('hidden');
+                if (quotesInterval) {
+                    clearInterval(quotesInterval);
+                    quotesInterval = null;
+                }
+            }
+        }
+
+        // عرض القول التالي مع تغيير الخلفية
+        let currentBgStyle = 1;
+        function showNextQuote() {
+            if (quotes.length === 0) return;
+
+            const popup = document.getElementById('quotes-popup');
+            const display = document.getElementById('quote-display');
+
+            // تغيير الخلفية
+            popup.classList.remove('bg-style-1', 'bg-style-2', 'bg-style-3', 'bg-style-4', 'bg-style-5', 'bg-style-6');
+            popup.classList.add('bg-style-' + currentBgStyle);
+            currentBgStyle = (currentBgStyle % 6) + 1;
+
+            display.textContent = quotes[currentQuoteIndex];
+            currentQuoteIndex = (currentQuoteIndex + 1) % quotes.length;
+        }
+
+        // بدء المؤقت
+        document.getElementById('start-timer-btn').addEventListener('click', function() {
+            // قراءة القيم من المدخلات الجديدة
+            const hours = parseInt(document.getElementById('timer-hours').value) || 0;
+            const minutes = parseInt(document.getElementById('timer-minutes').value) || 0;
+            const seconds = parseInt(document.getElementById('timer-seconds').value) || 0;
+
+            // حساب المدة الإجمالية بالمللي ثانية
+            timerDuration = (hours * 3600000) + (minutes * 60000) + (seconds * 1000);
+
+            // قيمة افتراضية في حال كانت المدة صفر
+            if (timerDuration <= 0) {
+                timerDuration = 60 * 60 * 1000;
+            }
+
+            targetTime = new Date().getTime() + timerDuration;
+            timerStarted = true;
+            soundTriggered = false; // إعادة تعيين حالة الصوت
+
+            // حفظ في Firebase
+            rootRef.update({
+                timerTarget: targetTime,
+                timerDuration: timerDuration,
+                timerStarted: true
+            });
+
+            document.getElementById('control-panel').classList.add('hidden');
+        });
+
+        // إعادة تعيين المؤقت مع رسالة تأكيد
+        document.getElementById('reset-timer-btn').addEventListener('click', function() {
+            showConfirmDialog('هل أنت متأكد من إعادة تعيين الكل؟ سيتم إعادة تعيين المؤقت وحالة جميع اللجان.', function() {
+                timerStarted = false;
+                targetTime = null;
+                soundTriggered = false; // إعادة تعيين حالة الصوت
+                timerSound.pause(); // إيقاف الصوت
+                timerSound.currentTime = 0;
+
+                committees.forEach(c => c.status = 'ongoing');
+
+                rootRef.update({
+                    timerTarget: null,
+                    timerDuration: 60 * 60 * 1000,
+                    timerStarted: false,
+                    committees: committees
+                });
+
+                updateAllCards();
+                renderCommitteesList();
+            });
+        });
+
+        // تحديث لون البطاقة
+        function updateCardColor(id, status, progress) {
+            const card = document.getElementById(`card-${id}`);
+            const doneLabel = document.getElementById(`done-${id}`);
+
+            card.classList.remove('bg-card-green', 'bg-card-orange', 'bg-card-red');
+
+            if (status === 'done') {
+                card.classList.add('bg-card-green');
+                doneLabel.classList.remove('hidden');
+            } else {
+                doneLabel.classList.add('hidden');
+
+                if (!timerStarted || targetTime === null) {
+                    card.classList.add('bg-card-green');
+                } else if (progress <= 0) {
+                    card.classList.add('bg-card-red');
+                } else if (progress <= 60) {
+                    card.classList.add('bg-card-orange');
+                } else {
+                    card.classList.add('bg-card-green');
+                }
+            }
+        }
+
+        // تحديث جميع البطاقات
+        function updateAllCards() {
+            let progress = 100;
+
+            if (timerStarted && targetTime !== null) {
+                const now = new Date().getTime();
+                const distance = targetTime - now;
+                const elapsed = timerDuration - distance;
+                progress = Math.max(0, ((timerDuration - elapsed) / timerDuration) * 100);
+            }
+
+            committees.forEach(committee => {
+                updateCardColor(committee.id, committee.status, progress);
+                document.getElementById(`count-${committee.id}`).textContent = committee.count;
+            });
+        }
+
+        // تحديث المؤقت
+        function updateTimer() {
+            const timerElement = document.getElementById("countdown");
+
+            if (!timerStarted || targetTime === null) {
+                timerElement.innerHTML = "00:00:00";
+                timerElement.style.color = "#34d399";
+                timerElement.style.animation = "";
+                return;
+            }
+
+            const now = new Date().getTime();
+            const distance = targetTime - now;
+
+            // تشغيل الصوت عند 5 دقائق (300000 مللي ثانية)
+            // 5 minutes * 60 seconds * 1000 ms = 300,000 ms
+            if (distance <= 300000 && distance > 0 && !soundTriggered) {
+                soundTriggered = true;
+                timerSound.currentTime = 0;
+                timerSound.play().catch(e => console.log('Audio error:', e));
+
+                // تم التأكد من تشغيله مرة واحدة فقط
+                timerSound.onended = null;
+            }
+            // إعادة تعيين المشغل إذا زاد الوقت عن 5 دقائق و 2 ثانية (تم تمديد الوقت)
+            if (distance > 302000) {
+                soundTriggered = false;
+            }
+
+            if (distance < 0) {
+                timerElement.innerHTML = "00:00:00";
+                timerElement.style.color = "#ef4444";
+                timerElement.style.animation = "pulse-red 1s infinite";
+                updateAllCards();
+                return;
+            }
+
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            timerElement.innerHTML =
+                (hours < 10 ? "0" + hours : hours) + ":" +
+                (minutes < 10 ? "0" + minutes : minutes) + ":" +
+                (seconds < 10 ? "0" + seconds : seconds);
+
+            // تحديث الألوان بناءً على التقدم
+            updateAllCards();
+        }
+
+        // عرض التاريخ الهجري
+        function getHijriDate() {
+            const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+            const today = new Date();
+            const dayName = days[today.getDay()];
+
+            const hijriDate = today.toLocaleDateString('ar-SA-u-ca-islamic', {
+                day: 'numeric',
+                month: 'numeric',
+                year: 'numeric'
+            });
+
+            return dayName + ' ' + hijriDate;
+        }
+
+        /* -----------------------------------------------------
+           منطق استيراد Excel والبحث عن الطلاب
+           ----------------------------------------------------- */
+
+        // معالجة رفع ملف Excel
+        document.getElementById('excel-upload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, {type: 'array'});
+
+                // نفترض أن البيانات في الورقة الأولى
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+
+                // تحويل إلى JSON
+                const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+                // معالجة البيانات: نتوقع وجود "الاسم" و "اللجنة"
+                const processedData = jsonData.map(row => ({
+                    name: row['الاسم'] || row['name'] || '',
+                    committee: row['اللجنة'] || row['committee'] || ''
+                })).filter(item => item.name && item.committee);
+
+                if (processedData.length > 0) {
+                    // حفظ في Firebase
+                    rootRef.child('students').set(processedData);
+                    document.getElementById('import-status').textContent = `تم استيراد ${processedData.length} طالب بنجاح`;
+                    document.getElementById('import-status').className = "text-emerald-400 font-bold ml-2";
+                } else {
+                    document.getElementById('import-status').textContent = "لم يتم العثور على بيانات صالحة";
+                    document.getElementById('import-status').className = "text-red-400 font-bold ml-2";
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        // حذف جميع الطلاب مع رسالة تأكيد
+        document.getElementById('delete-students-btn').addEventListener('click', function() {
+            showConfirmDialog('هل أنت متأكد من حذف جميع بيانات الطلاب؟', function() {
+                rootRef.child('students').remove().then(() => {
+                     document.getElementById('import-status').textContent = "تم حذف جميع الطلاب بنجاح";
+                     document.getElementById('import-status').className = "text-red-400 font-bold ml-2";
+                     studentsData = [];
+                     // Clear search results
+                     document.getElementById('search-results').innerHTML = '<div class="text-center text-slate-400 mt-10">ابدأ الكتابة للبحث...</div>';
+                }).catch((error) => {
+                    console.error("Error removing students: ", error);
+                });
+            });
+        });
+
+        /* -----------------------------------------------------
+           منطق زر البحث (التحريك والفتح)
+           ----------------------------------------------------- */
+
+        const searchBtn = document.getElementById('search-btn');
+        let isDragging = false;
+        let startX, startY, initialLeft, initialTop;
+
+        searchBtn.addEventListener('mousedown', dragStart);
+        searchBtn.addEventListener('touchstart', dragStart, {passive: false});
+
+        function dragStart(e) {
+            isDragging = false;
+
+            // الحصول على الإحداثيات سواء كانت ماوس أو لمس
+            const clientX = e.clientX || e.touches[0].clientX;
+            const clientY = e.clientY || e.touches[0].clientY;
+
+            startX = clientX;
+            startY = clientY;
+
+            const rect = searchBtn.getBoundingClientRect();
+            initialLeft = rect.left;
+            initialTop = rect.top;
+
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('touchmove', drag, {passive: false});
+            document.addEventListener('mouseup', dragEnd);
+            document.addEventListener('touchend', dragEnd);
+        }
+
+        function drag(e) {
+            const clientX = e.clientX || e.touches[0].clientX;
+            const clientY = e.clientY || e.touches[0].clientY;
+
+            // إذا تحرك المستخدم أكثر من 5 بكسل، نعتبرها سحب وليس نقر
+            if (Math.abs(clientX - startX) > 5 || Math.abs(clientY - startY) > 5) {
+                isDragging = true;
+                e.preventDefault(); // منع التمرير أثناء السحب
+
+                const dx = clientX - startX;
+                const dy = clientY - startY;
+
+                searchBtn.style.left = `${initialLeft + dx}px`;
+                searchBtn.style.top = `${initialTop + dy}px`;
+                searchBtn.style.transform = 'none'; // إزالة أي تحويلات سابقة
+            }
+        }
+
+        function dragEnd() {
+            document.removeEventListener('mousemove', drag);
+            document.removeEventListener('touchmove', drag);
+            document.removeEventListener('mouseup', dragEnd);
+            document.removeEventListener('touchend', dragEnd);
+        }
+
+        // فتح نافذة البحث عند النقر (فقط إذا لم يكن سحباً)
+        searchBtn.addEventListener('click', function() {
+            if (!isDragging) {
+                document.getElementById('student-search-modal').classList.remove('hidden');
+                document.getElementById('student-search-input').focus();
+            }
+        });
+
+        // إغلاق نافذة البحث
+        function closeSearchModal() {
+            document.getElementById('student-search-modal').classList.add('hidden');
+            document.getElementById('student-search-input').value = '';
+            document.getElementById('search-results').innerHTML = '<div class="text-center text-slate-400 mt-10">ابدأ الكتابة للبحث...</div>';
+        }
+
+        document.getElementById('close-search-modal').addEventListener('click', closeSearchModal);
+
+        // إغلاق عند النقر خارج الإطار
+        document.getElementById('student-search-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeSearchModal();
+            }
+        });
+
+        // منطق البحث
+        document.getElementById('student-search-input').addEventListener('input', function(e) {
+            const query = e.target.value.trim().toLowerCase();
+            const resultsContainer = document.getElementById('search-results');
+
+            if (query.length === 0) {
+                resultsContainer.innerHTML = '<div class="text-center text-slate-400 mt-10">ابدأ الكتابة للبحث...</div>';
+                return;
+            }
+
+            // الفلترة
+            const results = studentsData.filter(student =>
+                (student.name && student.name.toLowerCase().includes(query)) ||
+                (student.committee && student.committee.toLowerCase().includes(query))
+            );
+
+            // عرض النتائج
+            if (results.length > 0) {
+                resultsContainer.innerHTML = results.map(student => `
+                    <div class="bg-white/5 border border-white/10 p-3 rounded-xl flex justify-between items-center hover:bg-white/10 transition-colors">
+                        <span class="text-white font-bold text-lg">${student.name}</span>
+                        <span class="bg-emerald-500/20 text-emerald-300 px-3 py-1 rounded-lg text-sm border border-emerald-500/30">
+                            ${student.committee}
+                        </span>
+                    </div>
+                `).join('');
+            } else {
+                resultsContainer.innerHTML = '<div class="text-center text-slate-400 mt-10">لا توجد نتائج مطابقة</div>';
+            }
+        });
+
+        /* -----------------------------------------------------
+           منطق رسائل الزوار
+           ----------------------------------------------------- */
+
+        // فتح نافذة رسائل الزوار
+        document.getElementById('message-fab').addEventListener('click', function() {
+            document.getElementById('visitor-message-modal').classList.remove('hidden');
+            document.getElementById('visitor-message').focus();
+        });
+
+        // إغلاق نافذة رسائل الزوار
+        document.getElementById('close-visitor-modal').addEventListener('click', function() {
+            document.getElementById('visitor-message-modal').classList.add('hidden');
+            document.getElementById('visitor-name').value = '';
+            document.getElementById('visitor-message').value = '';
+        });
+
+        // إغلاق عند النقر خارج النافذة
+        document.getElementById('visitor-message-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                document.getElementById('visitor-message-modal').classList.add('hidden');
+            }
+        });
+
+        // إرسال رسالة الزائر
+        document.getElementById('send-visitor-message').addEventListener('click', function() {
+            const name = document.getElementById('visitor-name').value.trim() || 'زائر';
+            const message = document.getElementById('visitor-message').value.trim();
+
+            if (!message) {
+                document.getElementById('visitor-message').classList.add('border-red-500');
+                setTimeout(() => {
+                    document.getElementById('visitor-message').classList.remove('border-red-500');
+                }, 2000);
+                return;
+            }
+
+            const newMessage = {
+                id: Date.now(),
+                name: name,
+                message: message,
+                timestamp: new Date().toISOString(),
+                read: false
+            };
+
+            // حفظ في Firebase
+            rootRef.child('visitorMessages').push(newMessage);
+
+            // إظهار رسالة نجاح
+            const btn = document.getElementById('send-visitor-message');
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> تم الإرسال';
+            btn.classList.remove('from-purple-600', 'to-indigo-600');
+            btn.classList.add('from-emerald-600', 'to-emerald-700');
+
+            setTimeout(() => {
+                document.getElementById('visitor-message-modal').classList.add('hidden');
+                document.getElementById('visitor-name').value = '';
+                document.getElementById('visitor-message').value = '';
+                btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> إرسال الرسالة';
+                btn.classList.remove('from-emerald-600', 'to-emerald-700');
+                btn.classList.add('from-purple-600', 'to-indigo-600');
+            }, 1500);
+        });
+
+        // عرض قائمة الرسائل في لوحة التحكم
+        function renderMessagesList() {
+            const container = document.getElementById('messages-list');
+
+            if (visitorMessages.length === 0) {
+                container.innerHTML = '<div class="text-center text-slate-400 py-8">لا توجد رسائل</div>';
+                return;
+            }
+
+            // ترتيب الرسائل من الأحدث للأقدم
+            const sortedMessages = [...visitorMessages].sort((a, b) =>
+                new Date(b.timestamp) - new Date(a.timestamp)
+            );
+
+            container.innerHTML = sortedMessages.map(msg => {
+                const date = new Date(msg.timestamp);
+                const timeStr = date.toLocaleString('ar-SA', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+
+                return `
+                    <div class="message-item ${msg.read ? '' : 'unread'}">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="text-purple-400 font-bold">${msg.name}</span>
+                            <span class="message-time">${timeStr}</span>
+                        </div>
+                        <p class="text-white">${msg.message}</p>
+                        <button onclick="deleteMessage('${msg.id}')" class="mt-2 text-red-400 hover:text-red-300 text-sm">
+                            <i class="fa-solid fa-trash"></i> حذف
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // حذف رسالة واحدة
+        function deleteMessage(messageId) {
+            rootRef.child('visitorMessages').orderByChild('id').equalTo(parseInt(messageId)).once('value', snapshot => {
+                snapshot.forEach(child => {
+                    child.ref.remove();
+                });
+            });
+        }
+
+        // حذف جميع الرسائل
+        document.getElementById('clear-all-messages').addEventListener('click', function() {
+            showConfirmDialog('هل أنت متأكد من حذف جميع الرسائل؟', function() {
+                rootRef.child('visitorMessages').remove();
+                visitorMessages = [];
+                renderMessagesList();
+                updateUnreadBadge();
+            });
+        });
+
+        // تحديث شارة الرسائل غير المقروءة
+        function updateUnreadBadge() {
+            const unreadCount = visitorMessages.filter(m => !m.read).length;
+            const badge = document.getElementById('unread-badge');
+
+            if (unreadCount > 0) {
+                badge.textContent = unreadCount;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        // تحديد جميع الرسائل كمقروءة
+        function markAllMessagesAsRead() {
+            rootRef.child('visitorMessages').once('value', snapshot => {
+                snapshot.forEach(child => {
+                    child.ref.update({ read: true });
+                });
+            });
+        }
+
+        // الاستماع لتغييرات Firebase
+        rootRef.on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                // تحميل كلمة المرور
+                if (data.adminPassword) {
+                    adminPassword = data.adminPassword;
+                }
+
+                if (data.timerTarget) {
+                    targetTime = data.timerTarget;
+                }
+                if (data.timerDuration) {
+                    timerDuration = data.timerDuration;
+                }
+                if (data.timerStarted !== undefined) {
+                    timerStarted = data.timerStarted;
+                }
+                if (data.committees) {
+                    data.committees.forEach((c, index) => {
+                        if (committees[index]) {
+                            committees[index].status = c.status;
+                            committees[index].count = c.count;
+                        }
+                    });
+                }
+                // تحميل الأقوال
+                if (data.quotes) {
+                    quotes = data.quotes;
+                }
+                if (data.quotesVisible !== undefined) {
+                    quotesVisible = data.quotesVisible;
+                    updateQuotesPopup();
+                }
+                // تحميل بيانات الطلاب للبحث
+                if (data.students) {
+                    studentsData = data.students;
+                }
+                // تحميل رسائل الزوار
+                if (data.visitorMessages) {
+                    visitorMessages = Object.values(data.visitorMessages);
+                    updateUnreadBadge();
+                } else {
+                    visitorMessages = [];
+                }
+                updateAllCards();
+            }
+        });
+
+        // تهيئة
+        document.getElementById('current-date').textContent = getHijriDate();
+        setInterval(updateTimer, 1000);
+        updateTimer();
+        updateAllCards();
+
+    </script>
+</body>
+</html>
