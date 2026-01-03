@@ -255,75 +255,106 @@
             line-height: 1.4;
         }
 
-        /* تنسيق زر البحث العائم - تم تعديل الحجم والموقع */
-        .search-fab {
+        /* القائمة العائمة الرئيسية - تظهر في الشاشات الطولية فقط */
+        .fab-container {
             position: fixed;
-            /* تم تعديل الموقع: 1 بوصة للأسفل تقريباً (1rem + 96px) */
-            top: calc(1rem + 96px);
+            top: 1.25in;
             left: 1rem;
-            /* تم تصغير الحجم بنسبة 50% (كان 60px) */
-            width: 30px;
-            height: 30px;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: grab; /* مؤشر السحب */
             z-index: 100;
-            color: white;
-            /* تصغير حجم الخط ليتناسب مع الزر الصغير */
-            font-size: 0.8rem;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-            transition: box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s;
+            display: none;
+            flex-direction: row-reverse;
+            align-items: center;
+            gap: 0.5rem;
         }
 
-        .search-fab:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .search-fab:active {
-            cursor: grabbing;
-        }
-
-        /* إخفاء الزر في الشاشات العرضية الصغيرة (مثل الجوال بالعرض) */
-        @media screen and (max-width: 1024px) and (orientation: landscape) {
-            .search-fab {
-                display: none !important;
+        /* إظهار الزر في الشاشات الطولية فقط */
+        @media screen and (orientation: portrait) {
+            .fab-container {
+                display: flex;
             }
         }
 
-        /* زر رسائل الزوار العائم */
-        .message-fab {
-            position: fixed;
-            bottom: 1.5rem;
-            left: 1.5rem;
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+        .fab-main {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            backdrop-filter: blur(10px);
             border: 2px solid rgba(255, 255, 255, 0.3);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            z-index: 100;
             color: white;
-            font-size: 1.3rem;
-            box-shadow: 0 4px 20px rgba(139, 92, 246, 0.5);
+            font-size: 1rem;
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.5);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .message-fab:hover {
+        .fab-main:hover {
             transform: scale(1.1);
-            box-shadow: 0 6px 25px rgba(139, 92, 246, 0.7);
+            box-shadow: 0 6px 25px rgba(99, 102, 241, 0.7);
         }
 
-        .message-fab:active {
-            transform: scale(0.95);
+        .fab-main.expanded {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            box-shadow: 0 4px 20px rgba(239, 68, 68, 0.5);
         }
+
+        .fab-main.expanded i {
+            transform: rotate(45deg);
+        }
+
+        .fab-main i {
+            transition: transform 0.3s ease;
+        }
+
+        .fab-items {
+            display: flex;
+            flex-direction: row-reverse;
+            gap: 0.5rem;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateX(-20px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .fab-items.expanded {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateX(0);
+        }
+
+        .fab-item {
+            width: 36px;
+            height: 36px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: white;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .fab-item:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: scale(1.1);
+        }
+
+        .fab-item.search-item {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .fab-item.message-item {
+            background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+        }
+
 
         /* نافذة رسائل الزوار المنبثقة */
         .visitor-message-modal {
@@ -397,14 +428,6 @@
                 }
             }
 
-            .message-fab {
-                bottom: 1rem;
-                left: 1rem;
-                width: 45px;
-                height: 45px;
-                font-size: 1.1rem;
-            }
-
             .visitor-message-content {
                 max-height: 90vh;
                 border-radius: 1.25rem 1.25rem 0 0;
@@ -423,9 +446,6 @@
                 font-size: clamp(1.5rem, 2vw, 2rem);
             }
 
-            .message-fab {
-                display: none !important;
-            }
         }
 
         /* الشاشات الكبيرة */
@@ -442,10 +462,6 @@
                 font-size: clamp(3rem, 5vw, 6rem) !important;
                 line-height: 1.2 !important;
             }
-
-            .message-fab {
-                display: none !important;
-            }
         }
 
         /* الشاشات الكبيرة جداً */
@@ -457,7 +473,7 @@
 				max-height: 650px;
             }
 
-             /* تم التعديل: مضاعفة الحجم + !important */
+             /* تم التع��يل: مضاعفة الحجم + !important */
             .quote-text {
                 font-size: clamp(5rem, 8vw, 10rem) !important;
                 line-height: 1.2 !important;
@@ -977,15 +993,20 @@
         </div>
     </div>
 
-    <!-- زر البحث العائم - تم تعديل خصائصه ليكون صغيراً ومتحركاً -->
-    <button id="search-btn" class="search-fab" draggable="false">
-        <i class="fa-solid fa-search"></i>
-    </button>
-
-    <!-- زر رسائل الزوار العائم - يظهر في تبويب العرض فقط -->
-    <button id="message-fab" class="message-fab">
-        <i class="fa-solid fa-envelope"></i>
-    </button>
+    <!-- القائمة العائمة - تظهر في تبويب العرض فقط -->
+    <div id="fab-container" class="fab-container">
+        <button id="fab-main" class="fab-main">
+            <i class="fa-solid fa-plus"></i>
+        </button>
+        <div id="fab-items" class="fab-items">
+            <button id="search-btn" class="fab-item search-item" title="بحث عن طالب">
+                <i class="fa-solid fa-search"></i>
+            </button>
+            <button id="message-fab" class="fab-item message-item" title="إرسال رسالة">
+                <i class="fa-solid fa-envelope"></i>
+            </button>
+        </div>
+    </div>
 
     <!-- نافذة رسائل الزوار المنبثقة -->
     <div id="visitor-message-modal" class="visitor-message-modal hidden">
@@ -1421,6 +1442,12 @@
             if (input === adminPassword) {
                 document.getElementById('password-modal').classList.add('hidden');
                 document.getElementById('control-panel').classList.remove('hidden');
+                document.getElementById('fab-container').classList.add('hidden');
+                // التأكد من فتح التبويب الرئيسي افتراضياً
+                document.querySelectorAll('.control-tab').forEach(t => t.classList.remove('active'));
+                document.querySelector('.control-tab[data-tab="main-tab"]').classList.add('active');
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                document.getElementById('main-tab').classList.add('active');
                 renderCommitteesList();
                 updateUnreadBadge();
             } else {
@@ -1458,6 +1485,7 @@
         // إغلاق لوحة التحكم
         document.getElementById('close-panel').addEventListener('click', function() {
             document.getElementById('control-panel').classList.add('hidden');
+            document.getElementById('fab-container').classList.remove('hidden');
         });
 
         // التبويبات في لوحة التحكم
@@ -1862,67 +1890,43 @@
         });
 
         /* -----------------------------------------------------
-           منطق زر البحث (التحريك والفتح)
+           منطق القائمة العائمة والبحث
            ----------------------------------------------------- */
 
-        const searchBtn = document.getElementById('search-btn');
-        let isDragging = false;
-        let startX, startY, initialLeft, initialTop;
+        const fabMain = document.getElementById('fab-main');
+        const fabItems = document.getElementById('fab-items');
+        const fabContainer = document.getElementById('fab-container');
+        let fabExpanded = false;
 
-        searchBtn.addEventListener('mousedown', dragStart);
-        searchBtn.addEventListener('touchstart', dragStart, {passive: false});
-
-        function dragStart(e) {
-            isDragging = false;
-
-            // الحصول على الإحداثيات سواء كانت ماوس أو لمس
-            const clientX = e.clientX || e.touches[0].clientX;
-            const clientY = e.clientY || e.touches[0].clientY;
-
-            startX = clientX;
-            startY = clientY;
-
-            const rect = searchBtn.getBoundingClientRect();
-            initialLeft = rect.left;
-            initialTop = rect.top;
-
-            document.addEventListener('mousemove', drag);
-            document.addEventListener('touchmove', drag, {passive: false});
-            document.addEventListener('mouseup', dragEnd);
-            document.addEventListener('touchend', dragEnd);
-        }
-
-        function drag(e) {
-            const clientX = e.clientX || e.touches[0].clientX;
-            const clientY = e.clientY || e.touches[0].clientY;
-
-            // إذا تحرك المستخدم أكثر من 5 بكسل، نعتبرها سحب وليس نقر
-            if (Math.abs(clientX - startX) > 5 || Math.abs(clientY - startY) > 5) {
-                isDragging = true;
-                e.preventDefault(); // منع التمرير أثناء السحب
-
-                const dx = clientX - startX;
-                const dy = clientY - startY;
-
-                searchBtn.style.left = `${initialLeft + dx}px`;
-                searchBtn.style.top = `${initialTop + dy}px`;
-                searchBtn.style.transform = 'none'; // إزالة أي تحويلات سابقة
+        // فتح/إغلاق القائمة العائمة
+        fabMain.addEventListener('click', function() {
+            fabExpanded = !fabExpanded;
+            if (fabExpanded) {
+                fabMain.classList.add('expanded');
+                fabItems.classList.add('expanded');
+            } else {
+                closeFabMenu();
             }
+        });
+
+        function closeFabMenu() {
+            fabExpanded = false;
+            fabMain.classList.remove('expanded');
+            fabItems.classList.remove('expanded');
         }
 
-        function dragEnd() {
-            document.removeEventListener('mousemove', drag);
-            document.removeEventListener('touchmove', drag);
-            document.removeEventListener('mouseup', dragEnd);
-            document.removeEventListener('touchend', dragEnd);
-        }
-
-        // فتح نافذة البحث عند النقر (فقط إذا لم يكن سحباً)
-        searchBtn.addEventListener('click', function() {
-            if (!isDragging) {
-                document.getElementById('student-search-modal').classList.remove('hidden');
-                document.getElementById('student-search-input').focus();
+        // إغلاق القائمة عند النقر خارجها
+        document.addEventListener('click', function(e) {
+            if (!fabContainer.contains(e.target) && fabExpanded) {
+                closeFabMenu();
             }
+        });
+
+        // فتح نافذة البحث
+        document.getElementById('search-btn').addEventListener('click', function() {
+            document.getElementById('student-search-modal').classList.remove('hidden');
+            document.getElementById('student-search-input').focus();
+            closeFabMenu();
         });
 
         // إغلاق نافذة البحث
@@ -1979,7 +1983,8 @@
         // فتح نافذة رسائل الزوار
         document.getElementById('message-fab').addEventListener('click', function() {
             document.getElementById('visitor-message-modal').classList.remove('hidden');
-            document.getElementById('visitor-message').focus();
+            document.getElementById('visitor-name').focus();
+            closeFabMenu();
         });
 
         // إغلاق نافذة رسائل الزوار
@@ -2066,20 +2071,27 @@
                             <span class="text-purple-400 font-bold">${msg.name}</span>
                             <span class="message-time">${timeStr}</span>
                         </div>
-                        <p class="text-white">${msg.message}</p>
-                        <button onclick="deleteMessage('${msg.id}')" class="mt-2 text-red-400 hover:text-red-300 text-sm">
-                            <i class="fa-solid fa-trash"></i> حذف
+                        <p class="text-white mb-3">${msg.message}</p>
+                        <button onclick="deleteMessage('${msg.id}')" class="bg-red-500/20 hover:bg-red-500/40 text-red-400 hover:text-red-300 text-sm px-3 py-1.5 rounded-lg transition-colors flex items-center gap-2">
+                            <i class="fa-solid fa-trash"></i> حذف الرسالة
                         </button>
                     </div>
                 `;
             }).join('');
         }
 
-        // حذف رسالة واحدة
+        // حذف رسالة واحدة مع تأكيد
         function deleteMessage(messageId) {
-            rootRef.child('visitorMessages').orderByChild('id').equalTo(parseInt(messageId)).once('value', snapshot => {
-                snapshot.forEach(child => {
-                    child.ref.remove();
+            showConfirmDialog('هل أنت متأكد من حذف هذه الرسالة؟', function() {
+                // حذف الرسالة من الواجهة مباشرة
+                visitorMessages = visitorMessages.filter(m => m.id !== parseInt(messageId));
+                renderMessagesList();
+                updateUnreadBadge();
+                // حذف من Firebase
+                rootRef.child('visitorMessages').orderByChild('id').equalTo(parseInt(messageId)).once('value', snapshot => {
+                    snapshot.forEach(child => {
+                        child.ref.remove();
+                    });
                 });
             });
         }
@@ -2174,3 +2186,4 @@
     </script>
 </body>
 </html>
+
