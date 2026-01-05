@@ -396,7 +396,7 @@
         @media screen and (orientation: portrait) {
             .quotes-popup {
                 top: auto;
-                bottom: 10rem;
+                bottom: 2rem;
                 left: 50%;
                 transform: translateX(-50%);
                 width: 92%;
@@ -960,6 +960,69 @@
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
             background: rgba(255, 255, 255, 0.3);
         }
+
+        /* نافذة المراقبين المنبثقة */
+        .supervisors-popup-content {
+            animation: supervisorsPopupAppear 0.4s ease-out;
+            background: linear-gradient(145deg, rgba(30, 41, 59, 0.98) 0%, rgba(15, 23, 42, 0.98) 100%);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            box-shadow: 0 25px 50px -12px rgba(139, 92, 246, 0.25);
+        }
+
+        @keyframes supervisorsPopupAppear {
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .supervisor-item {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(99, 102, 241, 0.1) 100%);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            border-radius: 12px;
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .supervisor-item:hover {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.25) 0%, rgba(99, 102, 241, 0.2) 100%);
+            transform: translateX(-4px);
+            border-color: rgba(139, 92, 246, 0.4);
+        }
+
+        .supervisor-item .supervisor-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .supervisor-item .supervisor-name {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: white;
+        }
+
+        /* جعل البطاقات قابلة للنقر */
+        .committee-card.clickable {
+            cursor: pointer;
+        }
+
+        .committee-card.clickable:hover .card-title {
+            text-decoration: underline;
+            text-underline-offset: 4px;
+        }
     </style>
 </head>
 <body class="p-6 box-border">
@@ -1082,6 +1145,7 @@
             <!-- تبويبات لوحة التحكم -->
             <div class="control-tabs">
                 <button class="control-tab active" data-tab="main-tab">الرئيسية</button>
+                <button class="control-tab" data-tab="supervisors-tab">المراقبون</button>
                 <button class="control-tab" data-tab="messages-tab">
                     رسائل الزوار
                     <span id="unread-badge" class="hidden bg-red-500 text-white text-xs px-2 py-0.5 rounded-full mr-1">0</span>
@@ -1183,6 +1247,17 @@
                         <button id="change-password-btn" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg text-lg whitespace-nowrap">
                             تغيير كلمة المرور
                         </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- محتوى تبويب المراقبون -->
+            <div id="supervisors-tab" class="tab-content">
+                <div class="bg-slate-700 rounded-xl p-6">
+                    <h3 class="text-xl font-bold text-white mb-4">إدارة مراقبي اللجان</h3>
+                    <p class="text-slate-400 text-sm mb-6">أضف أسماء المراقبين لكل لجنة (اسم واحد في كل سطر)</p>
+                    <div class="space-y-4" id="supervisors-list">
+                        <!-- سيتم إنشاؤها ديناميكياً -->
                     </div>
                 </div>
             </div>
@@ -1305,6 +1380,27 @@
 
     </main>
 
+    <!-- نافذة المراقبين المنبثقة -->
+    <div id="supervisors-popup" class="fixed inset-0 bg-black/80 z-[55] hidden flex items-center justify-center backdrop-blur-sm">
+        <div class="supervisors-popup-content glass-panel w-[90%] max-w-lg rounded-2xl p-6 relative" onclick="event.stopPropagation()">
+            <!-- زر الإغلاق -->
+            <button id="close-supervisors-popup" class="absolute top-4 left-4 text-white hover:text-red-400 text-2xl transition-colors w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-red-500/30">
+                <i class="fa-solid fa-times"></i>
+            </button>
+            <!-- العنوان -->
+            <div class="text-center mb-6">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 mb-4">
+                    <i class="fa-solid fa-user-tie text-white text-2xl"></i>
+                </div>
+                <h3 id="supervisors-popup-title" class="text-2xl font-black text-white">مراقبو اللجنة</h3>
+            </div>
+            <!-- قائمة المراقبين -->
+            <div id="supervisors-popup-list" class="space-y-3 max-h-[50vh] overflow-y-auto custom-scrollbar">
+                <!-- سيتم تعبئتها ديناميكياً -->
+            </div>
+        </div>
+    </div>
+
     <!-- نافذة الأقوال المنبثقة -->
     <div id="quotes-popup" class="quotes-popup hidden">
         <button id="quotes-close-btn" class="quotes-close-btn"></button>
@@ -1331,7 +1427,7 @@
             firebase.initializeApp(firebaseConfig);
         }
         const db = firebase.database();
-        const rootRef = db.ref('cont');
+        const rootRef = db.ref('cont2');
 
         // بيانات اللجان
         const committees = [
@@ -1368,6 +1464,39 @@
 
         // متغيرات رسائل الزوار
         let visitorMessages = [];
+
+        // متغيرات المراقبين
+        let committeeSupervisors = {
+            1: [],
+            2: [],
+            3: [],
+            4: [],
+            5: [],
+            6: [],
+            7: []
+        };
+
+        // قائمة المراقبين المتاحين
+        const allSupervisors = [
+            'ابراهيم مسيند',
+            'احمد سعيد الغامدي',
+            'أحمد فهيد',
+            'خالد سعيد المقاطي',
+            'سلطان الجعيد',
+            'صابر الحصيني',
+            'طارق غازي القرشي',
+            'عادل عزيز الشيباني',
+            'عبدالله ماجد  الشيباني',
+            'عبدالله مفرس  المقاطي',
+            'عواض سعود',
+            'فهد السيالي',
+            'متعب النفيعي',
+            'محمد مسفر المقاطي',
+            'محمد مسفرالحارثي',
+            'ناصر غازي القرشي',
+            'نايف القثامي',
+            'هميجان صمدان العتيبي'
+        ];
 
         // دالة نافذة التأكيد المخصصة
         function showConfirmDialog(message, onConfirm) {
@@ -1506,6 +1635,11 @@
                 if (tabId === 'messages-tab') {
                     renderMessagesList();
                     markAllMessagesAsRead();
+                }
+
+                // تحديث قائمة المراقبين عند فتح التبويب
+                if (tabId === 'supervisors-tab') {
+                    renderSupervisorsList();
                 }
             });
         });
@@ -1809,7 +1943,7 @@
 
             const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
             const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((distance % (1000 * 50)) / 1000);
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
             timerElement.innerHTML =
                 (hours < 10 ? "0" + hours : hours) + ":" +
@@ -2129,6 +2263,170 @@
             });
         }
 
+        /* -----------------------------------------------------
+           منطق المراقبين
+           ----------------------------------------------------- */
+
+        // الحصول على المراقبين المستخدمين في لجان أخرى
+        function getUsedSupervisors(excludeCommitteeId) {
+            let used = [];
+            for (let id in committeeSupervisors) {
+                if (parseInt(id) !== excludeCommitteeId) {
+                    used = used.concat(committeeSupervisors[id] || []);
+                }
+            }
+            return used;
+        }
+
+        // الحصول على المراقبين المتاحين للجنة معينة
+        function getAvailableSupervisors(committeeId) {
+            const used = getUsedSupervisors(committeeId);
+            const currentCommitteeSupervisors = committeeSupervisors[committeeId] || [];
+            return allSupervisors.filter(s => !used.includes(s) && !currentCommitteeSupervisors.includes(s));
+        }
+
+        // عرض قائمة المراقبين في لوحة التحكم
+        function renderSupervisorsList() {
+            const container = document.getElementById('supervisors-list');
+            container.innerHTML = '';
+
+            committees.forEach((committee) => {
+                const supervisors = committeeSupervisors[committee.id] || [];
+                const available = getAvailableSupervisors(committee.id);
+
+                const div = document.createElement('div');
+                div.className = 'bg-slate-600 p-4 rounded-xl';
+
+                // إنشاء قائمة المراقبين الحاليين
+                let supervisorsHtml = '';
+                if (supervisors.length > 0) {
+                    supervisorsHtml = supervisors.map(name => `
+                        <div class="flex items-center justify-between bg-slate-500 px-3 py-2 rounded-lg">
+                            <span class="text-white">${name}</span>
+                            <button onclick="removeSupervisor(${committee.id}, '${name}')" class="text-red-400 hover:text-red-300 hover:bg-red-500/20 w-8 h-8 rounded-full flex items-center justify-center transition-colors">
+                                <i class="fa-solid fa-times"></i>
+                            </button>
+                        </div>
+                    `).join('');
+                } else {
+                    supervisorsHtml = '<p class="text-slate-400 text-sm text-center py-2">لا يوجد مراقبون</p>';
+                }
+
+                // إنشاء القائمة المنسدلة
+                let selectOptions = '<option value="">-- اختر مراقباً --</option>';
+                available.forEach(name => {
+                    selectOptions += `<option value="${name}">${name}</option>`;
+                });
+
+                div.innerHTML = `
+                    <label class="block text-white font-bold mb-3 text-lg">${committee.name}</label>
+                    <div class="space-y-2 mb-3" id="supervisors-current-${committee.id}">
+                        ${supervisorsHtml}
+                    </div>
+                    <div class="flex gap-2">
+                        <select id="supervisors-select-${committee.id}" class="flex-1 bg-slate-500 border border-slate-400 rounded-lg py-3 px-4 text-white focus:outline-none focus:border-purple-500 text-base">
+                            ${selectOptions}
+                        </select>
+                        <button onclick="addSupervisor(${committee.id})" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-4 py-2 rounded-lg transition-colors">
+                            <i class="fa-solid fa-plus"></i>
+                        </button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // إضافة مراقب للجنة
+        function addSupervisor(committeeId) {
+            const select = document.getElementById(`supervisors-select-${committeeId}`);
+            const selectedName = select.value;
+
+            if (!selectedName) return;
+
+            if (!committeeSupervisors[committeeId]) {
+                committeeSupervisors[committeeId] = [];
+            }
+
+            // التحقق من عدم التكرار
+            if (!committeeSupervisors[committeeId].includes(selectedName)) {
+                committeeSupervisors[committeeId].push(selectedName);
+                saveSupervisorsToFirebase();
+                renderSupervisorsList();
+            }
+        }
+
+        // حذف مراقب من اللجنة
+        function removeSupervisor(committeeId, name) {
+            if (!committeeSupervisors[committeeId]) return;
+
+            committeeSupervisors[committeeId] = committeeSupervisors[committeeId].filter(n => n !== name);
+            saveSupervisorsToFirebase();
+            renderSupervisorsList();
+        }
+
+        // حفظ المراقبين في Firebase
+        function saveSupervisorsToFirebase() {
+            rootRef.child('supervisors').set(committeeSupervisors);
+        }
+
+        // فتح نافذة المراقبين
+        function showSupervisorsPopup(committeeId) {
+            const committee = committees.find(c => c.id === committeeId);
+            if (!committee) return;
+
+            const supervisors = committeeSupervisors[committeeId] || [];
+            const popup = document.getElementById('supervisors-popup');
+            const title = document.getElementById('supervisors-popup-title');
+            const list = document.getElementById('supervisors-popup-list');
+
+            title.textContent = `مراقبو ${committee.name}`;
+
+            if (supervisors.length === 0) {
+                list.innerHTML = `
+                    <div class="text-center py-8">
+                        <div class="text-slate-400 text-lg">لا يوجد مراقبون مسجلون</div>
+                        <div class="text-slate-500 text-sm mt-2">يمكن إضافتهم من لوحة التحكم</div>
+                    </div>
+                `;
+            } else {
+                list.innerHTML = supervisors.map((name, index) => `
+                    <div class="supervisor-item">
+                        <div class="supervisor-icon">
+                            <i class="fa-solid fa-user text-white"></i>
+                        </div>
+                        <span class="supervisor-name">${name}</span>
+                    </div>
+                `).join('');
+            }
+
+            popup.classList.remove('hidden');
+        }
+
+        // إغلاق نافذة المراقبين
+        function closeSupervisorsPopup() {
+            document.getElementById('supervisors-popup').classList.add('hidden');
+        }
+
+        document.getElementById('close-supervisors-popup').addEventListener('click', closeSupervisorsPopup);
+
+        // إغلاق عند النقر خارج النافذة
+        document.getElementById('supervisors-popup').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeSupervisorsPopup();
+            }
+        });
+
+        // إضافة أحداث النقر على البطاقات
+        function setupCommitteeCardClicks() {
+            committees.forEach(committee => {
+                const card = document.getElementById(`card-${committee.id}`);
+                card.classList.add('clickable');
+                card.addEventListener('click', function() {
+                    showSupervisorsPopup(committee.id);
+                });
+            });
+        }
+
         // الاستماع لتغييرات Firebase
         rootRef.on('value', (snapshot) => {
             const data = snapshot.val();
@@ -2174,6 +2472,10 @@
                 } else {
                     visitorMessages = [];
                 }
+                // تحميل بيانات المراقبين
+                if (data.supervisors) {
+                    committeeSupervisors = data.supervisors;
+                }
                 updateAllCards();
             }
         });
@@ -2183,8 +2485,11 @@
         setInterval(updateTimer, 1000);
         updateTimer();
         updateAllCards();
+        setupCommitteeCardClicks();
 
     </script>
 </body>
 </html>
 
+
+ 
