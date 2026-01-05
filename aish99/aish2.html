@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>aish2 - الحمد لله</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style> 
+        body { font-family: 'Cairo', sans-serif; background: #eff6ff; }
+        .btn-press:active { transform: scale(0.95); }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4 gap-6">
+
+    <!-- عداد المشاهدات (السابق) -->
+    <div class="bg-white/60 p-4 rounded-xl shadow-sm text-center border border-blue-100 w-full max-w-md">
+         <div class="text-sm text-gray-500">عدد مشاهدات الصفحة الرئيسية</div>
+         <div class="text-xl font-bold text-gray-700" id="views-display">0</div>
+    </div>
+
+    <!-- بطاقة الحمد لله (جديد) -->
+    <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md text-center border-t-8 border-sky-500">
+        <h2 class="text-2xl font-bold text-sky-800 mb-6">عداد الحمد</h2>
+        
+        <!-- زر التسبيح -->
+        <button onclick="incrementHamd()" class="btn-press w-full bg-sky-600 hover:bg-sky-700 text-white rounded-2xl p-8 shadow-lg transition-all duration-200 group relative overflow-hidden">
+            <div class="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            <i class="fas fa-cloud text-4xl mb-4 text-sky-100 block"></i>
+            <span class="text-3xl font-bold block mb-2">الحمد لله</span>
+            <span class="text-sky-200 text-sm">اضغط للحمد</span>
+        </button>
+
+        <!-- عرض الرقم -->
+        <div class="mt-8 p-4 bg-sky-50 rounded-xl border border-sky-100">
+            <div class="text-sm text-sky-600 font-bold mb-1">مجموع مرات الحمد</div>
+            <div id="hamd-count" class="text-5xl font-bold text-sky-700">0</div>
+        </div>
+    </div>
+
+    <a href="index.html" class="mt-4 text-sky-700 font-bold hover:underline">
+        <i class="fas fa-arrow-right ml-1"></i> العودة للرئيسية
+    </a>
+
+    <script>
+        // 1. عرض إحصائية المشاهدات
+        document.getElementById('views-display').innerText = localStorage.getItem('views_count') || '0';
+
+        // 2. منطق عداد "الحمد لله"
+        const KEY_HAMD = 'tasbeeh_hamd';
+        
+        function updateDisplay() {
+            const count = localStorage.getItem(KEY_HAMD) || '0';
+            document.getElementById('hamd-count').innerText = count;
+        }
+
+        function incrementHamd() {
+            let current = parseInt(localStorage.getItem(KEY_HAMD) || '0');
+            current++;
+            localStorage.setItem(KEY_HAMD, current);
+            updateDisplay();
+        }
+
+        // عند التحميل
+        updateDisplay();
+    </script>
+</body>
+</html>
+
+
