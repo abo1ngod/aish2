@@ -1745,7 +1745,7 @@
                     card.classList.add('bg-card-green');
                 } else if (progress <= 0) {
                     card.classList.add('bg-card-red');
-                } else if (progress <= 60) {
+                } else if (progress <= 50) {
                     card.classList.add('bg-card-orange');
                 } else {
                     card.classList.add('bg-card-green');
@@ -1809,7 +1809,7 @@
 
             const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
             const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+            const seconds = Math.floor((distance % (1000 * 50)) / 1000);
 
             timerElement.innerHTML =
                 (hours < 10 ? "0" + hours : hours) + ":" +
