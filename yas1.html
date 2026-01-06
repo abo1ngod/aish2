@@ -3,1080 +3,383 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>اختبار اللغة العربية</title>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <title>اختبار لغتي التفاعلي - نظام تتابعي</title>
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Cairo -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    
     <style>
-        :root {
-            --primary: #1a5f7a;
-            --primary-light: #2d8bba;
-            --secondary: #f4a261;
-            --accent: #e76f51;
-            --success: #2a9d8f;
-            --error: #e63946;
-            --bg-gradient-1: #0f2027;
-            --bg-gradient-2: #203a43;
-            --bg-gradient-3: #2c5364;
-            --card-bg: rgba(255, 255, 255, 0.95);
-            --text-primary: #1a1a2e;
-            --text-secondary: #4a4a6a;
-            --shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        }
-
-        .dark {
-            --primary: #4ecdc4;
-            --primary-light: #7fefea;
-            --secondary: #ffe66d;
-            --accent: #ff6b6b;
-            --success: #51cf66;
-            --error: #ff6b6b;
-            --bg-gradient-1: #0a0a0f;
-            --bg-gradient-2: #1a1a2e;
-            --bg-gradient-3: #16213e;
-            --card-bg: rgba(26, 26, 46, 0.95);
-            --text-primary: #edf2f4;
-            --text-secondary: #a8b2d1;
-            --shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
-            font-family: 'Tajawal', sans-serif;
-            min-height: 100vh;
-            background: linear-gradient(135deg, var(--bg-gradient-1) 0%, var(--bg-gradient-2) 50%, var(--bg-gradient-3) 100%);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-            overflow-x: hidden;
+            font-family: 'Cairo', sans-serif;
         }
-
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background:
-                radial-gradient(circle at 20% 80%, rgba(78, 205, 196, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(255, 107, 107, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 40% 40%, rgba(255, 230, 109, 0.05) 0%, transparent 40%);
-            pointer-events: none;
-            z-index: 0;
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out;
         }
-
-        .container {
-            position: relative;
-            z-index: 1;
-            width: 100%;
-            max-width: 700px;
-            animation: slideUp 0.8s ease-out;
+        .animate-slide-up {
+            animation: slideUp 0.5s ease-out;
         }
-
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(40px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .quiz-card {
-            background: var(--card-bg);
-            border-radius: 24px;
-            padding: 40px 30px;
-            box-shadow: var(--shadow);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .header h1 {
-            font-size: 2rem;
-            font-weight: 800;
-            color: var(--primary);
-            margin-bottom: 8px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .progress-container {
-            background: rgba(0, 0, 0, 0.1);
-            border-radius: 50px;
-            height: 12px;
-            overflow: hidden;
-            margin: 20px 0;
-        }
-
-        .progress-bar {
-            height: 100%;
-            background: linear-gradient(90deg, var(--primary), var(--primary-light));
-            border-radius: 50px;
-            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-        }
-
-        .progress-bar::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-            animation: shimmer 2s infinite;
-        }
-
-        @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
-
-        .stats {
-            display: flex;
-            justify-content: center;
-            gap: 30px;
-            margin-bottom: 25px;
-        }
-
-        .stat {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 20px;
-            border-radius: 50px;
-            font-weight: 600;
-            font-size: 1rem;
-        }
-
-        .stat.correct {
-            background: rgba(42, 157, 143, 0.15);
-            color: var(--success);
-        }
-
-        .stat.wrong {
-            background: rgba(230, 57, 70, 0.15);
-            color: var(--error);
-        }
-
-        .stat-icon {
-            font-size: 1.2rem;
-        }
-
-        .question-number {
-            display: inline-block;
-            background: linear-gradient(135deg, var(--primary), var(--primary-light));
-            color: white;
-            padding: 8px 20px;
-            border-radius: 50px;
-            font-size: 0.95rem;
-            font-weight: 600;
-            margin-bottom: 20px;
-        }
-
-        .question-text {
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            line-height: 1.8;
-            margin-bottom: 25px;
-            padding: 20px;
-            background: linear-gradient(135deg, rgba(26, 95, 122, 0.05), rgba(45, 139, 186, 0.05));
-            border-radius: 16px;
-            border-right: 4px solid var(--primary);
-        }
-
-        .options {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .option {
-            padding: 18px 24px;
-            border: 2px solid rgba(0, 0, 0, 0.1);
-            border-radius: 16px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 1.1rem;
-            font-weight: 500;
-            color: var(--text-primary);
-            background: rgba(255, 255, 255, 0.5);
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .dark .option {
-            background: rgba(255, 255, 255, 0.05);
-            border-color: rgba(255, 255, 255, 0.1);
-        }
-
-        .option:hover:not(.disabled) {
-            border-color: var(--primary);
-            background: rgba(26, 95, 122, 0.1);
-            transform: translateX(-5px);
-        }
-
-        .option.selected {
-            border-color: var(--primary);
-            background: rgba(26, 95, 122, 0.15);
-        }
-
-        .option.correct {
-            border-color: var(--success);
-            background: rgba(42, 157, 143, 0.2);
-            animation: pulse-success 0.5s ease;
-        }
-
-        .option.wrong {
-            border-color: var(--error);
-            background: rgba(230, 57, 70, 0.2);
-            animation: shake 0.5s ease;
-        }
-
-        .option.disabled {
-            cursor: not-allowed;
-            opacity: 0.7;
-        }
-
-        .option-letter {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary), var(--primary-light));
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            flex-shrink: 0;
-        }
-
-        .option.correct .option-letter {
-            background: linear-gradient(135deg, var(--success), #3dd9a0);
-        }
-
-        .option.wrong .option-letter {
-            background: linear-gradient(135deg, var(--error), #ff8a8a);
-        }
-
-        @keyframes pulse-success {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.02); }
-        }
-
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-10px); }
-            75% { transform: translateX(10px); }
-        }
-
-        .feedback {
-            margin-top: 20px;
-            padding: 18px 24px;
-            border-radius: 16px;
-            font-weight: 600;
-            font-size: 1.1rem;
-            display: none;
-            align-items: center;
-            gap: 12px;
-            animation: fadeIn 0.4s ease;
-        }
-
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
-        }
-
-        .feedback.show {
-            display: flex;
-        }
-
-        .feedback.correct {
-            background: linear-gradient(135deg, rgba(42, 157, 143, 0.15), rgba(42, 157, 143, 0.25));
-            color: var(--success);
-            border: 2px solid var(--success);
-        }
-
-        .feedback.wrong {
-            background: linear-gradient(135deg, rgba(230, 57, 70, 0.15), rgba(230, 57, 70, 0.25));
-            color: var(--error);
-            border: 2px solid var(--error);
-        }
-
-        .buttons {
-            display: flex;
-            gap: 15px;
-            margin-top: 30px;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            flex: 1;
-            min-width: 140px;
-            padding: 16px 28px;
-            border: none;
-            border-radius: 14px;
-            font-family: 'Tajawal', sans-serif;
-            font-size: 1.1rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary), var(--primary-light));
-            color: white;
-            box-shadow: 0 8px 25px rgba(26, 95, 122, 0.3);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 35px rgba(26, 95, 122, 0.4);
-        }
-
-        .btn-primary:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .btn-danger {
-            background: linear-gradient(135deg, var(--error), #ff8a8a);
-            color: white;
-            box-shadow: 0 8px 25px rgba(230, 57, 70, 0.3);
-        }
-
-        .btn-danger:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 35px rgba(230, 57, 70, 0.4);
-        }
-
-        /* Modal Styles */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(5px);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            padding: 20px;
-        }
-
-        .modal-overlay.show {
-            display: flex;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .modal {
-            background: var(--card-bg);
-            border-radius: 24px;
-            padding: 40px;
-            max-width: 450px;
-            width: 100%;
-            text-align: center;
-            box-shadow: var(--shadow);
-            animation: modalSlide 0.4s ease;
-        }
-
-        @keyframes modalSlide {
-            from {
-                opacity: 0;
-                transform: scale(0.9) translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1) translateY(0);
-            }
-        }
-
-        .modal-icon {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 25px;
-            font-size: 2.5rem;
-        }
-
-        .modal-icon.stop {
-            background: linear-gradient(135deg, var(--secondary), var(--accent));
-        }
-
-        .modal-icon.complete {
-            background: linear-gradient(135deg, var(--success), #3dd9a0);
-        }
-
-        .modal h2 {
-            font-size: 1.6rem;
-            color: var(--text-primary);
-            margin-bottom: 20px;
-        }
-
-        .modal-stats {
-            display: flex;
-            justify-content: center;
-            gap: 30px;
-            margin: 25px 0;
-        }
-
-        .modal-stat {
-            text-align: center;
-        }
-
-        .modal-stat-value {
-            font-size: 2.5rem;
-            font-weight: 800;
-            display: block;
-        }
-
-        .modal-stat-value.correct {
-            color: var(--success);
-        }
-
-        .modal-stat-value.wrong {
-            color: var(--error);
-        }
-
-        .modal-stat-label {
-            font-size: 0.95rem;
-            color: var(--text-secondary);
-            font-weight: 500;
-        }
-
-        .modal-buttons {
-            display: flex;
-            gap: 12px;
-            margin-top: 25px;
-        }
-
-        .modal-btn {
-            flex: 1;
-            padding: 14px 24px;
-            border: none;
-            border-radius: 12px;
-            font-family: 'Tajawal', sans-serif;
-            font-size: 1rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .modal-btn-cancel {
-            background: rgba(0, 0, 0, 0.1);
-            color: var(--text-primary);
-        }
-
-        .dark .modal-btn-cancel {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .modal-btn-cancel:hover {
-            background: rgba(0, 0, 0, 0.2);
-        }
-
-        .dark .modal-btn-cancel:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .modal-btn-confirm {
-            background: linear-gradient(135deg, var(--error), #ff8a8a);
-            color: white;
-        }
-
-        .modal-btn-restart {
-            background: linear-gradient(135deg, var(--primary), var(--primary-light));
-            color: white;
-            width: 100%;
-        }
-
-        /* Start Screen */
-        .start-screen {
-            text-align: center;
-            padding: 50px 30px;
-        }
-
-        .start-screen h1 {
-            font-size: 2.2rem;
-            color: var(--primary);
-            margin-bottom: 15px;
-        }
-
-        .start-screen p {
-            color: var(--text-secondary);
-            font-size: 1.1rem;
-            margin-bottom: 30px;
-            line-height: 1.8;
-        }
-
-        .start-screen .total-questions {
-            display: inline-block;
-            background: linear-gradient(135deg, var(--secondary), var(--accent));
-            color: white;
-            padding: 12px 30px;
-            border-radius: 50px;
-            font-size: 1.1rem;
-            font-weight: 700;
-            margin-bottom: 30px;
-        }
-
-        /* Responsive */
-        @media (max-width: 600px) {
-            .quiz-card {
-                padding: 25px 20px;
-            }
-
-            .header h1 {
-                font-size: 1.6rem;
-            }
-
-            .question-text {
-                font-size: 1.1rem;
-                padding: 15px;
-            }
-
-            .option {
-                padding: 14px 18px;
-                font-size: 1rem;
-            }
-
-            .option-letter {
-                width: 32px;
-                height: 32px;
-                font-size: 0.9rem;
-            }
-
-            .stats {
-                gap: 15px;
-            }
-
-            .stat {
-                padding: 8px 14px;
-                font-size: 0.9rem;
-            }
-
-            .buttons {
-                flex-direction: column;
-            }
-
-            .modal {
-                padding: 30px 20px;
-            }
-
-            .modal-stats {
-                gap: 20px;
-            }
-
-            .modal-stat-value {
-                font-size: 2rem;
-            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="quiz-card" id="quizCard">
-            <!-- Start Screen -->
-            <div class="start-screen" id="startScreen">
-                <h1>📚 اختبار اللغة العربية</h1>
-                <p>اختبر معلوماتك في قواعد اللغة العربية والنحو والصرف والإملاء</p>
-                <div class="total-questions">٢٠٠ سؤال</div>
-                <button class="btn btn-primary" onclick="startQuiz()" style="width: 100%; max-width: 300px; margin: 0 auto;">
-                    <span>🚀</span>
-                    <span>ابدأ الاختبار</span>
-                </button>
-            </div>
+    <div id="root"></div>
 
-            <!-- Quiz Screen -->
-            <div id="quizScreen" style="display: none;">
-                <div class="header">
-                    <h1>📚 اختبار اللغة العربية</h1>
-                    <div class="progress-container">
-                        <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+    <script type="text/babel">
+        const { useState, useMemo, useEffect } = React;
+
+        // --- Icon Components (SVG) ---
+        const BookOpen = (props) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        );
+        const CheckCircle = (props) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        );
+        const XCircle = (props) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+        );
+        const Award = (props) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
+        );
+        const ArrowLeft = (props) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        );
+        const RefreshCw = (props) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+        );
+        const Star = (props) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        );
+
+        // --- Main Quiz Component ---
+        const QuizApp = () => {
+            // State
+            const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+            const [selectedOption, setSelectedOption] = useState(null);
+            const [isAnswerChecked, setIsAnswerChecked] = useState(false);
+            const [score, setScore] = useState(0);
+            const [showResults, setShowResults] = useState(false);
+            const [quizStarted, setQuizStarted] = useState(false);
+            const [history, setHistory] = useState([]); // To track all answers for final review
+
+            // Raw Data
+            const rawQuizData = [
+                {
+                    sectionTitle: "فهم المقروء",
+                    passage: "كان لرجل في قديم الزمان ولد، وكان يصحبه إلى الغابة ويدربه على صيد الحيوانات والطيور، حتى صار شاباً قادراً على العمل، فنصحه أبوه بأن يعتمد على نفسه ويخرج للصيد وحده. فرح الشاب وحمل زاده وذهب إلى الغابة، وفي طريقه رأى ثعلباً هرماً جائعاً، فأخذ يفكر في أمر هذا الحيوان وهو يقول في نفسه: كيف يحصل هذا الحيوان على قوته؟ إنه هالك لا محالة. في هذا الوقت أحس الشاب بحركة غريبة، فاختبأ خلف صخرة وإذا بأسد يظهر وهو يجر فريسته، فأكل منها حتى شبع ثم انصرف، فزحف الثعلب ليأكل مما أبقاه الأسد. تعجب الشاب وقال في نفسه: لقد جاء الثعلب رزق بلا كد، فلماذا أبتعد عن أهلي وأتحمل مشاق السفر لأجد رزقي؟! عاد الشاب إلى البيت وشرح لأبيه أسباب عودته. فقال له أبوه: أريدك يا بني أن تكون أسداً تأكل من فضلاتك الثعالب، لا ثعلباً تأكل من فضلات الأسود. فهم الشاب قصد أبيه؛ فخجل من نفسه وعاد من جديد ليعمل ويكد ويحصل على رزقه معتمداً على نفسه.",
+                    questions: [
+                        { id: 1, question: "بم نصح الأب ابنه؟", options: ["بأن يصطاد الحيوانات والطيور", "بأن يعتمد على نفسه", "يذهب إلى الغابة وحده"], correctAnswer: 1 },
+                        { id: 2, question: "لماذا ظن الولد أن الثعلب هالك لا محالة؟", options: ["بسبب كبر سنه (هرمه)", "بسبب هجوم الأسد", "بسبب مرضه الشديد"], correctAnswer: 0 },
+                        { id: 3, question: "مم تعجب الشاب؟", options: ["من جر الأسد فريسته", "من قوة الأسد", "من أكل الثعلب بدون كد وتعب"], correctAnswer: 2 },
+                        { id: 4, question: "أراد الأب لابنه أن يكون:", options: ["ثعلباً تأكل من فضلاته الأسود", "أسداً تأكل من فضلاته الثعالب", "غير ذلك"], correctAnswer: 1 },
+                        { id: 5, question: "العنوان المناسب للقصة هو:", options: ["دعوة للعمل", "دعوة للتفاهم", "دعوة للتكامل"], correctAnswer: 0 },
+                        { id: 6, question: "جمع كلمة 'ثعلب':", options: ["ثعالب", "تعاليب", "ثعلبان"], correctAnswer: 0 },
+                        { id: 7, question: "معنى 'قوته' في جملة (يحصل الحيوان على قوته):", options: ["شرابه", "طعامه", "حريته"], correctAnswer: 1 },
+                        { id: 8, question: "الفكرة الرئيسية للنص:", options: ["الحث على العمل", "الابتعاد عن الحيوانات", "الخوف من الحيوانات"], correctAnswer: 0 },
+                        { id: 9, question: "كان الرجل يعلم ابنه الصيد في الغابة.", options: ["صحيح", "خطأ"], correctAnswer: 0 },
+                        { id: 10, question: "كان الثعلب يعتمد على نفسه في تحصيل رزقه.", options: ["صحيح", "خطأ"], correctAnswer: 1 }
+                    ]
+                },
+                {
+                    sectionTitle: "الوظيفة النحوية",
+                    questions: [
+                        { id: 11, question: "الاسم المجرور في جملة (ينجح المجتهد في دروسه):", options: ["ينجح", "المجتهد", "دروسه"], correctAnswer: 2 },
+                        { id: 12, question: "الجملة الاسمية تتكون من:", options: ["جار ومجرور", "فعل وفاعل", "مبتدأ وخبر"], correctAnswer: 2 },
+                        { id: 13, question: "نوع جملة (السماء صافية):", options: ["جملة اسمية", "جملة فعلية", "شبه جملة"], correctAnswer: 0 },
+                        { id: 14, question: "في الجملة (الطالب مجتهد)، أين المبتدأ؟", options: ["الطالب", "مجتهد", "لا شيء مما سبق"], correctAnswer: 0 },
+                        { id: 15, question: "نوع كلمة 'قلم':", options: ["حرف", "اسم", "فعل"], correctAnswer: 1 },
+                        { id: 16, question: "إعراب كلمة 'النصيحة' في جملة (قدم المسلم النصيحة):", options: ["فاعل مرفوع وعلامة رفعه الضمة", "خبر مرفوع وعلامة رفعه الضمة", "مفعول به منصوب وعلامة نصبه الفتحة"], correctAnswer: 2 },
+                        { id: 17, question: "أكمل بفاعل مناسب: (.......... يحفظ الأمانة)", options: ["المسلمُ (مرفوع بالضمة)", "المسلمَ (منصوب بالفتحة)", "المسلمِ (مجرور بالكسرة)"], correctAnswer: 0 },
+                        { id: 18, question: "أين الخبر في جملة (النباتات غذاء للإنسان)؟", options: ["النباتات", "غذاء", "للإنسان"], correctAnswer: 1 },
+                        { id: 19, question: "عند تحويل الفعل الماضي 'قرأ' إلى مضارع نقول:", options: ["قرأت", "يقرأ", "اقرأ"], correctAnswer: 1 },
+                        { id: 20, question: "إعراب كلمة 'الأمطار' في جملة (الأمطار غزيرة):", options: ["فاعل مرفوع", "مبتدأ مرفوع وعلامة رفعه الضمة", "خبر مرفوع"], correctAnswer: 1 }
+                    ]
+                },
+                {
+                    sectionTitle: "الظاهرة الإملائية",
+                    questions: [
+                        { id: 21, question: "الكلمة التي بها همزة قطع:", options: ["أكرم", "المعلم", "التلميذ"], correctAnswer: 0 },
+                        { id: 22, question: "الكلمة التي بها همزة وصل:", options: ["أحمد", "أقبل", "انطلق"], correctAnswer: 2 },
+                        { id: 23, question: "الكلمة التي حذفت الألف من وسطها في جملة (هؤلاء العلماء يخدمون البشرية):", options: ["هؤلاء", "العلماء", "يخدمون"], correctAnswer: 0 },
+                        { id: 24, question: "الشمس ساطعة ............... الجو بارد:", options: ["لاكن", "لكن", "لكنا"], correctAnswer: 1 },
+                        { id: 25, question: "اليوم الذي يلي يوم الجمعة:", options: ["السبت", "السبة", "السبه"], correctAnswer: 0 },
+                        { id: 26, question: "كتبت الهمزة في كلمة 'مفاجئ' على الياء لأن:", options: ["الهمزة مكسورة", "ما قبل الهمزة مكسور", "الهمزة مضمومة"], correctAnswer: 1 },
+                        { id: 27, question: "الكلمة الصحيحة المكونة من الحروف (ب - ؤ - ب - ؤ):", options: ["بؤبؤ", "بؤبو", "بأبأ"], correctAnswer: 0 },
+                        { id: 28, question: "الكلمة الصحيحة المكونة من الحروف (ش - ا - ط - ئ):", options: ["شاطيء", "شاطئ", "شاطىء"], correctAnswer: 1 }
+                    ]
+                },
+                {
+                    sectionTitle: "الأسلوب والخط",
+                    questions: [
+                        { id: 29, question: "نوع الجملة (الأزهار متفتحة):", options: ["جملة مثبتة", "جملة منفية", "جملة طلبية"], correctAnswer: 0 },
+                        { id: 30, question: "إذا كان الحدث لم يتحقق سميت الجملة:", options: ["منفية", "مثبتة", "اسمية"], correctAnswer: 0 },
+                        { id: 31, question: "من أدوات النفي:", options: ["على", "لن", "في"], correctAnswer: 1 },
+                        { id: 32, question: "نوع جملة (لم يغضب الأسد):", options: ["جملة منفية", "جملة فعلية مثبتة", "جملة اسمية"], correctAnswer: 0 },
+                        { id: 33, question: "نوع الأسلوب في (شكراً لك يا أبي، أطال الله في عمرك):", options: ["أسلوب نفي", "أسلوب دعاء", "أسلوب نهي"], correctAnswer: 1 },
+                        { id: 34, question: "ما هو الخط الذي ندرسه في المرحلة الابتدائية؟", options: ["الرقعة", "النسخ", "الثلث"], correctAnswer: 1 },
+                        { id: 35, question: "من الحروف التي ينزل جزء منها تحت السطر في خط النسخ:", options: ["الباء", "الطاء", "الواو"], correctAnswer: 2 }
+                    ]
+                }
+            ];
+
+            // Flatten data for sequential access
+            const allQuestions = useMemo(() => {
+                let flattened = [];
+                rawQuizData.forEach(section => {
+                    section.questions.forEach(q => {
+                        flattened.push({
+                            ...q,
+                            sectionTitle: section.sectionTitle,
+                            passage: section.passage || null // Attach passage if exists in section
+                        });
+                    });
+                });
+                return flattened;
+            }, []);
+
+            const currentQuestion = allQuestions[currentQuestionIndex];
+            const totalQuestions = allQuestions.length;
+
+            const handleOptionSelect = (optionIndex) => {
+                if (isAnswerChecked) return; // Prevent changing after check
+
+                setSelectedOption(optionIndex);
+                setIsAnswerChecked(true);
+
+                const isCorrect = optionIndex === currentQuestion.correctAnswer;
+                if (isCorrect) {
+                    setScore(prev => prev + 1);
+                }
+
+                // Record history
+                setHistory(prev => [...prev, {
+                    ...currentQuestion,
+                    userAnswer: optionIndex,
+                    isCorrect: isCorrect
+                }]);
+            };
+
+            const handleNext = () => {
+                if (currentQuestionIndex < totalQuestions - 1) {
+                    setCurrentQuestionIndex(prev => prev + 1);
+                    setSelectedOption(null);
+                    setIsAnswerChecked(false);
+                } else {
+                    setShowResults(true);
+                }
+            };
+
+            const handleRestart = () => {
+                setCurrentQuestionIndex(0);
+                setSelectedOption(null);
+                setIsAnswerChecked(false);
+                setScore(0);
+                setShowResults(false);
+                setHistory([]);
+                setQuizStarted(false);
+            };
+
+            // --- Views ---
+
+            // 1. Start Screen
+            if (!quizStarted) {
+                return (
+                    <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-blue-100 flex items-center justify-center p-4 font-cairo" dir="rtl">
+                        <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full text-center border-t-8 border-indigo-600 animate-fade-in">
+                            <div className="mb-6 flex justify-center">
+                                <div className="bg-indigo-100 p-4 rounded-full">
+                                    <BookOpen className="w-16 h-16 text-indigo-600" />
+                                </div>
+                            </div>
+                            <h1 className="text-4xl font-bold text-gray-800 mb-4">اختبار لغتي التفاعلي</h1>
+                            <p className="text-xl text-gray-600 mb-8 leading-relaxed">
+                                اختبار شامل بنظام تفاعلي (سؤال بسؤال).
+                                <br/>
+                                <span className="font-bold text-indigo-600">{totalQuestions} سؤال</span> في المهارات اللغوية المختلفة.
+                            </p>
+                            <button 
+                                onClick={() => setQuizStarted(true)}
+                                className="bg-indigo-600 hover:bg-indigo-700 text-white text-xl font-bold py-4 px-12 rounded-full shadow-lg transform transition hover:scale-105 flex items-center justify-center mx-auto gap-2"
+                            >
+                                ابدأ الاختبار <ArrowLeft className="w-6 h-6" />
+                            </button>
+                        </div>
                     </div>
-                </div>
+                );
+            }
 
-                <div class="stats">
-                    <div class="stat correct">
-                        <span class="stat-icon">✓</span>
-                        <span id="correctCount">0</span>
+            // 2. Results Screen
+            if (showResults) {
+                const percentage = Math.round((score / totalQuestions) * 100);
+                return (
+                    <div className="min-h-screen bg-gray-50 p-4 font-cairo" dir="rtl">
+                        <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden animate-slide-up">
+                            <div className={`p-8 text-center ${percentage >= 80 ? 'bg-green-600' : percentage >= 50 ? 'bg-yellow-500' : 'bg-red-500'} text-white`}>
+                                <Award className="w-20 h-20 mx-auto mb-4" />
+                                <h2 className="text-3xl font-bold mb-2">نتيجة الاختبار</h2>
+                                <div className="text-6xl font-bold mb-2">{percentage}%</div>
+                                <p className="text-xl opacity-90">أجبت بشكل صحيح على {score} من أصل {totalQuestions} سؤال</p>
+                            </div>
+                            
+                            <div className="p-8">
+                                <h3 className="text-2xl font-bold text-gray-800 mb-6 border-b pb-2">تفاصيل الإجابات</h3>
+                                <div className="space-y-4">
+                                    {history.map((item, idx) => (
+                                        <div key={idx} className={`p-4 rounded-lg border-r-4 ${item.isCorrect ? 'bg-green-50 border-green-500' : 'bg-red-50 border-red-500'}`}>
+                                            <div className="flex justify-between items-start">
+                                                <div className="font-bold text-gray-700 mb-1">س{idx + 1}: {item.question}</div>
+                                                {item.isCorrect ? <CheckCircle className="text-green-600 w-5 h-5"/> : <XCircle className="text-red-600 w-5 h-5"/>}
+                                            </div>
+                                            <div className="text-sm mt-2">
+                                                <span className={item.isCorrect ? "text-green-700 font-bold" : "text-red-600 line-through"}>
+                                                    إجابتك: {item.options[item.userAnswer]}
+                                                </span>
+                                                {!item.isCorrect && (
+                                                    <span className="text-green-700 font-bold block mt-1">
+                                                        الإجابة الصحيحة: {item.options[item.correctAnswer]}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="mt-8 flex justify-center">
+                                    <button 
+                                        onClick={handleRestart}
+                                        className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-lg shadow flex items-center gap-2"
+                                    >
+                                        <RefreshCw className="w-5 h-5" /> إعادة الاختبار
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="stat wrong">
-                        <span class="stat-icon">✗</span>
-                        <span id="wrongCount">0</span>
-                    </div>
-                </div>
-
-                <div class="question-number" id="questionNumber">السؤال ١ من ١٠٠</div>
-
-                <div class="question-text" id="questionText"></div>
-
-                <div class="options" id="optionsContainer"></div>
-
-                <div class="feedback" id="feedback"></div>
-
-                <div class="buttons">
-                    <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()" disabled>
-                        <span>السؤال التالي</span>
-                        <span>←</span>
-                    </button>
-                    <button class="btn btn-danger" onclick="showStopModal()">
-                        <span>⏹</span>
-                        <span>إيقاف الجولة</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Stop Confirmation Modal -->
-    <div class="modal-overlay" id="stopModal">
-        <div class="modal">
-            <div class="modal-icon stop">⏹</div>
-            <h2>إيقاف الجولة؟</h2>
-            <p style="color: var(--text-secondary); margin-bottom: 10px;">نتائجك حتى الآن:</p>
-            <div class="modal-stats">
-                <div class="modal-stat">
-                    <span class="modal-stat-value correct" id="modalCorrect">0</span>
-                    <span class="modal-stat-label">إجابة صحيحة</span>
-                </div>
-                <div class="modal-stat">
-                    <span class="modal-stat-value wrong" id="modalWrong">0</span>
-                    <span class="modal-stat-label">إجابة خاطئة</span>
-                </div>
-            </div>
-            <div class="modal-buttons">
-                <button class="modal-btn modal-btn-cancel" onclick="hideStopModal()">متابعة</button>
-                <button class="modal-btn modal-btn-confirm" onclick="confirmStop()">إيقاف</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Complete Modal -->
-    <div class="modal-overlay" id="completeModal">
-        <div class="modal">
-            <div class="modal-icon complete">🎉</div>
-            <h2 id="completeTitle">أحسنت!</h2>
-            <p style="color: var(--text-secondary); margin-bottom: 10px;">نتيجتك النهائية:</p>
-            <div class="modal-stats">
-                <div class="modal-stat">
-                    <span class="modal-stat-value correct" id="finalCorrect">0</span>
-                    <span class="modal-stat-label">إجابة صحيحة</span>
-                </div>
-                <div class="modal-stat">
-                    <span class="modal-stat-value wrong" id="finalWrong">0</span>
-                    <span class="modal-stat-label">إجابة خاطئة</span>
-                </div>
-            </div>
-            <p style="color: var(--text-secondary); font-size: 1.2rem; font-weight: 700; margin-top: 15px;" id="percentageText"></p>
-            <button class="modal-btn modal-btn-restart" onclick="restartQuiz()">🔄 جولة جديدة</button>
-        </div>
-    </div>
-
-    <script>
-        // Dark mode detection
-        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            document.documentElement.classList.add('dark');
-        }
-        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
-            if (event.matches) {
-                document.documentElement.classList.add('dark');
-            } else {
-                document.documentElement.classList.remove('dark');
-            }
-        });
-
-        // Questions data
-        const questions = [
-            { q: "الفكرة الرئيسة لنص (قدوات ومثل عليا) هي:", options: ["وصف الطبيعة", "بيان أهمية القدوة في حياة الفرد", "سرد أحداث تاريخية", "وصف مدينة"], answer: 1 },
-            { q: "يدل لفظ (قدوة) على:", options: ["شخص يُقلَّد في السلوك", "مكان مشهور", "عادة قديمة", "قصة خيالية"], answer: 0 },
-            { q: "من صفات القدوة الصالحة:", options: ["الأنانية", "الصدق وحسن الخلق", "الكسل", "التكبر"], answer: 1 },
-            { q: "نوع النص (سيدة نساء أهل الجنة) هو:", options: ["وصفي", "إخباري", "سردي", "إرشادي"], answer: 2 },
-            { q: "الشخصية المحورية في نص الاستماع هي:", options: ["عائشة رضي الله عنها", "خديجة رضي الله عنها", "فاطمة رضي الله عنها", "حفصة رضي الله عنها"], answer: 2 },
-            { q: "الفعل (كان) من:", options: ["الحروف الناسخة", "الأفعال الناسخة", "الأفعال الماضية فقط", "الأسماء"], answer: 1 },
-            { q: "اسم (كان) يكون:", options: ["منصوبًا دائمًا", "مجرورًا", "مرفوعًا", "مجزومًا"], answer: 2 },
-            { q: "خبر (كان) يكون:", options: ["مرفوعًا", "منصوبًا", "مجزومًا", "مجرورًا"], answer: 1 },
-            { q: "من أخوات (كان):", options: ["إن", "لكن", "أصبح", "لعل"], answer: 2 },
-            { q: "الجملة: (كان الطالبُ مجتهدًا) خبر كان هو:", options: ["الطالب", "كان", "مجتهدًا", "ال"], answer: 2 },
-            { q: "همزة الوصل تُكتب في:", options: ["وسط الكلمة", "آخر الكلمة", "أول الكلمة وتُنطق عند البدء", "لا تُكتب"], answer: 2 },
-            { q: "من الكلمات التي تبدأ بهمزة وصل:", options: ["أحمد", "أُم", "ابن", "أكل"], answer: 2 },
-            { q: "همزة القطع:", options: ["تُنطق دائمًا", "لا تُنطق", "تُنطق في الوصل فقط", "لا تُكتب"], answer: 0 },
-            { q: "��لمة (استمع) همزتها:", options: ["قطع", "وصل", "متوسطة", "متطرفة"], answer: 1 },
-            { q: "الهمزة المتوسطة تُكتب على:", options: ["الألف فقط", "السطر فقط", "أقوى الحركتين", "الواو فقط"], answer: 2 },
-            { q: "أقوى الحركات في الهمزة:", options: ["الفتحة", "الضمة", "السكون", "الكسرة"], answer: 3 },
-            { q: "كلمة (سُئل) كتبت الهمزة على:", options: ["ألف", "واو", "ياء", "السطر"], answer: 1 },
-            { q: "الهمزة المتطرفة تُكتب على:", options: ["حركة ما قبلها", "حركتها", "السكون", "لا تُكتب"], answer: 0 },
-            { q: "كلمة (شيء) همزتها:", options: ["متوسطة", "متطرفة", "قطع", "وصل"], answer: 1 },
-            { q: "اسم الفاعل من الفعل (كتب):", options: ["مكتوب", "كاتب", "كتاب", "كتابة"], answer: 1 },
-            { q: "اسم المفعول من الفعل (شرب):", options: ["شارب", "مشروب", "شرب", "شراب"], answer: 1 },
-            { q: "يُصاغ اسم الفاعل من الفعل الثلاثي على وزن:", options: ["مفعل", "فاعل", "مفعول", "فعيل"], answer: 1 },
-            { q: "يُصاغ اسم المفعول من غير الثلاثي:", options: ["بزيادة ألف", "من مضارعه مع إبدال حرف", "من الماضي فقط", "من الاسم"], answer: 1 },
-            { q: "كلمة (مستخرج) هي:", options: ["اسم فاعل", "اسم مفعول", "مصدر", "فعل"], answer: 1 },
-            { q: "المصدر يدل على:", options: ["زمن فقط", "حدث بلا زمن", "فاعل", "مكان"], answer: 1 },
-            { q: "نوع الأسلوب: (ما أجمل الصدق!) هو:", options: ["نداء", "استفهام", "تعجب", "أمر"], answer: 2 },
-            { q: "أسلوب الأمر يدل على:", options: ["الطلب", "التعجب", "النفي", "التمني"], answer: 0 },
-            { q: "(لا تكذب) أسلوب:", options: ["نهي", "أمر", "خبر", "استفهام"], answer: 0 },
-            { q: "الجملة الاسمية تتكون من:", options: ["فعل وفاعل", "مبتدأ وخبر", "فعل ومفعول", "اسم وحرف"], answer: 1 },
-            { q: "المبتدأ يكون غالبًا:", options: ["منصوبًا", "مجرورًا", "مرفوعًا", "مجزومًا"], answer: 2 },
-            { q: "الخبر يكون:", options: ["مرفوعًا", "منصوبًا", "مجزومًا", "مجرورًا"], answer: 0 },
-            { q: "نوع الخبر في (الطالبُ مجتهدٌ):", options: ["جملة", "شبه جملة", "مفرد", "فعل"], answer: 2 },
-            { q: "شبه الجملة تكون:", options: ["فعلية فقط", "اسمية فقط", "جارًا ومجرورًا أو ظرفًا", "مفعولًا"], answer: 2 },
-            { q: "علامة رفع جمع المذكر السالم:", options: ["الضمة", "الواو", "الألف", "الياء"], answer: 1 },
-            { q: "علامة نصب جمع المذكر السالم:", options: ["الضمة", "الواو", "الياء", "الفتحة"], answer: 2 },
-            { q: "المثنى يُرفع بـ:", options: ["الألف", "الواو", "الياء", "الضمة"], answer: 0 },
-            { q: "المثنى يُنصب بـ:", options: ["الألف", "الواو", "الياء", "الفتحة"], answer: 2 },
-            { q: "جمع المؤنث السالم يُنصب بـ:", options: ["الكسرة", "الفتحة", "الضمة", "الواو"], answer: 0 },
-            { q: "من علامات نصب الاسم:", options: ["الضمة", "الفتحة", "السكون", "الشدة"], answer: 1 },
-            { q: "الفعل المضارع يُجزم بـ:", options: ["لن", "سوف", "لم", "قد"], answer: 2 },
-            { q: "(لن) حرف:", options: ["جزم", "نصب", "عطف", "نداء"], answer: 1 },
-            { q: "الفعل المضارع المنصوب تكون علامته:", options: ["الضمة", "السكون", "الفتحة", "الكسرة"], answer: 2 },
-            { q: "الفعل الماضي مبني دائمًا على:", options: ["الضم أو الفتح أو السكون", "الضمة فقط", "الفتحة فقط", "السكون فقط"], answer: 0 },
-            { q: "(لم يكتبْ) علامة الجزم:", options: ["حذف النون", "السكون", "حذف حرف العلة", "الفتحة"], answer: 1 },
-            { q: "تحذف النون في:", options: ["الأفعال الخمسة", "الماضي", "الأمر", "الاسم"], answer: 0 },
-            { q: "(يفعلان) من:", options: ["الأفعال الخمسة", "الماضي", "الأمر", "الاسم"], answer: 0 },
-            { q: "الفعل الأمر يُبنى على:", options: ["السكون غالبًا", "الضمة", "الفتحة", "الكسرة"], answer: 0 },
-            { q: "(اكتبْ) فعل:", options: ["مضارع", "ماضٍ", "أمر", "اسم"], answer: 2 },
-            { q: "نوع النص (أبو بكر الصديق) هو:", options: ["وصفي", "سيرة", "شعري", "حواري"], answer: 1 },
-            { q: "السيرة تركز على:", options: ["المكان فقط", "الزمان فقط", "شخصية وأحداثها", "الخيال"], answer: 2 },
-            { q: "من خصائص النص الوصفي:", options: ["الحوار", "السرد الزمني", "ذكر الصفات", "التعليمات"], answer: 2 },
-            { q: "من عناصر الوصف:", options: ["الفكرة الرئيسة فقط", "الصفات الحسية والمعنوية", "العناوين", "الأسئلة"], answer: 1 },
-            { q: "الوصف الحسي يعتمد على:", options: ["العقل", "المشاعر", "الحواس", "الخيال فقط"], answer: 2 },
-            { q: "الوصف المعنوي يركز على:", options: ["الشكل", "اللون", "الأخلاق والصفات", "الحجم"], answer: 2 },
-            { q: "العنوان المناسب للنص يكون:", options: ["طويلًا جدًا", "غير مرتبط", "معبرًا عن الفكرة", "سؤالًا فقط"], answer: 2 },
-            { q: "الفكرة الرئيسة هي:", options: ["أقل فكرة", "فكرة جانبية", "الفكرة الأساسية", "مثال"], answer: 2 },
-            { q: "الفكرة الفرعية:", options: ["مستقلة تمامًا", "تشرح الفكرة الرئيسة", "لا علاقة لها", "عنوان"], answer: 1 },
-            { q: "التلخيص يعني:", options: ["نسخ النص", "حذف النص", "إعادة صياغة مختصرة", "قراءة صامتة"], answer: 2 },
-            { q: "من مهارات القراءة الجهرية:", options: ["السرعة فقط", "النطق السليم", "الكتابة", "الحفظ"], answer: 1 },
-            { q: "من مهارات الاستماع:", options: ["المقاطعة", "التركيز والفهم", "التحدث المستمر", "القراءة"], answer: 1 },
-            { q: "الحوار يعتمد على:", options: ["شخص واحد", "تبادل الحديث", "السرد فقط", "الوصف"], answer: 1 },
-            { q: "علامة الاستفهام تُستخدم مع:", options: ["الأمر", "السؤال", "التعجب", "النفي"], answer: 1 },
-            { q: "علامة التعجب تدل على:", options: ["سؤال", "دهشة", "نفي", "طلب"], answer: 1 },
-            { q: "من علامات الترقيم:", options: ["الألف", "الواو", "الفاصلة", "الفعل"], answer: 2 },
-            { q: "الفاصلة تُستخدم لـ:", options: ["إنهاء الجملة", "الفصل بين الجمل القصيرة", "السؤال", "التعجب"], answer: 1 },
-            { q: "النقطة توضع في نهاية:", options: ["السؤال", "التعجب", "الجملة التامة", "الأمر"], answer: 2 },
-            { q: "الجملة الخبرية:", options: ["تطلب جوابًا", "تحتمل الصدق والكذب", "أمر", "نهي"], answer: 1 },
-            { q: "الجملة الإنشائية:", options: ["خبر", "لا تحتمل الصدق والكذب", "وصف", "سيرة"], answer: 1 },
-            { q: "من الأساليب الإنشائية:", options: ["النفي", "التوكيد", "الاستفهام", "الخبر"], answer: 2 },
-            { q: "أسلوب النداء يبدأ بـ:", options: ["هل", "لم", "يا", "لن"], answer: 2 },
-            { q: "المنادى يكون:", options: ["مجرورًا", "منصوبًا غالبًا", "مرفوعًا", "مجزومًا"], answer: 1 },
-            { q: "(يا طالبُ) نوع المنادى:", options: ["مضاف", "نكرة", "علم مفرد", "شبيه بالمضاف"], answer: 2 },
-            { q: "النكرة هي:", options: ["ما دل على معين", "ما دل على غير معين", "اسم علم", "ضمير"], answer: 1 },
-            { q: "المعرفة هي:", options: ["اسم غير محدد", "اسم يدل على شيء معين", "فعل", "حرف"], answer: 1 },
-            { q: "من أنواع المعارف:", options: ["النكرة", "المصدر", "الضمير", "الفعل"], answer: 2 },
-            { q: "الضمير يعود على:", options: ["المستقبل", "شيء غير مذكور", "اسم قبله", "فعل"], answer: 2 },
-            { q: "الضمير (هو) ضمير:", options: ["متصل", "منفصل", "مستتر", "مخاطب"], answer: 1 },
-            { q: "الضمير المستتر:", options: ["يُكتب", "لا يُذكر لفظًا", "منفصل", "متصل"], answer: 1 },
-            { q: "الفعل اللازم:", options: ["يحتاج مفعولًا", "لا يحتاج مفعولًا", "يُنصب دائمًا", "يُجزم دائمًا"], answer: 1 },
-            { q: "الفعل المتعدي:", options: ["لا مفعول له", "يحتاج مفعولًا", "لا فاعل له", "مبني"], answer: 1 },
-            { q: "(قرأ الطالبُ الكتابَ) المفعول به هو:", options: ["الطالب", "قرأ", "الكتاب", "ال"], answer: 2 },
-            { q: "المفعول به يكون:", options: ["مرفوعًا", "منصوبًا", "مجرورًا", "مجزومًا"], answer: 1 },
-            { q: "علامة نصب المفعول به المفرد:", options: ["الضمة", "الفتحة", "الكسرة", "الواو"], answer: 1 },
-            { q: "النعت يتبع المنعوت في:", options: ["الإعراب فقط", "التعريف فقط", "أربعة أشياء", "العدد فقط"], answer: 2 },
-            { q: "(طالبٌ مجتهدٌ) كلمة (مجتهد) نعت:", options: ["منصوب", "مرفوع", "مجرور", "مجزوم"], answer: 1 },
-            { q: "العطف يكون بـ:", options: ["إن", "كان", "الواو", "لن"], answer: 2 },
-            { q: "المعطوف يتبع المعطوف عليه في:", options: ["المعنى فقط", "الإعراب", "الزمن", "الحرف"], answer: 1 },
-            { q: "البدل:", options: ["يوضح ما قبله", "يخالف ما قبله", "فعل", "حرف"], answer: 0 },
-            { q: "التوكيد يُستخدم لـ:", options: ["الزينة", "النفي", "إزالة الشك", "السؤال"], answer: 2 },
-            { q: "(نفس – عين) من ألفاظ:", options: ["العطف", "التوكيد", "النعت", "البدل"], answer: 1 },
-            { q: "من مهارات الكتابة:", options: ["الخط الواضح", "السرعة فقط", "الحفظ", "التكرار"], answer: 0 },
-            { q: "الخط الجيد يتميز بـ:", options: ["الإهمال", "التداخل", "الوضوح", "السرعة"], answer: 2 },
-            { q: "من قواعد الرسم الكتابي:", options: ["تجاهل المسافات", "تنظيم السطور", "تكبير الحروف", "حذف النقاط"], answer: 1 },
-            { q: "الفقرة الجيدة تحتوي على:", options: ["جملة واحدة", "فكرة واحدة مترابطة", "كلمات فقط", "أسئلة فقط"], answer: 1 },
-            { q: "الانتقال بين الأفكار يكون باستخدام:", options: ["العناوين", "أدوات الربط", "الصور", "الأفعال"], answer: 1 },
-            { q: "من أدوات الربط:", options: ["ثم", "كتب", "طالب", "مدرسة"], answer: 0 },
-            { q: "الخاتمة تكون:", options: ["في البداية", "في الوسط", "في النهاية", "لا مكان لها"], answer: 2 },
-            { q: "المقدمة الجيدة:", options: ["طويلة جدًا", "تمهد للموضوع", "تكرر الخاتمة", "لا علاقة لها"], answer: 1 },
-            { q: "النص المتكامل يحتوي على:", options: ["عنوان فقط", "مقدمة فقط", "مقدمة وعرض وخاتمة", "صور فقط"], answer: 2 },
-            { q: "الهدف من تعلم اللغة العربية:", options: ["الحفظ فقط", "الفهم والتواصل السليم", "الامتحان فقط", "النسخ"], answer: 1 },
-            // نص الاستماع (سيدة نساء أهل الجنة)
-            { q: "لقبت فاطمة رضي الله عنها بـ:", options: ["ذات النطاقين", "الزهراء", "أم المساكين", "الطاهرة"], answer: 1 },
-            { q: "كنية فاطمة رضي الله عنها هي:", options: ["أم سلمة", "أم عبد الله", "أم أبيها", "أم المؤمنين"], answer: 2 },
-            { q: "ولدت فاطمة رضي الله عنها قبل البعثة بـ:", options: ["ثلاث سنوات", "خمس سنوات", "عشر سنوات", "سنة واحدة"], answer: 1 },
-            { q: "زوج فاطمة رضي الله عنها هو:", options: ["عثمان بن عفان", "أبو بكر الصديق", "علي بن أبي طالب", "عمر بن الخطاب"], answer: 2 },
-            { q: "توفيت فاطمة رضي الله عنها بعد وفاة النبي ﷺ بـ:", options: ["سنة كاملة", "ثلاثة أشهر", "ستة أشهر", "شهرين"], answer: 2 },
-            { q: "عدد أبناء فاطمة رضي الله عنها من الذكور والإناث:", options: ["اثنان", "ثلاثة", "أربعة", "خمسة"], answer: 2 },
-            { q: "قال النبي ﷺ عنها: \"فاطمة سيدة نساء ...\":", options: ["قريش", "العالمين", "أهل الجنة", "العرب"], answer: 2 },
-            { q: "الحادثة التي بكت فيها فاطمة ثم ضحكت كانت:", options: ["عند الهجرة", "في مرض موت النبي ﷺ", "يوم زواجها", "يوم فتح مكة"], answer: 1 },
-            { q: "معنى \"اضطجعت\" في النص:", options: ["جلست", "نامت على جنبها", "وقفت", "مشت"], answer: 1 },
-            { q: "القيمة المستفادة من سيرة فاطمة رضي الله عنها:", options: ["التفاخر بالنسب", "الصبر والزهد", "جمع المال", "السفر والترحال"], answer: 1 },
-            // نص الفهم القرائي (أبو بكر الصديق)
-            { q: "الاسم الحقيقي لأبي بكر الصديق هو:", options: ["عتيق بن عثمان", "عبد الله بن أبي قحافة", "عمر بن الخطاب", "عبد الرحمن بن صخر"], answer: 1 },
-            { q: "لقب أبو بكر بـ \"الصديق\" لأنه:", options: ["كان صادقاً في تجارته", "صدق النبي ﷺ في حادثة الإسراء", "كان صديقاً للنبي", "يحب الصدقة"], answer: 1 },
-            { q: "كان أبو بكر رضي الله عنه قبل الإسلام:", options: ["تاجراً للقماش", "راعياً للغنم", "مزارعاً", "صانعاً للسيوف"], answer: 0 },
-            { q: "هاجر أبو بكر مع النبي ﷺ واختبأ معه في غار:", options: ["حراء", "ثور", "أحد", "النور"], answer: 1 },
-            { q: "مدة خلافة أبي بكر الصديق رضي الله عنه تقريباً:", options: ["10 سنوات", "4 سنوات", "سنتان و3 أشهر", "6 أشهر"], answer: 2 },
-            { q: "توفي أبو بكر الصديق في العام:", options: ["10 هـ", "11 هـ", "13 هـ", "15 هـ"], answer: 2 },
-            { q: "معنى كلمة \"أسيف\" في وصف أبي بكر:", options: ["يحمل السيف", "سريع البكاء رقيق القلب", "قوي وشديد", "سريع الغضب"], answer: 1 },
-            { q: "أنفق أبو بكر ماله كله في سبيل الله، فقال له النبي: \"ماذا أبقيت لأهلك؟\" قال:", options: ["أبقيت لهم داراً", "أبقيت لهم الذهب", "أبقيت لهم الله ورسوله", "لم يبقِ شيئاً"], answer: 2 },
-            { q: "من الصفات الجسدية لأبي بكر الواردة في النص:", options: ["ضخم الجسم", "نحيف، أبيض الوجه", "أسمر اللون", "طويل جداً"], answer: 1 },
-            { q: "الآية التي نزلت في أبي بكر يوم الهجرة: \"ثاني اثنين إذ هما في ...\":", options: ["المسجد", "الغار", "البيت", "الطريق"], answer: 1 },
-            { q: "معنى \"ابتاع راحلتين\":", options: ["باع ناقتين", "اشترى ناقتين", "ركب ناقتين", "أطعم ناقتين"], answer: 1 },
-            { q: "\"يدود عن النبي\" معنى كلمة \"يدود\":", options: ["يبتعد", "يدافع", "يسأل", "يكتب"], answer: 1 },
-            { q: "جمع كلمة \"غزوة\":", options: ["غزوات", "غزاة", "غزو", "غازيات"], answer: 0 },
-            { q: "العلاقة بين (النحيف) و(الهزيل):", options: ["تضاد", "ترادف", "جناس", "لا علاقة بينهما"], answer: 1 },
-            { q: "دفن أبو بكر الصديق رضي الله عنه بجوار:", options: ["المسجد الحرام", "الكعبة", "النبي ﷺ", "البقيع"], answer: 2 },
-            // الإستراتيجية القرائية (التصفح والتمشيط)
-            { q: "قراءة التصفح تعني:", options: ["قراءة النص كاملاً بتمعن", "قراءة سريعة لأخذ فكرة عامة", "حفظ النص عن ظهر قلب", "قراءة بصوت مرتفع"], answer: 1 },
-            { q: "الهدف من \"قراءة التمشيط\":", options: ["الاستمتاع بالقصة", "البحث عن معلومة محددة", "نقد أسلوب الكاتب", "تلخيص الكتاب"], answer: 1 },
-            { q: "عند البحث عن \"رقم هاتف\" في دليل الهاتف، نستخدم قراءة:", options: ["التصفح", "التمشيط", "التحليل", "الجهرية"], answer: 1 },
-            { q: "عند شراء كتاب جديد، نقوم بـ:", options: ["قراءة الكتاب كاملاً في المكتبة", "تصفح الغلاف والفهرس والمقدمة", "تمشيط الكتاب بحثاً عن تاريخ", "نسخه في ورقة"], answer: 1 },
-            { q: "من خطوات تصفح الكتاب قراءة:", options: ["كل كلمة في الكتاب", "الفهرس والعناوين الرئيسة", "الهوامش فقط", "السعر فقط"], answer: 1 },
-            { q: "البحث عن معنى كلمة في المعجم يتطلب قراءة:", options: ["تمشيط", "تصفح", "استماع", "تعبيرية"], answer: 0 },
-            { q: "\"تصفح المجلة\" يساعدنا على معرفة:", options: ["أدق التفاصيل في المقالات", "الموضوعات العامة وأبواب المجلة", "الأخطاء الإملائية في المجلة", "نوع الورق المستخدم"], answer: 1 },
-            { q: "القراءة التي تعتمد على السرعة والبحث عن هدف معين هي:", options: ["القراءة الصامتة المركزة", "قراءة التمشيط", "القراءة الجهرية", "قراءة الاستمتاع"], answer: 1 },
-            { q: "أحد هذه الخيارات ليس من خطوات التصفح:", options: ["قراءة المقدمة", "قراءة العناوين الجانبية", "قراءة تفاصيل الفصول كاملة", "الاطلاع على الصور والرسوم"], answer: 2 },
-            { q: "عند البحث عن تاريخ وفاة شخصية في نص طويل، نستخدم:", options: ["التمشيط", "التصفح", "التلخيص", "الإملاء"], answer: 0 },
-            // الظاهرة الإملائية (الهمزات)
-            { q: "الكلمة التي تبدأ بهمزة وصل فيما يلي:", options: ["أحمد", "إبراهيم", "استغفار", "أكرم"], answer: 2 },
-            { q: "الكلمة التي تبدأ بهمزة قطع فيما يلي:", options: ["ابن", "اسم", "امرأة", "أخذ"], answer: 3 },
-            { q: "همزة \"ال\" التعريف دائماً:", options: ["همزة قطع", "همزة وصل", "همزة متوسطة", "همزة متطرفة"], answer: 1 },
-            { q: "تحذف همزة \"ابن\" إذا وقعت بين:", options: ["فعلين", "اسمين ليس بينهما صلة", "علمين الثاني أب للأول", "في أول السطر"], answer: 2 },
-            { q: "الكتابة الصحيحة للجملة: \"يا ... آدم اتق الله\":", options: ["يا ابن", "يا بن", "يابن", "يا إبن"], answer: 1 },
-            { q: "\"عمر ... الخطاب خليفة عادل\". (اكتب ابن/بن):", options: ["ابن", "بن", "أبن", "إبن"], answer: 1 },
-            { q: "\"ابن تيمية عالم جليل\". كتبت الهمزة لأنها:", options: ["وقعت بين علمين", "جاءت في أول السطر", "سبقت بحرف نداء", "جاءت بعد فعل"], answer: 1 },
-            { q: "حركة الكسرة تناسبها الهمزة على:", options: ["الألف", "الواو", "الياء (النبرة)", "السطر"], answer: 2 },
-            { q: "عند كتابة الهمزة المتوسطة ننظر إلى:", options: ["حركة الهمزة فقط", "حركة الحرف الذي قبلها فقط", "حركة الهمزة وحركة ما قبلها", "حركة الحرف الأخير"], answer: 2 },
-            { q: "أقوى الحركات في اللغة العربية هي:", options: ["الفتحة", "الضمة", "السكون", "الكسرة"], answer: 3 },
-            { q: "كتبت الهمزة في كلمة \"مُؤْمِن\" على الواو لأن:", options: ["الهمزة ساكنة وما قبلها مضموم", "الهمزة مضمومة وما قبلها مفتوح", "الهمزة مفتوحة وما قبلها مكسور", "الهمزة مكسورة"], answer: 0 },
-            { q: "كتبت الهمزة في كلمة \"ذِئْب\" على الياء لأن:", options: ["ما قبلها مكسور", "ما قبلها مضموم", "ما قبلها مفتوح", "هي مفتوحة"], answer: 0 },
-            { q: "الكلمة التي كتبت بشكل صحيح:", options: ["مسألة", "مسءلة", "مسؤلة", "مسإلة"], answer: 0 },
-            { q: "الهمزة المتطرفة في كلمة \"شاطِ...\" تكتب على:", options: ["الألف (شاطأ)", "الواو (شاطؤ)", "الياء (شاطئ)", "السطر (شاطء)"], answer: 2 },
-            { q: "كتبت الهمزة المتطرفة في كلمة \"سماء\" على السطر لأن:", options: ["ما قبلها حرف مد (ساكن)", "ما قبلها مكسور", "ما قبلها مضموم", "هي مكسورة"], answer: 0 },
-            // الوظيفة النحوية (الأفعال والحروف الناسخة)
-            { q: "الأفعال الناسخة (كان وأخواتها) تدخل على:", options: ["الجملة الفعلية", "الجملة الاسمية", "شبه الجملة", "الحروف"], answer: 1 },
-            { q: "عمل \"كان وأخواتها\":", options: ["ترفع المبتدأ وتنصب الخبر", "تنصب المبتدأ وترفع الخبر", "ترفع المبتدأ والخبر", "تنصب المبتدأ والخبر"], answer: 0 },
-            { q: "\"صار الطينُ ...\". الخبر المناسب:", options: ["خزفٌ", "خزفاً", "خزفٍ", "الخزفُ"], answer: 1 },
-            { q: "\"ليس ... نافعاً\". الاسم المناسب:", options: ["الكذبَ", "الكذبُ", "الكذبِ", "كذبٌ"], answer: 1 },
-            { q: "الفعل الناسخ الذي يفيد النفي هو:", options: ["صار", "كان", "ليس", "أمسى"], answer: 2 },
-            { q: "الفعل الناسخ الذي يفيد التحول هو:", options: ["كان", "ليس", "صار", "ظل"], answer: 2 },
-            { q: "\"كان الجوُ جميلاً\". اسم كان في الجملة هو:", options: ["الجو", "جميلاً", "ضمير مستتر", "محذوف"], answer: 0 },
-            { q: "الحروف الناسخة (إن وأخواتها) تعمل عكس عمل:", options: ["الفعل المضارع", "الفاعل", "كان وأخواتها", "المفعول به"], answer: 2 },
-            { q: "عمل \"إن وأخواتها\":", options: ["ترفع المبتدأ وتنصب الخبر", "تنصب المبتدأ وترفع الخبر", "تجزم الفعل المضارع", "تجر الاسم"], answer: 1 },
-            { q: "\"إن ... رحيمات\". الكلمة المناسبة:", options: ["الأمهاتُ", "الأمهاتَ", "الأمهاتِ (لأنها جمع مؤنث سالم)", "الأمهات"], answer: 2 },
-            { q: "\"لعل النصرَ ...\". الخبر المناسب:", options: ["قريبَ", "قريباً", "قريبٌ", "قريبِ"], answer: 2 },
-            { q: "الحرف الناسخ الذي يفيد التمني هو:", options: ["إن", "لعل", "ليت", "كان"], answer: 2 },
-            { q: "الحرف الناسخ الذي يفيد الترجي هو:", options: ["ليت", "لعل", "أن", "كأن"], answer: 1 },
-            { q: "\"كأن الجنديَ أسدٌ\". ال��رف \"كأن\" يفيد:", options: ["التوكيد", "التشبيه", "الاستدراك", "النفي"], answer: 1 },
-            { q: "عند إدخال \"إن\" على جملة \"الطالبان مجتهدان\" تصبح:", options: ["إن الطالبان مجتهدان", "إن الطالبين مجتهدان", "إن الطالبان مجتهدين", "إن الطالبين مجتهدين"], answer: 1 },
-            { q: "عند إدخال \"كان\" على جملة \"المؤمنون أخوة\" تصبح:", options: ["كان المؤمنون أخوةً", "كان المؤمنين أخوةً", "كان المؤمنون أخوةٌ", "كان المؤمنين أخوةٌ"], answer: 0 },
-            { q: "إعراب \"الجو\" في جملة \"كان الجوُ حاراً\":", options: ["فاعل مرفوع", "اسم كان مرفوع", "مبتدأ مرفوع", "خبر كان منصوب"], answer: 1 },
-            { q: "إعراب \"نور\" في جملة \"إن العلمَ نورٌ\":", options: ["خبر إن مرفوع", "اسم إن منصوب", "صفة مرفوعة", "خبر المبتدأ"], answer: 0 },
-            { q: "\"أبو بكر خليفة\". عند دخول \"صار\" تصبح:", options: ["صار أبو بكرٍ خليفةً", "صار أبا بكرٍ خليفةً", "صار أبي بكرٍ خليفةٌ", "صار أبو بكرٍ خليفةٌ"], answer: 0 },
-            { q: "\"المعلمون مخلصون\". عند دخول \"إن\" تصبح:", options: ["إن المعلمين مخلصين", "إن المعلمون مخلصون", "إن المعلمين مخلصون", "إن المعلمون مخلصين"], answer: 2 },
-            // الصنف اللغوي (المشتقات)
-            { q: "اسم الفاعل من الفعل \"كَتَبَ\":", options: ["مكتوب", "كاتب", "مكتبة", "كتاب"], answer: 1 },
-            { q: "اسم المفعول من الفعل \"سَمِعَ\":", options: ["سامع", "مسموع", "سماعة", "سميع"], answer: 1 },
-            { q: "كلمة \"فاهِم\" هي:", options: ["اسم فاعل", "اسم مفعول", "اسم آلة", "فعل ماض"], answer: 0 },
-            { q: "كلمة \"مَشْرُوب\" هي:", options: ["اسم فاعل", "اسم آلة", "اسم مفعول", "فعل مضارع"], answer: 2 },
-            { q: "يصاغ اسم الفاعل من الفعل الثلاثي على وزن:", options: ["مفعول", "فاعل", "فعيل", "مفعل"], answer: 1 },
-            { q: "يصاغ اسم المفعول من الفعل الثلاثي على وزن:", options: ["فاعل", "مفعول", "فعال", "مفاعيل"], answer: 1 },
-            { q: "اسم الفاعل من الفعل \"نَظَرَ\":", options: ["منظور", "ناظر", "نظارة", "منظر"], answer: 1 },
-            { q: "اسم المفعول من الفعل \"حَمِدَ\":", options: ["حامد", "محمود", "حميد", "حمد"], answer: 1 },
-            { q: "اسم الآلة من الفعل \"فَتَحَ\":", options: ["فاتح", "مفتوح", "مِفتاح", "فتوح"], answer: 2 },
-            { q: "\"الطالب ... للدرس\". اسم الفاعل المناسب:", options: ["فاهمٌ", "مفهومٌ", "فهم", "فهيم"], answer: 0 },
-            // النص الشعري (عمر بن الخطاب ورسول كسرى)
-            { q: "قائل قصيدة \"عمر بن الخطاب ورسول كسرى\" هو:", options: ["أحمد شوقي", "حافظ إبراهيم", "معروف الرصافي", "إيليا أبو ماضي"], answer: 1 },
-            { q: "\"وَرُاعَ صاحب كسرى أن رأى عمراً\". معنى \"راع\":", options: ["أفزع وأدهش", "خاف", "هرب", "نادى"], answer: 0 },
-            { q: "رأى رسول كسرى عمر بن الخطاب رضي الله عنه:", options: ["في قصر عظيم", "بين الجند والحراس", "نائماً تحت الشجرة", "يركب حصاناً"], answer: 2 },
-            { q: "البيت الذي يمثل العدل والأمان هو:", options: ["وراع صاحب كسرى أن رأى عمراً", "أمنت لما أقمت العدل بينهم", "يا رافعاً راية الشورى وحارسها", "رأى فيه الجلالة في أسمى معانيها"], answer: 1 },
-            { q: "\"نمت نوم قرير العين\". دلالة على:", options: ["التعب", "الراحة والاطمئنان", "المرض", "السهر"], answer: 1 },
-            { q: "شبه الشاعر عمر بن الخطاب بـ:", options: ["السور", "الجبل", "البناء المحكم", "السيف"], answer: 2 },
-            { q: "المقصود بـ \"صاحب كسرى\":", options: ["ملك الفرس", "رسول (سفير) ملك الفرس", "خادم عمر", "صديق كسرى"], answer: 1 },
-            { q: "\"ببردة كاد طول العهد يبليها\". تدل على:", options: ["غنى عمر", "زهد عمر وتواضعه", "بخل عمر", "عدم اهتمامه"], answer: 1 },
-            { q: "\"فوق الثرى\". الثرى هو:", options: ["السرير", "التراب الندي", "العشب", "البساط"], answer: 1 },
-            { q: "العاطفة المسيطرة على الشاعر في النص:", options: ["الحزن", "الفخر والإعجاب", "الغضب", "السخرية"], answer: 1 },
-            // بنية النص والتواصل الكتابي
-            { q: "عند وصف شخصية، نبدأ عادة بـ:", options: ["الخاتمة", "التعريف بالشخصية (الاسم، اللقب)", "الصفات الخلقية مباشرة", "رأي الكاتب"], answer: 1 },
-            { q: "\"أبيض الوجه، نحيف الجسم، كثيف اللحية\". هذا وصف لـ:", options: ["الصفات الخُلقية", "الصفات الخَلقية (الجسدية)", "أعمال الشخصية", "شعور الكاتب"], answer: 1 },
-            { q: "\"الصدق، الأمانة، الحلم، التواضع\". هذا وصف لـ:", options: ["الصفات الخُلقية", "الصفات الخَلقية", "المظهر الخارجي", "الملابس"], answer: 0 },
-            { q: "الخاتمة في نص وصف الشخصية تتضمن غالباً:", options: ["تاريخ الميلاد", "شعور الكاتب تجاه الشخصية", "وصف الشعر والعينين", "مكان السكن"], answer: 1 },
-            { q: "عند كتابة التلخيص، يجب:", options: ["نسخ النص الأصلي كاملاً", "الحفاظ على الأفكار الرئيسة بأسلوبك", "تغيير المعنى تماماً", "الإطالة في الشرح"], answer: 1 },
-            { q: "من شروط التلخيص الجيد:", options: ["الاستغناء عن الشواهد والتفاصيل الزائدة", "كتابة تفاصيل أكثر من النص الأصلي", "تكرار الجمل", "كتابة رأي شخصي في كل سطر"], answer: 0 },
-            { q: "الغرض من نص \"وصف الشخصية\":", options: ["السخرية من الشخصية", "بيان ملامح الشخصية وصفاتها", "رواية قصة خيالية", "كتابة رسالة شكوى"], answer: 1 },
-            { q: "أي مما يلي يعتبر صفة خُلقية (داخلية)؟", options: ["طويل القامة", "أزرق العينين", "كريم النفس", "مفتول العضلات"], answer: 2 },
-            { q: "عند وصف \"القدوة\"، نركز على:", options: ["ملابسه الغالية", "سيارته الف��رهة", "صفاته الحميدة وأعماله الجليلة", "طعامه وشرابه"], answer: 2 },
-            { q: "بنية النص التشخيصي تتكون من:", options: ["مقدمة، عرض، خاتمة", "أبيات شعرية", "أسئلة وأجوبة فقط", "صور فقط"], answer: 0 }
-        ];
-
-        const letters = ['أ', 'ب', 'ج', 'د'];
-        let currentQuestionIndex = 0;
-        let correctCount = 0;
-        let wrongCount = 0;
-        let shuffledQuestions = [];
-        let answered = false;
-
-        function shuffleArray(array) {
-            const shuffled = [...array];
-            for (let i = shuffled.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-            }
-            return shuffled;
-        }
-
-        function toArabicNumber(num) {
-            const arabicNums = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
-            return String(num).split('').map(d => arabicNums[parseInt(d)]).join('');
-        }
-
-        function startQuiz() {
-            shuffledQuestions = shuffleArray(questions);
-            currentQuestionIndex = 0;
-            correctCount = 0;
-            wrongCount = 0;
-
-            document.getElementById('startScreen').style.display = 'none';
-            document.getElementById('quizScreen').style.display = 'block';
-
-            updateStats();
-            showQuestion();
-        }
-
-        function showQuestion() {
-            answered = false;
-            const question = shuffledQuestions[currentQuestionIndex];
-            const total = shuffledQuestions.length;
-
-            document.getElementById('questionNumber').textContent =
-                `السؤال ${toArabicNumber(currentQuestionIndex + 1)} من ${toArabicNumber(total)}`;
-            document.getElementById('questionText').textContent = question.q;
-
-            const progress = ((currentQuestionIndex) / total) * 100;
-            document.getElementById('progressBar').style.width = `${progress}%`;
-
-            const optionsContainer = document.getElementById('optionsContainer');
-            optionsContainer.innerHTML = '';
-
-            question.options.forEach((option, index) => {
-                const optionEl = document.createElement('div');
-                optionEl.className = 'option';
-                optionEl.innerHTML = `
-                    <span class="option-letter">${letters[index]}</span>
-                    <span>${option}</span>
-                `;
-                optionEl.onclick = () => selectOption(index);
-                optionsContainer.appendChild(optionEl);
-            });
-
-            document.getElementById('feedback').className = 'feedback';
-            document.getElementById('feedback').style.display = 'none';
-            document.getElementById('nextBtn').disabled = true;
-        }
-
-        function selectOption(selectedIndex) {
-            if (answered) return;
-            answered = true;
-
-            const question = shuffledQuestions[currentQuestionIndex];
-            const options = document.querySelectorAll('.option');
-            const feedback = document.getElementById('feedback');
-
-            options.forEach(opt => opt.classList.add('disabled'));
-
-            if (selectedIndex === question.answer) {
-                options[selectedIndex].classList.add('correct');
-                correctCount++;
-                feedback.className = 'feedback correct show';
-                feedback.innerHTML = '<span>✓</span><span>إجابة صحيحة! أحسنت</span>';
-            } else {
-                options[selectedIndex].classList.add('wrong');
-                options[question.answer].classList.add('correct');
-                wrongCount++;
-                feedback.className = 'feedback wrong show';
-                feedback.innerHTML = `<span>✗</span><span>الإجابة الصحيحة: ${letters[question.answer]}) ${question.options[question.answer]}</span>`;
+                );
             }
 
-            updateStats();
-            document.getElementById('nextBtn').disabled = false;
+            // 3. Question Screen (Sequential)
+            return (
+                <div className="min-h-screen bg-gray-100 font-cairo pb-12 flex flex-col" dir="rtl">
+                    {/* Header */}
+                    <header className="bg-white shadow-sm sticky top-0 z-10">
+                        <div className="max-w-3xl mx-auto px-4 py-4 flex justify-between items-center">
+                            <div className="flex items-center gap-2 text-indigo-600 font-bold text-lg">
+                                <BookOpen className="w-6 h-6" />
+                                <span className="hidden sm:inline">اختبار لغتي</span>
+                            </div>
+                            <div className="flex items-center gap-4">
+                                <span className="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-sm font-bold">
+                                    القسم: {currentQuestion.sectionTitle}
+                                </span>
+                                <span className="text-gray-600 font-bold">
+                                    {currentQuestionIndex + 1} / {totalQuestions}
+                                </span>
+                            </div>
+                        </div>
+                        {/* Progress Bar */}
+                        <div className="w-full h-2 bg-gray-200">
+                            <div 
+                                className="h-full bg-indigo-600 transition-all duration-300 ease-out"
+                                style={{ width: `${((currentQuestionIndex + 1) / totalQuestions) * 100}%` }}
+                            ></div>
+                        </div>
+                    </header>
 
-            // Check if quiz is complete
-            if (currentQuestionIndex >= shuffledQuestions.length - 1) {
-                document.getElementById('nextBtn').innerHTML = '<span>عرض النتيجة</span><span>🏆</span>';
-            }
-        }
+                    <main className="flex-1 max-w-3xl w-full mx-auto px-4 py-6 flex flex-col justify-center">
+                        
+                        {/* Reading Passage Context (Only show if passage exists and it's the first few questions of that section or just sticky?)
+                            Better UX: Show passage in an expander or always visible for relevant questions. 
+                            Since it's sequential, let's show it if available for the current question.
+                         */}
+                        {currentQuestion.passage && (
+                            <div className="bg-white rounded-xl shadow-md p-5 mb-6 border-r-4 border-yellow-400 text-sm md:text-base leading-relaxed text-gray-700 animate-fade-in">
+                                <h4 className="font-bold text-gray-900 mb-2 flex items-center gap-2">
+                                    <BookOpen className="w-4 h-4" /> اقرأ النص للإجابة:
+                                </h4>
+                                {currentQuestion.passage}
+                            </div>
+                        )}
 
-        function updateStats() {
-            document.getElementById('correctCount').textContent = toArabicNumber(correctCount);
-            document.getElementById('wrongCount').textContent = toArabicNumber(wrongCount);
-        }
+                        {/* Question Card */}
+                        <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 animate-slide-up relative overflow-hidden">
+                            <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-8 leading-snug">
+                                {currentQuestion.question}
+                            </h2>
 
-        function nextQuestion() {
-            currentQuestionIndex++;
+                            <div className="space-y-3">
+                                {currentQuestion.options.map((option, index) => {
+                                    // Determine styling based on state
+                                    let btnClass = "w-full text-right p-4 rounded-xl border-2 font-medium transition-all duration-200 flex justify-between items-center ";
+                                    
+                                    if (isAnswerChecked) {
+                                        if (index === currentQuestion.correctAnswer) {
+                                            btnClass += "bg-green-100 border-green-500 text-green-800 shadow-md"; // Correct
+                                        } else if (index === selectedOption) {
+                                            btnClass += "bg-red-100 border-red-500 text-red-800"; // Wrong selected
+                                        } else {
+                                            btnClass += "bg-gray-50 border-gray-100 text-gray-400 opacity-60"; // Others
+                                        }
+                                    } else {
+                                        // Default state
+                                        btnClass += "bg-white border-gray-200 hover:border-indigo-400 hover:bg-indigo-50 text-gray-700";
+                                    }
 
-            if (currentQuestionIndex >= shuffledQuestions.length) {
-                showCompleteModal();
-            } else {
-                document.getElementById('nextBtn').innerHTML = '<span>السؤال التالي</span><span>←</span>';
-                showQuestion();
-            }
-        }
+                                    return (
+                                        <button
+                                            key={index}
+                                            onClick={() => handleOptionSelect(index)}
+                                            disabled={isAnswerChecked}
+                                            className={btnClass}
+                                        >
+                                            <span>{option}</span>
+                                            {isAnswerChecked && index === currentQuestion.correctAnswer && <CheckCircle className="w-6 h-6 text-green-600" />}
+                                            {isAnswerChecked && index === selectedOption && index !== currentQuestion.correctAnswer && <XCircle className="w-6 h-6 text-red-600" />}
+                                        </button>
+                                    );
+                                })}
+                            </div>
 
-        function showStopModal() {
-            document.getElementById('modalCorrect').textContent = toArabicNumber(correctCount);
-            document.getElementById('modalWrong').textContent = toArabicNumber(wrongCount);
-            document.getElementById('stopModal').classList.add('show');
-        }
+                            {/* Feedback & Next Button Area */}
+                            {isAnswerChecked && (
+                                <div className="mt-8 pt-6 border-t animate-fade-in">
+                                    <div className={`mb-4 font-bold text-lg ${selectedOption === currentQuestion.correctAnswer ? 'text-green-600' : 'text-red-600'}`}>
+                                        {selectedOption === currentQuestion.correctAnswer ? (
+                                            <div className="flex items-center gap-2"><CheckCircle className="w-6 h-6"/> إجابة صحيحة! أحسنت.</div>
+                                        ) : (
+                                            <div className="flex items-center gap-2"><XCircle className="w-6 h-6"/> إجابة خاطئة. الصحيح هو: {currentQuestion.options[currentQuestion.correctAnswer]}</div>
+                                        )}
+                                    </div>
+                                    
+                                    <button
+                                        onClick={handleNext}
+                                        className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-xl shadow-lg transform transition hover:scale-[1.02] flex items-center justify-center gap-2"
+                                    >
+                                        {currentQuestionIndex === totalQuestions - 1 ? "عرض النتيجة النهائية" : "السؤال التالي"} 
+                                        <ArrowLeft className="w-5 h-5" />
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    </main>
+                </div>
+            );
+        };
 
-        function hideStopModal() {
-            document.getElementById('stopModal').classList.remove('show');
-        }
-
-        function confirmStop() {
-            hideStopModal();
-            document.getElementById('quizScreen').style.display = 'none';
-            document.getElementById('startScreen').style.display = 'block';
-        }
-
-        function showCompleteModal() {
-            const total = correctCount + wrongCount;
-            const percentage = total > 0 ? Math.round((correctCount / total) * 100) : 0;
-
-            document.getElementById('finalCorrect').textContent = toArabicNumber(correctCount);
-            document.getElementById('finalWrong').textContent = toArabicNumber(wrongCount);
-            document.getElementById('percentageText').textContent = `النسبة: ${toArabicNumber(percentage)}٪`;
-
-            const title = document.getElementById('completeTitle');
-            if (percentage >= 90) {
-                title.textContent = '🌟 ممتاز!';
-            } else if (percentage >= 70) {
-                title.textContent = '👏 أحسنت!';
-            } else if (percentage >= 50) {
-                title.textContent = '💪 جيد، استمر!';
-            } else {
-                title.textContent = '📚 حاول مرة أخرى';
-            }
-
-            document.getElementById('completeModal').classList.add('show');
-        }
-
-        function restartQuiz() {
-            document.getElementById('completeModal').classList.remove('show');
-            document.getElementById('nextBtn').innerHTML = '<span>السؤال التالي</span><span>←</span>';
-            startQuiz();
-        }
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<QuizApp />);
     </script>
 </body>
 </html>
+
