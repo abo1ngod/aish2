@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبار أحياء تفاعلي</title>
+    <!-- مكتبة لتوليد PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --bg-color: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-color: #1f2937;
+            --border-color: #e5e7eb;
+            --success-color: #166534;
+            --error-color: #991b1b;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 20px;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            margin: 0;
+            font-size: 24px;
+            /* منع التظليل والتكبير */
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            cursor: default;
+        }
+
+        .student-info {
+            background-color: #e0f2fe;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border: 1px solid #bae6fd;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        .section-title {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin-top: 30px;
+            margin-bottom: 20px;
+        }
+
+        .question-card {
+            background-color: #fff;
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            transition: transform 0.2s;
+        }
+
+        .question-card:hover {
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .question-text {
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .options label {
+            display: block;
+            margin: 5px 0;
+            font-weight: normal;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 4px;
+        }
+
+        .options label:hover {
+            background-color: #f9fafb;
+        }
+
+        input[type="radio"] {
+            margin-left: 10px;
+        }
+
+        button.submit-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+            transition: background-color 0.3s;
+        }
+
+        button.submit-btn:hover {
+            background-color: var(--secondary-color);
+        }
+
+        button.submit-btn:disabled {
+            background-color: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        #result-area {
+            display: none;
+            margin-top: 20px;
+            padding: 40px;
+            background-color: #dcfce7;
+            border: 1px solid #86efac;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+            color: #166534;
+        }
+
+        .error-msg {
+            color: red;
+            font-size: 14px;
+            display: none;
+            margin-top: 5px;
+        }
+
+        /* تنسيق النافذة المنبثقة للنتائج */
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 1000; 
+            left: 0;
+            top: 0;
+            width: 100%; 
+            height: 100%; 
+            overflow: auto; 
+            background-color: rgba(0,0,0,0.4); 
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto; 
+            padding: 20px;
+            border: 1px solid #888;
+            width: 90%; 
+            max-width: 700px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .close {
+            color: #aaa;
+            float: left;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        table.results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        table.results-table th, table.results-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: right;
+        }
+
+        table.results-table th {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        /* تنسيقات الميزات الجديدة */
+        .clickable-name {
+            color: var(--primary-color);
+            cursor: pointer;
+            text-decoration: underline;
+            font-weight: bold;
+        }
+        .clickable-name:hover {
+            color: var(--secondary-color);
+        }
+
+        .detail-row {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            background-color: #fafafa;
+            margin-bottom: 5px;
+            border-radius: 4px;
+        }
+        .detail-row.correct {
+            border-right: 4px solid var(--success-color);
+            background-color: #f0fdf4;
+        }
+        .detail-row.wrong {
+            border-right: 4px solid var(--error-color);
+            background-color: #fef2f2;
+        }
+        .ans-label {
+            font-weight: bold;
+            font-size: 0.9em;
+            color: #666;
+        }
+        .pdf-btn {
+            background-color: #dc2626;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-bottom: 10px;
+            float: left;
+        }
+        .pdf-btn:hover { background-color: #b91c1c; }
+        
+        .back-btn {
+            background-color: #6b7280;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-bottom: 10px;
+            margin-left: 10px;
+            float: right;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1 ondblclick="showResults()" title="انقر نقراً مزدوجاً لعرض النتائج">اختبار أحياء تفاعلي</h1>
+        <p>الرجاء تعبئة البيانات والإجابة على جميع الأسئلة بدقة</p>
+    </header>
+
+    <div class="student-info">
+        <h3>بيانات الطالب</h3>
+        <div class="form-group">
+            <label for="studentName">اسم الطالب:</label>
+            <input type="text" id="studentName" placeholder="اكتب اسمك الثلاثي" required>
+        </div>
+        <div class="form-group">
+            <label for="studentClass">الصف:</label>
+            <input type="text" id="studentClass" placeholder="مثال: الثالث ثانوي - أ" required>
+        </div>
+        <div class="form-group">
+            <label for="studentId">رقم السجل:</label>
+            <input type="number" id="studentId" placeholder="اكتب رقم السجل" required>
+        </div>
+    </div>
+
+    <form id="quizForm" onsubmit="return false;">
+        <!-- سيتم توليد الأسئلة هنا بواسطة JavaScript -->
+        <div id="questions-container"></div>
+
+        <div id="error-message" class="error-msg" style="text-align: center; font-size: 16px; margin-bottom: 10px;">
+            الرجاء الإجابة على جميع الأسئلة وتعبئة البيانات قبل الإرسال.
+        </div>
+
+        <button type="button" class="submit-btn" onclick="submitQuiz()" id="submitBtn">إرسال الإجابة</button>
+    </form>
+
+    <div id="result-area"></div>
+</div>
+
+<!-- Modal لعرض النتائج والتفاصيل -->
+<div id="resultsModal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeResults()">&times;</span>
+    <div id="modalBody">
+        <h2 style="color: var(--primary-color); margin-top: 0;">نتائج الطلاب</h2>
+        <div id="resultsList">جاري التحميل...</div>
+    </div>
+  </div>
+</div>
+
+<!-- Firebase Scripts -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+<script>
+    // 1. Firebase Configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyBxPO6RKsQ1Cq-mqlCpFTrCuIyxnYdB37U",
+        authDomain: "studentsystem-c1ab1.firebaseapp.com",
+        databaseURL: "https://studentsystem-c1ab1-default-rtdb.firebaseio.com",
+        projectId: "studentsystem-c1ab1",
+        storageBucket: "studentsystem-c1ab1.firebasestorage.app",
+        messagingSenderId: "112215023848",
+        appId: "1:112215023848:web:0adba326a527ee7e37e95d"
+    };
+
+    // Initialize Firebase
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.database();
+    const rootRef = db.ref('q1');
+
+    // 2. Data: Questions and Answers
+    // السؤال الأول: اختر الإجابة الصحيحة (30 سؤال)
+    const mcqQuestions = [
+        { id: "mc1", q: "يتغذى عن طريق قذف المعدة خارج الفم إلى الفريسة:", options: ["الضفدع", "نجم البحر", "القرش", "لا شيء مما ذكر"], a: 1 },
+        { id: "mc2", q: "تعرف بالقميصيات لوجود طبقة تشبه القميص:", options: ["شوكيات الجلد", "الحبليات", "الكيسيات", "خيار البحر"], a: 2 },
+        { id: "mc3", q: "أي الزعانف التالية تجعل السمكة مستقرة في الماء:", options: ["الظهرية", "الحوضية", "الصدرية", "الحوضية والصدرية معاً"], a: 3 },
+        { id: "mc4", q: "توجد القشور الصفائحية في الأسماك:", options: ["القرش", "السردين", "الرمح", "الجلكي"], a: 0 },
+        { id: "mc5", q: "يتكون القلب في الأسماك من:", options: ["3 حجرات", "4 حجرات", "حجرتين", "حجرة واحدة فقط"], a: 2 },
+        { id: "mc6", q: "في الأسماك أكياس صغيرة عند منطقة اتصال المعدة بالأمعاء:", options: ["الاثنا عشر", "المعي الأعور", "الخياشيم", "لا شيء مما ذكر"], a: 1 },
+        { id: "mc7", q: "يوجد على جانبي السمكة ويقوم بوظيفة الإحساس:", options: ["الزعانف", "الخياشيم", "الخط الجانبي", "كيس العوم"], a: 2 },
+        { id: "mc8", q: "كيس مملوء بالغاز يساعد السمكة على الطفو أو الغوص:", options: ["مثانة العوم", "المثانة البولية", "الخياشيم", "الزعانف"], a: 0 },
+        { id: "mc9", q: "سمكة ليس لها قشور أو زعانف وعديمة الفكوك:", options: ["القرش", "سمك الرئة", "الحارس الكبير", "الجلكي"], a: 3 },
+        { id: "mc10", q: "تتنفس الضفادع عن طريق:", options: ["الجلد", "الرئتان", "الخياشيم", "جميع ما تقدم"], a: 3 },
+        { id: "mc11", q: "يتكون القلب في الضفادع من:", options: ["حجرة واحدة", "حجرتان", "3 حجرات", "4 حجرات"], a: 2 },
+        { id: "mc12", q: "في الأفاعي يعمل جهاز جاكوب وسون لتمييز:", options: ["موقع الفرائس", "الروائح", "قوة البصر", "لا شيء مما ذكر"], a: 1 },
+        { id: "mc13", q: "الطيور لها درجة حرارة ثابته وهي تقريباً:", options: ["45 ° م", "41 ° م", "36 ° م", "37 ° م"], a: 1 },
+        { id: "mc14", q: "تتميز الطيور عن باقي الحيوانات بأن ليس لها:", options: ["مثانة بولية", "رئة", "أمعاء", "لا شيء مما ذكر"], a: 0 },
+        { id: "mc15", q: "رفع الغزلان ذيلوها يعتبر من مهارة:", options: ["التخفي", "الدفاع", "التواصل", "الإحساس"], a: 2 },
+        { id: "mc16", q: "نوع من الغدد تساعد على المحافظة على جودة الشعر:", options: ["الغدد الدهنية", "الغدد اللبنية", "الغدد العرفية", "غدد الرائحة"], a: 0 },
+        { id: "mc17", q: "من الأمثلة على الثدييات الأولية:", options: ["الكنغر", "الكوالا", "السنجاب", "منقار البط"], a: 3 },
+        { id: "mc18", q: "الأنسجة والوعائية تحتوي على:", options: ["خشب", "لحاء", "كامبيوم", "جميع ما تقدم"], a: 3 },
+        { id: "mc19", q: "أول هرمون نباتي تم اكتشافه:", options: ["الإيثلين", "الجبريلينات", "الأوكسين", "لا شيء مما ذكر"], a: 2 },
+        { id: "mc20", q: "عند إزالة القمة النامية في النبات فإن الأفرع:", options: ["لا تنمو", "تنمو", "تستطيل", "لا شيء مما ذكر"], a: 1 },
+        { id: "mc21", q: "الهرمون النباتي الغازي الوحيد هو:", options: ["الإيثلين", "الأوكسين", "الجبريلينات", "جميع ما تقدم"], a: 0 },
+        { id: "mc22", q: "يعرف انطباق ورقة النبات آكل الحشرات:", options: ["نمو النبات", "استجابته", "دفاع عن النفس", "لا شيء مما ذكر"], a: 1 },
+        { id: "mc23", q: "الكربلة في الأزهار تتكون من:", options: ["ميسم", "قلم", "مبيض", "جميع ما تقدم"], a: 3 },
+        { id: "mc24", q: "نمو الساق في النبات يطلق عليه انتحاء:", options: ["أرضي موجب", "ضوئي", "أرضي سالب", "لمسي"], a: 1 },
+        { id: "mc25", q: "جزء من الزهرة تكون عادةً ملونة لجذب الملقّحات:", options: ["السبلات", "البتلات", "الكرابل", "السداة"], a: 1 },
+        { id: "mc26", q: "هو الجزء الأول من جنين البذرة يظهر خارجاً منها:", options: ["الجذير", "غلاف البذرة", "السويقه", "الورقة"], a: 0 },
+        { id: "mc27", q: "أي الأجزاء التالية من الزهرة ينتج حبوب اللقاح:", options: ["المبيض", "الخيط", "المتك", "القلم"], a: 2 },
+        { id: "mc28", q: "جزء من الخلية له القدرة على خاصية النفاذية الاختيارية:", options: ["النواة", "الميتوكوندريا", "السيتوبلازم", "الغشاء البلازمي"], a: 3 },
+        { id: "mc29", q: "جزء من الخلية يقوم بإنتاج الطاقة وتلقب بـ (بيت الطاقة):", options: ["النواة", "الفجوات", "الميتوكوندريا", "جهاز جولجي"], a: 2 },
+        { id: "mc30", q: "تتكون البروتينات من وحدات تسمى:", options: ["الأحماض الأمينية", "أحماض دهنية", "جليسيرول", "السكريات"], a: 0 }
+    ];
+
+    // السؤال الثاني: ضع علامة صح أو خطأ (10 أسئلة)
+    const trueFalseQuestions = [
+        { id: "tf1", q: "تعرف طاقة التنشيط بأنها الحد الأدنى من الطاقة لحدوث التفاعل الكيميائي.", a: "true" },
+        { id: "tf2", q: "تنقسم الدهون إلى قسمين مشبعة وغير مشبعة.", a: "true" },
+        { id: "tf3", q: "عادةً تكون الأسواط أقصر من الأهداب وأكثر عدداً.", a: "false" },
+        { id: "tf4", q: "يطلق على الديناميكا الحرارية دراسة تدفق الطاقة وتحولها.", a: "true" },
+        { id: "tf5", q: "مسارات عمليات الآيض هي مسار الهدم ومسار البناء.", a: "true" },
+        { id: "tf6", q: "تعتبر حلقة كالفن هي المرحلة الثانية من البناء الضوئي ولا تعتمد على الضوء.", a: "true" },
+        { id: "tf7", q: "يطلق على الأصباغ بأنها جزيئات ملونة تمتص الضوء.", a: "true" },
+        { id: "tf8", q: "يحدث عادةً التخمر الكحولي في الخميرة.", a: "true" },
+        { id: "tf9", q: "تُعرف فترة الكمون بأنها الفترة التي يوجد بها نمو للنبات.", a: "false" },
+        { id: "tf10", q: "في البذرة يقوم الإندوسبيرم بتوفير الغذاء للجنين.", a: "true" }
+    ];
+
+    // 3. Render Questions
+    const container = document.getElementById('questions-container');
+
+    // Render MCQ First (السؤال الأول)
+    const mcqTitle = document.createElement('h2');
+    mcqTitle.className = 'section-title';
+    mcqTitle.innerText = 'السؤال الأول: اختر الإجابة الصحيحة';
+    container.appendChild(mcqTitle);
+
+    mcqQuestions.forEach((item, index) => {
+        const card = document.createElement('div');
+        card.className = 'question-card';
+        let optionsHtml = '';
+        const letters = ['أ', 'ب', 'ج', 'د'];
+        item.options.forEach((opt, idx) => {
+            optionsHtml += `<label><input type="radio" name="${item.id}" value="${idx}"> ${letters[idx]}) ${opt}</label>`;
+        });
+        
+        card.innerHTML = `
+            <div class="question-text">${index + 1}. ${item.q}</div>
+            <div class="options">
+                ${optionsHtml}
+            </div>
+        `;
+        container.appendChild(card);
+    });
+
+    // Render True/False Second (السؤال الثاني)
+    const tfTitle = document.createElement('h2');
+    tfTitle.className = 'section-title';
+    tfTitle.innerText = 'السؤال الثاني: ضع علامة (✓) أو (✗)';
+    container.appendChild(tfTitle);
+
+    trueFalseQuestions.forEach((item, index) => {
+        const card = document.createElement('div');
+        card.className = 'question-card';
+        card.innerHTML = `
+            <div class="question-text">${index + 1}. ${item.q}</div>
+            <div class="options">
+                <label><input type="radio" name="${item.id}" value="true"> صح (✓)</label>
+                <label><input type="radio" name="${item.id}" value="false"> خطأ (✗)</label>
+            </div>
+        `;
+        container.appendChild(card);
+    });
+
+    // 4. Submission & Grading Logic
+    function submitQuiz() {
+        const submitBtn = document.getElementById('submitBtn');
+        const errorMsg = document.getElementById('error-message');
+        const name = document.getElementById('studentName').value.trim();
+        const sClass = document.getElementById('studentClass').value.trim();
+        const sId = document.getElementById('studentId').value.trim();
+
+        if (!name || !sClass || !sId) {
+            errorMsg.style.display = 'block';
+            errorMsg.innerText = "الرجاء تعبئة جميع بيانات الطالب.";
+            window.scrollTo(0, 0);
+            return;
+        }
+
+        let score = 0;
+        let totalQuestions = trueFalseQuestions.length + mcqQuestions.length;
+        let allAnswered = true;
+        let studentAnswers = {}; // تخزين إجابات الطالب
+
+        // Calculate MCQ Score & Save
+        mcqQuestions.forEach(q => {
+            const selected = document.querySelector(`input[name="${q.id}"]:checked`);
+            if (!selected) allAnswered = false;
+            else {
+                if (parseInt(selected.value) === q.a) score++;
+                studentAnswers[q.id] = parseInt(selected.value);
+            }
+        });
+
+        // Calculate TF Score & Save
+        trueFalseQuestions.forEach(q => {
+            const selected = document.querySelector(`input[name="${q.id}"]:checked`);
+            if (!selected) allAnswered = false;
+            else {
+                if (selected.value === q.a) score++;
+                studentAnswers[q.id] = selected.value;
+            }
+        });
+
+        if (!allAnswered) {
+            errorMsg.style.display = 'block';
+            errorMsg.innerText = "الرجاء الإجابة على جميع الأسئلة قبل الإرسال.";
+            return;
+        }
+
+        errorMsg.style.display = 'none';
+        submitBtn.disabled = true;
+        submitBtn.innerText = "جاري الإرسال...";
+
+        // Prepare Data
+        const studentData = {
+            name: name,
+            class: sClass,
+            registryId: sId,
+            score: score,
+            total: totalQuestions,
+            answers: studentAnswers, // إضافة الإجابات
+            timestamp: new Date().toLocaleString('ar-SA')
+        };
+
+        // Send to Firebase
+        rootRef.push(studentData)
+            .then(() => {
+                const resultArea = document.getElementById('result-area');
+                document.getElementById('quizForm').style.display = 'none';
+                document.querySelector('.student-info').style.display = 'none';
+                
+                resultArea.style.display = 'block';
+                resultArea.innerHTML = `
+                    <p style="font-size: 24px;">تم استلام الإجابة</p>
+                    <button class="submit-btn" style="width: auto; padding: 10px 20px; background-color: #059669;" onclick="location.reload()">الرجوع للأسئلة</button>
+                `;
+                window.scrollTo(0, 0);
+            })
+            .catch((error) => {
+                console.error("Error writing to database: ", error);
+                errorMsg.style.display = 'block';
+                errorMsg.innerText = "حدث خطأ أثناء الإرسال، تأكد من الاتصال بالإنترنت وحاول مرة أخرى.";
+                submitBtn.disabled = false;
+                submitBtn.innerText = "إرسال الإجابة";
+            });
+    }
+
+    // متغير عام لتخزين البيانات
+    let allStudentsData = {};
+
+    // دوال النافذة المنبثقة للنتائج
+    function showResults() {
+        const modal = document.getElementById('resultsModal');
+        const list = document.getElementById('resultsList');
+        
+        // إعادة تعيين محتوى المودال للقائمة الرئيسية
+        const modalBody = document.getElementById('modalBody');
+        modalBody.innerHTML = `
+             <h2 style="color: var(--primary-color); margin-top: 0;">نتائج الطلاب</h2>
+             <div id="resultsList">جاري التحميل...</div>
+        `;
+
+        modal.style.display = 'block';
+        const listDiv = document.getElementById('resultsList');
+
+        rootRef.once('value')
+            .then((snapshot) => {
+                listDiv.innerHTML = '';
+                if(snapshot.exists()){
+                    allStudentsData = snapshot.val(); // حفظ البيانات
+                    let html = '<table class="results-table"><thead><tr><th>الاسم</th><th>الصف</th><th>الدرجة</th></tr></thead><tbody>';
+                    
+                    Object.entries(allStudentsData).forEach(([key, student]) => {
+                        html += `<tr>
+                            <td class="clickable-name" onclick="showStudentDetails('${key}')">${student.name}</td>
+                            <td>${student.class}</td>
+                            <td>${student.score} / ${student.total}</td>
+                        </tr>`;
+                    });
+                    
+                    html += '</tbody></table>';
+                    listDiv.innerHTML = html;
+                } else {
+                    listDiv.innerHTML = '<div style="text-align:center; padding: 20px;">لا توجد نتائج مسجلة حتى الآن.</div>';
+                }
+            })
+            .catch((error) => {
+                listDiv.innerHTML = '<div style="color:red; text-align:center; padding: 20px;">حدث خطأ أثناء جلب البيانات. تأكد من الأذونات.</div>';
+                console.error(error);
+            });
+    }
+
+    // دالة عرض تفاصيل الطالب
+    function showStudentDetails(key) {
+        const student = allStudentsData[key];
+        if(!student) return;
+
+        const modalBody = document.getElementById('modalBody');
+        let detailsHtml = `
+            <div id="export-content">
+                <button class="back-btn" onclick="showResults()" data-html2canvas-ignore="true">عودة للقائمة</button>
+                <button class="pdf-btn" onclick="exportPDF()" data-html2canvas-ignore="true">تصدير PDF</button>
+                <div style="clear:both;"></div>
+                
+                <h2 style="border-bottom: 2px solid #2563eb; padding-bottom: 10px;">تقرير إجابات الطالب</h2>
+                <div style="background: #f1f5f9; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                    <p><strong>الاسم:</strong> ${student.name}</p>
+                    <p><strong>الصف:</strong> ${student.class}</p>
+                    <p><strong>النتيجة النهائية:</strong> ${student.score} / ${student.total}</p>
+                    <p><strong>الوقت:</strong> ${student.timestamp}</p>
+                </div>
+                <h3>تفاصيل الإجابات:</h3>
+        `;
+
+        if (!student.answers) {
+            detailsHtml += '<p>لا توجد تفاصيل إجابات محفوظة لهذا الطالب (نسخة قديمة).</p>';
+        } else {
+            // تفاصيل الاختيار من متعدد (السؤال الأول)
+            detailsHtml += '<h4>أولاً: الاختيارات</h4>';
+            mcqQuestions.forEach((q, idx) => {
+                const userAnsIdx = student.answers[q.id];
+                const isCorrect = userAnsIdx === q.a;
+                const statusClass = isCorrect ? 'correct' : 'wrong';
+                const userAnsText = (userAnsIdx !== undefined && userAnsIdx !== null) ? q.options[userAnsIdx] : "لم يجب";
+
+                detailsHtml += `
+                    <div class="detail-row ${statusClass}">
+                        <div><strong>${idx + 1}. ${q.q}</strong></div>
+                        <div class="ans-label">إجابة الطالب: ${userAnsText} - ${isCorrect ? '<span style="color:green">صحيحة</span>' : '<span style="color:red">خاطئة</span>'}</div>
+                    </div>
+                `;
+            });
+
+            // تفاصيل الصح والخطأ (السؤال الثاني)
+            detailsHtml += '<h4>ثانياً: الصح والخطأ</h4>';
+            trueFalseQuestions.forEach((q, idx) => {
+                const userAns = student.answers[q.id];
+                const isCorrect = userAns === q.a;
+                const statusClass = isCorrect ? 'correct' : 'wrong';
+                const ansText = userAns === "true" ? "صح" : (userAns === "false" ? "خطأ" : "لم يجب");
+                
+                detailsHtml += `
+                    <div class="detail-row ${statusClass}">
+                        <div><strong>${idx + 1}. ${q.q}</strong></div>
+                        <div class="ans-label">إجابة الطالب: ${ansText} - ${isCorrect ? '<span style="color:green">صحيحة</span>' : '<span style="color:red">خاطئة</span>'}</div>
+                    </div>
+                `;
+            });
+        }
+        
+        detailsHtml += '</div>'; // close export-content
+        modalBody.innerHTML = detailsHtml;
+    }
+
+    // دالة تصدير PDF
+    function exportPDF() {
+        const element = document.getElementById('export-content');
+        const opt = {
+            margin:       [10, 10, 10, 10],
+            filename:     'نتيجة_الطالب.pdf',
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2 },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+        
+        // تغيير مؤقت للنص للزر لبيان العملية
+        const btn = document.querySelector('.pdf-btn');
+        const originalText = btn.innerText;
+        btn.innerText = "جاري التصدير...";
+        
+        html2pdf().set(opt).from(element).save().then(() => {
+            btn.innerText = originalText;
+        });
+    }
+
+    function closeResults() {
+        document.getElementById('resultsModal').style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+        const modal = document.getElementById('resultsModal');
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    }
+</script>
+
+</body>
+</html>
