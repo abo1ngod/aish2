@@ -1703,9 +1703,13 @@
                         <i class="fas fa-file-excel"></i>
                         استيراد Excel
                     </button>
-                    <button class="action-btn outline" onclick="exportStudents()">
-                        <i class="fas fa-download"></i>
-                        تصدير
+                    <button class="action-btn success" onclick="exportStudents()">
+                        <i class="fas fa-file-export"></i>
+                        تصدير CSV
+                    </button>
+                    <button class="action-btn danger" onclick="deleteAllStudents()">
+                        <i class="fas fa-trash-alt"></i>
+                        حذف الجميع
                     </button>
                 </div>
 
@@ -1714,7 +1718,7 @@
                         <i class="fas fa-search"></i>
                         <input type="text" id="studentSearch" placeholder="بحث بالاسم أو السجل..." oninput="filterStudents()">
                     </div>
-                    <select class="filter-select" id="gradeFilter" onchange="filterStudents()">
+                    <select class="filter-select" id="gradeFilter" onchange="updateStudentsSectionFilter(); filterStudents()">
                         <option value="">كل الصفوف</option>
                         <option value="أول ثانوي">أول ثانوي</option>
                         <option value="ثاني ثانوي">ثاني ثانوي</option>
@@ -1726,6 +1730,14 @@
                         <option value="2">شعبة 2</option>
                         <option value="3">شعبة 3</option>
                         <option value="4">شعبة 4</option>
+                        <option value="5">شعبة 5</option>
+                        <option value="6">شعبة 6</option>
+                        <option value="7">شعبة 7</option>
+                        <option value="8">شعبة 8</option>
+                        <option value="9">شعبة 9</option>
+                        <option value="10">شعبة 10</option>
+                        <option value="11">شعبة 11</option>
+                        <option value="12">شعبة 12</option>
                     </select>
                 </div>
 
@@ -1792,6 +1804,7 @@
                                 </thead>
                                 <tbody id="submissionOrderBody"></tbody>
                             </table>
+                            <div id="submissionPagination"></div>
                         </div>
                     </div>
 
@@ -1812,6 +1825,7 @@
                                 </thead>
                                 <tbody id="integrityBody"></tbody>
                             </table>
+                            <div id="integrityPagination"></div>
                         </div>
                     </div>
 
@@ -1971,7 +1985,7 @@
 - الأسئلة باللغة العربية
 
 الصيغة المطلوبة لكل سؤال (سطر واحد):
-نص السؤال|الخيار1|الخيار2|الخيار3|الخيار4|رقم الإجابة الصح��حة
+نص السؤال|الخيار1|الخيار2|الخيار3|الخيار4|رقم الإجابة الصحيحة
 
 مثال:
 ما هي عاصمة المملكة العربية السعودية؟|الرياض|جدة|مكة|الدمام|1
@@ -2218,18 +2232,53 @@ ${rawText}
             }
         }
 
-        // Storage helpers (using in-memory storage since localStorage is not available in iframe)
+        // Storage helpers - يستخدم localStorage خارج بيئة Poe، ويرجع للذاكرة داخلها
         window.tempStorage = window.tempStorage || {};
+        const storage = window.localStorage;
+
+        function isLocalStorageAvailable() {
+            try {
+                const test = '__storage_test__';
+                storage.setItem(test, test);
+                storage.removeItem(test);
+                return true;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        const useLocalStorage = isLocalStorageAvailable();
 
         function saveToStorage(key, value) {
-            window.tempStorage[key] = value;
+            if (useLocalStorage) {
+                try {
+                    storage.setItem(key, JSON.stringify(value));
+                } catch (e) {
+                    window.tempStorage[key] = value;
+                }
+            } else {
+                window.tempStorage[key] = value;
+            }
         }
 
         function getFromStorage(key) {
+            if (useLocalStorage) {
+                try {
+                    const item = storage.getItem(key);
+                    return item ? JSON.parse(item) : null;
+                } catch (e) {
+                    return window.tempStorage[key] || null;
+                }
+            }
             return window.tempStorage[key] || null;
         }
 
         function removeFromStorage(key) {
+            if (useLocalStorage) {
+                try {
+                    storage.removeItem(key);
+                } catch (e) {}
+            }
             delete window.tempStorage[key];
         }
 
@@ -2601,6 +2650,9 @@ ${rawText}
 
             renderQuestions();
             setupVisibilityTracking();
+
+            // الذهاب لأعلى الصفحة وللسؤال الأول
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         // Shuffle array helper
@@ -3030,6 +3082,7 @@ ${rawText}
 
             document.getElementById('dashboardSection').classList.add('hidden');
             document.getElementById('reviewSection').classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
 
             document.getElementById('reviewExamTitle').textContent = exam.title;
             document.getElementById('reviewScore').textContent = showResults ? `${percentage}%` : '---';
@@ -3116,13 +3169,24 @@ ${rawText}
                 .once('value');
 
             let alreadyRequested = false;
+            let wasRejected = false;
             if (existingRequests.exists()) {
                 existingRequests.forEach(snap => {
                     const req = snap.val();
                     if (req.examId === currentExam.id) {
-                        alreadyRequested = true;
+                        if (req.status === 'rejected') {
+                            wasRejected = true;
+                        } else if (req.status === 'pending') {
+                            alreadyRequested = true;
+                        }
                     }
                 });
+            }
+
+            // إذا تم الرفض سابقاً
+            if (wasRejected) {
+                showAlert('تم رفض طلبك', 'تم رفض طلب إعادة الاختبار سابقاً. تواصل مع المعلم مباشرة.', 'error');
+                return;
             }
 
             if (alreadyRequested) {
@@ -3249,9 +3313,13 @@ ${rawText}
 
         // ============ ADMIN PANEL FUNCTIONS ============
         let allStudents = [];
+        let filteredStudents = [];
         let allExamsAdmin = [];
         let sortColumn = 'name';
         let sortDirection = 'asc';
+        let currentPage = 1;
+        const PAGE_SIZE = 45;
+        let showAllStudents = false;
 
         function showAdminPanel() {
             document.getElementById('loginSection').classList.add('hidden');
@@ -3303,7 +3371,9 @@ ${rawText}
         }
 
         function renderStudentsTable(students) {
+            filteredStudents = students;
             const tbody = document.getElementById('studentsTableBody');
+
             if (students.length === 0) {
                 tbody.innerHTML = `
                     <tr>
@@ -3313,15 +3383,31 @@ ${rawText}
                         </td>
                     </tr>
                 `;
+                renderPagination(0);
                 return;
             }
 
-            tbody.innerHTML = students.map(s => `
+            // حساب الصفحات
+            const totalPages = Math.ceil(students.length / PAGE_SIZE);
+            if (currentPage > totalPages) currentPage = totalPages;
+            if (currentPage < 1) currentPage = 1;
+
+            // تحديد الطلاب للعرض
+            let displayStudents;
+            if (showAllStudents) {
+                displayStudents = students;
+            } else {
+                const start = (currentPage - 1) * PAGE_SIZE;
+                const end = start + PAGE_SIZE;
+                displayStudents = students.slice(start, end);
+            }
+
+            tbody.innerHTML = displayStudents.map(s => `
                 <tr>
-                    <td>${s.civilId}</td>
-                    <td>${s.name}</td>
-                    <td>${s.grade}</td>
-                    <td>${s.section}</td>
+                    <td>${cleanText(s.civilId)}</td>
+                    <td>${cleanText(s.name)}</td>
+                    <td>${cleanText(s.grade)}</td>
+                    <td>${cleanText(s.section)}</td>
                     <td>
                         <div class="table-actions">
                             <button class="icon-btn view" title="عرض النتائج" onclick="viewStudentResults('${s.civilId}')">
@@ -3340,12 +3426,92 @@ ${rawText}
                     </td>
                 </tr>
             `).join('');
+
+            renderPagination(students.length);
+        }
+
+        function renderPagination(total) {
+            let paginationDiv = document.getElementById('studentsPagination');
+            if (!paginationDiv) {
+                const table = document.getElementById('studentsTableBody').closest('table');
+                paginationDiv = document.createElement('div');
+                paginationDiv.id = 'studentsPagination';
+                paginationDiv.className = 'pagination-controls';
+                table.parentNode.insertBefore(paginationDiv, table.nextSibling);
+            }
+
+            if (total === 0) {
+                paginationDiv.innerHTML = '';
+                return;
+            }
+
+            const totalPages = Math.ceil(total / PAGE_SIZE);
+            const start = showAllStudents ? 1 : (currentPage - 1) * PAGE_SIZE + 1;
+            const end = showAllStudents ? total : Math.min(currentPage * PAGE_SIZE, total);
+
+            paginationDiv.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: var(--card-bg); border-radius: 0 0 12px 12px; flex-wrap: wrap; gap: 10px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="color: var(--gray);">عرض ${start} - ${end} من ${total}</span>
+                        <button class="action-btn ${showAllStudents ? 'primary' : 'outline'}" onclick="toggleShowAll()" style="padding: 5px 15px; font-size: 12px;">
+                            ${showAllStudents ? 'عرض 45' : 'عرض الكل'}
+                        </button>
+                    </div>
+                    ${!showAllStudents && totalPages > 1 ? `
+                        <div style="display: flex; gap: 5px; align-items: center;">
+                            <button class="action-btn outline" onclick="goToPage(1)" ${currentPage === 1 ? 'disabled' : ''} style="padding: 5px 10px;">
+                                <i class="fas fa-angle-double-right"></i>
+                            </button>
+                            <button class="action-btn outline" onclick="goToPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''} style="padding: 5px 10px;">
+                                <i class="fas fa-angle-right"></i>
+                            </button>
+                            <span style="padding: 5px 15px; background: var(--primary); color: white; border-radius: 5px;">${currentPage} / ${totalPages}</span>
+                            <button class="action-btn outline" onclick="goToPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''} style="padding: 5px 10px;">
+                                <i class="fas fa-angle-left"></i>
+                            </button>
+                            <button class="action-btn outline" onclick="goToPage(${totalPages})" ${currentPage === totalPages ? 'disabled' : ''} style="padding: 5px 10px;">
+                                <i class="fas fa-angle-double-left"></i>
+                            </button>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        function goToPage(page) {
+            currentPage = page;
+            renderStudentsTable(filteredStudents);
+        }
+
+        function toggleShowAll() {
+            showAllStudents = !showAllStudents;
+            currentPage = 1;
+            renderStudentsTable(filteredStudents);
+        }
+
+        // دالة تنظيف النصوص من الأحرف الفاسدة (Unicode replacement character)
+        function cleanText(text) {
+            if (!text) return '';
+            // إزالة الأحرف الفاسدة (U+FFFD) والأحرف غير المطبوعة
+            return text.replace(/\uFFFD/g, '').replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '').trim();
+        }
+
+        // دالة تحديث الشعب حسب الصف المختار في فلتر الطلاب
+        function updateStudentsSectionFilter() {
+            const grade = document.getElementById('gradeFilter').value;
+            const sectionFilter = document.getElementById('sectionFilter');
+            const sections = getSectionsForGrade(grade);
+
+            sectionFilter.innerHTML = '<option value="">كل الشعب</option>' +
+                sections.map(s => `<option value="${s}">شعبة ${s}</option>`).join('');
         }
 
         function filterStudents() {
             const search = document.getElementById('studentSearch').value.toLowerCase();
             const grade = document.getElementById('gradeFilter').value;
             const section = document.getElementById('sectionFilter').value;
+
+            currentPage = 1; // Reset to first page on filter
 
             let filtered = allStudents.filter(s => {
                 const matchSearch = s.name.toLowerCase().includes(search) || s.civilId.includes(search);
@@ -3410,6 +3576,14 @@ ${rawText}
                         </div>
                     </div>
                 `,
+                didOpen: () => {
+                    const gradeSelect = document.getElementById('swal-grade');
+                    const sectionSelect = document.getElementById('swal-section');
+                    gradeSelect.addEventListener('change', () => {
+                        const sections = getSectionsForGrade(gradeSelect.value);
+                        sectionSelect.innerHTML = sections.map(s => `<option value="${s}">${s}</option>`).join('');
+                    });
+                },
                 showCancelButton: true,
                 confirmButtonText: 'إضافة',
                 cancelButtonText: 'إلغاء',
@@ -3452,6 +3626,7 @@ ${rawText}
             const student = allStudents.find(s => s.civilId === civilId);
             if (!student) return;
 
+            const currentSections = getSectionsForGrade(student.grade);
             const { value: formValues } = await Swal.fire({
                 title: 'تعديل بيانات الطالب',
                 html: `
@@ -3475,14 +3650,19 @@ ${rawText}
                         <div class="form-group">
                             <label>الشعبة:</label>
                             <select id="swal-section" class="swal2-select">
-                                <option value="1" ${student.section === '1' ? 'selected' : ''}>1</option>
-                                <option value="2" ${student.section === '2' ? 'selected' : ''}>2</option>
-                                <option value="3" ${student.section === '3' ? 'selected' : ''}>3</option>
-                                <option value="4" ${student.section === '4' ? 'selected' : ''}>4</option>
+                                ${currentSections.map(s => `<option value="${s}" ${student.section === s ? 'selected' : ''}>${s}</option>`).join('')}
                             </select>
                         </div>
                     </div>
                 `,
+                didOpen: () => {
+                    const gradeSelect = document.getElementById('swal-grade');
+                    const sectionSelect = document.getElementById('swal-section');
+                    gradeSelect.addEventListener('change', () => {
+                        const sections = getSectionsForGrade(gradeSelect.value);
+                        sectionSelect.innerHTML = sections.map(s => `<option value="${s}">${s}</option>`).join('');
+                    });
+                },
                 showCancelButton: true,
                 confirmButtonText: 'حفظ',
                 cancelButtonText: 'إلغاء',
@@ -3519,7 +3699,7 @@ ${rawText}
             if (result.isConfirmed) {
                 try {
                     await rootRef.child('students').child(civilId).remove();
-                    showAlert('تم', 'تم ��ذف الطالب', 'success');
+                    showAlert('تم', 'تم حذف الطالب', 'success');
                     loadStudents();
                 } catch (error) {
                     showAlert('خطأ', 'حدث خطأ أثناء الحذف', 'error');
@@ -3566,7 +3746,7 @@ ${rawText}
 
                 let resultsHtml = `<h4 style="margin-bottom: 15px;">${student.name}</h4>`;
                 resultsHtml += '<table style="width: 100%; border-collapse: collapse;">';
-                resultsHtml += '<tr style="background: #f5f5f5;"><th style="padding: 10px; text-align: right;">الاختبار</th><th style="padding: 10px;">الدرجة</th><th style="padding: 10px;">الحالة</th></tr>';
+                resultsHtml += '<tr style="background: #f5f5f5;"><th style="padding: 10px; text-align: right;">الاختبار</th><th style="padding: 10px;">الدرجة</th><th style="padding: 10px;">الحالة</th><th style="padding: 10px;">إجراء</th></tr>';
 
                 if (examsSnap.exists()) {
                     examsSnap.forEach(examSnap => {
@@ -3575,16 +3755,19 @@ ${rawText}
 
                         let status = 'لم يختبر';
                         let score = '-';
+                        let resetBtn = '';
 
                         if (response?.submitted) {
                             status = 'مكتمل';
                             score = `${response.score || 0}/${response.totalPoints || 0}`;
+                            resetBtn = `<button onclick="resetStudentExamResult('${examSnap.key}', '${civilId}', '${exam.title.replace(/'/g, "\\'")}');Swal.close();" style="background: var(--warning); color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px;"><i class="fas fa-redo"></i> تصفير</button>`;
                         }
 
                         resultsHtml += `<tr>
                             <td style="padding: 10px; border-bottom: 1px solid #eee;">${exam.title}</td>
                             <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: center;">${score}</td>
                             <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: center;">${status}</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: center;">${resetBtn}</td>
                         </tr>`;
                     });
                 }
@@ -3594,7 +3777,7 @@ ${rawText}
                 Swal.fire({
                     title: 'نتائج الطالب',
                     html: resultsHtml,
-                    width: 600,
+                    width: 650,
                     confirmButtonText: 'إغلاق',
                     confirmButtonColor: '#1a5f7a'
                 });
@@ -3604,9 +3787,28 @@ ${rawText}
             }
         }
 
+        // تصفير اختبار محدد لطالب من نتائجه
+        async function resetStudentExamResult(examId, studentId, examTitle) {
+            const result = await Swal.fire({
+                title: 'تصفير الاختبار',
+                html: `<p>هل تريد تصفير اختبار <strong>${examTitle}</strong> لهذا الطالب؟</p>`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'تصفير',
+                cancelButtonText: 'إلغاء',
+                confirmButtonColor: '#f39c12'
+            });
+
+            if (result.isConfirmed) {
+                await rootRef.child('responses').child(examId).child(studentId).remove();
+                await rootRef.child('surveys').child(examId).child(studentId).remove();
+                showAlert('تم', 'تم تصفير الاختبار للطالب', 'success');
+            }
+        }
+
         function showImportModal() {
             Swal.fire({
-                title: '��ستيراد من Excel',
+                title: 'استيراد من Excel',
                 html: `
                     <div style="text-align: right;">
                         <p style="margin-bottom: 15px; color: #666;">
@@ -3695,6 +3897,53 @@ ${rawText}
             a.download = 'students.csv';
             a.click();
             URL.revokeObjectURL(url);
+        }
+
+        async function deleteAllStudents() {
+            if (allStudents.length === 0) {
+                showAlert('تنبيه', 'لا يوجد طلاب للحذف', 'info');
+                return;
+            }
+
+            const result = await Swal.fire({
+                title: 'حذف جميع الطلاب',
+                html: `
+                    <p style="color: var(--danger); font-weight: bold;">تحذير! هذا الإجراء لا يمكن التراجع عنه</p>
+                    <p>سيتم حذف <strong>${allStudents.length}</strong> طالب مع جميع إجاباتهم وإحصائياتهم</p>
+                    <div style="margin-top: 15px;">
+                        <input type="text" id="confirmDelete" class="swal2-input" placeholder="اكتب 'حذف' للتأكيد">
+                    </div>
+                `,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'حذف الجميع',
+                cancelButtonText: 'إلغاء',
+                confirmButtonColor: '#e74c3c',
+                preConfirm: () => {
+                    const confirm = document.getElementById('confirmDelete').value;
+                    if (confirm !== 'حذف') {
+                        Swal.showValidationMessage('يرجى كتابة "حذف" للتأكيد');
+                        return false;
+                    }
+                    return true;
+                }
+            });
+
+            if (result.isConfirmed) {
+                showLoading(true);
+                try {
+                    await rootRef.child('students').remove();
+                    await rootRef.child('responses').remove();
+                    await rootRef.child('surveys').remove();
+                    await rootRef.child('retakeRequests').remove();
+                    showLoading(false);
+                    showAlert('تم', 'تم حذف جميع الطلاب وبياناتهم', 'success');
+                    loadStudents();
+                } catch (error) {
+                    showLoading(false);
+                    showAlert('خطأ', 'حدث خطأ أثناء الحذف', 'error');
+                }
+            }
         }
 
         // ============ EXAMS MANAGEMENT ============
@@ -3865,6 +4114,10 @@ ${rawText}
                         </div>
                     </div>
                 `,
+                // متغيرات لحفظ بيانات الطلاب والمحددين - خارج didOpen لتكون متاحة في preConfirm
+                didRender: () => {
+                    window._createExamData = { allStudentsData: [], selectedStudentIds: new Set() };
+                },
                 didOpen: async () => {
                     document.getElementById('swal-timer').addEventListener('change', (e) => {
                         document.getElementById('timerMinutesGroup').style.display = e.target.checked ? 'block' : 'none';
@@ -3876,7 +4129,7 @@ ${rawText}
                     // دالة تحديث الشعب حسب الصف
                     const updateSectionOptions = (gradeSelect, sectionSelect) => {
                         const grade = gradeSelect.value;
-                        let sections = [];
+                        let sections = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
                         if (grade === 'أول ثانوي') sections = ['1', '2', '3', '4'];
                         else if (grade === 'ثاني ثانوي') sections = ['5', '6', '7', '8'];
                         else if (grade === 'ثالث ثانوي') sections = ['9', '10', '11', '12'];
@@ -3888,16 +4141,18 @@ ${rawText}
                         updateSectionOptions(e.target, document.getElementById('swal-targetSection'));
                     });
 
-                    // متغير لحفظ بيانات الطلاب
-                    let allStudentsData = [];
+                    // تحديث العداد
+                    const updateSelectedCount = () => {
+                        document.getElementById('selectedStudentsCount').textContent = window._createExamData.selectedStudentIds.size + ' محدد';
+                    };
 
-                    // دالة عرض قائمة الطلاب مع الفلترة
+                    // دالة عرض قائمة الطلاب مع الفلترة مع حفظ التحديد
                     const renderFilteredStudents = () => {
                         const search = document.getElementById('targetStudentSearch').value.toLowerCase();
                         const gradeFilter = document.getElementById('targetStudentGradeFilter').value;
                         const sectionFilter = document.getElementById('targetStudentSectionFilter').value;
 
-                        const filtered = allStudentsData.filter(([id, s]) => {
+                        const filtered = window._createExamData.allStudentsData.filter(([id, s]) => {
                             const matchSearch = !search || s.name.toLowerCase().includes(search) || id.includes(search);
                             const matchGrade = !gradeFilter || s.grade === gradeFilter;
                             const matchSection = !sectionFilter || s.section === sectionFilter;
@@ -3907,18 +4162,23 @@ ${rawText}
                         const listDiv = document.getElementById('targetStudentsList');
                         listDiv.innerHTML = filtered.map(([id, s]) => `
                             <label style="display: block; margin-bottom: 5px; cursor: pointer;">
-                                <input type="checkbox" value="${id}" class="target-student-cb">
+                                <input type="checkbox" value="${id}" class="target-student-cb" ${window._createExamData.selectedStudentIds.has(id) ? 'checked' : ''}>
                                 ${s.name} (${s.grade} - ${s.section})
                             </label>
                         `).join('') || '<p style="text-align: center; color: #999;">لا يوجد طلاب</p>';
 
-                        // تحديث العداد
-                        const updateCount = () => {
-                            const count = document.querySelectorAll('.target-student-cb:checked').length;
-                            document.getElementById('selectedStudentsCount').textContent = count + ' محدد';
-                        };
-                        listDiv.querySelectorAll('.target-student-cb').forEach(cb => cb.addEventListener('change', updateCount));
-                        updateCount();
+                        // ربط الأحداث للحفاظ على التحديد
+                        listDiv.querySelectorAll('.target-student-cb').forEach(cb => {
+                            cb.addEventListener('change', (e) => {
+                                if (e.target.checked) {
+                                    window._createExamData.selectedStudentIds.add(e.target.value);
+                                } else {
+                                    window._createExamData.selectedStudentIds.delete(e.target.value);
+                                }
+                                updateSelectedCount();
+                            });
+                        });
+                        updateSelectedCount();
                     };
 
                     // Handle target type change
@@ -3928,10 +4188,10 @@ ${rawText}
                         document.getElementById('targetSectionGroup').style.display = val === 'section' ? 'block' : 'none';
                         document.getElementById('targetStudentsGroup').style.display = val === 'specific' ? 'block' : 'none';
 
-                        if (val === 'specific' && allStudentsData.length === 0) {
+                        if (val === 'specific' && window._createExamData.allStudentsData.length === 0) {
                             const studentsSnap = await rootRef.child('students').once('value');
                             const students = studentsSnap.val() || {};
-                            allStudentsData = Object.entries(students).sort((a, b) => a[1].name.localeCompare(b[1].name, 'ar'));
+                            window._createExamData.allStudentsData = Object.entries(students).sort((a, b) => a[1].name.localeCompare(b[1].name, 'ar'));
                             renderFilteredStudents();
 
                             // إعداد الفلاتر
@@ -3944,13 +4204,18 @@ ${rawText}
 
                             // أزرار التحديد
                             document.getElementById('selectAllStudentsBtn').addEventListener('click', () => {
-                                document.querySelectorAll('.target-student-cb').forEach(cb => cb.checked = true);
-                                const count = document.querySelectorAll('.target-student-cb:checked').length;
-                                document.getElementById('selectedStudentsCount').textContent = count + ' محدد';
+                                document.querySelectorAll('.target-student-cb').forEach(cb => {
+                                    cb.checked = true;
+                                    window._createExamData.selectedStudentIds.add(cb.value);
+                                });
+                                updateSelectedCount();
                             });
                             document.getElementById('deselectAllStudentsBtn').addEventListener('click', () => {
-                                document.querySelectorAll('.target-student-cb').forEach(cb => cb.checked = false);
-                                document.getElementById('selectedStudentsCount').textContent = '0 محدد';
+                                document.querySelectorAll('.target-student-cb').forEach(cb => {
+                                    cb.checked = false;
+                                    window._createExamData.selectedStudentIds.delete(cb.value);
+                                });
+                                updateSelectedCount();
                             });
                         } else if (val === 'specific') {
                             renderFilteredStudents();
@@ -3981,8 +4246,7 @@ ${rawText}
                         targetSection = document.getElementById('swal-targetSection').value;
                     }
                     if (targetType === 'specific') {
-                        const checkboxes = document.querySelectorAll('.target-student-cb:checked');
-                        targetStudents = Array.from(checkboxes).map(cb => cb.value);
+                        targetStudents = Array.from(window._createExamData.selectedStudentIds);
                     }
 
                     return {
@@ -4013,8 +4277,8 @@ ${rawText}
                         teacherName: formValues.teacherName,
                         createdAt: firebase.database.ServerValue.TIMESTAMP,
                         settings: {
-                            isPublished: formValues.hasSchedule ? false : true,
-                            isOpen: true,
+                            isPublished: false,
+                            isOpen: false,
                             hasTimer: formValues.hasTimer,
                             timerMinutes: formValues.timerMinutes,
                             showResults: false,
@@ -4264,7 +4528,7 @@ ${rawText}
                     <div style="text-align: right;">
                         <div class="form-group">
                             <label>نوع السؤال:</label>
-                            <select id="swal-type" class="swal2-select" onchange="updateOptionsFields()">
+                            <select id="swal-type" class="swal2-select">
                                 <option value="mcq">اختيار متعدد</option>
                                 <option value="truefalse">صح/خطأ</option>
                             </select>
@@ -4301,6 +4565,48 @@ ${rawText}
                     </div>
                 `,
                 width: 600,
+                didOpen: () => {
+                    document.getElementById('swal-type').addEventListener('change', (e) => {
+                        const container = document.getElementById('optionsContainer');
+                        if (e.target.value === 'truefalse') {
+                            container.innerHTML = `
+                                <div class="form-group">
+                                    <label>الخيارات:</label>
+                                    <div class="option-row">
+                                        <input type="radio" name="correct" value="0" checked>
+                                        <input type="text" id="opt0" value="صح" readonly style="background: #f0f0f0;">
+                                    </div>
+                                    <div class="option-row">
+                                        <input type="radio" name="correct" value="1">
+                                        <input type="text" id="opt1" value="خطأ" readonly style="background: #f0f0f0;">
+                                    </div>
+                                </div>
+                            `;
+                        } else {
+                            container.innerHTML = `
+                                <div class="form-group">
+                                    <label>الخيارات:</label>
+                                    <div class="option-row">
+                                        <input type="radio" name="correct" value="0" checked>
+                                        <input type="text" id="opt0" placeholder="الخيار 1">
+                                    </div>
+                                    <div class="option-row">
+                                        <input type="radio" name="correct" value="1">
+                                        <input type="text" id="opt1" placeholder="الخيار 2">
+                                    </div>
+                                    <div class="option-row">
+                                        <input type="radio" name="correct" value="2">
+                                        <input type="text" id="opt2" placeholder="الخيار 3">
+                                    </div>
+                                    <div class="option-row">
+                                        <input type="radio" name="correct" value="3">
+                                        <input type="text" id="opt3" placeholder="الخيار 4">
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    });
+                },
                 showCancelButton: true,
                 confirmButtonText: 'إضافة',
                 cancelButtonText: 'إلغاء',
@@ -4550,12 +4856,12 @@ ${rawText}
                 `,
                 width: 600,
                 showCancelButton: true,
-                confirmButtonText: 'حفظ التعديلات',
+                confirmButtonText: 'حفظ التعدي��ات',
                 cancelButtonText: 'إلغاء',
                 confirmButtonColor: '#1a5f7a',
                 didOpen: () => {
                     const updateSections = (grade) => {
-                        let sections = [];
+                        let sections = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
                         if (grade === 'أول ثانوي') sections = ['1', '2', '3', '4'];
                         else if (grade === 'ثاني ثانوي') sections = ['5', '6', '7', '8'];
                         else if (grade === 'ثالث ثانوي') sections = ['9', '10', '11', '12'];
@@ -4694,6 +5000,9 @@ ${rawText}
                     studentsData.push({ id: snap.key, name: data.studentName || snap.key });
                 });
 
+                // Set لحفظ الطلاب المحددين
+                const selectedResetIds = new Set();
+
                 const { value: confirmed } = await Swal.fire({
                     title: 'اختر الطلاب للتصفير',
                     html: `
@@ -4713,25 +5022,31 @@ ${rawText}
                     cancelButtonText: 'إلغاء',
                     confirmButtonColor: '#e74c3c',
                     didOpen: () => {
+                        const updateCount = () => {
+                            document.getElementById('resetSelectedCount').textContent = selectedResetIds.size + ' محدد';
+                        };
+
                         const renderList = (filter = '') => {
                             const filtered = studentsData.filter(s =>
                                 s.name.toLowerCase().includes(filter.toLowerCase()) || s.id.includes(filter)
                             );
                             document.getElementById('resetStudentsList').innerHTML = filtered.map(s => `
                                 <label style="display: block; margin-bottom: 5px; cursor: pointer;">
-                                    <input type="checkbox" value="${s.id}" class="reset-student-cb">
+                                    <input type="checkbox" value="${s.id}" class="reset-student-cb" ${selectedResetIds.has(s.id) ? 'checked' : ''}>
                                     ${s.name} (${s.id})
                                 </label>
                             `).join('') || '<p style="text-align: center; color: #999;">لا يوجد نتائج</p>';
 
                             document.querySelectorAll('.reset-student-cb').forEach(cb => {
-                                cb.addEventListener('change', updateCount);
+                                cb.addEventListener('change', (e) => {
+                                    if (e.target.checked) {
+                                        selectedResetIds.add(e.target.value);
+                                    } else {
+                                        selectedResetIds.delete(e.target.value);
+                                    }
+                                    updateCount();
+                                });
                             });
-                        };
-
-                        const updateCount = () => {
-                            const count = document.querySelectorAll('.reset-student-cb:checked').length;
-                            document.getElementById('resetSelectedCount').textContent = count + ' محدد';
                         };
 
                         renderList();
@@ -4741,22 +5056,27 @@ ${rawText}
                         });
 
                         document.getElementById('resetSelectAll').addEventListener('click', () => {
-                            document.querySelectorAll('.reset-student-cb').forEach(cb => cb.checked = true);
+                            document.querySelectorAll('.reset-student-cb').forEach(cb => {
+                                cb.checked = true;
+                                selectedResetIds.add(cb.value);
+                            });
                             updateCount();
                         });
 
                         document.getElementById('resetDeselectAll').addEventListener('click', () => {
-                            document.querySelectorAll('.reset-student-cb').forEach(cb => cb.checked = false);
+                            document.querySelectorAll('.reset-student-cb').forEach(cb => {
+                                cb.checked = false;
+                                selectedResetIds.delete(cb.value);
+                            });
                             updateCount();
                         });
                     },
                     preConfirm: () => {
-                        const selected = Array.from(document.querySelectorAll('.reset-student-cb:checked')).map(cb => cb.value);
-                        if (selected.length === 0) {
+                        if (selectedResetIds.size === 0) {
                             Swal.showValidationMessage('يرجى اختيار طالب واحد على الأقل');
                             return false;
                         }
-                        return selected;
+                        return Array.from(selectedResetIds);
                     }
                 });
 
@@ -4808,6 +5128,44 @@ ${rawText}
             }
         }
 
+        // متغيرات عامة للنتائج
+        let resultsData = { students: [], exam: null, responses: {}, allStudents: {} };
+        let resultsSort = { column: 'name', direction: 'asc' };
+        let resultsFilter = { grade: '', section: '' };
+        let resultsPage = 1;
+        const RESULTS_PAGE_SIZE = 45;
+
+        // دالة الحصول على المستهدفين فقط
+        function getTargetedStudentIds(exam, allStudents) {
+            const settings = exam.settings || {};
+            const targetType = settings.targetType || 'all';
+            const allIds = Object.keys(allStudents);
+
+            switch (targetType) {
+                case 'all':
+                    return allIds;
+                case 'grade':
+                    return allIds.filter(id => allStudents[id]?.grade === settings.targetGrade);
+                case 'section':
+                    return allIds.filter(id =>
+                        allStudents[id]?.grade === settings.targetGrade &&
+                        allStudents[id]?.section === settings.targetSection
+                    );
+                case 'specific':
+                    return settings.targetStudents || [];
+                default:
+                    return allIds;
+            }
+        }
+
+        // دالة ربط الشعب بالصفوف
+        function getSectionsForGrade(grade) {
+            if (grade === 'أول ثانوي') return ['1', '2', '3', '4'];
+            if (grade === 'ثاني ثانوي') return ['5', '6', '7', '8'];
+            if (grade === 'ثالث ثانوي') return ['9', '10', '11', '12'];
+            return ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
+        }
+
         async function loadExamResults() {
             const examId = document.getElementById('resultsExamSelect').value;
             const container = document.getElementById('resultsContent');
@@ -4827,106 +5185,41 @@ ${rawText}
 
                 const exam = examSnap.val();
                 const responses = responsesSnap.val() || {};
-                const students = studentsSnap.val() || {};
+                const allStudents = studentsSnap.val() || {};
 
-                // Calculate stats
-                const targetStudents = Object.keys(students);
-                const testedStudents = Object.keys(responses).filter(id => responses[id]?.submitted);
-                const scores = testedStudents.map(id => responses[id]?.score || 0);
-                const maxScore = Math.max(...scores, 0);
-                const minScore = Math.min(...scores, 0);
+                // الحصول على المستهدفين فقط
+                const targetStudentIds = getTargetedStudentIds(exam, allStudents);
 
-                let resultsHtml = `
-                    <div class="stats-grid">
-                        <div class="stat-card primary">
-                            <i class="fas fa-users"></i>
-                            <div class="stat-value">${targetStudents.length}</div>
-                            <div class="stat-label">المستهدفون</div>
-                        </div>
-                        <div class="stat-card success">
-                            <i class="fas fa-check-circle"></i>
-                            <div class="stat-value">${testedStudents.length}</div>
-                            <div class="stat-label">اختبروا</div>
-                        </div>
-                        <div class="stat-card warning">
-                            <i class="fas fa-clock"></i>
-                            <div class="stat-value">${targetStudents.length - testedStudents.length}</div>
-                            <div class="stat-label">لم يختبروا</div>
-                        </div>
-                        <div class="stat-card danger">
-                            <i class="fas fa-chart-line"></i>
-                            <div class="stat-value">${maxScore} / ${minScore}</div>
-                            <div class="stat-label">أعلى / أقل</div>
-                        </div>
-                    </div>
+                // بناء بيانات الطلاب المستهدفين
+                const studentsData = targetStudentIds.map(id => {
+                    const student = allStudents[id] || {};
+                    const response = responses[id];
+                    const totalQ = Object.keys(exam.questions || {}).length;
+                    const correct = response?.submitted ? (response.score || 0) : null;
+                    const wrong = correct !== null ? totalQ - correct : null;
 
-                    <div class="card" style="margin-bottom: 20px;">
-                        <h4 style="margin-bottom: 15px; color: var(--primary);">
-                            <i class="fas fa-table"></i> تقرير الطلاب
-                        </h4>
-                        <div style="overflow-x: auto;">
-                            <table class="data-table">
-                                <thead>
-                                    <tr>
-                                        <th>السجل</th>
-                                        <th>الاسم</th>
-                                        <th>الصحيحة</th>
-                                        <th>الخاطئة</th>
-                                        <th>المجموع</th>
-                                        <th>المخالفات</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                `;
-
-                targetStudents.forEach(studentId => {
-                    const student = students[studentId];
-                    const response = responses[studentId];
-
-                    if (response?.submitted) {
-                        const totalQ = Object.keys(exam.questions || {}).length;
-                        const correct = response.score || 0;
-                        const wrong = totalQ - correct;
-
-                        resultsHtml += `
-                            <tr>
-                                <td>${studentId}</td>
-                                <td>${student?.name || 'غير معروف'}</td>
-                                <td style="color: var(--success);">${correct}</td>
-                                <td style="color: var(--danger);">${wrong}</td>
-                                <td><strong>${response.score}/${response.totalPoints}</strong></td>
-                                <td>${response.violations || 0}</td>
-                            </tr>
-                        `;
-                    } else {
-                        resultsHtml += `
-                            <tr style="opacity: 0.6;">
-                                <td>${studentId}</td>
-                                <td>${student?.name || 'غير معروف'}</td>
-                                <td>-</td>
-                                <td>-</td>
-                                <td>لم يختبر</td>
-                                <td>-</td>
-                            </tr>
-                        `;
-                    }
+                    return {
+                        id,
+                        name: student.name || 'غير معروف',
+                        grade: student.grade || '',
+                        section: student.section || '',
+                        correct,
+                        wrong,
+                        score: response?.submitted ? response.score : null,
+                        totalPoints: response?.submitted ? response.totalPoints : null,
+                        violations: response?.violations || 0,
+                        submitted: !!response?.submitted
+                    };
                 });
 
-                resultsHtml += `
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+                resultsData = { students: studentsData, exam, responses, allStudents, examId };
+                resultsPage = 1;
+                resultsFilter = { grade: '', section: '' };
 
-                    <button class="action-btn secondary" onclick="exportResults('${examId}')">
-                        <i class="fas fa-download"></i> تصدير التقرير
-                    </button>
-                `;
+                renderResultsTable();
 
-                container.innerHTML = resultsHtml;
-
-                // Load detailed statistics
-                await loadStatistics(examId, exam, responses, students);
+                // Load detailed statistics with targeted students
+                await loadStatistics(examId, exam, responses, allStudents, targetStudentIds);
 
             } catch (error) {
                 console.error(error);
@@ -4934,6 +5227,215 @@ ${rawText}
             }
 
             showLoading(false);
+        }
+
+        function renderResultsTable() {
+            const container = document.getElementById('resultsContent');
+            let filtered = [...resultsData.students];
+
+            // تطبيق الفلتر
+            if (resultsFilter.grade) {
+                filtered = filtered.filter(s => s.grade === resultsFilter.grade);
+            }
+            if (resultsFilter.section) {
+                filtered = filtered.filter(s => s.section === resultsFilter.section);
+            }
+
+            // تطبيق الترتيب
+            filtered.sort((a, b) => {
+                let valA = a[resultsSort.column];
+                let valB = b[resultsSort.column];
+
+                if (valA === null) valA = resultsSort.direction === 'asc' ? Infinity : -Infinity;
+                if (valB === null) valB = resultsSort.direction === 'asc' ? Infinity : -Infinity;
+
+                if (typeof valA === 'string') valA = valA.toLowerCase();
+                if (typeof valB === 'string') valB = valB.toLowerCase();
+
+                if (valA < valB) return resultsSort.direction === 'asc' ? -1 : 1;
+                if (valA > valB) return resultsSort.direction === 'asc' ? 1 : -1;
+                return 0;
+            });
+
+            // إحصائيات
+            const testedCount = resultsData.students.filter(s => s.submitted).length;
+            const scores = resultsData.students.filter(s => s.submitted).map(s => s.score);
+            const maxScore = Math.max(...scores, 0);
+            const minScore = scores.length > 0 ? Math.min(...scores) : 0;
+
+            // تحديد الشعب المتاحة حسب الفصل
+            const availableSections = resultsFilter.grade ? getSectionsForGrade(resultsFilter.grade) : getSectionsForGrade('');
+
+            // Pagination
+            const totalPages = Math.ceil(filtered.length / RESULTS_PAGE_SIZE);
+            const startIdx = (resultsPage - 1) * RESULTS_PAGE_SIZE;
+            const paged = filtered.slice(startIdx, startIdx + RESULTS_PAGE_SIZE);
+
+            const sortIcon = (col) => {
+                if (resultsSort.column !== col) return '<i class="fas fa-sort" style="opacity:0.3;margin-right:5px;"></i>';
+                return resultsSort.direction === 'asc'
+                    ? '<i class="fas fa-sort-up" style="margin-right:5px;"></i>'
+                    : '<i class="fas fa-sort-down" style="margin-right:5px;"></i>';
+            };
+
+            let html = `
+                <div class="stats-grid">
+                    <div class="stat-card primary">
+                        <i class="fas fa-users"></i>
+                        <div class="stat-value">${resultsData.students.length}</div>
+                        <div class="stat-label">المستهدفون</div>
+                    </div>
+                    <div class="stat-card success">
+                        <i class="fas fa-check-circle"></i>
+                        <div class="stat-value">${testedCount}</div>
+                        <div class="stat-label">اختبروا</div>
+                    </div>
+                    <div class="stat-card warning">
+                        <i class="fas fa-clock"></i>
+                        <div class="stat-value">${resultsData.students.length - testedCount}</div>
+                        <div class="stat-label">لم يختبروا</div>
+                    </div>
+                    <div class="stat-card danger">
+                        <i class="fas fa-chart-line"></i>
+                        <div class="stat-value">${maxScore} / ${minScore}</div>
+                        <div class="stat-label">أعلى / أقل</div>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-bottom: 20px;">
+                    <h4 style="margin-bottom: 15px; color: var(--primary);">
+                        <i class="fas fa-table"></i> تقرير الطلاب
+                    </h4>
+                    <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
+                        <select class="filter-select" onchange="filterResultsByGrade(this.value)" style="min-width: 120px;">
+                            <option value="">كل الصفوف</option>
+                            <option value="أول ثانوي" ${resultsFilter.grade === 'أول ثانوي' ? 'selected' : ''}>أول ثانوي</option>
+                            <option value="ثاني ثانوي" ${resultsFilter.grade === 'ثاني ثانوي' ? 'selected' : ''}>ثاني ثانوي</option>
+                            <option value="ثالث ثانوي" ${resultsFilter.grade === 'ثالث ثانوي' ? 'selected' : ''}>ثالث ثانوي</option>
+                        </select>
+                        <select class="filter-select" id="resultsSectionFilter" onchange="filterResultsBySection(this.value)" style="min-width: 100px;">
+                            <option value="">كل الشعب</option>
+                            ${availableSections.map(s => `<option value="${s}" ${resultsFilter.section === s ? 'selected' : ''}>شعبة ${s}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table class="data-table" id="resultsDataTable">
+                            <thead>
+                                <tr>
+                                    <th style="cursor:pointer;" onclick="sortResultsBy('id')">${sortIcon('id')}السجل</th>
+                                    <th style="cursor:pointer;" onclick="sortResultsBy('name')">${sortIcon('name')}الاسم</th>
+                                    <th style="cursor:pointer;" onclick="sortResultsBy('grade')">${sortIcon('grade')}الصف</th>
+                                    <th style="cursor:pointer;" onclick="sortResultsBy('section')">${sortIcon('section')}الشعبة</th>
+                                    <th style="cursor:pointer;" onclick="sortResultsBy('correct')">${sortIcon('correct')}الصحيحة</th>
+                                    <th style="cursor:pointer;" onclick="sortResultsBy('wrong')">${sortIcon('wrong')}الخاطئة</th>
+                                    <th style="cursor:pointer;" onclick="sortResultsBy('score')">${sortIcon('score')}المجموع</th>
+                                    <th style="cursor:pointer;" onclick="sortResultsBy('violations')">${sortIcon('violations')}المخالفات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+            `;
+
+            paged.forEach(s => {
+                if (s.submitted) {
+                    html += `
+                        <tr>
+                            <td>${cleanText(s.id)}</td>
+                            <td>${cleanText(s.name)}</td>
+                            <td>${cleanText(s.grade)}</td>
+                            <td>${cleanText(s.section)}</td>
+                            <td style="color: var(--success);">${s.correct}</td>
+                            <td style="color: var(--danger);">${s.wrong}</td>
+                            <td><strong>${s.score}/${s.totalPoints}</strong></td>
+                            <td>${s.violations}</td>
+                        </tr>
+                    `;
+                } else {
+                    html += `
+                        <tr style="opacity: 0.6;">
+                            <td>${cleanText(s.id)}</td>
+                            <td>${cleanText(s.name)}</td>
+                            <td>${cleanText(s.grade)}</td>
+                            <td>${cleanText(s.section)}</td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td>لم يختبر</td>
+                            <td>-</td>
+                        </tr>
+                    `;
+                }
+            });
+
+            html += `
+                            </tbody>
+                        </table>
+                    </div>
+                    ${renderResultsPagination(filtered.length, totalPages)}
+                </div>
+
+                <button class="action-btn secondary" onclick="exportResults('${resultsData.examId}')">
+                    <i class="fas fa-download"></i> تصدير التقرير
+                </button>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        function renderResultsPagination(total, totalPages) {
+            if (total <= RESULTS_PAGE_SIZE) return '';
+
+            let paginationHtml = '<div style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 15px; flex-wrap: wrap;">';
+            paginationHtml += `<span style="color: var(--gray);">الصفحة ${resultsPage} من ${totalPages} (${total} طالب)</span>`;
+            paginationHtml += '<div style="display: flex; gap: 5px;">';
+
+            if (resultsPage > 1) {
+                paginationHtml += `<button class="action-btn secondary" onclick="goToResultsPage(1)" style="padding: 5px 10px;"><i class="fas fa-angle-double-right"></i></button>`;
+                paginationHtml += `<button class="action-btn secondary" onclick="goToResultsPage(${resultsPage - 1})" style="padding: 5px 10px;"><i class="fas fa-angle-right"></i></button>`;
+            }
+
+            const startPage = Math.max(1, resultsPage - 2);
+            const endPage = Math.min(totalPages, resultsPage + 2);
+
+            for (let i = startPage; i <= endPage; i++) {
+                paginationHtml += `<button class="action-btn ${i === resultsPage ? 'primary' : 'secondary'}" onclick="goToResultsPage(${i})" style="padding: 5px 12px;">${i}</button>`;
+            }
+
+            if (resultsPage < totalPages) {
+                paginationHtml += `<button class="action-btn secondary" onclick="goToResultsPage(${resultsPage + 1})" style="padding: 5px 10px;"><i class="fas fa-angle-left"></i></button>`;
+                paginationHtml += `<button class="action-btn secondary" onclick="goToResultsPage(${totalPages})" style="padding: 5px 10px;"><i class="fas fa-angle-double-left"></i></button>`;
+            }
+
+            paginationHtml += '</div></div>';
+            return paginationHtml;
+        }
+
+        function sortResultsBy(column) {
+            if (resultsSort.column === column) {
+                resultsSort.direction = resultsSort.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                resultsSort.column = column;
+                resultsSort.direction = 'asc';
+            }
+            resultsPage = 1;
+            renderResultsTable();
+        }
+
+        function filterResultsByGrade(grade) {
+            resultsFilter.grade = grade;
+            resultsFilter.section = '';
+            resultsPage = 1;
+            renderResultsTable();
+        }
+
+        function filterResultsBySection(section) {
+            resultsFilter.section = section;
+            resultsPage = 1;
+            renderResultsTable();
+        }
+
+        function goToResultsPage(page) {
+            resultsPage = page;
+            renderResultsTable();
+            document.getElementById('resultsDataTable')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
         function exportResults(examId) {
@@ -4957,56 +5459,54 @@ ${rawText}
         }
 
         // ============ STATISTICS ============
-        async function loadStatistics(examId, exam, responses, students) {
+        // متغيرات للإحصائيات مع pagination والفرز
+        let statsData = { submittedStudents: [], integrityData: [], viewedOnly: [], notViewed: [] };
+        let submissionSort = { column: 'order', direction: 'asc' };
+        let integritySort = { column: 'violations', direction: 'desc' };
+        let submissionPage = 1;
+        let integrityPage = 1;
+        const STATS_PAGE_SIZE = 45;
+
+        async function loadStatistics(examId, exam, responses, students, targetStudentIds) {
             document.getElementById('statisticsSection').classList.remove('hidden');
 
-            // 1. ترتيب حسب وقت التسليم
+            // فلترة المستهدفين فقط
+            const targetSet = new Set(targetStudentIds);
+
+            // 1. ترتيب حسب وقت التسليم - للمستهدفين فقط
             const submittedStudents = Object.entries(responses)
-                .filter(([id, r]) => r.submitted && r.submitTime)
-                .map(([id, r]) => ({
+                .filter(([id, r]) => targetSet.has(id) && r.submitted && r.submitTime)
+                .map(([id, r], idx) => ({
                     id,
                     name: students[id]?.name || 'غير معروف',
+                    grade: students[id]?.grade || '',
+                    section: students[id]?.section || '',
                     startTime: r.startTime,
                     submitTime: r.submitTime,
-                    violations: r.violations || 0
+                    violations: r.violations || 0,
+                    duration: Math.round((r.submitTime - r.startTime) / 60000)
                 }))
-                .sort((a, b) => a.submitTime - b.submitTime);
+                .sort((a, b) => a.submitTime - b.submitTime)
+                .map((s, i) => ({ ...s, order: i + 1 }));
 
-            const submissionBody = document.getElementById('submissionOrderBody');
-            submissionBody.innerHTML = submittedStudents.map((s, i) => {
-                const startDate = new Date(s.startTime);
-                const submitDate = new Date(s.submitTime);
-                const duration = Math.round((s.submitTime - s.startTime) / 60000);
+            // 4. حالة الطلاب - للمستهدفين فقط
+            const tested = submittedStudents.map(s => s.id);
+            const viewedOnly = Object.entries(responses)
+                .filter(([id, r]) => targetSet.has(id) && r.startTime && !r.submitted)
+                .map(([id]) => ({ id, name: students[id]?.name || id, grade: students[id]?.grade || '', section: students[id]?.section || '' }));
+            const notViewed = targetStudentIds
+                .filter(id => !responses[id])
+                .map(id => ({ id, name: students[id]?.name || id, grade: students[id]?.grade || '', section: students[id]?.section || '' }));
 
-                return `<tr>
-                    <td><strong>${i + 1}</strong></td>
-                    <td>${s.name}</td>
-                    <td>${formatDateTime(startDate)}</td>
-                    <td>${formatDateTime(submitDate)}</td>
-                    <td>${duration} دقيقة</td>
-                </tr>`;
-            }).join('') || '<tr><td colspan="5" style="text-align:center;">لا توجد بيانات</td></tr>';
+            statsData = { submittedStudents, integrityData: submittedStudents, viewedOnly, notViewed, students };
+            submissionPage = 1;
+            integrityPage = 1;
 
-            // 2. تحليل النزاهة
-            const integrityBody = document.getElementById('integrityBody');
-            integrityBody.innerHTML = submittedStudents.map(s => {
-                const duration = Math.round((s.submitTime - s.startTime) / 60000);
-                let status = '<span style="color: var(--success);">✓ سليم</span>';
-                if (s.violations > 0) {
-                    status = `<span style="color: var(--danger);">⚠ ${s.violations} مخالفة</span>`;
-                }
+            renderSubmissionTable();
+            renderIntegrityTable();
+            renderNotTestedSection();
 
-                return `<tr>
-                    <td>${s.name}</td>
-                    <td style="color: ${s.violations > 0 ? 'var(--danger)' : 'var(--success)'}; font-weight: bold;">
-                        ${s.violations}
-                    </td>
-                    <td>${duration} دقيقة</td>
-                    <td>${status}</td>
-                </tr>`;
-            }).join('') || '<tr><td colspan="4" style="text-align:center;">لا توجد بيانات</td></tr>';
-
-            // 3. الأسئلة الأصعب
+            // 3. الأسئلة الأصعب - للمستهدفين فقط
             const questions = exam.questions || {};
             const questionStats = {};
 
@@ -5014,8 +5514,8 @@ ${rawText}
                 questionStats[qId] = { total: 0, wrong: 0, text: questions[qId].text };
             });
 
-            Object.values(responses).forEach(r => {
-                if (r.submitted && r.answers) {
+            Object.entries(responses).forEach(([id, r]) => {
+                if (targetSet.has(id) && r.submitted && r.answers) {
                     Object.entries(r.answers).forEach(([qId, answer]) => {
                         if (questionStats[qId]) {
                             questionStats[qId].total++;
@@ -5047,38 +5547,11 @@ ${rawText}
                     </div>
                     <small style="color: var(--gray);">${q.wrong} خطأ من ${q.total} إجابة</small>
                 </div>
-            `).join('') || '<p style="color: var(--gray);">لا توجد بيانات كافية</p>';
-
-            // 4. حالة الطلاب
-            const allStudentIds = Object.keys(students);
-            const tested = submittedStudents.map(s => s.id);
-            const viewedOnly = Object.entries(responses)
-                .filter(([id, r]) => r.startTime && !r.submitted)
-                .map(([id]) => id);
-            const notViewed = allStudentIds.filter(id => !responses[id]);
+            `).join('') || '<p style="color: var(--gray);">لا ��وجد بيانات كافية</p>';
 
             document.getElementById('statTested').textContent = tested.length;
             document.getElementById('statViewedOnly').textContent = viewedOnly.length;
             document.getElementById('statNotViewed').textContent = notViewed.length;
-
-            let notTestedHtml = '';
-            if (viewedOnly.length > 0) {
-                notTestedHtml += '<p style="margin-bottom: 10px;"><strong>شاهدوا ولم يختبروا:</strong></p>';
-                notTestedHtml += '<div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px;">';
-                viewedOnly.forEach(id => {
-                    notTestedHtml += `<span style="background: rgba(243, 156, 18, 0.2); padding: 5px 10px; border-radius: 15px; font-size: 13px;">${students[id]?.name || id}</span>`;
-                });
-                notTestedHtml += '</div>';
-            }
-            if (notViewed.length > 0) {
-                notTestedHtml += '<p style="margin-bottom: 10px;"><strong>لم يشاهدوا الاختبار:</strong></p>';
-                notTestedHtml += '<div style="display: flex; flex-wrap: wrap; gap: 8px;">';
-                notViewed.forEach(id => {
-                    notTestedHtml += `<span style="background: rgba(231, 76, 60, 0.2); padding: 5px 10px; border-radius: 15px; font-size: 13px;">${students[id]?.name || id}</span>`;
-                });
-                notTestedHtml += '</div>';
-            }
-            document.getElementById('notTestedList').innerHTML = notTestedHtml || '<p style="color: var(--gray);">جميع الطلاب اختبروا</p>';
 
             // 5. نتائج الاستبيان
             const surveysSnap = await rootRef.child('surveys').child(examId).once('value');
@@ -5127,6 +5600,218 @@ ${rawText}
             } else {
                 document.getElementById('surveyResults').innerHTML = '<p style="color: var(--gray);">لا توجد تقييمات بعد</p>';
             }
+        }
+
+        // دوال عرض جداول الإحصائيات مع الفرز والـ pagination
+        function renderSubmissionTable() {
+            const data = [...statsData.submittedStudents];
+            const tbody = document.getElementById('submissionOrderBody');
+            if (!tbody) return;
+
+            // تطبيق الترتيب
+            data.sort((a, b) => {
+                let valA = a[submissionSort.column];
+                let valB = b[submissionSort.column];
+                if (typeof valA === 'string') valA = valA.toLowerCase();
+                if (typeof valB === 'string') valB = valB.toLowerCase();
+                if (valA < valB) return submissionSort.direction === 'asc' ? -1 : 1;
+                if (valA > valB) return submissionSort.direction === 'asc' ? 1 : -1;
+                return 0;
+            });
+
+            const totalPages = Math.ceil(data.length / STATS_PAGE_SIZE);
+            const startIdx = (submissionPage - 1) * STATS_PAGE_SIZE;
+            const paged = data.slice(startIdx, startIdx + STATS_PAGE_SIZE);
+
+            const sortIcon = (col) => {
+                if (submissionSort.column !== col) return '<i class="fas fa-sort" style="opacity:0.3;margin-right:5px;"></i>';
+                return submissionSort.direction === 'asc'
+                    ? '<i class="fas fa-sort-up" style="margin-right:5px;"></i>'
+                    : '<i class="fas fa-sort-down" style="margin-right:5px;"></i>';
+            };
+
+            // تحديث رؤوس الأعمدة
+            const thead = tbody.parentElement.querySelector('thead');
+            if (thead) {
+                thead.innerHTML = `<tr>
+                    <th style="cursor:pointer;" onclick="sortSubmissionBy('order')">${sortIcon('order')}الترتيب</th>
+                    <th style="cursor:pointer;" onclick="sortSubmissionBy('name')">${sortIcon('name')}الاسم</th>
+                    <th style="cursor:pointer;" onclick="sortSubmissionBy('startTime')">${sortIcon('startTime')}وقت البدء</th>
+                    <th style="cursor:pointer;" onclick="sortSubmissionBy('submitTime')">${sortIcon('submitTime')}وقت التسليم</th>
+                    <th style="cursor:pointer;" onclick="sortSubmissionBy('duration')">${sortIcon('duration')}المدة</th>
+                </tr>`;
+            }
+
+            // تحديث محتوى الجدول
+            tbody.innerHTML = paged.map(s => {
+                const startDate = new Date(s.startTime);
+                const submitDate = new Date(s.submitTime);
+                return `<tr>
+                    <td><strong>${s.order}</strong></td>
+                    <td>${cleanText(s.name)}</td>
+                    <td>${formatDateTime(startDate)}</td>
+                    <td>${formatDateTime(submitDate)}</td>
+                    <td>${s.duration} دقيقة</td>
+                </tr>`;
+            }).join('') || '<tr><td colspan="5" style="text-align:center;">لا توجد بيانات</td></tr>';
+
+            // تحديث الـ pagination
+            const paginationDiv = document.getElementById('submissionPagination');
+            if (paginationDiv) {
+                paginationDiv.innerHTML = data.length > STATS_PAGE_SIZE
+                    ? renderStatsPagination(data.length, totalPages, submissionPage, 'goToSubmissionPage')
+                    : '';
+            }
+        }
+
+        function renderIntegrityTable() {
+            const data = [...statsData.integrityData];
+            const tbody = document.getElementById('integrityBody');
+            if (!tbody) return;
+
+            // تطبيق الترتيب
+            data.sort((a, b) => {
+                let valA = a[integritySort.column];
+                let valB = b[integritySort.column];
+                if (typeof valA === 'string') valA = valA.toLowerCase();
+                if (typeof valB === 'string') valB = valB.toLowerCase();
+                if (valA < valB) return integritySort.direction === 'asc' ? -1 : 1;
+                if (valA > valB) return integritySort.direction === 'asc' ? 1 : -1;
+                return 0;
+            });
+
+            const totalPages = Math.ceil(data.length / STATS_PAGE_SIZE);
+            const startIdx = (integrityPage - 1) * STATS_PAGE_SIZE;
+            const paged = data.slice(startIdx, startIdx + STATS_PAGE_SIZE);
+
+            const sortIcon = (col) => {
+                if (integritySort.column !== col) return '<i class="fas fa-sort" style="opacity:0.3;margin-right:5px;"></i>';
+                return integritySort.direction === 'asc'
+                    ? '<i class="fas fa-sort-up" style="margin-right:5px;"></i>'
+                    : '<i class="fas fa-sort-down" style="margin-right:5px;"></i>';
+            };
+
+            // تحديث رؤوس الأعمدة
+            const thead = tbody.parentElement.querySelector('thead');
+            if (thead) {
+                thead.innerHTML = `<tr>
+                    <th style="cursor:pointer;" onclick="sortIntegrityBy('name')">${sortIcon('name')}الاسم</th>
+                    <th style="cursor:pointer;" onclick="sortIntegrityBy('violations')">${sortIcon('violations')}المخالفات</th>
+                    <th style="cursor:pointer;" onclick="sortIntegrityBy('duration')">${sortIcon('duration')}المد��</th>
+                    <th>الحالة</th>
+                </tr>`;
+            }
+
+            // تحديث محتوى الجدول
+            tbody.innerHTML = paged.map(s => {
+                let status = '<span style="color: var(--success);">✓ سليم</span>';
+                if (s.violations > 0) {
+                    status = `<span style="color: var(--danger);">⚠ ${s.violations} مخالفة</span>`;
+                }
+                return `<tr>
+                    <td>${cleanText(s.name)}</td>
+                    <td style="color: ${s.violations > 0 ? 'var(--danger)' : 'var(--success)'}; font-weight: bold;">${s.violations}</td>
+                    <td>${s.duration} دقيقة</td>
+                    <td>${status}</td>
+                </tr>`;
+            }).join('') || '<tr><td colspan="4" style="text-align:center;">لا توجد بيانات</td></tr>';
+
+            // تحديث الـ pagination
+            const paginationDiv = document.getElementById('integrityPagination');
+            if (paginationDiv) {
+                paginationDiv.innerHTML = data.length > STATS_PAGE_SIZE
+                    ? renderStatsPagination(data.length, totalPages, integrityPage, 'goToIntegrityPage')
+                    : '';
+            }
+        }
+
+        function renderNotTestedSection() {
+            let notTestedHtml = '';
+            const { viewedOnly, notViewed, students } = statsData;
+
+            if (viewedOnly.length > 0) {
+                notTestedHtml += '<p style="margin-bottom: 10px;"><strong>شاهدوا ولم يختبروا:</strong></p>';
+                notTestedHtml += '<div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px;">';
+                const showViewedOnly = viewedOnly.slice(0, 45);
+                showViewedOnly.forEach(s => {
+                    notTestedHtml += `<span style="background: rgba(243, 156, 18, 0.2); padding: 5px 10px; border-radius: 15px; font-size: 13px;">${s.name}</span>`;
+                });
+                if (viewedOnly.length > 45) {
+                    notTestedHtml += `<span style="background: rgba(243, 156, 18, 0.4); padding: 5px 10px; border-radius: 15px; font-size: 13px;">+${viewedOnly.length - 45} آخرون</span>`;
+                }
+                notTestedHtml += '</div>';
+            }
+            if (notViewed.length > 0) {
+                notTestedHtml += '<p style="margin-bottom: 10px;"><strong>لم يشاهدوا الاختبار:</strong></p>';
+                notTestedHtml += '<div style="display: flex; flex-wrap: wrap; gap: 8px;">';
+                const showNotViewed = notViewed.slice(0, 45);
+                showNotViewed.forEach(s => {
+                    notTestedHtml += `<span style="background: rgba(231, 76, 60, 0.2); padding: 5px 10px; border-radius: 15px; font-size: 13px;">${s.name}</span>`;
+                });
+                if (notViewed.length > 45) {
+                    notTestedHtml += `<span style="background: rgba(231, 76, 60, 0.4); padding: 5px 10px; border-radius: 15px; font-size: 13px;">+${notViewed.length - 45} آخرون</span>`;
+                }
+                notTestedHtml += '</div>';
+            }
+            document.getElementById('notTestedList').innerHTML = notTestedHtml || '<p style="color: var(--gray);">جميع الطلاب اختبروا</p>';
+        }
+
+        function renderStatsPagination(total, totalPages, currentPage, goToFunc) {
+            let html = '<div style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 10px; flex-wrap: wrap;">';
+            html += `<span style="color: var(--gray);">الصفحة ${currentPage} من ${totalPages}</span>`;
+            html += '<div style="display: flex; gap: 5px;">';
+
+            if (currentPage > 1) {
+                html += `<button class="action-btn secondary" onclick="${goToFunc}(1)" style="padding: 3px 8px;"><i class="fas fa-angle-double-right"></i></button>`;
+                html += `<button class="action-btn secondary" onclick="${goToFunc}(${currentPage - 1})" style="padding: 3px 8px;"><i class="fas fa-angle-right"></i></button>`;
+            }
+
+            const startPage = Math.max(1, currentPage - 2);
+            const endPage = Math.min(totalPages, currentPage + 2);
+
+            for (let i = startPage; i <= endPage; i++) {
+                html += `<button class="action-btn ${i === currentPage ? 'primary' : 'secondary'}" onclick="${goToFunc}(${i})" style="padding: 3px 10px;">${i}</button>`;
+            }
+
+            if (currentPage < totalPages) {
+                html += `<button class="action-btn secondary" onclick="${goToFunc}(${currentPage + 1})" style="padding: 3px 8px;"><i class="fas fa-angle-left"></i></button>`;
+                html += `<button class="action-btn secondary" onclick="${goToFunc}(${totalPages})" style="padding: 3px 8px;"><i class="fas fa-angle-double-left"></i></button>`;
+            }
+
+            html += '</div></div>';
+            return html;
+        }
+
+        function sortSubmissionBy(column) {
+            if (submissionSort.column === column) {
+                submissionSort.direction = submissionSort.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                submissionSort.column = column;
+                submissionSort.direction = 'asc';
+            }
+            submissionPage = 1;
+            renderSubmissionTable();
+        }
+
+        function sortIntegrityBy(column) {
+            if (integritySort.column === column) {
+                integritySort.direction = integritySort.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                integritySort.column = column;
+                integritySort.direction = 'asc';
+            }
+            integrityPage = 1;
+            renderIntegrityTable();
+        }
+
+        function goToSubmissionPage(page) {
+            submissionPage = page;
+            renderSubmissionTable();
+        }
+
+        function goToIntegrityPage(page) {
+            integrityPage = page;
+            renderIntegrityTable();
         }
 
         function formatDateTime(date) {
@@ -5211,8 +5896,11 @@ ${rawText}
 
         async function approveRetake(requestId, examId, studentId) {
             try {
+                // تصفير الاختبار للطالب
                 await rootRef.child('responses').child(examId).child(studentId).remove();
-                await rootRef.child('retakeRequests').child(requestId).update({ status: 'approved' });
+                await rootRef.child('surveys').child(examId).child(studentId).remove();
+                // حذف طلب الإعادة بدلاً من تحديثه ليتمكن الطالب من الطلب مرة أخرى
+                await rootRef.child('retakeRequests').child(requestId).remove();
                 showAlert('تم', 'تم قبول الطلب وتصفير الاختبار للطالب', 'success');
                 loadRetakeRequests();
             } catch (error) {
@@ -5260,3 +5948,4 @@ ${rawText}
 </body>
 </html>
 
+ 

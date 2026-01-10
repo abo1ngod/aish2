@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مدونة الملاحظات الذكية</title>
+    
+    <!-- استدعاء Tailwind CSS للتصميم -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- استدعاء خط Cairo من Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- مكتبة الأيقونات FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- إعدادات Firebase (التي زودتني بها) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #f3f4f6;
+        }
+        /* تنسيق شريط التمرير */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #888; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555; 
+        }
+        .modal {
+            transition: opacity 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+    <!-- رأس الصفحة -->
+    <header class="bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-lg sticky top-0 z-40">
+        <div class="container mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <h1 class="text-2xl font-bold flex items-center gap-2">
+                <i class="fas fa-book-open"></i>
+                نظام إدارة المحتوى
+            </h1>
+            
+            <div class="flex w-full md:w-auto gap-2">
+                <div class="relative w-full md:w-64">
+                    <input type="text" id="searchInput" placeholder="بحث عن عنوان أو محتوى..." 
+                        class="w-full px-4 py-2 pr-10 rounded-full text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-300 shadow-sm transition-all">
+                    <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                </div>
+                <button onclick="openFormModal()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-full shadow-md transition-transform transform hover:scale-105 flex items-center gap-2 whitespace-nowrap">
+                    <i class="fas fa-plus"></i> إضافة جديد
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- منطقة عرض المحتوى -->
+    <main class="container mx-auto px-4 py-8">
+        <!-- مؤشر التحميل -->
+        <div id="loader" class="text-center py-10">
+            <i class="fas fa-circle-notch fa-spin text-4xl text-blue-600"></i>
+            <p class="mt-2 text-gray-500">جاري تحميل البيانات...</p>
+        </div>
+
+        <!-- شبكة البطاقات -->
+        <div id="postsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 hidden">
+            <!-- سيتم توليد البطاقات هنا بواسطة JavaScript -->
+        </div>
+
+        <!-- رسالة عند عدم وجود بيانات -->
+        <div id="noDataMessage" class="hidden text-center py-20">
+            <i class="fas fa-folder-open text-6xl text-gray-300 mb-4"></i>
+            <p class="text-xl text-gray-500">لا توجد مواضيع حالياً، أو لا توجد نتائج للبحث.</p>
+        </div>
+    </main>
+
+    <!-- مودال (نافذة منبثقة) للإضافة والتعديل -->
+    <div id="formModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex justify-center items-center opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden transform transition-all scale-95" id="formModalContent">
+            <div class="bg-blue-600 px-6 py-4 flex justify-between items-center text-white">
+                <h3 id="modalTitle" class="text-xl font-bold">إضافة موضوع جديد</h3>
+                <button onclick="closeFormModal()" class="hover:bg-blue-700 p-1 rounded-full"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="p-6 space-y-4">
+                <input type="hidden" id="postId">
+                <div>
+                    <label class="block text-gray-700 font-semibold mb-2">عنوان الموضوع</label>
+                    <input type="text" id="titleInput" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="اكتب العنوان هنا...">
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-semibold mb-2">المحتوى</label>
+                    <textarea id="contentInput" rows="6" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none" placeholder="اكتب التفاصيل هنا..."></textarea>
+                </div>
+            </div>
+            <div class="bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t">
+                <button onclick="closeFormModal()" class="px-4 py-2 text-gray-600 hover:bg-gray-200 rounded-lg transition">إلغاء</button>
+                <button onclick="savePost()" id="saveBtn" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-md transition flex items-center gap-2">
+                    <i class="fas fa-save"></i> حفظ
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- مودال عرض التفاصيل -->
+    <div id="viewModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex justify-center items-center opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 overflow-hidden flex flex-col max-h-[90vh]" id="viewModalContent">
+            <div class="bg-gray-800 px-6 py-4 flex justify-between items-center text-white flex-shrink-0">
+                <h3 id="viewModalTitle" class="text-xl font-bold truncate pr-4">عنوان الموضوع</h3>
+                <button onclick="closeViewModal()" class="hover:bg-gray-700 p-1 rounded-full"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <div class="p-6 overflow-y-auto bg-gray-50 flex-grow">
+                <!-- مربع النص القابل للنسخ -->
+                <div class="relative group">
+                    <label class="block text-xs text-gray-400 mb-1 font-bold uppercase tracking-wider">نص الموضوع</label>
+                    <textarea id="viewModalContentText" readonly class="w-full bg-white text-gray-800 border-2 border-gray-200 rounded-xl p-4 text-lg leading-relaxed h-64 focus:outline-none focus:border-blue-400"></textarea>
+                    
+                    <!-- زر النسخ العائم -->
+                    <button onclick="copyContent()" class="absolute top-8 left-2 bg-gray-100 hover:bg-green-500 hover:text-white text-gray-600 p-2 rounded-lg shadow-sm border border-gray-300 transition-all duration-200 tooltip-trigger" title="نسخ النص">
+                        <i class="far fa-copy"></i>
+                    </button>
+                </div>
+                <div id="copyFeedback" class="text-green-600 text-sm mt-2 hidden text-left font-bold"><i class="fas fa-check"></i> تم نسخ النص بنجاح!</div>
+            </div>
+            
+            <div class="bg-white px-6 py-4 border-t flex justify-between items-center flex-shrink-0">
+                <span id="viewModalDate" class="text-gray-400 text-sm"></span>
+                <button onclick="closeViewModal()" class="px-6 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Logic & App Script -->
+    <script>
+        // 1. تهيئة Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyBxPO6RKsQ1Cq-mqlCpFTrCuIyxnYdB37U",
+            authDomain: "studentsystem-c1ab1.firebaseapp.com",
+            databaseURL: "https://studentsystem-c1ab1-default-rtdb.firebaseio.com",
+            projectId: "studentsystem-c1ab1",
+            storageBucket: "studentsystem-c1ab1.firebasestorage.app",
+            messagingSenderId: "112215023848",
+            appId: "1:112215023848:web:0adba326a527ee7e37e95d"
+        };
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.database();
+        const rootRef = db.ref('txt_001');
+
+        // متغيرات عامة
+        let allPosts = [];
+        let isEditing = false;
+        let currentEditId = null;
+
+        // 2. الاستماع للبيانات (Realtime)
+        rootRef.on('value', (snapshot) => {
+            const data = snapshot.val();
+            allPosts = [];
+            
+            if (data) {
+                // تحويل الكائن إلى مصفوفة وإضافة المفتاح
+                Object.keys(data).forEach(key => {
+                    allPosts.push({
+                        id: key,
+                        ...data[key]
+                    });
+                });
+                // الترتيب: الأحدث أولاً (بناءً على المفاتيح الزمنية لفايربيس أو الطابع الزمني)
+                allPosts.reverse();
+            }
+            
+            document.getElementById('loader').classList.add('hidden');
+            renderPosts(allPosts);
+        });
+
+        // 3. دالة عرض البيانات
+        function renderPosts(posts) {
+            const container = document.getElementById('postsContainer');
+            const noDataMsg = document.getElementById('noDataMessage');
+            
+            container.innerHTML = '';
+            
+            if (posts.length === 0) {
+                container.classList.add('hidden');
+                noDataMsg.classList.remove('hidden');
+                return;
+            }
+
+            container.classList.remove('hidden');
+            noDataMsg.classList.add('hidden');
+
+            posts.forEach(post => {
+                // اقتطاع 22 كلمة
+                const words = (post.content || "").split(/\s+/);
+                const snippet = words.slice(0, 22).join(' ') + (words.length > 22 ? '...' : '');
+                
+                // تنسيق التاريخ (إذا لم يكن موجوداً، نستخدم تاريخ افتراضي)
+                const dateStr = post.timestamp ? new Date(post.timestamp).toLocaleDateString('ar-EG') : 'غير محدد';
+
+                const card = document.createElement('div');
+                card.className = "bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 overflow-hidden flex flex-col border border-gray-100";
+                card.innerHTML = `
+                    <div class="p-6 flex-grow">
+                        <div class="flex justify-between items-start mb-4">
+                            <h2 class="text-xl font-bold text-gray-800 line-clamp-2">${escapeHtml(post.title)}</h2>
+                            <div class="flex gap-2">
+                                <button onclick="editPost('${post.id}')" class="text-blue-500 hover:text-blue-700 bg-blue-50 w-8 h-8 rounded-full flex items-center justify-center transition"><i class="fas fa-edit"></i></button>
+                                <button onclick="deletePost('${post.id}')" class="text-red-500 hover:text-red-700 bg-red-50 w-8 h-8 rounded-full flex items-center justify-center transition"><i class="fas fa-trash-alt"></i></button>
+                            </div>
+                        </div>
+                        <p class="text-gray-600 leading-relaxed text-sm mb-4">${escapeHtml(snippet)}</p>
+                    </div>
+                    <div class="bg-gray-50 px-6 py-3 border-t border-gray-100 flex justify-between items-center">
+                        <span class="text-xs text-gray-400"><i class="far fa-clock"></i> ${dateStr}</span>
+                        <button onclick="viewPost('${post.id}')" class="text-blue-600 font-semibold text-sm hover:underline flex items-center gap-1">
+                            اقرأ المزيد <i class="fas fa-arrow-left text-xs"></i>
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // 4. دالة البحث
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const filtered = allPosts.filter(post => 
+                (post.title || "").toLowerCase().includes(term) || 
+                (post.content || "").toLowerCase().includes(term)
+            );
+            renderPosts(filtered);
+        });
+
+        // 5. دوال الإضافة والتعديل
+        function openFormModal(isEdit = false) {
+            const modal = document.getElementById('formModal');
+            const titleEl = document.getElementById('modalTitle');
+            
+            if (isEdit) {
+                titleEl.textContent = 'تعديل الموضوع';
+                isEditing = true;
+            } else {
+                titleEl.textContent = 'إضافة موضوع جديد';
+                document.getElementById('titleInput').value = '';
+                document.getElementById('contentInput').value = '';
+                document.getElementById('postId').value = '';
+                isEditing = false;
+                currentEditId = null;
+            }
+
+            modal.classList.remove('hidden');
+            // تأخير بسيط لتفعيل الـ Transition
+            setTimeout(() => {
+                modal.classList.remove('opacity-0', 'pointer-events-none');
+                document.getElementById('formModalContent').classList.remove('scale-95');
+                document.getElementById('formModalContent').classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeFormModal() {
+            const modal = document.getElementById('formModal');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            document.getElementById('formModalContent').classList.add('scale-95');
+            document.getElementById('formModalContent').classList.remove('scale-100');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        function savePost() {
+            const title = document.getElementById('titleInput').value;
+            const content = document.getElementById('contentInput').value;
+            const saveBtn = document.getElementById('saveBtn');
+
+            if (!title.trim() || !content.trim()) {
+                alert('الرجاء ملء جميع الحقول');
+                return;
+            }
+
+            saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
+            saveBtn.disabled = true;
+
+            const postData = {
+                title: title,
+                content: content,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            };
+
+            if (isEditing && currentEditId) {
+                // تحديث
+                rootRef.child(currentEditId).update(postData)
+                    .then(() => {
+                        closeFormModal();
+                        resetBtn();
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        alert('حدث خطأ أثناء التعديل');
+                        resetBtn();
+                    });
+            } else {
+                // إضافة جديد
+                rootRef.push(postData)
+                    .then(() => {
+                        closeFormModal();
+                        resetBtn();
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        alert('حدث خطأ أثناء الإضافة');
+                        resetBtn();
+                    });
+            }
+
+            function resetBtn() {
+                saveBtn.innerHTML = '<i class="fas fa-save"></i> حفظ';
+                saveBtn.disabled = false;
+            }
+        }
+
+        function editPost(id) {
+            const post = allPosts.find(p => p.id === id);
+            if (post) {
+                document.getElementById('titleInput').value = post.title;
+                document.getElementById('contentInput').value = post.content;
+                document.getElementById('postId').value = post.id;
+                currentEditId = id;
+                openFormModal(true);
+            }
+        }
+
+        function deletePost(id) {
+            if (confirm('هل أنت متأكد من حذف هذا الموضوع؟')) {
+                rootRef.child(id).remove().catch(err => alert('فشل الحذف'));
+            }
+        }
+
+        // 6. دوال العرض والنسخ
+        function viewPost(id) {
+            const post = allPosts.find(p => p.id === id);
+            if (!post) return;
+
+            document.getElementById('viewModalTitle').textContent = post.title;
+            document.getElementById('viewModalContentText').value = post.content;
+            document.getElementById('viewModalDate').textContent = "نشر بتاريخ: " + new Date(post.timestamp).toLocaleString('ar-EG');
+            
+            const modal = document.getElementById('viewModal');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0', 'pointer-events-none');
+            }, 10);
+            
+            // إخفاء رسالة النسخ السابقة
+            document.getElementById('copyFeedback').classList.add('hidden');
+        }
+
+        function closeViewModal() {
+            const modal = document.getElementById('viewModal');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        function copyContent() {
+            const textArea = document.getElementById('viewModalContentText');
+            textArea.select();
+            textArea.setSelectionRange(0, 99999); // للجوال
+
+            // محاولة النسخ بالطريقة الحديثة
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(textArea.value).then(() => {
+                    showCopySuccess();
+                });
+            } else {
+                // fallback للمتصفحات القديمة
+                document.execCommand('copy');
+                showCopySuccess();
+            }
+        }
+
+        function showCopySuccess() {
+            const feedback = document.getElementById('copyFeedback');
+            feedback.classList.remove('hidden');
+            setTimeout(() => {
+                feedback.classList.add('hidden');
+            }, 2000);
+        }
+
+        // مساعدة للحماية من XSS
+        function escapeHtml(text) {
+            if (!text) return text;
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>
+
