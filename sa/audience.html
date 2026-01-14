@@ -564,6 +564,41 @@
             color: rgba(255,255,255,0.8);
         }
 
+        /* Previous Rounds */
+        .previous-rounds {
+            width: 100%;
+            max-width: 500px;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .previous-rounds h3 {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: rgba(255,255,255,0.6);
+        }
+
+        .prev-round-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 10px;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+
+        .prev-round-item .round-name {
+            color: rgba(255,255,255,0.8);
+        }
+
+        .prev-round-item .round-winner {
+            color: var(--gold);
+            font-weight: 600;
+        }
+
         .ranking-item {
             display: flex;
             align-items: center;
@@ -894,6 +929,10 @@
             <div class="final-rankings" id="finalRankings">
                 <h3>📊 ترتيب الفرق</h3>
                 <div id="rankingsList"></div>
+            </div>
+            <div class="previous-rounds" id="previousRoundsSection">
+                <h3>📜 المنافسات السابقة</h3>
+                <div id="previousRoundsList"></div>
             </div>
         </div>
     </div>
@@ -1273,8 +1312,13 @@
             }, 4000);
         }
 
+        let finalResultsShown = false;
+
         // Show Final Results
         function showFinalResults(round) {
+            if (finalResultsShown) return;
+            finalResultsShown = true;
+
             const teams = round.teams || [];
             const teamsArray = Array.isArray(teams) ? teams : Object.values(teams);
 
@@ -1289,14 +1333,21 @@
             document.getElementById('questionSection').style.display = 'none';
             document.getElementById('finalResults').classList.add('active');
 
-            // Winner announcement
-            const winner = sortedTeams[0];
-            const isTie = sortedTeams.length > 1 && (sortedTeams[0].score || 0) === (sortedTeams[1].score || 0);
+            // Winner announcement - check for ties
+            const topScore = sortedTeams[0]?.score || 0;
+            const tiedTeams = sortedTeams.filter(t => (t.score || 0) === topScore);
 
-            if (isTie) {
+            if (tiedTeams.length > 1) {
+                const tiedNames = tiedTeams.map(t => t.name || 'فريق ' + (t.index + 1));
                 document.getElementById('winnerAnnouncement').textContent = '🤝 تعادل!';
-                document.getElementById('finalMessage').textContent = 'جولة رائعة من الجميع!';
+                if (tiedTeams.length === 2) {
+                    document.getElementById('finalMessage').textContent = `تعادل بين الفريقين ${tiedNames[0]} و ${tiedNames[1]}`;
+                } else {
+                    const lastTeam = tiedNames.pop();
+                    document.getElementById('finalMessage').textContent = `تعادل بين الفرق ${tiedNames.join(' و ')} و ${lastTeam}`;
+                }
             } else {
+                const winner = sortedTeams[0];
                 document.getElementById('winnerAnnouncement').textContent = `🎉 ${winner.name || 'الفريق الفائز'}`;
                 document.getElementById('finalMessage').textContent = `بـ ${winner.score || 0} نقطة`;
             }
@@ -1318,9 +1369,43 @@
                 `;
             }).join('');
 
-            // Play fanfare and show confetti
+            // Play fanfare and show confetti only once
             if (sounds.playFanfare) sounds.playFanfare();
             showConfetti();
+
+            // Load previous rounds
+            loadPreviousRounds();
+        }
+
+        // Load Previous Rounds
+        function loadPreviousRounds() {
+            rootRef.child('rounds').orderByChild('status').equalTo('finished').once('value', (snapshot) => {
+                const data = snapshot.val() || {};
+                const rounds = Object.entries(data)
+                    .filter(([id]) => id !== roundId)
+                    .sort((a, b) => (b[1].finishedAt || 0) - (a[1].finishedAt || 0))
+                    .slice(0, 5);
+
+                const container = document.getElementById('previousRoundsList');
+
+                if (rounds.length === 0) {
+                    document.getElementById('previousRoundsSection').style.display = 'none';
+                    return;
+                }
+
+                container.innerHTML = rounds.map(([id, round]) => {
+                    const teams = round.teams || [];
+                    const teamsArray = Array.isArray(teams) ? teams : Object.values(teams);
+                    const sorted = teamsArray.sort((a, b) => (b.score || 0) - (a.score || 0));
+                    const winner = sorted[0]?.name || 'غير محدد';
+                    return `
+                        <div class="prev-round-item">
+                            <span class="round-name">${round.name || 'جولة'}</span>
+                            <span class="round-winner">🏆 ${winner}</span>
+                        </div>
+                    `;
+                }).join('');
+            });
         }
 
         // Show Confetti
