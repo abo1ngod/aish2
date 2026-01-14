@@ -600,21 +600,22 @@
 
         .add-player-form {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             margin-top: 12px;
-            align-items: center;
+            align-items: stretch;
         }
 
         .add-player-form input {
             flex: 1;
-            padding: 12px 15px;
+            padding: 10px 12px;
             background: rgba(255,255,255,0.08);
             border: 1px solid var(--border);
-            border-radius: 10px;
+            border-radius: 8px;
             color: white;
             font-family: inherit;
             font-size: 16px;
             min-width: 0;
+            height: 42px;
         }
 
         .add-player-form input:focus {
@@ -624,8 +625,13 @@
         }
 
         .add-player-form .btn {
-            padding: 12px 18px;
-            border-radius: 10px;
+            height: 42px;
+            width: 42px;
+            padding: 0;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             flex-shrink: 0;
         }
 
@@ -1297,6 +1303,7 @@
 
         // App State
         let currentRoundId = null;
+        let isRoundActive = false;
         let questions = {};
         let teams = [];
         let usedQuestions = [];
@@ -1601,8 +1608,8 @@
                     </div>
                     <div class="add-player-form">
                         <input type="text" id="playerName_${index}" placeholder="اسم المتسابق">
-                        <button class="btn btn-primary btn-sm" onclick="addPlayer(${index})">
-                            <i class="fas fa-plus"></i>
+                        <button class="btn btn-primary" onclick="addPlayer(${index})" style="padding: 10px 16px; min-width: auto;">
+                            <i class="fas fa-user-plus"></i>
                         </button>
                     </div>
                 </div>
@@ -1707,6 +1714,7 @@
             };
 
             rootRef.child(`rounds/${currentRoundId}`).set(roundData).then(() => {
+                isRoundActive = true;
                 showToast('تم بدء الجولة!', 'success');
                 document.querySelector('[data-tab="live"]').click();
                 listenToRound();
@@ -1856,7 +1864,10 @@
         }
 
         function endRound() {
-            if (!currentRoundId) return;
+            if (!currentRoundId || !isRoundActive) {
+                showToast('لا توجد جولة نشطة لإنهائها', 'warning');
+                return;
+            }
 
             const modal = document.getElementById('deleteModal');
             document.querySelector('#deleteModal h3').innerHTML = '<i class="fas fa-flag-checkered" style="color: var(--warning);"></i> إنهاء الجولة';
@@ -1871,6 +1882,7 @@
                     status: 'finished',
                     finishedAt: Date.now()
                 }).then(() => {
+                    isRoundActive = false;
                     showToast('تم إنهاء الجولة', 'success');
                     closeModal('deleteModal');
                     btn.disabled = false;
