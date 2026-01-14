@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>نظام المسابقات السريع</title>
+    
+    <!-- Tailwind CSS for Styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <style>
+        /* خط تجريبي جميل للعربية */
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap');
+        
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: #f3f4f6;
+            touch-action: manipulation; /* تحسين استجابة اللمس */
+        }
+
+        .btn-option {
+            transition: all 0.1s;
+        }
+        .btn-option:active {
+            transform: scale(0.95);
+        }
+        
+        /* تأثيرات الحركة */
+        @keyframes popIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-pop {
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen text-gray-800 select-none overflow-hidden">
+
+    <!-- حاوية التطبيق الرئيسية -->
+    <div id="app" class="max-w-md mx-auto h-screen bg-white shadow-xl relative overflow-y-auto">
+        
+        <!-- 1. شاشة اختيار الدور (البداية) -->
+        <div id="screen-login" class="flex flex-col h-full justify-center items-center p-6 space-y-6">
+            <h1 class="text-4xl font-black text-blue-600 mb-4">المسابقة 🔥</h1>
+            
+            <div class="w-full space-y-3">
+                <input type="text" id="player-name-input" placeholder="اسمك أو اسم الفريق" class="w-full p-4 border-2 border-gray-300 rounded-xl text-xl text-center focus:border-blue-500 outline-none">
+                
+                <!-- حقل الكود الجديد -->
+                <input type="number" id="player-code-input" placeholder="أدخل كود الاشتراك" class="w-full p-4 border-2 border-gray-300 rounded-xl text-xl text-center focus:border-blue-500 outline-none">
+
+                <button onclick="joinGame('player')" class="w-full bg-blue-600 text-white p-4 rounded-xl text-xl font-bold shadow-lg hover:bg-blue-700 active:bg-blue-800 transition">
+                    دخول كمتسابق 🏃‍♂️
+                </button>
+            </div>
+
+            <div class="flex space-x-2 space-x-reverse w-full pt-8 border-t">
+                <button onclick="joinGame('admin')" class="flex-1 bg-gray-800 text-white p-2 rounded-lg text-sm">لوحة المشرف 🛠</button>
+                <button onclick="joinGame('audience')" class="flex-1 bg-green-600 text-white p-2 rounded-lg text-sm">شاشة الجمهور 📺</button>
+            </div>
+        </div>
+
+        <!-- 2. شاشة المتسابق (لم تتغير) -->
+        <div id="screen-player" class="hidden flex flex-col h-full relative">
+            <!-- رأس الصفحة: النقاط والاسم -->
+            <div class="bg-blue-600 text-white p-4 flex justify-between items-center shadow-md z-10">
+                <div>
+                    <span class="text-xs opacity-75 block">المتسابق</span>
+                    <h2 id="p-name-display" class="text-xl font-bold">...</h2>
+                </div>
+                <div class="text-center bg-blue-800 px-4 py-2 rounded-lg">
+                    <span class="text-xs opacity-75 block">النقاط</span>
+                    <span id="p-score-display" class="text-2xl font-black text-yellow-300">0</span>
+                </div>
+            </div>
+
+            <!-- منطقة السؤال -->
+            <div class="flex-1 p-4 flex flex-col justify-center pb-20">
+                <div id="waiting-msg" class="text-center text-gray-500 animate-pulse">
+                    <p class="text-2xl font-bold mb-2">بانتظار السؤال...</p>
+                    <p class="text-sm">استعد وضع إصبعك قريباً من الشاشة!</p>
+                </div>
+
+                <div id="active-question-area" class="hidden space-y-4">
+                    <div class="bg-blue-50 p-4 rounded-2xl border-2 border-blue-100 mb-4">
+                        <p id="q-text" class="text-xl font-bold text-center leading-relaxed">...</p>
+                    </div>
+
+                    <!-- الخيارات -->
+                    <div id="options-container" class="space-y-3">
+                        <!-- تضاف الأزرار هنا بالكود -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- شريط الحالة السفلي -->
+            <div id="status-bar" class="absolute bottom-0 w-full p-3 text-center text-white text-sm font-bold transition-colors duration-300 bg-gray-500">
+                جاهز للاتصال...
+            </div>
+        </div>
+
+        <!-- 3. شاشة المشرف (المحدثة) -->
+        <div id="screen-admin" class="hidden flex flex-col h-full p-4 bg-gray-900 text-white overflow-y-auto">
+            <h2 class="text-2xl font-bold text-yellow-400 mb-4 text-center">لوحة التحكم</h2>
+            
+            <!-- قسم توليد الأكواد -->
+            <div class="bg-gray-800 p-4 rounded-xl mb-4 border border-gray-700">
+                <h3 class="font-bold mb-2 text-blue-300">1. إعداد المتسابقين</h3>
+                <div class="flex gap-2">
+                    <input id="admin-players-count" type="number" placeholder="العدد" class="w-20 text-black p-2 rounded text-center">
+                    <button onclick="adminGenerateCodes()" class="flex-1 bg-green-600 p-2 rounded font-bold hover:bg-green-500">توليد أكواد جديدة</button>
+                </div>
+                <div id="admin-codes-display" class="mt-3 grid grid-cols-3 gap-2 text-center text-sm font-mono">
+                    <!-- ستظهر الأكواد هنا -->
+                </div>
+                <ul id="admin-players-list" class="mt-4 space-y-2 text-sm border-t border-gray-700 pt-2">
+                    <!-- قائمة المتسابقين المسجلين -->
+                </ul>
+            </div>
+
+            <!-- قسم بنك الأسئلة -->
+            <div class="bg-gray-800 p-4 rounded-xl mb-4 border border-gray-700">
+                <h3 class="font-bold mb-2 text-blue-300">2. بنك الأسئلة</h3>
+                <textarea id="admin-q-text" class="w-full text-black p-2 rounded mb-2 text-sm" placeholder="نص السؤال"></textarea>
+                <input id="admin-q-options" class="w-full text-black p-2 rounded mb-2 text-sm" placeholder="الخيارات (أ، ب، ج)">
+                <input id="admin-q-correct" type="number" class="w-full text-black p-2 rounded mb-2 text-sm" placeholder="رقم الصحيح (0 للأول)">
+                
+                <button onclick="adminAddToBank()" class="w-full bg-purple-600 p-2 rounded font-bold hover:bg-purple-500 mb-4">إضافة للبنك</button>
+
+                <h4 class="text-xs text-gray-400 mb-2">الأسئلة المحفوظة (اضغط نشر):</h4>
+                <div id="admin-bank-list" class="space-y-2 max-h-40 overflow-y-auto">
+                    <!-- قائمة البنك -->
+                </div>
+            </div>
+
+            <!-- التحكم الحالي -->
+            <div class="bg-red-900 p-4 rounded-xl mb-4">
+                 <button onclick="adminResetRound()" class="w-full bg-red-600 p-3 rounded font-bold hover:bg-red-500">إخفاء السؤال الحالي / إعادة</button>
+            </div>
+        </div>
+
+        <!-- 4. شاشة الجمهور (لم تتغير) -->
+        <div id="screen-audience" class="hidden flex flex-col justify-center items-center h-full bg-indigo-900 text-white text-center p-8">
+            <div id="audience-content" class="space-y-8 animate-pop">
+                <h1 class="text-6xl font-black text-yellow-400">المسابقة الكبرى</h1>
+                <div id="audience-q-area" class="hidden bg-white text-indigo-900 p-8 rounded-3xl shadow-2xl">
+                    <p id="audience-q-text" class="text-4xl font-bold mb-8">...</p>
+                    <div id="audience-options" class="grid grid-cols-2 gap-4 text-2xl"></div>
+                </div>
+                <div id="audience-leaderboard" class="mt-8 w-full max-w-lg mx-auto bg-indigo-800 p-4 rounded-xl">
+                    <!-- المتصدرين -->
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- 1. إعدادات Firebase ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyBxPO6RKsQ1Cq-mqlCpFTrCuIyxnYdB37U",
+            authDomain: "studentsystem-c1ab1.firebaseapp.com",
+            databaseURL: "https://studentsystem-c1ab1-default-rtdb.firebaseio.com",
+            projectId: "studentsystem-c1ab1",
+            storageBucket: "studentsystem-c1ab1.firebasestorage.app",
+            messagingSenderId: "112215023848",
+            appId: "1:112215023848:web:0adba326a527ee7e37e95d"
+        };
+        
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.database();
+        const rootRef = db.ref('osh_001');
+
+        // --- 2. متغيرات الحالة ---
+        let myRole = '';
+        // لا نولد ID عشوائي هنا، سنعتمد على الكود المدخل كمعرف أو نربطه
+        let myId = localStorage.getItem('quiz_player_id'); 
+        let currentQuestionData = null;
+        let isButtonsLocked = false;
+
+        // --- 3. التنقل وإدارة الأدوار ---
+        function joinGame(role) {
+            myRole = role;
+            
+            if (role === 'player') {
+                const nameInput = document.getElementById('player-name-input').value;
+                const codeInput = document.getElementById('player-code-input').value;
+
+                if(!nameInput || !codeInput) { alert('الرجاء كتابة الاسم والكود'); return; }
+
+                // التحقق من الكود في قاعدة البيانات
+                rootRef.child('access_codes/' + codeInput).once('value').then(snapshot => {
+                    if (snapshot.exists() && snapshot.val().status === 'waiting') {
+                        // الكود صحيح ومتاح
+                        myId = 'player_' + codeInput; // نربط المعرف بالكود لضمان التفرد
+                        localStorage.setItem('quiz_player_id', myId);
+                        
+                        // حجز الكود وتسجيل اللاعب
+                        rootRef.child('access_codes/' + codeInput).update({ status: 'taken', taken_by: nameInput });
+                        
+                        document.getElementById('screen-login').classList.add('hidden');
+                        document.getElementById('screen-player').classList.remove('hidden');
+                        document.getElementById('p-name-display').innerText = nameInput;
+                        initPlayer(nameInput, myId);
+                    } else {
+                        alert('الكود خاطئ أو مستخدم مسبقاً!');
+                    }
+                });
+
+            } else {
+                // دخول المشرف أو الجمهور مباشرة
+                document.getElementById('screen-login').classList.add('hidden');
+                if (role === 'admin') {
+                    document.getElementById('screen-admin').classList.remove('hidden');
+                    initAdmin();
+                } else if (role === 'audience') {
+                    document.getElementById('screen-audience').classList.remove('hidden');
+                    initAudience();
+                }
+            }
+        }
+
+        // --- 4. منطق المتسابق ---
+        function initPlayer(name, id) {
+            const playerRef = rootRef.child('players/' + id);
+            playerRef.update({
+                name: name,
+                online: true,
+                score: 0 
+            });
+            playerRef.onDisconnect().update({ online: false });
+
+            playerRef.child('score').on('value', snap => {
+                document.getElementById('p-score-display').innerText = snap.val() || 0;
+            });
+
+            rootRef.child('game_state').on('value', handleGameStateChange);
+        }
+
+        function handleGameStateChange(snapshot) {
+            const state = snapshot.val();
+            const qArea = document.getElementById('active-question-area');
+            const waitMsg = document.getElementById('waiting-msg');
+            
+            if (!state || state.status === 'waiting') {
+                qArea.classList.add('hidden');
+                waitMsg.classList.remove('hidden');
+                updateStatus('waiting', 'بانتظار المشرف...');
+                isButtonsLocked = false;
+                return;
+            }
+
+            if (state.status === 'active' || state.status === 'locked') {
+                waitMsg.classList.add('hidden');
+                qArea.classList.remove('hidden');
+                
+                if (!currentQuestionData || currentQuestionData.id !== state.question.id) {
+                    currentQuestionData = state.question;
+                    renderOptions(state.question);
+                    updateStatus('active', 'اختر الإجابة بسرعة!');
+                }
+
+                if (state.buzzed_by) {
+                    isButtonsLocked = true;
+                    disableAllButtons();
+                    if (state.buzzed_by === myId) {
+                         updateStatus('info', 'لقد أجبت! جار التحقق...');
+                    } else {
+                         updateStatus('locked', 'سبقك منافس آخر!');
+                    }
+                } else {
+                    isButtonsLocked = false;
+                    enableAllButtons();
+                }
+            }
+        }
+
+        function renderOptions(question) {
+            document.getElementById('q-text').innerText = question.text;
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+
+            question.options.forEach((opt, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'btn-option w-full bg-white border-2 border-gray-200 p-4 rounded-xl text-lg font-bold shadow-sm hover:border-blue-400 hover:bg-blue-50 focus:bg-blue-100 mb-2';
+                btn.innerText = opt;
+                btn.onclick = () => handleOptionClick(index);
+                container.appendChild(btn);
+            });
+        }
+
+        function handleOptionClick(selectedIndex) {
+            if (isButtonsLocked) return;
+
+            rootRef.child('game_state/buzzed_by').transaction((currentData) => {
+                if (currentData === null) {
+                    return myId; 
+                } else {
+                    return; 
+                }
+            }, (error, committed, snapshot) => {
+                if (committed) {
+                    checkAnswer(selectedIndex);
+                } else {
+                    isButtonsLocked = true;
+                    disableAllButtons();
+                }
+            });
+        }
+
+        function checkAnswer(selectedIndex) {
+            const isCorrect = (selectedIndex === currentQuestionData.correctIndex);
+            const points = isCorrect ? 10 : -10;
+            
+            rootRef.child('players/' + myId + '/score').transaction(score => (score || 0) + points);
+
+            if (isCorrect) {
+                updateStatus('success', 'إجابة صحيحة! +10');
+            } else {
+                updateStatus('error', 'إجابة خاطئة! -10');
+            }
+        }
+
+        // --- 5. دوال مساعدة للواجهة ---
+        function disableAllButtons() {
+            const btns = document.querySelectorAll('.btn-option');
+            btns.forEach(b => {
+                b.disabled = true;
+                b.classList.add('opacity-50', 'cursor-not-allowed');
+            });
+        }
+        function enableAllButtons() {
+            const btns = document.querySelectorAll('.btn-option');
+            btns.forEach(b => {
+                b.disabled = false;
+                b.classList.remove('opacity-50', 'cursor-not-allowed');
+            });
+        }
+        function updateStatus(type, msg) {
+            const bar = document.getElementById('status-bar');
+            bar.innerText = msg;
+            bar.className = 'absolute bottom-0 w-full p-3 text-center text-white text-sm font-bold transition-colors duration-300 ';
+            if(type === 'waiting') bar.classList.add('bg-gray-500');
+            if(type === 'active') bar.classList.add('bg-blue-600');
+            if(type === 'locked') bar.classList.add('bg-red-400');
+            if(type === 'success') bar.classList.add('bg-green-600');
+            if(type === 'error') bar.classList.add('bg-red-600');
+        }
+
+        // --- 6. منطق المشرف (المعدل) ---
+        function initAdmin() {
+            // مراقبة اللاعبين
+            rootRef.child('players').on('value', snap => {
+                const list = document.getElementById('admin-players-list');
+                list.innerHTML = '';
+                snap.forEach(p => {
+                    const val = p.val();
+                    const li = document.createElement('li');
+                    li.className = 'flex justify-between bg-gray-700 p-2 rounded';
+                    li.innerHTML = `<span>${val.name} <span class="${val.online ? 'text-green-400':'text-red-400'}">●</span></span> <span>${val.score}</span>`;
+                    list.appendChild(li);
+                });
+            });
+
+            // مراقبة الأكواد المولدة
+            rootRef.child('access_codes').on('value', snap => {
+                const container = document.getElementById('admin-codes-display');
+                container.innerHTML = '';
+                if(snap.exists()) {
+                    snap.forEach(codeSnap => {
+                        const code = codeSnap.key;
+                        const status = codeSnap.val().status;
+                        const taker = codeSnap.val().taken_by || '';
+                        const div = document.createElement('div');
+                        div.className = `p-1 rounded ${status === 'waiting' ? 'bg-yellow-600' : 'bg-gray-600 opacity-50'}`;
+                        div.innerHTML = `<b>${code}</b><br><span class="text-xs">${status==='waiting'?'متاح':taker}</span>`;
+                        container.appendChild(div);
+                    });
+                }
+            });
+
+            // مراقبة بنك الأسئلة
+            rootRef.child('question_bank').on('value', snap => {
+                const list = document.getElementById('admin-bank-list');
+                list.innerHTML = '';
+                snap.forEach(qSnap => {
+                    const q = qSnap.val();
+                    const div = document.createElement('div');
+                    div.className = 'flex justify-between items-center bg-gray-700 p-2 rounded text-xs';
+                    div.innerHTML = `
+                        <span class="truncate w-2/3">${q.text}</span>
+                        <button onclick="adminPublishQuestion('${qSnap.key}')" class="bg-blue-600 px-2 py-1 rounded hover:bg-blue-500">نشر</button>
+                    `;
+                    list.appendChild(div);
+                });
+            });
+        }
+
+        function adminGenerateCodes() {
+            const count = parseInt(document.getElementById('admin-players-count').value);
+            if (!count || count <= 0) return alert('أدخل عدداً صحيحاً');
+            
+            // تنظيف الأكواد القديمة واللاعبين لبدء جولة نظيفة
+            rootRef.child('access_codes').remove();
+            rootRef.child('players').remove();
+            
+            const updates = {};
+            for(let i=0; i<count; i++) {
+                // توليد كود عشوائي من 4 أرقام
+                const code = Math.floor(1000 + Math.random() * 9000);
+                updates[code] = { status: 'waiting' };
+            }
+            rootRef.child('access_codes').update(updates);
+        }
+
+        function adminAddToBank() {
+            const text = document.getElementById('admin-q-text').value;
+            const optsStr = document.getElementById('admin-q-options').value;
+            const correct = parseInt(document.getElementById('admin-q-correct').value);
+
+            if(!text || !optsStr) return alert('أكمل البيانات');
+            const options = optsStr.split('،').length > 1 ? optsStr.split('،') : optsStr.split(',');
+
+            rootRef.child('question_bank').push({
+                text: text,
+                options: options.map(s => s.trim()),
+                correctIndex: correct
+            });
+            
+            // تفريغ الحقول
+            document.getElementById('admin-q-text').value = '';
+            document.getElementById('admin-q-options').value = '';
+        }
+
+        function adminPublishQuestion(qKey) {
+            // جلب السؤال من البنك ونشره في الحالة النشطة
+            rootRef.child('question_bank/'+qKey).once('value').then(snap => {
+                const qData = snap.val();
+                qData.id = Date.now(); // تجديد المعرف لضمان اعتباره سؤالاً جديداً
+                
+                rootRef.child('game_state').set({
+                    status: 'active',
+                    question: qData,
+                    buzzed_by: null
+                });
+            });
+        }
+
+        function adminResetRound() {
+            rootRef.child('game_state').update({
+                status: 'waiting',
+                buzzed_by: null
+            });
+        }
+
+        // --- 7. منطق الجمهور (لم يتغير) ---
+        function initAudience() {
+            rootRef.child('game_state').on('value', snap => {
+                const state = snap.val();
+                const qArea = document.getElementById('audience-q-area');
+                const title = document.querySelector('#audience-content h1');
+                
+                if (state && state.status === 'active') {
+                    title.classList.add('hidden');
+                    qArea.classList.remove('hidden');
+                    document.getElementById('audience-q-text').innerText = state.question.text;
+                    const optsDiv = document.getElementById('audience-options');
+                    optsDiv.innerHTML = state.question.options.map((o, i) => 
+                        `<div class="bg-indigo-100 p-4 rounded text-indigo-900 font-bold border-2 border-indigo-200">${o}</div>`
+                    ).join('');
+                } else {
+                    title.classList.remove('hidden');
+                    qArea.classList.add('hidden');
+                }
+            });
+            
+            rootRef.child('players').on('value', snap => {
+                const board = document.getElementById('audience-leaderboard');
+                let players = [];
+                snap.forEach(c => players.push(c.val()));
+                players.sort((a,b) => b.score - a.score);
+                
+                board.innerHTML = '<h3 class="text-white mb-4 font-bold border-b pb-2">النتائج</h3>' + players.map(p => 
+                    `<div class="flex justify-between text-xl mb-2 text-yellow-300"><span>${p.name}</span><span>${p.score}</span></div>`
+                ).join('');
+            });
+        }
+
+    </script>
+</body>
+</html>
