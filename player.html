@@ -1,0 +1,1351 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>المسابقة - المتسابق</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #ec4899;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --dark: #1e1b4b;
+            --darker: #0f0a2e;
+            --team-a: #3b82f6;
+            --team-b: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background: linear-gradient(135deg, var(--darker) 0%, var(--dark) 50%, #1a1333 100%);
+            min-height: 100vh;
+            min-height: -webkit-fill-available;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.1) 0%, transparent 50%);
+            animation: pulse 10s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.2); opacity: 0.3; }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Screens */
+        .screen {
+            display: none;
+            flex: 1;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        /* Login Screen */
+        .login-screen {
+            justify-content: center;
+            align-items: center;
+        }
+
+        .login-box {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 40px 30px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            animation: slideUp 0.5s ease;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .login-box .icon {
+            font-size: 5rem;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .login-box h1 {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+
+        .login-box p {
+            color: rgba(255,255,255,0.6);
+            margin-bottom: 30px;
+        }
+
+        .code-input {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 25px;
+            direction: ltr;
+        }
+
+        .code-input input {
+            width: 100%;
+            max-width: 280px;
+            padding: 18px;
+            font-size: 24px;
+            text-align: center;
+            background: rgba(255,255,255,0.05);
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 15px;
+            color: white;
+            font-family: monospace;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+        }
+
+        .code-input input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .btn {
+            padding: 16px 32px;
+            border: none;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            width: 100%;
+            max-width: 280px;
+        }
+
+        .btn-primary:hover, .btn-primary:active {
+            transform: scale(1.02);
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .error-message {
+            color: var(--danger);
+            margin-top: 15px;
+            display: none;
+            animation: shake 0.5s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        /* Waiting Screen */
+        .waiting-screen {
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .player-info {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 40px 30px;
+            max-width: 400px;
+            width: 100%;
+            animation: slideUp 0.5s ease;
+        }
+
+        .player-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            margin: 0 auto 20px;
+        }
+
+        .player-name {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+
+        .player-team {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 30px;
+        }
+
+        .team-a-badge { background: var(--team-a); }
+        .team-b-badge { background: var(--team-b); }
+
+        .waiting-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            color: rgba(255,255,255,0.6);
+            font-size: 1.1rem;
+        }
+
+        .waiting-indicator .dots {
+            display: flex;
+            gap: 5px;
+        }
+
+        .waiting-indicator .dot {
+            width: 10px;
+            height: 10px;
+            background: var(--primary);
+            border-radius: 50%;
+            animation: dotPulse 1.4s infinite;
+        }
+
+        .waiting-indicator .dot:nth-child(2) { animation-delay: 0.2s; }
+        .waiting-indicator .dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes dotPulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(0.5); opacity: 0.5; }
+        }
+
+        .players-list {
+            margin-top: 30px;
+            text-align: right;
+        }
+
+        .players-list h4 {
+            margin-bottom: 15px;
+            color: rgba(255,255,255,0.6);
+        }
+
+        .player-list-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 15px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 10px;
+            margin-bottom: 8px;
+        }
+
+        .player-list-item .status {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .player-list-item .status.online { background: var(--success); }
+        .player-list-item .status.offline { background: rgba(255,255,255,0.3); }
+
+        .player-list-item.me {
+            background: rgba(99, 102, 241, 0.2);
+            border: 1px solid var(--primary);
+        }
+
+        /* Question Screen */
+        .question-screen {
+            padding: 0;
+        }
+
+        .question-header {
+            background: rgba(0,0,0,0.3);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .score-display {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .score-display i {
+            color: var(--warning);
+        }
+
+        .timer-display {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .timer-display.warning { color: var(--warning); }
+        .timer-display.danger { color: var(--danger); animation: blink 0.5s infinite; }
+
+        @keyframes blink {
+            50% { opacity: 0.5; }
+        }
+
+        .question-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .question-number {
+            text-align: center;
+            color: rgba(255,255,255,0.5);
+            margin-bottom: 15px;
+        }
+
+        .question-text {
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 30px;
+            line-height: 1.6;
+            flex-shrink: 0;
+        }
+
+        .options-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            justify-content: center;
+            max-width: 500px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .option-btn {
+            padding: 20px 25px;
+            background: rgba(255,255,255,0.05);
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 15px;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            text-align: right;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            background: rgba(99, 102, 241, 0.2);
+            border-color: var(--primary);
+            transform: translateX(-5px);
+        }
+
+        .option-btn:active:not(:disabled) {
+            transform: scale(0.98);
+        }
+
+        .option-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .option-btn .option-letter {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--primary);
+            border-radius: 10px;
+            font-weight: 800;
+            flex-shrink: 0;
+        }
+
+        .option-btn.selected {
+            background: rgba(99, 102, 241, 0.3);
+            border-color: var(--primary);
+        }
+
+        .option-btn.correct {
+            background: rgba(16, 185, 129, 0.3);
+            border-color: var(--success);
+            animation: correctPulse 0.5s ease;
+        }
+
+        .option-btn.correct .option-letter {
+            background: var(--success);
+        }
+
+        .option-btn.wrong {
+            background: rgba(239, 68, 68, 0.3);
+            border-color: var(--danger);
+            animation: shake 0.5s ease;
+        }
+
+        .option-btn.wrong .option-letter {
+            background: var(--danger);
+        }
+
+        @keyframes correctPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+
+        /* Locked State */
+        .locked-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            flex-direction: column;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .locked-overlay.active {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .locked-icon {
+            font-size: 5rem;
+            margin-bottom: 20px;
+        }
+
+        .locked-icon.waiting { color: var(--warning); }
+        .locked-icon.wrong { color: var(--danger); }
+        .locked-icon.correct { color: var(--success); }
+
+        .locked-message {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .locked-submessage {
+            color: rgba(255,255,255,0.6);
+            font-size: 1.1rem;
+        }
+
+        .second-chance-timer {
+            font-size: 4rem;
+            font-weight: 800;
+            color: var(--warning);
+            margin-top: 20px;
+            animation: pulse 1s infinite;
+        }
+
+        /* Result Screen */
+        .result-screen {
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .result-box {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 40px 30px;
+            max-width: 400px;
+            width: 100%;
+            animation: slideUp 0.5s ease;
+        }
+
+        .result-icon {
+            font-size: 5rem;
+            margin-bottom: 20px;
+        }
+
+        .result-icon.win { color: var(--success); }
+        .result-icon.lose { color: var(--danger); }
+
+        .result-score {
+            font-size: 4rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+
+        .result-message {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .points-change {
+            display: inline-block;
+            padding: 10px 25px;
+            border-radius: 30px;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .points-change.positive {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+        }
+
+        .points-change.negative {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+        }
+
+        /* Kicked Screen */
+        .kicked-screen {
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .kicked-box {
+            background: rgba(239, 68, 68, 0.1);
+            border: 2px solid var(--danger);
+            border-radius: 24px;
+            padding: 40px 30px;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .kicked-box .icon {
+            font-size: 4rem;
+            color: var(--danger);
+            margin-bottom: 20px;
+        }
+
+        .kicked-box h2 {
+            color: var(--danger);
+            margin-bottom: 15px;
+        }
+
+        .kicked-box p {
+            color: rgba(255,255,255,0.6);
+        }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2000;
+        }
+
+        .toast {
+            padding: 15px 30px;
+            background: var(--dark);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 50px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: toastIn 0.3s ease;
+            white-space: nowrap;
+        }
+
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .toast.success { border-color: var(--success); }
+        .toast.error { border-color: var(--danger); }
+        .toast.warning { border-color: var(--warning); }
+
+        .toast i { font-size: 1.2rem; }
+        .toast.success i { color: var(--success); }
+        .toast.error i { color: var(--danger); }
+        .toast.warning i { color: var(--warning); }
+
+        /* Responsive */
+        @media (max-width: 400px) {
+            .question-text {
+                font-size: 1.2rem;
+            }
+
+            .option-btn {
+                padding: 15px 20px;
+                font-size: 1rem;
+            }
+
+            .option-btn .option-letter {
+                width: 35px;
+                height: 35px;
+            }
+        }
+
+        @media (min-height: 800px) {
+            .question-text {
+                font-size: 1.8rem;
+                margin-bottom: 50px;
+            }
+
+            .option-btn {
+                padding: 25px 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+
+    <div class="container">
+        <!-- Login Screen -->
+        <div class="screen login-screen active" id="loginScreen">
+            <div class="login-box">
+                <div class="icon"><i class="fas fa-gamepad"></i></div>
+                <h1>المسابقة</h1>
+                <p>أدخل رمز الدخول الخاص بك</p>
+                <form id="loginForm">
+                    <div class="code-input">
+                        <input type="text" id="playerCode" placeholder="XXX-XXXX" maxlength="8" autocomplete="off" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary" id="loginBtn">
+                        <i class="fas fa-sign-in-alt"></i>
+                        دخول
+                    </button>
+                </form>
+                <p class="error-message" id="loginError">
+                    <i class="fas fa-exclamation-circle"></i>
+                    رمز الدخول غير صحيح
+                </p>
+            </div>
+        </div>
+
+        <!-- Waiting Screen -->
+        <div class="screen waiting-screen" id="waitingScreen">
+            <div class="player-info">
+                <div class="player-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="player-name" id="playerName">-</div>
+                <div class="player-team" id="playerTeam">-</div>
+                <div class="waiting-indicator">
+                    <span>في انتظار المشرف</span>
+                    <div class="dots">
+                        <span class="dot"></span>
+                        <span class="dot"></span>
+                        <span class="dot"></span>
+                    </div>
+                </div>
+                <div class="players-list">
+                    <h4><i class="fas fa-users"></i> المتصلون</h4>
+                    <div id="playersList"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Question Screen -->
+        <div class="screen question-screen" id="questionScreen">
+            <div class="question-header">
+                <div class="score-display">
+                    <i class="fas fa-star"></i>
+                    <span id="currentScore">0</span>
+                </div>
+                <div class="timer-display" id="timerDisplay">
+                    <i class="fas fa-clock"></i>
+                    <span id="timer">--</span>
+                </div>
+            </div>
+            <div class="question-content">
+                <div class="question-number" id="questionNumber">السؤال 1</div>
+                <div class="question-text" id="questionText">جاري تحميل السؤال...</div>
+                <div class="options-container" id="optionsContainer">
+                    <!-- Options will be inserted here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Locked Overlay -->
+        <div class="locked-overlay" id="lockedOverlay">
+            <div class="locked-icon waiting" id="lockedIcon">
+                <i class="fas fa-hourglass-half"></i>
+            </div>
+            <div class="locked-message" id="lockedMessage">شخص آخر أجاب!</div>
+            <div class="locked-submessage" id="lockedSubmessage">انتظر النتيجة...</div>
+            <div class="second-chance-timer" id="secondChanceTimer" style="display: none;">10</div>
+        </div>
+
+        <!-- Result Screen -->
+        <div class="screen result-screen" id="resultScreen">
+            <div class="result-box">
+                <div class="result-icon" id="resultIcon">
+                    <i class="fas fa-trophy"></i>
+                </div>
+                <div class="result-score" id="resultScore">0</div>
+                <div class="result-message" id="resultMessage">نتيجتك النهائية</div>
+                <div class="points-change positive" id="pointsChange">+10</div>
+            </div>
+        </div>
+
+        <!-- Kicked Screen -->
+        <div class="screen kicked-screen" id="kickedScreen">
+            <div class="kicked-box">
+                <div class="icon"><i class="fas fa-ban"></i></div>
+                <h2>تم قطع الاتصال</h2>
+                <p>تم تسجيل الدخول من جهاز آخر أو تم إزالتك من الجولة</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBxPO6RKsQ1Cq-mqlCpFTrCuIyxnYdB37U",
+            authDomain: "studentsystem-c1ab1.firebaseapp.com",
+            databaseURL: "https://studentsystem-c1ab1-default-rtdb.firebaseio.com",
+            projectId: "studentsystem-c1ab1",
+            storageBucket: "studentsystem-c1ab1.firebasestorage.app",
+            messagingSenderId: "112215023848",
+            appId: "1:112215023848:web:0adba326a527ee7e37e95d"
+        };
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.database();
+        const rootRef = db.ref('quiz_competition');
+
+        // App State
+        let roundId = null;
+        let playerCode = null;
+        let playerData = null;
+        let sessionId = null;
+        let currentQuestion = null;
+        let hasAnswered = false;
+        let timerInterval = null;
+        let secondChanceInterval = null;
+
+        // Sound Effects
+        const sounds = {};
+
+        function initSounds() {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return;
+
+            const audioCtx = new AudioContext();
+            sounds.audioCtx = audioCtx;
+
+            sounds.playCorrect = () => {
+                if (!sounds.audioCtx) return;
+                const ctx = sounds.audioCtx;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.frequency.setValueAtTime(523.25, ctx.currentTime);
+                osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.1);
+                osc.frequency.setValueAtTime(783.99, ctx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+                osc.start(ctx.currentTime);
+                osc.stop(ctx.currentTime + 0.4);
+            };
+
+            sounds.playWrong = () => {
+                if (!sounds.audioCtx) return;
+                const ctx = sounds.audioCtx;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.frequency.setValueAtTime(200, ctx.currentTime);
+                osc.frequency.setValueAtTime(150, ctx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+                osc.start(ctx.currentTime);
+                osc.stop(ctx.currentTime + 0.4);
+            };
+
+            sounds.playBuzzer = () => {
+                if (!sounds.audioCtx) return;
+                const ctx = sounds.audioCtx;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.frequency.setValueAtTime(880, ctx.currentTime);
+                gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
+                osc.start(ctx.currentTime);
+                osc.stop(ctx.currentTime + 0.15);
+            };
+
+            sounds.playTick = () => {
+                if (!sounds.audioCtx) return;
+                const ctx = sounds.audioCtx;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.frequency.setValueAtTime(800, ctx.currentTime);
+                gain.gain.setValueAtTime(0.1, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.05);
+                osc.start(ctx.currentTime);
+                osc.stop(ctx.currentTime + 0.05);
+            };
+        }
+
+        // Generate Session ID
+        function generateSessionId() {
+            return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        }
+
+        // Get Round ID from URL
+        function getRoundIdFromUrl() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('round');
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            roundId = getRoundIdFromUrl();
+            initSounds();
+
+            if (roundId) {
+                // Pre-fill if coming from link
+                document.getElementById('playerCode').focus();
+            }
+        });
+
+        // Login Form
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const code = document.getElementById('playerCode').value.trim().toUpperCase();
+            const loginBtn = document.getElementById('loginBtn');
+            const errorEl = document.getElementById('loginError');
+
+            if (!code) {
+                errorEl.style.display = 'block';
+                errorEl.innerHTML = '<i class="fas fa-exclamation-circle"></i> أدخل رمز الدخول';
+                return;
+            }
+
+            loginBtn.disabled = true;
+            loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التحقق...';
+
+            try {
+                // Find the round with this player
+                const roundsSnapshot = await rootRef.child('rounds').once('value');
+                const rounds = roundsSnapshot.val() || {};
+
+                let foundRound = null;
+                let foundPlayer = null;
+
+                for (const [rId, round] of Object.entries(rounds)) {
+                    if (round.players && round.players[code]) {
+                        foundRound = rId;
+                        foundPlayer = round.players[code];
+                        break;
+                    }
+                }
+
+                if (!foundPlayer) {
+                    errorEl.style.display = 'block';
+                    errorEl.innerHTML = '<i class="fas fa-exclamation-circle"></i> رمز الدخول غير صحيح';
+                    loginBtn.disabled = false;
+                    loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> دخول';
+                    return;
+                }
+
+                roundId = foundRound;
+                playerCode = code;
+                playerData = foundPlayer;
+                sessionId = generateSessionId();
+
+                // Update session and online status
+                await rootRef.child(`rounds/${roundId}/players/${playerCode}`).update({
+                    sessionId: sessionId,
+                    online: true,
+                    lastSeen: Date.now()
+                });
+
+                // Show waiting screen
+                showScreen('waitingScreen');
+                updatePlayerInfo();
+                listenToRound();
+                setupPresence();
+
+            } catch (error) {
+                console.error('Login error:', error);
+                errorEl.style.display = 'block';
+                errorEl.innerHTML = '<i class="fas fa-exclamation-circle"></i> حدث خطأ، حاول مرة أخرى';
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> دخول';
+            }
+        });
+
+        // Setup Presence (detect disconnect)
+        function setupPresence() {
+            const playerRef = rootRef.child(`rounds/${roundId}/players/${playerCode}`);
+
+            // On disconnect, set online to false
+            playerRef.onDisconnect().update({
+                online: false
+            });
+
+            // Update lastSeen periodically
+            setInterval(() => {
+                playerRef.update({
+                    lastSeen: Date.now()
+                });
+            }, 30000);
+
+            // Listen for session changes (detect login from another device)
+            playerRef.child('sessionId').on('value', (snapshot) => {
+                const currentSessionId = snapshot.val();
+                if (currentSessionId && currentSessionId !== sessionId) {
+                    // Kicked - another device logged in
+                    showScreen('kickedScreen');
+                    if (sounds.playWrong) sounds.playWrong();
+                }
+            });
+        }
+
+        // Update Player Info
+        function updatePlayerInfo() {
+            document.getElementById('playerName').textContent = playerData.name;
+
+            const teamBadge = document.getElementById('playerTeam');
+            teamBadge.textContent = playerData.team === 'a' ? 'الفريق الأول' : 'الفريق الثاني';
+            teamBadge.className = 'player-team ' + (playerData.team === 'a' ? 'team-a-badge' : 'team-b-badge');
+        }
+
+        // Listen to Round
+        function listenToRound() {
+            // Listen to players
+            rootRef.child(`rounds/${roundId}/players`).on('value', (snapshot) => {
+                const players = snapshot.val() || {};
+                renderPlayersList(players);
+
+                // Update own data
+                if (players[playerCode]) {
+                    playerData = players[playerCode];
+                    document.getElementById('currentScore').textContent = playerData.score || 0;
+                }
+            });
+
+            // Listen to current question
+            rootRef.child(`rounds/${roundId}/currentQuestion`).on('value', (snapshot) => {
+                const question = snapshot.val();
+
+                if (question && question.status) {
+                    handleQuestionUpdate(question);
+                }
+            });
+
+            // Listen to round status
+            rootRef.child(`rounds/${roundId}/status`).on('value', (snapshot) => {
+                const status = snapshot.val();
+                if (status === 'finished') {
+                    showFinalResult();
+                }
+            });
+        }
+
+        // Render Players List
+        function renderPlayersList(players) {
+            const container = document.getElementById('playersList');
+            const playersList = Object.values(players);
+
+            container.innerHTML = playersList.map(p => `
+                <div class="player-list-item ${p.code === playerCode ? 'me' : ''}">
+                    <span class="status ${p.online ? 'online' : 'offline'}"></span>
+                    <span>${p.name} ${p.code === playerCode ? '(أنت)' : ''}</span>
+                </div>
+            `).join('');
+        }
+
+        // Handle Question Update
+        function handleQuestionUpdate(question) {
+            currentQuestion = question;
+
+            if (question.status === 'open') {
+                // New question
+                hasAnswered = false;
+                showScreen('questionScreen');
+                renderQuestion(question);
+                hideLockedOverlay();
+                if (sounds.playBuzzer) sounds.playBuzzer();
+
+            } else if (question.status === 'locked') {
+                if (question.lockedBy === playerCode) {
+                    // I locked it
+                    // Wait for result
+                } else if (!hasAnswered) {
+                    // Someone else locked it
+                    showLockedOverlay('waiting', `${question.lockedByName} ضغط أولاً!`, 'انتظر النتيجة...');
+                    disableOptions();
+                }
+
+            } else if (question.status === 'secondChance') {
+                if (question.excludedPlayer === playerCode) {
+                    // I'm excluded
+                    showLockedOverlay('wrong', 'إجابتك خاطئة!', 'فقدت 10 نقاط');
+                } else if (!hasAnswered) {
+                    // Second chance for me!
+                    hideLockedOverlay();
+                    enableOptions();
+                    startSecondChanceTimer(question.secondChanceEndsAt);
+                    showToast('فرصتك الآن!', 'warning');
+                }
+
+            } else if (question.status === 'revealed') {
+                // Show correct answer
+                revealAnswer(question.correct);
+            }
+        }
+
+        // Render Question
+        function renderQuestion(question) {
+            document.getElementById('questionText').textContent = question.text;
+
+            const optionsHtml = ['a', 'b', 'c', 'd'].map(key => `
+                <button class="option-btn" data-answer="${key}" onclick="selectAnswer('${key}')">
+                    <span class="option-letter">${key === 'a' ? 'أ' : key === 'b' ? 'ب' : key === 'c' ? 'ج' : 'د'}</span>
+                    <span>${question.options[key]}</span>
+                </button>
+            `).join('');
+
+            document.getElementById('optionsContainer').innerHTML = optionsHtml;
+
+            // Reset timer display
+            document.getElementById('timer').textContent = '--';
+            document.getElementById('timerDisplay').className = 'timer-display';
+        }
+
+        // Select Answer
+        async function selectAnswer(answer) {
+            if (hasAnswered) return;
+
+            hasAnswered = true;
+
+            // Mark selected
+            document.querySelectorAll('.option-btn').forEach(btn => {
+                btn.classList.remove('selected');
+                if (btn.dataset.answer === answer) {
+                    btn.classList.add('selected');
+                }
+            });
+
+            disableOptions();
+
+            // Try to lock the question
+            const questionRef = rootRef.child(`rounds/${roundId}/currentQuestion`);
+
+            try {
+                const result = await questionRef.transaction((current) => {
+                    if (current && (current.status === 'open' || current.status === 'secondChance')) {
+                        if (current.status === 'open') {
+                            current.status = 'locked';
+                            current.lockedBy = playerCode;
+                            current.lockedByName = playerData.name;
+                        }
+                        return current;
+                    }
+                    return; // Abort
+                });
+
+                if (result.committed) {
+                    // Submit answer
+                    const isCorrect = currentQuestion.correct === answer;
+                    const isSecondChance = currentQuestion.status === 'secondChance';
+
+                    await rootRef.child(`rounds/${roundId}/answers/${playerCode}`).set({
+                        playerCode: playerCode,
+                        playerName: playerData.name,
+                        team: playerData.team,
+                        answer: answer,
+                        isCorrect: isCorrect,
+                        isSecondChance: isSecondChance,
+                        timestamp: Date.now()
+                    });
+
+                    // Calculate points
+                    let points = 0;
+                    if (isCorrect) {
+                        points = 10;
+                        if (sounds.playCorrect) sounds.playCorrect();
+                    } else {
+                        if (!isSecondChance) {
+                            points = -10;
+                        }
+                        if (sounds.playWrong) sounds.playWrong();
+                    }
+
+                    // Update score
+                    const newScore = (playerData.score || 0) + points;
+                    await rootRef.child(`rounds/${roundId}/players/${playerCode}/score`).set(newScore);
+
+                    // Update team score
+                    const teamRef = rootRef.child(`rounds/${roundId}/teams/${playerData.team}/score`);
+                    await teamRef.transaction(current => (current || 0) + points);
+
+                    // Show result
+                    if (isCorrect) {
+                        showLockedOverlay('correct', 'إجابة صحيحة!', '+10 نقاط');
+                    } else {
+                        if (isSecondChance) {
+                            showLockedOverlay('wrong', 'إجابة خاطئة!', 'لا يوجد خصم (فرصة ثانية)');
+                        } else {
+                            showLockedOverlay('wrong', 'إجابة خاطئة!', '-10 نقاط');
+                            // Start second chance for others
+                            await questionRef.update({
+                                status: 'secondChance',
+                                excludedPlayer: playerCode,
+                                secondChanceEndsAt: Date.now() + 10000
+                            });
+                        }
+                    }
+
+                    // Mark the answer
+                    document.querySelectorAll('.option-btn').forEach(btn => {
+                        if (btn.dataset.answer === answer) {
+                            btn.classList.add(isCorrect ? 'correct' : 'wrong');
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Answer error:', error);
+                showToast('حدث خطأ', 'error');
+                hasAnswered = false;
+                enableOptions();
+            }
+        }
+
+        // Second Chance Timer
+        function startSecondChanceTimer(endsAt) {
+            const timerEl = document.getElementById('timer');
+            const displayEl = document.getElementById('timerDisplay');
+
+            if (secondChanceInterval) clearInterval(secondChanceInterval);
+
+            secondChanceInterval = setInterval(() => {
+                const remaining = Math.max(0, Math.ceil((endsAt - Date.now()) / 1000));
+                timerEl.textContent = remaining;
+
+                if (remaining <= 3) {
+                    displayEl.className = 'timer-display danger';
+                } else if (remaining <= 5) {
+                    displayEl.className = 'timer-display warning';
+                }
+
+                if (sounds.playTick && remaining > 0 && remaining <= 5) {
+                    sounds.playTick();
+                }
+
+                if (remaining <= 0) {
+                    clearInterval(secondChanceInterval);
+                    if (!hasAnswered) {
+                        disableOptions();
+                        showToast('انتهى الوقت!', 'warning');
+                    }
+                }
+            }, 100);
+        }
+
+        // Reveal Answer
+        function revealAnswer(correct) {
+            document.querySelectorAll('.option-btn').forEach(btn => {
+                if (btn.dataset.answer === correct) {
+                    btn.classList.add('correct');
+                }
+            });
+        }
+
+        // Locked Overlay
+        function showLockedOverlay(type, message, submessage) {
+            const overlay = document.getElementById('lockedOverlay');
+            const icon = document.getElementById('lockedIcon');
+            const msgEl = document.getElementById('lockedMessage');
+            const subEl = document.getElementById('lockedSubmessage');
+
+            icon.className = 'locked-icon ' + type;
+            icon.innerHTML = type === 'correct' ? '<i class="fas fa-check-circle"></i>' :
+                            type === 'wrong' ? '<i class="fas fa-times-circle"></i>' :
+                            '<i class="fas fa-hourglass-half"></i>';
+
+            msgEl.textContent = message;
+            subEl.textContent = submessage;
+
+            overlay.classList.add('active');
+        }
+
+        function hideLockedOverlay() {
+            document.getElementById('lockedOverlay').classList.remove('active');
+        }
+
+        // Enable/Disable Options
+        function disableOptions() {
+            document.querySelectorAll('.option-btn').forEach(btn => {
+                btn.disabled = true;
+            });
+        }
+
+        function enableOptions() {
+            document.querySelectorAll('.option-btn').forEach(btn => {
+                btn.disabled = false;
+            });
+        }
+
+        // Show Final Result
+        function showFinalResult() {
+            showScreen('resultScreen');
+
+            const score = playerData.score || 0;
+            document.getElementById('resultScore').textContent = score;
+
+            const icon = document.getElementById('resultIcon');
+            if (score > 0) {
+                icon.className = 'result-icon win';
+                icon.innerHTML = '<i class="fas fa-trophy"></i>';
+            } else {
+                icon.className = 'result-icon lose';
+                icon.innerHTML = '<i class="fas fa-frown"></i>';
+            }
+
+            const change = document.getElementById('pointsChange');
+            change.textContent = score >= 0 ? '+' + score : score;
+            change.className = 'points-change ' + (score >= 0 ? 'positive' : 'negative');
+        }
+
+        // Show Screen
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        // Toast
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+
+            const icons = {
+                success: 'fa-check-circle',
+                error: 'fa-times-circle',
+                warning: 'fa-exclamation-circle'
+            };
+
+            toast.innerHTML = `
+                <i class="fas ${icons[type]}"></i>
+                <span>${message}</span>
+            `;
+
+            container.innerHTML = '';
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.animation = 'toastIn 0.3s ease reverse';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Format code input
+        document.getElementById('playerCode').addEventListener('input', function(e) {
+            let value = e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, '');
+
+            // Auto-add dash after 3 characters if not present
+            if (value.length === 3 && !value.includes('-')) {
+                value = value + '-';
+            }
+
+            e.target.value = value;
+        });
+    </script>
+</body>
+</html>
