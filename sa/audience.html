@@ -1,0 +1,1345 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>شاشة العرض - المسابقة</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #ec4899;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --dark: #1e1b4b;
+            --darker: #0f0a2e;
+            --gold: #fbbf24;
+            --silver: #94a3b8;
+            --bronze: #d97706;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background: linear-gradient(135deg, var(--darker) 0%, var(--dark) 50%, #1a1333 100%);
+            min-height: 100vh;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                radial-gradient(circle at 20% 80%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(236, 72, 153, 0.15) 0%, transparent 50%);
+            animation: bgPulse 8s ease-in-out infinite alternate;
+        }
+
+        @keyframes bgPulse {
+            0% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 50%;
+            animation: floatParticle 20s infinite linear;
+        }
+
+        @keyframes floatParticle {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 15px 0;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--gold), #fde68a, var(--gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 40px rgba(251, 191, 36, 0.3);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { filter: brightness(1); }
+            50% { filter: brightness(1.2); }
+        }
+
+        .header .subtitle {
+            color: rgba(255,255,255,0.6);
+            font-size: 1rem;
+            margin-top: 5px;
+        }
+
+        .status-badge {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-badge.live {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid var(--danger);
+            color: var(--danger);
+        }
+
+        .status-badge.live::before {
+            content: '';
+            width: 10px;
+            height: 10px;
+            background: var(--danger);
+            border-radius: 50%;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            50% { opacity: 0.5; }
+        }
+
+        .status-badge.waiting {
+            background: rgba(245, 158, 11, 0.2);
+            border: 1px solid var(--warning);
+            color: var(--warning);
+        }
+
+        /* Teams Grid */
+        .teams-section {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            padding: 15px 0;
+        }
+
+        .team-score-card {
+            text-align: center;
+            padding: 20px 25px;
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            border: 2px solid rgba(255,255,255,0.1);
+            min-width: 180px;
+            max-width: 250px;
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        .team-score-card.rank-1 {
+            border-color: var(--gold);
+            box-shadow: 0 0 30px rgba(251, 191, 36, 0.3);
+            transform: scale(1.05);
+        }
+
+        .team-score-card.rank-2 {
+            border-color: var(--silver);
+        }
+
+        .team-score-card.rank-3 {
+            border-color: var(--bronze);
+        }
+
+        .team-rank {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 0.9rem;
+        }
+
+        .team-score-card.rank-1 .team-rank {
+            background: var(--gold);
+            color: #000;
+        }
+
+        .team-score-card.rank-2 .team-rank {
+            background: var(--silver);
+            color: #000;
+        }
+
+        .team-score-card.rank-3 .team-rank {
+            background: var(--bronze);
+            color: #000;
+        }
+
+        .team-score-card .team-rank:not(.rank-1):not(.rank-2):not(.rank-3) {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .team-score-card.rank-1::before {
+            content: '👑';
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.5rem;
+            animation: bounce 1s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(-8px); }
+        }
+
+        .team-name {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: rgba(255,255,255,0.9);
+        }
+
+        .team-score {
+            font-size: 3rem;
+            font-weight: 900;
+            line-height: 1;
+            margin-bottom: 10px;
+            transition: all 0.3s;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .team-score-card.rank-1 .team-score {
+            background: linear-gradient(135deg, var(--gold), #fde68a);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .team-score.changed {
+            animation: scorePop 0.5s ease;
+        }
+
+        @keyframes scorePop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .team-players {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .player-badge {
+            padding: 4px 12px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .player-badge .status {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+
+        .player-badge .status.online { background: var(--success); }
+        .player-badge .status.offline { background: rgba(255,255,255,0.3); }
+
+        /* Question Section */
+        .question-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 15px 0;
+        }
+
+        .question-container {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 24px;
+            padding: 25px;
+            max-width: 900px;
+            margin: 0 auto;
+            width: 100%;
+            text-align: center;
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .question-number {
+            font-size: 1rem;
+            color: rgba(255,255,255,0.5);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .question-timer {
+            font-size: 1.5rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .question-timer.warning { color: var(--warning); }
+        .question-timer.danger { color: var(--danger); animation: blink 0.5s infinite; }
+
+        .question-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .option-card {
+            padding: 15px 20px;
+            background: rgba(255,255,255,0.05);
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: all 0.3s;
+            text-align: right;
+        }
+
+        .option-card .option-letter {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 12px;
+            font-size: 1.2rem;
+            font-weight: 800;
+            flex-shrink: 0;
+        }
+
+        .option-card .option-text {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .option-card.correct {
+            background: rgba(16, 185, 129, 0.2);
+            border-color: var(--success);
+            animation: correctGlow 1s ease;
+        }
+
+        .option-card.correct .option-letter {
+            background: var(--success);
+        }
+
+        @keyframes correctGlow {
+            0%, 100% { box-shadow: 0 0 0 rgba(16, 185, 129, 0); }
+            50% { box-shadow: 0 0 30px rgba(16, 185, 129, 0.5); }
+        }
+
+        .option-card.wrong {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: var(--danger);
+        }
+
+        .option-card.wrong .option-letter {
+            background: var(--danger);
+        }
+
+        /* Event Feed */
+        .event-feed {
+            position: fixed;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            z-index: 100;
+            max-width: 95%;
+        }
+
+        .event-toast {
+            padding: 12px 25px;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(20px);
+            border-radius: 40px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideUp 0.5s ease;
+            font-size: 1rem;
+            text-align: center;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .event-toast.correct {
+            border: 2px solid var(--success);
+        }
+
+        .event-toast.wrong {
+            border: 2px solid var(--danger);
+        }
+
+        .event-toast.chance {
+            border: 2px solid var(--warning);
+        }
+
+        .event-toast i {
+            font-size: 1.2rem;
+        }
+
+        .event-toast.correct i { color: var(--success); }
+        .event-toast.wrong i { color: var(--danger); }
+        .event-toast.chance i { color: var(--warning); }
+
+        /* Waiting State */
+        .waiting-state {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .waiting-state .icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.3;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.3; }
+            50% { transform: scale(1.05); opacity: 0.5; }
+        }
+
+        .waiting-state h2 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            color: rgba(255,255,255,0.6);
+        }
+
+        .waiting-state p {
+            color: rgba(255,255,255,0.4);
+            font-size: 1rem;
+        }
+
+        /* Final Results */
+        .final-results {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 30px 15px;
+            text-align: center;
+            min-height: 60vh;
+        }
+
+        .final-results.active {
+            display: flex;
+        }
+
+        .trophy-icon {
+            font-size: 5rem;
+            color: var(--gold);
+            margin-bottom: 20px;
+            animation: bounce 2s infinite;
+            text-shadow: 0 0 60px rgba(251, 191, 36, 0.5);
+        }
+
+        .winner-announcement {
+            font-size: 2rem;
+            font-weight: 900;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, var(--gold), #fde68a);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .final-message {
+            font-size: 1.2rem;
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 30px;
+        }
+
+        /* Final Rankings */
+        .final-rankings {
+            width: 100%;
+            max-width: 500px;
+            margin-top: 20px;
+        }
+
+        .final-rankings h3 {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            color: rgba(255,255,255,0.8);
+        }
+
+        .ranking-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px 20px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            margin-bottom: 10px;
+            border: 2px solid rgba(255,255,255,0.1);
+        }
+
+        .ranking-item.rank-1 {
+            border-color: var(--gold);
+            background: rgba(251, 191, 36, 0.1);
+        }
+
+        .ranking-item.rank-2 {
+            border-color: var(--silver);
+        }
+
+        .ranking-item.rank-3 {
+            border-color: var(--bronze);
+        }
+
+        .ranking-position {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        .ranking-item.rank-1 .ranking-position {
+            background: var(--gold);
+            color: #000;
+        }
+
+        .ranking-item.rank-2 .ranking-position {
+            background: var(--silver);
+            color: #000;
+        }
+
+        .ranking-item.rank-3 .ranking-position {
+            background: var(--bronze);
+            color: #000;
+        }
+
+        .ranking-item:not(.rank-1):not(.rank-2):not(.rank-3) .ranking-position {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .ranking-info {
+            flex: 1;
+            text-align: right;
+        }
+
+        .ranking-info .name {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .ranking-info .players {
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.5);
+            margin-top: 3px;
+        }
+
+        .ranking-score {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .ranking-item.rank-1 .ranking-score {
+            color: var(--gold);
+        }
+
+        /* Second Chance Indicator */
+        .second-chance-indicator {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(245, 158, 11, 0.15);
+            border: 3px solid var(--warning);
+            border-radius: 25px;
+            padding: 25px 50px;
+            text-align: center;
+            z-index: 50;
+            animation: pulseGlow 1s infinite;
+        }
+
+        .second-chance-indicator.active {
+            display: block;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 20px rgba(245, 158, 11, 0.3); }
+            50% { box-shadow: 0 0 40px rgba(245, 158, 11, 0.6); }
+        }
+
+        .second-chance-indicator h3 {
+            font-size: 1.5rem;
+            color: var(--warning);
+            margin-bottom: 10px;
+        }
+
+        .second-chance-indicator .timer {
+            font-size: 3rem;
+            font-weight: 900;
+            color: var(--warning);
+        }
+
+        .confetti {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 1000;
+        }
+
+        .confetti-piece {
+            position: absolute;
+            width: 10px;
+            height: 20px;
+            top: -20px;
+            animation: confettiFall 4s linear forwards;
+        }
+
+        @keyframes confettiFall {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+                padding-top: 30px;
+            }
+
+            .status-badge {
+                top: 10px;
+                left: 10px;
+                padding: 5px 12px;
+                font-size: 0.75rem;
+            }
+
+            .teams-section {
+                gap: 10px;
+            }
+
+            .team-score-card {
+                min-width: 140px;
+                padding: 15px;
+            }
+
+            .team-name {
+                font-size: 1rem;
+            }
+
+            .team-score {
+                font-size: 2.2rem;
+            }
+
+            .team-rank {
+                width: 25px;
+                height: 25px;
+                font-size: 0.8rem;
+            }
+
+            .player-badge {
+                font-size: 0.7rem;
+                padding: 3px 8px;
+            }
+
+            .question-container {
+                padding: 15px;
+                border-radius: 18px;
+            }
+
+            .question-text {
+                font-size: 1.2rem;
+                min-height: 50px;
+            }
+
+            .options-grid {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+
+            .option-card {
+                padding: 12px 15px;
+            }
+
+            .option-card .option-letter {
+                width: 35px;
+                height: 35px;
+                font-size: 1rem;
+            }
+
+            .option-card .option-text {
+                font-size: 1rem;
+            }
+
+            .event-toast {
+                padding: 10px 20px;
+                font-size: 0.9rem;
+            }
+
+            .trophy-icon {
+                font-size: 4rem;
+            }
+
+            .winner-announcement {
+                font-size: 1.6rem;
+            }
+
+            .ranking-item {
+                padding: 12px 15px;
+            }
+
+            .ranking-position {
+                width: 35px;
+                height: 35px;
+                font-size: 1rem;
+            }
+
+            .second-chance-indicator {
+                padding: 20px 30px;
+            }
+
+            .second-chance-indicator h3 {
+                font-size: 1.2rem;
+            }
+
+            .second-chance-indicator .timer {
+                font-size: 2.5rem;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .team-score-card {
+                min-width: 100%;
+            }
+
+            .team-score-card.rank-1 {
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation">
+        <div class="particles" id="particles"></div>
+    </div>
+
+    <div class="container" id="mainContainer">
+        <!-- Header -->
+        <div class="header">
+            <div class="status-badge waiting" id="statusBadge">
+                <span>في انتظار البدء</span>
+            </div>
+            <h1 id="roundTitle">🏆 المسابقة الكبرى</h1>
+            <p class="subtitle" id="roundSubtitle">استعد للمنافسة!</p>
+        </div>
+
+        <!-- Teams Section -->
+        <div class="teams-section" id="teamsSection">
+            <!-- Teams will be dynamically rendered -->
+        </div>
+
+        <!-- Question Section -->
+        <div class="question-section" id="questionSection">
+            <!-- Waiting State -->
+            <div class="waiting-state" id="waitingState">
+                <div class="icon">
+                    <i class="fas fa-hourglass-half"></i>
+                </div>
+                <h2>في انتظار السؤال...</h2>
+                <p>سيظهر السؤال هنا عندما ينشره المشرف</p>
+            </div>
+
+            <!-- Question Container -->
+            <div class="question-container" id="questionContainer" style="display: none;">
+                <div class="question-header">
+                    <div class="question-number">
+                        <i class="fas fa-question-circle"></i>
+                        <span id="questionNumber">السؤال 1</span>
+                    </div>
+                    <div class="question-timer" id="questionTimer">
+                        <i class="fas fa-clock"></i>
+                        <span id="timerValue">--</span>
+                    </div>
+                </div>
+                <div class="question-text" id="questionText">
+                    نص السؤال سيظهر هنا
+                </div>
+                <div class="options-grid" id="optionsGrid">
+                    <!-- Options will be inserted here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Second Chance Indicator -->
+        <div class="second-chance-indicator" id="secondChanceIndicator">
+            <h3>⚡ فرصة ثانية!</h3>
+            <div class="timer" id="secondChanceTimer">10</div>
+        </div>
+
+        <!-- Final Results -->
+        <div class="final-results" id="finalResults">
+            <div class="trophy-icon">🏆</div>
+            <div class="winner-announcement" id="winnerAnnouncement">الفائز هو...</div>
+            <div class="final-message" id="finalMessage">مبروك للفريق الفائز!</div>
+            <div class="final-rankings" id="finalRankings">
+                <h3>📊 ترتيب الفرق</h3>
+                <div id="rankingsList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Event Feed -->
+    <div class="event-feed" id="eventFeed"></div>
+
+    <!-- Confetti Container -->
+    <div class="confetti" id="confettiContainer"></div>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBxPO6RKsQ1Cq-mqlCpFTrCuIyxnYdB37U",
+            authDomain: "studentsystem-c1ab1.firebaseapp.com",
+            databaseURL: "https://studentsystem-c1ab1-default-rtdb.firebaseio.com",
+            projectId: "studentsystem-c1ab1",
+            storageBucket: "studentsystem-c1ab1.firebasestorage.app",
+            messagingSenderId: "112215023848",
+            appId: "1:112215023848:web:0adba326a527ee7e37e95d"
+        };
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.database();
+        const rootRef = db.ref('quiz_competition');
+
+        // App State
+        let roundId = null;
+        let currentQuestion = null;
+        let previousScores = {};
+        let questionCount = 0;
+        let secondChanceInterval = null;
+        let teamsData = [];
+        let playersData = {};
+
+        // Sound Effects
+        const sounds = {};
+
+        function initSounds() {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return;
+
+            const audioCtx = new AudioContext();
+            sounds.audioCtx = audioCtx;
+
+            sounds.playCorrect = () => {
+                if (!sounds.audioCtx) return;
+                const ctx = sounds.audioCtx;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.frequency.setValueAtTime(523.25, ctx.currentTime);
+                osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.1);
+                osc.frequency.setValueAtTime(783.99, ctx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+                osc.start(ctx.currentTime);
+                osc.stop(ctx.currentTime + 0.4);
+            };
+
+            sounds.playWrong = () => {
+                if (!sounds.audioCtx) return;
+                const ctx = sounds.audioCtx;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.frequency.setValueAtTime(200, ctx.currentTime);
+                osc.frequency.setValueAtTime(150, ctx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+                osc.start(ctx.currentTime);
+                osc.stop(ctx.currentTime + 0.4);
+            };
+
+            sounds.playBuzzer = () => {
+                if (!sounds.audioCtx) return;
+                const ctx = sounds.audioCtx;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.frequency.setValueAtTime(880, ctx.currentTime);
+                gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
+                osc.start(ctx.currentTime);
+                osc.stop(ctx.currentTime + 0.15);
+            };
+
+            sounds.playFanfare = () => {
+                if (!sounds.audioCtx) return;
+                const ctx = sounds.audioCtx;
+                const notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((freq, i) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.15);
+                    gain.gain.setValueAtTime(0.2, ctx.currentTime + i * 0.15);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + i * 0.15 + 0.3);
+                    osc.start(ctx.currentTime + i * 0.15);
+                    osc.stop(ctx.currentTime + i * 0.15 + 0.3);
+                });
+            };
+        }
+
+        // Create particles
+        function createParticles() {
+            const container = document.getElementById('particles');
+            for (let i = 0; i < 25; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 20 + 's';
+                particle.style.animationDuration = 15 + Math.random() * 10 + 's';
+                container.appendChild(particle);
+            }
+        }
+
+        // Get Round ID from URL
+        function getRoundIdFromUrl() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('round');
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            roundId = getRoundIdFromUrl();
+            createParticles();
+            initSounds();
+
+            if (roundId) {
+                listenToRound();
+            } else {
+                findActiveRound();
+            }
+
+            // Resume audio context on interaction
+            document.addEventListener('click', () => {
+                if (sounds.audioCtx && sounds.audioCtx.state === 'suspended') {
+                    sounds.audioCtx.resume();
+                }
+            }, { once: true });
+        });
+
+        // Find Active Round
+        function findActiveRound() {
+            rootRef.child('rounds').orderByChild('status').equalTo('active').limitToFirst(1).on('value', (snapshot) => {
+                const rounds = snapshot.val();
+                if (rounds) {
+                    roundId = Object.keys(rounds)[0];
+                    listenToRound();
+                }
+            });
+        }
+
+        // Listen to Round
+        function listenToRound() {
+            if (!roundId) return;
+
+            // Listen to round info
+            rootRef.child(`rounds/${roundId}`).on('value', (snapshot) => {
+                const round = snapshot.val();
+                if (round) {
+                    document.getElementById('roundTitle').textContent = '🏆 ' + (round.name || 'المسابقة');
+
+                    if (round.status === 'active') {
+                        document.getElementById('statusBadge').className = 'status-badge live';
+                        document.getElementById('statusBadge').innerHTML = '<span>مباشر</span>';
+                    } else if (round.status === 'finished') {
+                        showFinalResults(round);
+                    }
+                }
+            });
+
+            // Listen to teams
+            rootRef.child(`rounds/${roundId}/teams`).on('value', (snapshot) => {
+                const teams = snapshot.val() || [];
+                teamsData = Array.isArray(teams) ? teams : Object.values(teams);
+                renderTeams();
+            });
+
+            // Listen to players
+            rootRef.child(`rounds/${roundId}/players`).on('value', (snapshot) => {
+                playersData = snapshot.val() || {};
+                renderTeams();
+            });
+
+            // Listen to current question
+            rootRef.child(`rounds/${roundId}/currentQuestion`).on('value', (snapshot) => {
+                const question = snapshot.val();
+                handleQuestionUpdate(question);
+            });
+
+            // Listen to answers
+            rootRef.child(`rounds/${roundId}/answers`).on('child_added', (snapshot) => {
+                const answer = snapshot.val();
+                showAnswerEvent(answer);
+            });
+
+            // Listen to used questions count
+            rootRef.child(`rounds/${roundId}/usedQuestions`).on('value', (snapshot) => {
+                const used = snapshot.val() || [];
+                questionCount = used.length;
+            });
+        }
+
+        // Render Teams (sorted by score)
+        function renderTeams() {
+            const container = document.getElementById('teamsSection');
+
+            // Sort teams by score (highest first)
+            const sortedTeams = teamsData.map((team, index) => ({
+                ...team,
+                index: index,
+                players: Object.values(playersData).filter(p => p.teamIndex === index)
+            })).sort((a, b) => (b.score || 0) - (a.score || 0));
+
+            container.innerHTML = sortedTeams.map((team, rank) => {
+                const rankClass = rank === 0 ? 'rank-1' : rank === 1 ? 'rank-2' : rank === 2 ? 'rank-3' : '';
+                const score = team.score || 0;
+
+                // Check for score change
+                const oldScore = previousScores[team.index];
+                const scoreChanged = oldScore !== undefined && oldScore !== score;
+                previousScores[team.index] = score;
+
+                return `
+                    <div class="team-score-card ${rankClass}" data-team="${team.index}">
+                        <div class="team-rank">${rank + 1}</div>
+                        <div class="team-name">${team.name || 'فريق ' + (team.index + 1)}</div>
+                        <div class="team-score ${scoreChanged ? 'changed' : ''}">${score}</div>
+                        <div class="team-players">
+                            ${team.players.map(p => `
+                                <div class="player-badge">
+                                    <span class="status ${p.online ? 'online' : 'offline'}"></span>
+                                    <span>${p.name}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Handle Question Update
+        function handleQuestionUpdate(question) {
+            currentQuestion = question;
+
+            if (!question) {
+                showWaitingState();
+                return;
+            }
+
+            if (question.status === 'open' || question.status === 'locked' || question.status === 'secondChance') {
+                showQuestion(question);
+
+                if (question.status === 'secondChance') {
+                    showSecondChance(question.secondChanceEndsAt);
+                } else {
+                    hideSecondChance();
+                }
+
+                if (question.status === 'open' && sounds.playBuzzer) {
+                    sounds.playBuzzer();
+                }
+            } else if (question.status === 'revealed') {
+                revealAnswer(question.correct);
+            }
+        }
+
+        // Show Waiting State
+        function showWaitingState() {
+            document.getElementById('waitingState').style.display = 'block';
+            document.getElementById('questionContainer').style.display = 'none';
+        }
+
+        // Show Question
+        function showQuestion(question) {
+            document.getElementById('waitingState').style.display = 'none';
+            document.getElementById('questionContainer').style.display = 'block';
+
+            document.getElementById('questionNumber').textContent = `السؤال ${questionCount}`;
+            document.getElementById('questionText').textContent = question.text;
+
+            const letters = { a: 'أ', b: 'ب', c: 'ج', d: 'د' };
+            document.getElementById('optionsGrid').innerHTML = ['a', 'b', 'c', 'd'].map(key => `
+                <div class="option-card" data-option="${key}">
+                    <span class="option-letter">${letters[key]}</span>
+                    <span class="option-text">${question.options[key]}</span>
+                </div>
+            `).join('');
+        }
+
+        // Show Second Chance Timer
+        function showSecondChance(endsAt) {
+            const indicator = document.getElementById('secondChanceIndicator');
+            const timerEl = document.getElementById('secondChanceTimer');
+            indicator.classList.add('active');
+
+            if (secondChanceInterval) clearInterval(secondChanceInterval);
+
+            secondChanceInterval = setInterval(() => {
+                const remaining = Math.max(0, Math.ceil((endsAt - Date.now()) / 1000));
+                timerEl.textContent = remaining;
+
+                if (remaining <= 0) {
+                    clearInterval(secondChanceInterval);
+                    hideSecondChance();
+                }
+            }, 100);
+        }
+
+        function hideSecondChance() {
+            document.getElementById('secondChanceIndicator').classList.remove('active');
+            if (secondChanceInterval) clearInterval(secondChanceInterval);
+        }
+
+        // Reveal Answer
+        function revealAnswer(correct) {
+            hideSecondChance();
+
+            document.querySelectorAll('.option-card').forEach(card => {
+                if (card.dataset.option === correct) {
+                    card.classList.add('correct');
+                    if (sounds.playCorrect) sounds.playCorrect();
+                }
+            });
+        }
+
+        // Show Answer Event
+        function showAnswerEvent(answer) {
+            const feed = document.getElementById('eventFeed');
+            const toast = document.createElement('div');
+
+            // Get team name
+            const teamName = answer.teamName || 'فريق';
+            const points = answer.isCorrect ? '+10' : (answer.isSecondChance ? '0' : '-10');
+
+            let type, icon, text;
+
+            if (answer.isCorrect) {
+                type = 'correct';
+                icon = 'check-circle';
+                text = `✅ ${teamName} أجاب صحيحاً! ${points} نقطة`;
+            } else {
+                type = 'wrong';
+                icon = 'times-circle';
+                text = `❌ ${teamName} أجاب خطأ! ${points} نقطة`;
+            }
+
+            toast.className = `event-toast ${type}`;
+            toast.innerHTML = `
+                <i class="fas fa-${icon}"></i>
+                <span>${text}</span>
+            `;
+
+            feed.appendChild(toast);
+
+            if (answer.isCorrect && sounds.playCorrect) {
+                sounds.playCorrect();
+            } else if (!answer.isCorrect && sounds.playWrong) {
+                sounds.playWrong();
+            }
+
+            setTimeout(() => {
+                toast.style.animation = 'slideUp 0.3s ease reverse';
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+
+        // Show Final Results
+        function showFinalResults(round) {
+            const teams = round.teams || [];
+            const teamsArray = Array.isArray(teams) ? teams : Object.values(teams);
+
+            // Sort teams by score
+            const sortedTeams = teamsArray.map((team, index) => ({
+                ...team,
+                index: index,
+                players: Object.values(playersData).filter(p => p.teamIndex === index)
+            })).sort((a, b) => (b.score || 0) - (a.score || 0));
+
+            document.getElementById('teamsSection').style.display = 'none';
+            document.getElementById('questionSection').style.display = 'none';
+            document.getElementById('finalResults').classList.add('active');
+
+            // Winner announcement
+            const winner = sortedTeams[0];
+            const isTie = sortedTeams.length > 1 && (sortedTeams[0].score || 0) === (sortedTeams[1].score || 0);
+
+            if (isTie) {
+                document.getElementById('winnerAnnouncement').textContent = '🤝 تعادل!';
+                document.getElementById('finalMessage').textContent = 'جولة رائعة من الجميع!';
+            } else {
+                document.getElementById('winnerAnnouncement').textContent = `🎉 ${winner.name || 'الفريق الفائز'}`;
+                document.getElementById('finalMessage').textContent = `بـ ${winner.score || 0} نقطة`;
+            }
+
+            // Render rankings
+            document.getElementById('rankingsList').innerHTML = sortedTeams.map((team, rank) => {
+                const rankClass = rank === 0 ? 'rank-1' : rank === 1 ? 'rank-2' : rank === 2 ? 'rank-3' : '';
+                const playerNames = team.players.map(p => p.name).join('، ');
+
+                return `
+                    <div class="ranking-item ${rankClass}">
+                        <div class="ranking-position">${rank + 1}</div>
+                        <div class="ranking-info">
+                            <div class="name">${team.name || 'فريق ' + (team.index + 1)}</div>
+                            ${playerNames ? `<div class="players">${playerNames}</div>` : ''}
+                        </div>
+                        <div class="ranking-score">${team.score || 0}</div>
+                    </div>
+                `;
+            }).join('');
+
+            // Play fanfare and show confetti
+            if (sounds.playFanfare) sounds.playFanfare();
+            showConfetti();
+        }
+
+        // Show Confetti
+        function showConfetti() {
+            const container = document.getElementById('confettiContainer');
+            const colors = ['#6366f1', '#ec4899', '#10b981', '#f59e0b', '#3b82f6', '#ef4444', '#fbbf24'];
+
+            for (let i = 0; i < 80; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti-piece';
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.animationDelay = Math.random() * 3 + 's';
+                confetti.style.animationDuration = 3 + Math.random() * 2 + 's';
+                container.appendChild(confetti);
+
+                setTimeout(() => confetti.remove(), 6000);
+            }
+        }
+    </script>
+</body>
+</html>
