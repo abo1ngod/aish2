@@ -88,7 +88,7 @@
                 </div>
             </div>
 
-            <!-- شريط المتصدرين المصغر (تحديث جديد) -->
+            <!-- شريط المتصدرين المصغر -->
             <div class="bg-blue-700 text-white text-xs p-2 shadow-inner z-10">
                 <div class="flex items-center gap-2 mb-1 opacity-75">
                     <span>🏆 المتصدرون:</span>
@@ -111,7 +111,7 @@
                     </div>
 
                     <!-- منطقة التغذية الراجعة (من سبقني؟) -->
-                    <div id="feedback-area" class="hidden p-3 rounded-lg text-center font-bold text-sm mb-2 animate-pop border">
+                    <div id="feedback-area" class="hidden rounded-lg text-center text-sm mb-2 animate-pop border shadow-md">
                         <!-- نص التنبيه -->
                     </div>
 
@@ -171,7 +171,6 @@
                     <div id="audience-options" class="grid grid-cols-2 gap-4 text-2xl"></div>
                 </div>
                 
-                <!-- تم تحديث عرض المتسابقين للجمهور ليشمل الجميع -->
                 <div id="audience-leaderboard-container" class="mt-8 w-full max-w-4xl mx-auto bg-indigo-800 p-4 rounded-xl">
                     <h3 class="text-white mb-4 font-bold border-b border-indigo-600 pb-2">النتائج المباشرة</h3>
                     <div id="audience-leaderboard" class="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -204,7 +203,7 @@
         // --- 2. متغيرات الحالة ---
         let myRole = '';
         let myId = null; 
-        let myName = ''; // نحتاج للاسم عالمياً
+        let myName = ''; 
         let currentQuestionData = null;
         let isButtonsLocked = false;
 
@@ -215,14 +214,12 @@
                 document.getElementById('login-form').classList.add('hidden');
                 document.getElementById('login-loading').classList.remove('hidden');
                 
-                // التحقق من صحة الـ ID المحفوظ
                 rootRef.child('players/' + savedId).once('value').then(snap => {
                     if(snap.exists()) {
                         myId = savedId;
                         myName = snap.val().name;
-                        joinGame('player', true); // true = auto login
+                        joinGame('player', true); 
                     } else {
-                        // البيانات قديمة أو محذوفة
                         localStorage.removeItem('quiz_player_id');
                         document.getElementById('login-form').classList.remove('hidden');
                         document.getElementById('login-loading').classList.add('hidden');
@@ -283,13 +280,10 @@
             playerRef.update({
                 name: name,
                 online: true,
-                // لا نصفر النقاط هنا عند إعادة الدخول حتى لا تضيع
-                // score: 0 
             });
             playerRef.onDisconnect().update({ online: false });
 
             playerRef.child('score').on('value', snap => {
-                // إذا كانت القيمة غير موجودة (بداية جديدة) نضع صفر
                 document.getElementById('p-score-display').innerText = (snap.val() === null) ? 0 : snap.val();
             });
 
@@ -304,6 +298,7 @@
             const container = document.getElementById('player-mini-leaderboard');
             let players = [];
             snap.forEach(c => players.push(c.val()));
+            // ترتيب حسب النقاط تنازلياً
             players.sort((a,b) => (b.score || 0) - (a.score || 0));
             
             container.innerHTML = players.map((p, i) => 
@@ -336,7 +331,7 @@
                     currentQuestionData = state.question;
                     renderOptions(state.question);
                     updateStatus('active', 'اختر الإجابة بسرعة!');
-                    feedbackArea.classList.add('hidden'); // إخفاء التنبيهات القديمة
+                    feedbackArea.classList.add('hidden');
                 }
 
                 // منطق الإقفال والنتائج
@@ -345,28 +340,41 @@
                     disableAllButtons();
                     
                     if (state.buzzed_by === myId) {
-                         // أنا الذي أجبت
-                         updateStatus('info', 'لقد أجبت! جار التحقق...');
-                    } else {
-                         // شخص آخر أجاب، نعرض التنبيه المفصل
-                         updateStatus('locked', 'سبقك منافس آخر!');
-                         
-                         // التحقق من نتيجة المنافس (last_result)
-                         if (state.last_result) {
-                             feedbackArea.classList.remove('hidden');
-                             const r = state.last_result;
-                             const colorClass = r.correct ? 'bg-red-100 text-red-800 border-red-200' : 'bg-green-100 text-green-800 border-green-200'; // عكسي للمنافس؟ لا، نعرض الحقيقة
-                             
-                             // إذا صحيحة للمنافس، فهي خسارة لي
-                             if (r.correct) {
-                                 feedbackArea.className = 'p-3 rounded-lg text-center font-bold text-sm mb-2 animate-pop border bg-red-50 text-red-700 border-red-200';
-                                 feedbackArea.innerHTML = `سبقك <span class="font-black">${r.name}</span> وأجاب <span class="text-green-600">إجابة صحيحة</span> وحصل على 10 نقاط 😢`;
-                             } else {
-                                 feedbackArea.className = 'p-3 rounded-lg text-center font-bold text-sm mb-2 animate-pop border bg-green-50 text-gray-700 border-green-200';
-                                 feedbackArea.innerHTML = `سبقك <span class="font-black">${r.name}</span> وأجاب <span class="text-red-600">إجابة خاطئة</span> وخصم منه 10 نقاط! 😅`;
-                             }
+                         // أنا الذي أجبت - انتظر التحقق
+                         if (!state.last_result) {
+                            updateStatus('info', 'لقد أجبت! جار التحقق...');
                          }
+                    } else {
+                         // شخص آخر أجاب
+                         updateStatus('locked', 'سبقك منافس آخر!');
                     }
+
+                    // عرض التغذية الراجعة التفصيلية للجميع عند توفر النتيجة
+                    if (state.last_result) {
+                        feedbackArea.classList.remove('hidden');
+                        const r = state.last_result;
+                        let msgHTML = "";
+
+                        if (state.buzzed_by === myId) {
+                            // رسالة للمتسابق الذي أجاب
+                            if (r.correct) {
+                                feedbackArea.className = 'p-4 rounded-lg text-center font-bold text-sm mb-2 animate-pop border shadow-md bg-green-100 text-green-900 border-green-300';
+                                msgHTML = `🎉 إجابة صحيحة!<br>اخترت: <b>${r.selected_text}</b><br>الرصيد: +10`;
+                                updateStatus('success', 'أحسنت! إجابة صحيحة');
+                            } else {
+                                feedbackArea.className = 'p-4 rounded-lg text-center font-bold text-sm mb-2 animate-pop border shadow-md bg-red-100 text-red-900 border-red-300';
+                                msgHTML = `❌ إجابة خاطئة!<br>اخترت: <b>${r.selected_text}</b><br>الصحيح: <b>${r.correct_text}</b><br>الرصيد: -10`;
+                                updateStatus('error', 'للأسف! إجابة خاطئة');
+                            }
+                        } else {
+                            // رسالة لبقية المتسابقين
+                            feedbackArea.className = 'p-4 rounded-lg text-center font-bold text-sm mb-2 animate-pop border shadow-md bg-blue-50 text-gray-800 border-blue-200';
+                            const verdict = r.correct ? '<span class="text-green-600 font-black">صحيحة</span>' : '<span class="text-red-600 font-black">خاطئة</span>';
+                            msgHTML = `أجاب <b>${r.name}</b>: <b>${r.selected_text}</b> (${verdict})<br>الإجابة الصحيحة: <b>${r.correct_text}</b>`;
+                        }
+                        feedbackArea.innerHTML = msgHTML;
+                    }
+
                 } else {
                     isButtonsLocked = false;
                     enableAllButtons();
@@ -411,23 +419,22 @@
             const isCorrect = (selectedIndex === currentQuestionData.correctIndex);
             const points = isCorrect ? 10 : -10;
             
+            const selectedText = currentQuestionData.options[selectedIndex];
+            const correctText = currentQuestionData.options[currentQuestionData.correctIndex];
+            
             // تحديث النقاط
             rootRef.child('players/' + myId + '/score').transaction(score => (score || 0) + points);
 
-            // تحديث نتيجة الجولة ليراها الجميع
+            // تحديث نتيجة الجولة ليراها الجميع بتفاصيل كاملة
             rootRef.child('game_state').update({
                 last_result: {
                     name: myName,
                     correct: isCorrect,
-                    points: points
+                    points: points,
+                    selected_text: selectedText,
+                    correct_text: correctText
                 }
             });
-
-            if (isCorrect) {
-                updateStatus('success', 'إجابة صحيحة! +10');
-            } else {
-                updateStatus('error', 'إجابة خاطئة! -10');
-            }
         }
 
         // --- 5. دوال مساعدة للواجهة ---
@@ -487,7 +494,6 @@
                 }
             });
 
-            // تحديث عرض البنك للتعامل مع الأسئلة المنشورة
             rootRef.child('question_bank').on('value', snap => {
                 const list = document.getElementById('admin-bank-list');
                 list.innerHTML = '';
@@ -498,7 +504,6 @@
                     const div = document.createElement('div');
                     div.className = `flex justify-between items-center bg-gray-700 p-2 rounded text-xs ${isAsked ? 'opacity-50' : ''}`;
                     
-                    // زر النشر: إذا تم سؤاله نعطله
                     const btnHtml = isAsked 
                         ? `<button disabled class="bg-gray-500 text-gray-300 px-2 py-1 rounded cursor-not-allowed">تم النشر</button>`
                         : `<button onclick="adminPublishQuestion('${qSnap.key}')" class="bg-blue-600 px-2 py-1 rounded hover:bg-blue-500">نشر</button>`;
@@ -518,11 +523,7 @@
             
             rootRef.child('access_codes').remove();
             rootRef.child('players').remove();
-            // تصفير حالة اللعبة أيضاً لبداية نظيفة
             rootRef.child('game_state').set({ status: 'waiting' });
-            
-            // تصفير حالة "تم النشر" من البنك (اختياري، إذا كنت تريد إعادة استخدام الأسئلة في الجولة الجديدة)
-            // في هذا الكود سنبقي البنك كما هو، المشرف يقرر إضافة أسئلة جديدة أو مسحها يدوياً
             
             const updates = {};
             for(let i=0; i<count; i++) {
@@ -544,7 +545,7 @@
                 text: text,
                 options: options.map(s => s.trim()),
                 correctIndex: correct,
-                was_asked: false // حقل جديد
+                was_asked: false 
             });
             
             document.getElementById('admin-q-text').value = '';
@@ -556,14 +557,13 @@
                 const qData = snap.val();
                 qData.id = Date.now();
                 
-                // تحديث حالة السؤال في البنك بأنه "تم طرحه"
                 rootRef.child('question_bank/'+qKey).update({ was_asked: true });
                 
                 rootRef.child('game_state').set({
                     status: 'active',
                     question: qData,
                     buzzed_by: null,
-                    last_result: null // تصفير نتيجة السؤال السابق
+                    last_result: null 
                 });
             });
         }
@@ -596,8 +596,11 @@
                 }
             });
             
+            // إصلاح عرض جميع المتسابقين في شاشة الجمهور
             rootRef.child('players').on('value', snap => {
                 const board = document.getElementById('audience-leaderboard');
+                if (!snap.exists()) { board.innerHTML = ''; return; }
+
                 let players = [];
                 snap.forEach(c => players.push(c.val()));
                 
