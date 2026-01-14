@@ -78,9 +78,12 @@
         <div id="screen-player" class="hidden flex flex-col h-full relative">
             <!-- رأس الصفحة: النقاط والاسم -->
             <div class="bg-blue-600 text-white p-4 flex justify-between items-center shadow-md z-20 relative">
-                <div>
-                    <span class="text-xs opacity-75 block">المتسابق</span>
-                    <h2 id="p-name-display" class="text-xl font-bold">...</h2>
+                <div class="flex items-center gap-2">
+                    <button onclick="logoutPlayer()" class="bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600">خروج</button>
+                    <div>
+                        <span class="text-xs opacity-75 block">المتسابق</span>
+                        <h2 id="p-name-display" class="text-xl font-bold truncate max-w-[100px]">...</h2>
+                    </div>
                 </div>
                 <div class="text-center bg-blue-800 px-4 py-2 rounded-lg">
                     <span class="text-xs opacity-75 block">النقاط</span>
@@ -110,9 +113,8 @@
                         <p id="q-text" class="text-xl font-bold text-center leading-relaxed">...</p>
                     </div>
 
-                    <!-- منطقة التغذية الراجعة (من سبقني؟) -->
+                    <!-- منطقة التغذية الراجعة -->
                     <div id="feedback-area" class="hidden rounded-lg text-center text-sm mb-2 animate-pop border shadow-md">
-                        <!-- نص التنبيه -->
                     </div>
 
                     <!-- الخيارات -->
@@ -134,9 +136,10 @@
             
             <div class="bg-gray-800 p-4 rounded-xl mb-4 border border-gray-700">
                 <h3 class="font-bold mb-2 text-blue-300">1. إعداد المتسابقين</h3>
-                <div class="flex gap-2">
+                <div class="flex gap-2 mb-2">
                     <input id="admin-players-count" type="number" placeholder="العدد" class="w-20 text-black p-2 rounded text-center">
-                    <button onclick="adminGenerateCodes()" class="flex-1 bg-green-600 p-2 rounded font-bold hover:bg-green-500">توليد أكواد جديدة</button>
+                    <button onclick="adminAddCodes()" class="bg-green-600 px-3 rounded font-bold hover:bg-green-500 text-sm">إضافة</button>
+                    <button onclick="adminGenerateCodes()" class="flex-1 bg-red-600 px-3 rounded font-bold hover:bg-red-500 text-sm">مسح وتوليد جديد</button>
                 </div>
                 <div id="admin-codes-display" class="mt-3 grid grid-cols-3 gap-2 text-center text-sm font-mono">
                 </div>
@@ -150,7 +153,10 @@
                 <input id="admin-q-options" class="w-full text-black p-2 rounded mb-2 text-sm" placeholder="الخيارات (أ، ب، ج)">
                 <input id="admin-q-correct" type="number" class="w-full text-black p-2 rounded mb-2 text-sm" placeholder="رقم الصحيح (0 للأول)">
                 
-                <button onclick="adminAddToBank()" class="w-full bg-purple-600 p-2 rounded font-bold hover:bg-purple-500 mb-4">إضافة للبنك</button>
+                <div class="flex gap-2 mb-4">
+                    <button onclick="adminAddToBank()" class="flex-1 bg-purple-600 p-2 rounded font-bold hover:bg-purple-500">إضافة للبنك</button>
+                    <button onclick="adminResetBankStatus()" class="bg-yellow-600 p-2 rounded font-bold hover:bg-yellow-500 text-sm">إعادة تفعيل الأسئلة</button>
+                </div>
 
                 <h4 class="text-xs text-gray-400 mb-2">الأسئلة المحفوظة (اضغط نشر):</h4>
                 <div id="admin-bank-list" class="space-y-2 max-h-40 overflow-y-auto">
@@ -220,6 +226,7 @@
                         myName = snap.val().name;
                         joinGame('player', true); 
                     } else {
+                        // البيانات قديمة أو محذوفة، يجب تسجيل الخروج
                         localStorage.removeItem('quiz_player_id');
                         document.getElementById('login-form').classList.remove('hidden');
                         document.getElementById('login-loading').classList.add('hidden');
@@ -274,14 +281,39 @@
             initPlayer(myName, myId);
         }
 
+        // --- وظيفة الخروج (جديد) ---
+        function logoutPlayer() {
+            if(!myId) return;
+            const code = myId.split('_')[1];
+            
+            // تحرير الكود ليكون قابلاً للاستخدام مرة أخرى
+            rootRef.child('access_codes/' + code).update({ status: 'waiting', taken_by: null });
+            // مسح بيانات اللاعب لتنظيف الجلسة
+            rootRef.child('players/' + myId).remove();
+            
+            localStorage.removeItem('quiz_player_id');
+            location.reload();
+        }
+
         // --- 4. منطق المتسابق ---
         function initPlayer(name, id) {
             const playerRef = rootRef.child('players/' + id);
+            
+            // مراقبة وجود اللاعب: إذا تم حذفه من قبل المشرف (تجديد الأكواد)، يتم الطرد
+            playerRef.on('value', snap => {
+                if (!snap.exists()) {
+                    // اللاعب لم يعد موجوداً في القاعدة
+                    localStorage.removeItem('quiz_player_id');
+                    alert('انتهت الجلسة أو تم تغيير الأكواد.');
+                    location.reload();
+                }
+            });
+
             playerRef.update({
                 name: name,
                 online: true,
             });
-            playerRef.onDisconnect().update({ online: false });
+            playerRef.onDisconnect().update({ online: false }); // أو remove() إذا كنت تفضل
 
             playerRef.child('score').on('value', snap => {
                 document.getElementById('p-score-display').innerText = (snap.val() === null) ? 0 : snap.val();
@@ -340,23 +372,19 @@
                     disableAllButtons();
                     
                     if (state.buzzed_by === myId) {
-                         // أنا الذي أجبت - انتظر التحقق
                          if (!state.last_result) {
                             updateStatus('info', 'لقد أجبت! جار التحقق...');
                          }
                     } else {
-                         // شخص آخر أجاب
                          updateStatus('locked', 'سبقك منافس آخر!');
                     }
 
-                    // عرض التغذية الراجعة التفصيلية للجميع عند توفر النتيجة
                     if (state.last_result) {
                         feedbackArea.classList.remove('hidden');
                         const r = state.last_result;
                         let msgHTML = "";
 
                         if (state.buzzed_by === myId) {
-                            // رسالة للمتسابق الذي أجاب
                             if (r.correct) {
                                 feedbackArea.className = 'p-4 rounded-lg text-center font-bold text-sm mb-2 animate-pop border shadow-md bg-green-100 text-green-900 border-green-300';
                                 msgHTML = `🎉 إجابة صحيحة!<br>اخترت: <b>${r.selected_text}</b><br>الرصيد: +10`;
@@ -367,7 +395,6 @@
                                 updateStatus('error', 'للأسف! إجابة خاطئة');
                             }
                         } else {
-                            // رسالة لبقية المتسابقين
                             feedbackArea.className = 'p-4 rounded-lg text-center font-bold text-sm mb-2 animate-pop border shadow-md bg-blue-50 text-gray-800 border-blue-200';
                             const verdict = r.correct ? '<span class="text-green-600 font-black">صحيحة</span>' : '<span class="text-red-600 font-black">خاطئة</span>';
                             msgHTML = `أجاب <b>${r.name}</b>: <b>${r.selected_text}</b> (${verdict})<br>الإجابة الصحيحة: <b>${r.correct_text}</b>`;
@@ -422,10 +449,8 @@
             const selectedText = currentQuestionData.options[selectedIndex];
             const correctText = currentQuestionData.options[currentQuestionData.correctIndex];
             
-            // تحديث النقاط
             rootRef.child('players/' + myId + '/score').transaction(score => (score || 0) + points);
 
-            // تحديث نتيجة الجولة ليراها الجميع بتفاصيل كاملة
             rootRef.child('game_state').update({
                 last_result: {
                     name: myName,
@@ -487,8 +512,12 @@
                         const status = codeSnap.val().status;
                         const taker = codeSnap.val().taken_by || '';
                         const div = document.createElement('div');
-                        div.className = `p-1 rounded ${status === 'waiting' ? 'bg-yellow-600' : 'bg-gray-600 opacity-50'}`;
-                        div.innerHTML = `<b>${code}</b><br><span class="text-xs">${status==='waiting'?'متاح':taker}</span>`;
+                        div.className = `p-1 rounded ${status === 'waiting' ? 'bg-yellow-600' : 'bg-gray-600'} relative group`;
+                        
+                        // زر الحذف للكود
+                        const deleteBtn = `<button onclick="adminDeleteCode('${code}')" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 shadow">×</button>`;
+                        
+                        div.innerHTML = `${deleteBtn}<b>${code}</b><br><span class="text-xs">${status==='waiting'?'متاح':taker}</span>`;
                         container.appendChild(div);
                     });
                 }
@@ -517,7 +546,10 @@
             });
         }
 
+        // دالة لتوليد جديد (تمسح القديم)
         function adminGenerateCodes() {
+            if(!confirm('هل أنت متأكد؟ سيتم مسح جميع المتسابقين والأكواد الحالية!')) return;
+
             const count = parseInt(document.getElementById('admin-players-count').value);
             if (!count || count <= 0) return alert('أدخل عدداً صحيحاً');
             
@@ -531,6 +563,28 @@
                 updates[code] = { status: 'waiting' };
             }
             rootRef.child('access_codes').update(updates);
+        }
+
+        // دالة لإضافة أكواد دون حذف (جديد)
+        function adminAddCodes() {
+            const count = parseInt(document.getElementById('admin-players-count').value);
+            if (!count || count <= 0) return alert('أدخل عدداً صحيحاً');
+            
+            const updates = {};
+            for(let i=0; i<count; i++) {
+                const code = Math.floor(1000 + Math.random() * 9000);
+                updates[code] = { status: 'waiting' };
+            }
+            // update تقوم بالإضافة أو التعديل ولا تمسح العقد الأخرى
+            rootRef.child('access_codes').update(updates);
+        }
+
+        function adminDeleteCode(code) {
+            if(confirm('حذف الكود '+code+'؟')) {
+                rootRef.child('access_codes/' + code).remove();
+                // يمكن أيضاً طرد اللاعب المرتبط بهذا الكود
+                rootRef.child('players/player_' + code).remove();
+            }
         }
 
         function adminAddToBank() {
@@ -550,6 +604,16 @@
             
             document.getElementById('admin-q-text').value = '';
             document.getElementById('admin-q-options').value = '';
+        }
+
+        function adminResetBankStatus() {
+            if(!confirm('هل تريد إعادة تفعيل جميع الأسئلة لتصبح قابلة للنشر مرة أخرى؟')) return;
+            
+            rootRef.child('question_bank').once('value', snap => {
+                snap.forEach(q => {
+                    q.ref.update({ was_asked: false });
+                });
+            });
         }
 
         function adminPublishQuestion(qKey) {
