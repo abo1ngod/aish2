@@ -1671,7 +1671,7 @@
         function generateRoundId() {
             currentRoundId = 'round_' + Math.random().toString(36).substr(2, 9);
             const baseUrl = window.location.href.replace('admin.html', '');
-            document.getElementById('playerLink').value = baseUrl + 'player.html?round=' + currentRoundId;
+            document.getElementById('playerLink').value = baseUrl + 'player.html';
             document.getElementById('audienceLink').value = baseUrl + 'audience.html?round=' + currentRoundId;
         }
 
