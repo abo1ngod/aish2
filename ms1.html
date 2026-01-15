@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>نظام المسابقات السريع</title>
+    <title>نظام المسابقات v6</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -15,149 +15,211 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap');
         
-        body { font-family: 'Tajawal', sans-serif; background-color: #f3f4f6; touch-action: manipulation; }
+        body { font-family: 'Tajawal', sans-serif; background-color: #f0f2f5; touch-action: manipulation; }
         .btn-option:active { transform: scale(0.95); }
         .glass-panel { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); }
         @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
         .animate-pop { animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .scrolling-wrapper { overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; }
         .scrolling-wrapper::-webkit-scrollbar { display: none; }
+        
+        /* تحسينات بصرية للأزرار */
+        .btn-primary { @apply bg-blue-600 text-white shadow-lg hover:bg-blue-700 active:bg-blue-800 transition-all; }
+        .btn-danger { @apply bg-red-600 text-white shadow hover:bg-red-700 active:bg-red-800 transition-all; }
+        .btn-success { @apply bg-green-600 text-white shadow hover:bg-green-700 active:bg-green-800 transition-all; }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen text-gray-800 select-none overflow-hidden">
 
-    <div id="app" class="max-w-md mx-auto h-screen bg-white shadow-xl relative overflow-y-auto">
+    <div id="app" class="max-w-md mx-auto h-screen bg-white shadow-2xl relative overflow-y-auto">
         
         <!-- 1. شاشة الدخول -->
-        <div id="screen-login" class="flex flex-col h-full justify-center items-center p-6 space-y-6">
-            <h1 class="text-4xl font-black text-blue-600 mb-4">المسابقة 🔥</h1>
+        <div id="screen-login" class="flex flex-col h-full justify-center items-center p-6 space-y-8 bg-gradient-to-b from-blue-50 to-white">
+            <div class="text-center">
+                <h1 class="text-5xl font-black text-blue-600 mb-2">المسابقة 🚀</h1>
+                <p class="text-gray-500 text-sm">الإصدار السادس - المحسن</p>
+            </div>
             
-            <div id="login-loading" class="hidden text-gray-500 flex flex-col items-center">
-                <p>جاري العودة للمسابقة...</p>
-                <button onclick="logoutPlayer()" class="mt-4 text-red-500 text-sm underline">تسجيل دخول جديد</button>
+            <div id="login-loading" class="hidden text-gray-500 flex flex-col items-center animate-pulse">
+                <p class="text-lg font-bold">جاري التحقق من الجلسة...</p>
+                <button onclick="logoutPlayer()" class="mt-6 text-red-500 text-sm underline hover:text-red-700">إلغاء وتسجيل دخول جديد</button>
             </div>
 
-            <div id="login-form" class="w-full space-y-3">
-                <input type="text" id="player-name-input" placeholder="اسمك أو اسم الفريق" class="w-full p-4 border-2 border-gray-300 rounded-xl text-xl text-center focus:border-blue-500 outline-none">
-                <input type="number" id="player-code-input" placeholder="كود الاشتراك" class="w-full p-4 border-2 border-gray-300 rounded-xl text-xl text-center focus:border-blue-500 outline-none">
-                <button onclick="joinGame('player')" class="w-full bg-blue-600 text-white p-4 rounded-xl text-xl font-bold shadow-lg hover:bg-blue-700 active:bg-blue-800 transition">دخول كمتسابق 🏃‍♂️</button>
+            <div id="login-form" class="w-full space-y-4">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1 mr-1">الاسم</label>
+                    <input type="text" id="player-name-input" placeholder="مثال: الفريق الأول" class="w-full p-4 border-2 border-gray-200 rounded-xl text-xl text-center focus:border-blue-500 focus:bg-blue-50 outline-none transition-colors">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1 mr-1">كود الاشتراك</label>
+                    <input type="number" id="player-code-input" placeholder="XXXX" class="w-full p-4 border-2 border-gray-200 rounded-xl text-xl text-center tracking-widest font-mono focus:border-blue-500 focus:bg-blue-50 outline-none transition-colors">
+                </div>
+                <button onclick="joinGame('player')" class="w-full btn-primary p-4 rounded-xl text-xl font-bold mt-4">دخول كمتسابق 🏃‍♂️</button>
             </div>
 
-            <div class="flex space-x-2 space-x-reverse w-full pt-8 border-t">
-                <button onclick="joinGame('admin')" class="flex-1 bg-gray-800 text-white p-2 rounded-lg text-sm">لوحة المشرف 🛠</button>
-                <button onclick="joinGame('audience')" class="flex-1 bg-green-600 text-white p-2 rounded-lg text-sm">شاشة الجمهور 📺</button>
+            <div class="grid grid-cols-2 gap-3 w-full pt-8 border-t border-gray-200">
+                <button onclick="joinGame('admin')" class="bg-gray-800 text-white p-3 rounded-xl text-sm font-bold hover:bg-gray-900">لوحة المشرف 🛠</button>
+                <button onclick="joinGame('audience')" class="bg-indigo-600 text-white p-3 rounded-xl text-sm font-bold hover:bg-indigo-700">شاشة الجمهور 📺</button>
             </div>
         </div>
 
         <!-- 2. شاشة المتسابق -->
-        <div id="screen-player" class="hidden flex flex-col h-full relative">
-            <div class="bg-blue-600 text-white p-4 flex justify-between items-center shadow-md z-20 relative">
-                <div class="flex items-center gap-2">
-                    <button onclick="logoutPlayer()" class="bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600">خروج</button>
-                    <div>
-                        <span class="text-xs opacity-75 block">المتسابق</span>
-                        <h2 id="p-name-display" class="text-xl font-bold truncate max-w-[100px]">...</h2>
+        <div id="screen-player" class="hidden flex flex-col h-full relative bg-gray-50">
+            <!-- الهيدر -->
+            <div class="bg-blue-600 text-white p-3 shadow-lg z-20 relative">
+                <div class="flex justify-between items-center mb-2">
+                    <div class="flex items-center gap-2">
+                        <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-xl">👤</div>
+                        <div>
+                            <h2 id="p-name-display" class="font-bold text-lg leading-tight truncate max-w-[120px]">...</h2>
+                            <span class="text-[10px] opacity-75 bg-blue-700 px-1 rounded" id="p-code-display">Code: ...</span>
+                        </div>
                     </div>
-                </div>
-                <div class="text-center bg-blue-800 px-4 py-2 rounded-lg">
-                    <span class="text-xs opacity-75 block">النقاط</span>
-                    <span id="p-score-display" class="text-2xl font-black text-yellow-300">0</span>
+                    <div class="text-center bg-white/10 px-4 py-2 rounded-lg backdrop-blur-sm border border-white/20">
+                        <span class="text-[10px] opacity-75 block">رصيدك</span>
+                        <span id="p-score-display" class="text-3xl font-black text-yellow-300 drop-shadow-md">0</span>
+                    </div>
                 </div>
             </div>
 
             <!-- شريط المتسابقين -->
-            <div class="bg-blue-700 text-white text-xs p-2 shadow-inner z-10">
-                <div class="flex items-center gap-2 mb-1 opacity-75"><span>👥 الترتيب الحالي:</span></div>
-                <div id="player-mini-leaderboard" class="scrolling-wrapper flex space-x-4 space-x-reverse pb-1"></div>
+            <div class="bg-blue-800 text-white text-xs p-2 shadow-inner z-10 border-b border-blue-900">
+                <div class="flex items-center justify-between mb-1 opacity-90 px-1">
+                    <span class="font-bold">🏆 ترتيب المتسابقين (مباشر):</span>
+                    <span id="online-count" class="bg-green-500 text-white px-1 rounded text-[10px]">0 متصل</span>
+                </div>
+                <div id="player-mini-leaderboard" class="scrolling-wrapper flex space-x-3 space-x-reverse pb-1 px-1"></div>
             </div>
 
+            <!-- منطقة اللعب -->
             <div class="flex-1 p-4 flex flex-col justify-center pb-24 overflow-y-auto">
-                <div id="waiting-msg" class="text-center text-gray-500 animate-pulse">
-                    <p class="text-2xl font-bold mb-2">بانتظار السؤال...</p>
-                    <p class="text-sm">استعد!</p>
+                <div id="waiting-msg" class="text-center text-gray-400 animate-pulse flex flex-col items-center">
+                    <div class="text-6xl mb-4 opacity-50">⏳</div>
+                    <p class="text-2xl font-bold text-gray-600 mb-2">بانتظار السؤال التالي...</p>
+                    <p class="text-sm">خليك جاهز وسريع!</p>
                 </div>
 
-                <div id="active-question-area" class="hidden space-y-4">
-                    <div class="bg-blue-50 p-4 rounded-2xl border-2 border-blue-100 mb-4">
-                        <p id="q-text" class="text-xl font-bold text-center leading-relaxed">...</p>
+                <div id="active-question-area" class="hidden space-y-4 w-full">
+                    <div class="bg-white p-6 rounded-2xl border-b-4 border-blue-100 shadow-sm mb-4">
+                        <p id="q-text" class="text-xl font-bold text-center leading-relaxed text-gray-800">...</p>
                     </div>
-                    <div id="feedback-area" class="hidden rounded-lg text-center text-sm mb-2 animate-pop border shadow-md"></div>
-                    <div id="options-container" class="space-y-3"></div>
+                    
+                    <div id="feedback-area" class="hidden rounded-xl text-center text-sm mb-2 animate-pop border shadow-md overflow-hidden"></div>
+                    
+                    <div id="options-container" class="space-y-3 w-full"></div>
                 </div>
             </div>
             
-            <!-- معرف الجلسة للتأكد -->
-            <div id="session-debug" class="absolute bottom-12 w-full text-center text-[10px] text-gray-400 font-mono"></div>
+            <div class="absolute bottom-14 right-4 z-0 opacity-50">
+               <button onclick="logoutPlayer()" class="text-[10px] text-red-400 border border-red-200 px-2 py-1 rounded hover:bg-red-50 hover:text-red-600">تسجيل خروج</button>
+            </div>
 
-            <div id="status-bar" class="absolute bottom-0 w-full p-3 text-center text-white text-sm font-bold transition-colors duration-300 bg-gray-500 z-20">جاهز...</div>
+            <div id="status-bar" class="absolute bottom-0 w-full p-4 text-center text-white text-sm font-bold transition-all duration-300 bg-gray-500 z-30 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
+                جاري الاتصال بالسيرفر...
+            </div>
         </div>
 
         <!-- 3. شاشة المشرف -->
-        <div id="screen-admin" class="hidden flex flex-col h-full p-4 bg-gray-900 text-white overflow-y-auto">
-            <h2 class="text-2xl font-bold text-yellow-400 mb-4 text-center">لوحة التحكم</h2>
+        <div id="screen-admin" class="hidden flex flex-col h-full p-4 bg-slate-900 text-white overflow-y-auto">
+            <h2 class="text-3xl font-black text-yellow-400 mb-6 text-center tracking-tight">لوحة التحكم 🎮</h2>
             
-            <div class="bg-gray-800 p-4 rounded-xl mb-4 border border-gray-700">
-                <h3 class="font-bold mb-2 text-blue-300">1. إدارة المتسابقين</h3>
-                <div class="flex gap-2 mb-2">
-                    <input id="admin-players-count" type="number" placeholder="العدد" class="w-20 text-black p-2 rounded text-center">
-                    <button onclick="adminAddCodes()" class="bg-green-600 px-3 rounded font-bold hover:bg-green-500 text-sm">إضافة</button>
-                    <button onclick="adminGenerateCodes()" class="flex-1 bg-red-600 px-3 rounded font-bold hover:bg-red-500 text-sm">مسح الكل وتجديد</button>
+            <!-- قسم إدارة اللاعبين (محسن) -->
+            <div class="bg-slate-800 p-5 rounded-2xl mb-6 border border-slate-700 shadow-xl">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-lg text-blue-300">👥 إدارة المتسابقين</h3>
+                    <span id="admin-online-counter" class="bg-green-600 text-[10px] px-2 py-1 rounded-full">0 متصل</span>
                 </div>
-                <div id="admin-codes-display" class="mt-3 grid grid-cols-3 gap-2 text-center text-sm font-mono"></div>
-                <div class="mt-4 pt-2 border-t border-gray-700">
-                    <p class="text-xs text-gray-400 mb-1">المتسابقون المتصلون:</p>
-                    <ul id="admin-players-list" class="space-y-1 text-sm"></ul>
+                
+                <!-- أدوات التوليد -->
+                <div class="bg-slate-900/50 p-3 rounded-xl border border-slate-700 mb-4">
+                    <div class="flex gap-2 items-center mb-2">
+                        <span class="text-xs text-gray-400">العدد:</span>
+                        <input id="admin-players-count" type="number" value="1" min="1" class="w-16 bg-slate-700 text-white p-2 rounded text-center font-bold border border-slate-600 focus:border-blue-500 outline-none">
+                        <button onclick="adminAddCodes()" class="flex-1 btn-success py-2 rounded-lg font-bold text-sm">➕ إضافة أكواد (بدون حذف)</button>
+                    </div>
+                    <p class="text-[10px] text-gray-400 text-center">اضغط "إضافة" لزيادة لاعبين جدد مع الاحتفاظ بالحاليين</p>
+                </div>
+
+                <div id="admin-codes-display" class="grid grid-cols-4 gap-2 text-center text-xs font-mono max-h-32 overflow-y-auto pr-1"></div>
+                
+                <div class="mt-4 pt-3 border-t border-slate-700">
+                    <p class="text-xs text-gray-400 mb-2 font-bold">المتسابقون المسجلون:</p>
+                    <ul id="admin-players-list" class="space-y-1 text-sm max-h-32 overflow-y-auto"></ul>
                 </div>
             </div>
 
-            <div class="bg-gray-800 p-4 rounded-xl mb-4 border border-gray-700">
-                <h3 class="font-bold mb-2 text-blue-300">2. بنك الأسئلة</h3>
-                <textarea id="admin-q-text" class="w-full text-black p-2 rounded mb-2 text-sm" placeholder="نص السؤال"></textarea>
-                <input id="admin-q-options" class="w-full text-black p-2 rounded mb-2 text-sm" placeholder="الخيارات (أ، ب، ج)">
-                <input id="admin-q-correct" type="number" class="w-full text-black p-2 rounded mb-2 text-sm" placeholder="رقم الصحيح (0 للأول)">
+            <!-- قسم الأسئلة -->
+            <div class="bg-slate-800 p-5 rounded-2xl mb-6 border border-slate-700 shadow-xl">
+                <h3 class="font-bold text-lg text-blue-300 mb-4">📝 بنك الأسئلة</h3>
+                <textarea id="admin-q-text" class="w-full bg-slate-700 text-white p-3 rounded-lg mb-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="نص السؤال هنا..."></textarea>
+                <div class="grid grid-cols-1 gap-2 mb-3">
+                    <input id="admin-q-options" class="w-full bg-slate-700 text-white p-3 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="الخيارات: أ، ب، ج">
+                    <input id="admin-q-correct" type="number" class="w-full bg-slate-700 text-white p-3 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="رقم الإجابة الصحيحة (0 للأول)">
+                </div>
                 
                 <div class="flex gap-2 mb-4">
-                    <button id="btn-add-bank" onclick="adminAddToBank()" class="flex-1 bg-purple-600 p-2 rounded font-bold hover:bg-purple-500 transition-colors">إضافة للبنك</button>
-                    <button id="btn-cancel-edit" onclick="resetAdminForm()" class="hidden bg-gray-600 p-2 rounded font-bold hover:bg-gray-500 text-sm">إلغاء</button>
+                    <button id="btn-add-bank" onclick="adminAddToBank()" class="flex-1 bg-indigo-600 p-2 rounded-lg font-bold hover:bg-indigo-500 transition-colors shadow">حفظ في البنك</button>
+                    <button id="btn-cancel-edit" onclick="resetAdminForm()" class="hidden bg-gray-600 p-2 rounded-lg font-bold hover:bg-gray-500 text-sm">إلغاء</button>
                 </div>
                 
-                <div class="flex justify-end mb-2">
-                     <button onclick="adminResetBankStatus()" class="bg-yellow-600 text-white px-3 py-1 rounded text-xs hover:bg-yellow-500">إعادة تفعيل الأسئلة</button>
+                <div class="flex justify-between items-center mb-2 px-1">
+                     <span class="text-xs text-gray-400">القائمة:</span>
+                     <button onclick="adminResetBankStatus()" class="text-yellow-400 text-xs hover:text-yellow-300 underline">إعادة تفعيل الكل للنشر</button>
                 </div>
-                <div id="admin-bank-list" class="space-y-2 max-h-60 overflow-y-auto"></div>
+                <div id="admin-bank-list" class="space-y-2 max-h-60 overflow-y-auto pr-1"></div>
             </div>
 
-            <div class="bg-red-900 p-4 rounded-xl mb-4">
-                 <button onclick="adminResetRound()" class="w-full bg-red-600 p-3 rounded font-bold hover:bg-red-500">إخفاء السؤال الحالي</button>
+            <!-- المنطقة الخطرة -->
+            <div class="bg-red-900/30 p-4 rounded-xl border border-red-900/50 mt-auto">
+                 <h4 class="text-red-400 text-xs font-bold mb-2 uppercase tracking-wider">منطقة التحكم الحساسة</h4>
+                 <div class="flex flex-col gap-2">
+                     <button onclick="adminResetRound()" class="w-full bg-slate-700 text-white p-3 rounded-lg font-bold hover:bg-slate-600 border border-slate-600">إخفاء السؤال الحالي (إيقاف)</button>
+                     <button onclick="adminGenerateCodes()" class="w-full bg-red-600 text-white p-3 rounded-lg font-bold hover:bg-red-500 shadow-lg border border-red-400">⚠️ إنهاء المسابقة وبدء جديدة (مسح الكل)</button>
+                 </div>
             </div>
         </div>
 
         <!-- 4. شاشة الجمهور -->
-        <div id="screen-audience" class="hidden flex-col h-full bg-gradient-to-br from-indigo-900 via-purple-900 to-blue-900 text-white p-4 overflow-hidden">
-            <header class="text-center mb-4"><h1 class="text-3xl font-black text-yellow-400 drop-shadow-lg">🏆 المسابقة الكبرى</h1></header>
-            <div class="flex-1 grid grid-cols-12 gap-4 h-full pb-4">
-                <div class="col-span-3 glass-panel rounded-2xl p-4 flex flex-col h-full overflow-hidden">
-                    <h3 class="font-bold text-blue-300 mb-3 border-b border-gray-600 pb-2 text-center">⏳ السجل</h3>
-                    <div id="audience-history-list" class="space-y-2 overflow-y-auto flex-1 text-sm"></div>
+        <div id="screen-audience" class="hidden flex-col h-full bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white p-4 overflow-hidden font-tajawal">
+            <header class="text-center mb-6 flex justify-between items-center px-8">
+                <div class="text-left"><span class="text-sm opacity-50">نظام المسابقات</span></div>
+                <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500 drop-shadow-sm">🏆 المسابقة الكبرى</h1>
+                <div class="text-right"><span id="audience-clock" class="text-sm font-mono opacity-70">00:00</span></div>
+            </header>
+            
+            <div class="flex-1 grid grid-cols-12 gap-6 h-full pb-6 px-4">
+                <!-- السجل -->
+                <div class="col-span-3 glass-panel rounded-3xl p-5 flex flex-col h-full overflow-hidden shadow-2xl">
+                    <h3 class="font-bold text-blue-300 mb-4 border-b border-white/10 pb-2 text-center flex items-center justify-center gap-2">📜 سجل الأحداث</h3>
+                    <div id="audience-history-list" class="space-y-3 overflow-y-auto flex-1 text-sm custom-scrollbar pr-2"></div>
                 </div>
+                
+                <!-- المنطقة الوسطى -->
                 <div class="col-span-6 flex flex-col justify-center items-center relative">
                     <div id="audience-waiting" class="text-center animate-pulse">
-                        <div class="text-6xl mb-4">⏳</div>
-                        <h2 class="text-2xl font-bold">بانتظار السؤال...</h2>
+                        <div class="text-8xl mb-6 opacity-80 filter drop-shadow-lg">⏳</div>
+                        <h2 class="text-3xl font-bold tracking-wide">بانتظار السؤال التالي...</h2>
                     </div>
-                    <div id="audience-q-area" class="hidden w-full space-y-6 animate-pop z-10">
-                        <div class="bg-white text-indigo-900 p-6 rounded-3xl shadow-2xl text-center border-4 border-yellow-400">
-                            <p id="audience-q-text" class="text-3xl font-bold leading-relaxed">...</p>
+                    
+                    <div id="audience-q-area" class="hidden w-full space-y-8 animate-pop z-10">
+                        <div class="bg-white/95 backdrop-blur-md text-slate-900 p-8 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] text-center border-t-8 border-yellow-400 relative">
+                            <div class="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-yellow-400 text-black font-bold px-6 py-1 rounded-full shadow-lg text-sm">سؤال جديد</div>
+                            <p id="audience-q-text" class="text-4xl font-black leading-relaxed mt-2">...</p>
                         </div>
-                        <div id="audience-options" class="grid grid-cols-2 gap-4 text-xl font-bold"></div>
+                        <div id="audience-options" class="grid grid-cols-2 gap-5 text-2xl font-bold"></div>
                     </div>
-                    <div id="audience-result-overlay" class="hidden absolute inset-0 flex items-center justify-center bg-black/60 rounded-3xl z-50 animate-pop backdrop-blur-sm">
-                        <div id="audience-result-box" class="bg-white text-black p-8 rounded-2xl shadow-2xl text-center border-4 border-green-500 transform scale-110"></div>
+                    
+                    <!-- النتيجة المنبثقة -->
+                    <div id="audience-result-overlay" class="hidden absolute inset-0 flex items-center justify-center z-50 animate-pop">
+                        <div class="absolute inset-0 bg-black/70 backdrop-blur-sm rounded-3xl"></div>
+                        <div id="audience-result-box" class="relative bg-white text-black p-10 rounded-3xl shadow-2xl text-center border-8 border-double min-w-[300px] transform scale-110"></div>
                     </div>
                 </div>
-                <div class="col-span-3 glass-panel rounded-2xl p-4 flex flex-col h-full overflow-hidden">
-                    <h3 class="font-bold text-yellow-300 mb-3 border-b border-gray-600 pb-2 text-center">📊 الترتيب</h3>
-                    <div id="audience-leaderboard" class="space-y-2 overflow-y-auto flex-1 pr-1"></div>
+                
+                <!-- الترتيب -->
+                <div class="col-span-3 glass-panel rounded-3xl p-5 flex flex-col h-full overflow-hidden shadow-2xl">
+                    <h3 class="font-bold text-yellow-400 mb-4 border-b border-white/10 pb-2 text-center flex items-center justify-center gap-2">📊 الترتيب العام</h3>
+                    <div id="audience-leaderboard" class="space-y-3 overflow-y-auto flex-1 pr-2 custom-scrollbar"></div>
                 </div>
             </div>
         </div>
@@ -176,8 +238,8 @@
         };
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        // تغيير المسار لضمان عدم التداخل
-        const rootRef = db.ref('quiz_project_unique_v1'); 
+        // **مهم:** تغيير مسار القاعدة لنسخة جديدة نظيفة تماماً
+        const rootRef = db.ref('quiz_project_v6_clean'); 
 
         let myRole = '';
         let myId = null; 
@@ -188,6 +250,14 @@
 
         // --- استرجاع الجلسة ---
         window.onload = function() {
+            // تحديث الساعة للجمهور
+            setInterval(() => {
+                const now = new Date();
+                const time = now.toLocaleTimeString('ar-EG', {hour: '2-digit', minute:'2-digit'});
+                const el = document.getElementById('audience-clock');
+                if(el) el.innerText = time;
+            }, 1000);
+
             const savedId = localStorage.getItem('quiz_player_id');
             if(savedId) {
                 document.getElementById('login-form').classList.add('hidden');
@@ -199,6 +269,7 @@
                         myName = snap.val().name;
                         joinGame('player', true); 
                     } else {
+                        // البيانات محذوفة من السيرفر (بسبب إعادة تعيين المشرف)
                         localStorage.removeItem('quiz_player_id');
                         document.getElementById('login-form').classList.remove('hidden');
                         document.getElementById('login-loading').classList.add('hidden');
@@ -211,19 +282,31 @@
             myRole = role;
             if (role === 'player') {
                 if (!isAuto) {
-                    const nameInput = document.getElementById('player-name-input').value;
-                    const codeInput = document.getElementById('player-code-input').value;
-                    if(!nameInput || !codeInput) { alert('الرجاء كتابة الاسم والكود'); return; }
+                    const nameInput = document.getElementById('player-name-input').value.trim();
+                    const codeInput = document.getElementById('player-code-input').value.trim();
+                    if(!nameInput || !codeInput) { alert('الرجاء كتابة الاسم وكود الاشتراك'); return; }
 
+                    // التحقق من الكود
                     rootRef.child('access_codes/' + codeInput).once('value').then(snapshot => {
-                        if (snapshot.exists() && snapshot.val().status === 'waiting') {
-                            myId = 'player_' + codeInput;
-                            myName = nameInput;
-                            localStorage.setItem('quiz_player_id', myId);
-                            rootRef.child('access_codes/' + codeInput).update({ status: 'taken', taken_by: nameInput });
-                            startPlayerView();
+                        if (snapshot.exists()) {
+                            const data = snapshot.val();
+                            if (data.status === 'waiting') {
+                                // الكود متاح وجديد
+                                myId = 'player_' + codeInput;
+                                myName = nameInput;
+                                enterGame(codeInput, nameInput);
+                            } else if (data.status === 'taken') {
+                                // الكود مستخدم، هل هو لنفس الشخص؟ (إعادة دخول)
+                                if (confirm('هذا الكود مستخدم بالفعل باسم "' + data.taken_by + '". هل أنت هذا الشخص وتريد استكمال اللعب؟')) {
+                                    myId = 'player_' + codeInput;
+                                    myName = nameInput; // أو نستخدم الاسم المسجل data.taken_by
+                                    enterGame(codeInput, nameInput);
+                                } else {
+                                    alert('يرجى طلب كود جديد من المشرف.');
+                                }
+                            }
                         } else {
-                            alert('الكود خاطئ أو مستخدم مسبقاً!');
+                            alert('الكود خاطئ! تأكد من المشرف.');
                         }
                     });
                 } else {
@@ -244,19 +327,28 @@
             }
         }
 
+        function enterGame(code, name) {
+            localStorage.setItem('quiz_player_id', myId);
+            // تحديث حالة الكود
+            rootRef.child('access_codes/' + code).update({ status: 'taken', taken_by: name });
+            startPlayerView();
+        }
+
         function startPlayerView() {
             document.getElementById('screen-login').classList.add('hidden');
             document.getElementById('screen-player').classList.remove('hidden');
             document.getElementById('p-name-display').innerText = myName;
-            document.getElementById('session-debug').innerText = "Session ID: " + myId; // للتأكد من اختلاف الجلسات
+            document.getElementById('p-code-display').innerText = "Code: " + myId.split('_')[1];
             initPlayer(myName, myId);
         }
 
         function logoutPlayer() {
-            if(!myId) return;
-            const code = myId.split('_')[1];
-            rootRef.child('access_codes/' + code).update({ status: 'waiting', taken_by: null });
-            rootRef.child('players/' + myId).remove();
+            if(myId) {
+                // عند الخروج الطوعي، نحرر الكود ليستخدمه شخص آخر (اختياري)
+                // const code = myId.split('_')[1];
+                // rootRef.child('access_codes/' + code).update({ status: 'waiting', taken_by: null });
+                // لن نمسح اللاعب من قاعدة البيانات حتى لا تضيع نقاطه إذا عاد، فقط من الجهاز
+            }
             localStorage.removeItem('quiz_player_id');
             location.reload();
         }
@@ -264,38 +356,69 @@
         function initPlayer(name, id) {
             const playerRef = rootRef.child('players/' + id);
             
-            // مراقبة الحذف القسري
+            // مراقبة إذا قام المشرف بمسح المسابقة (إعادة تعيين)
             playerRef.on('value', snap => {
                 if (!snap.exists() && myRole === 'player') {
                     localStorage.removeItem('quiz_player_id');
-                    alert('تم إعادة ضبط المسابقة.');
+                    alert('⚠️ قام المشرف بإنهاء المسابقة وبدء لعبة جديدة.');
                     location.reload();
                 }
             });
 
+            // تسجيل اللاعب
             playerRef.update({ name: name, online: true });
+            // عند انقطاع الاتصال
             playerRef.onDisconnect().update({ online: false }); 
 
+            // الاستماع للنقاط
             playerRef.child('score').on('value', snap => {
-                document.getElementById('p-score-display').innerText = (snap.val() === null) ? 0 : snap.val();
+                const score = snap.val() || 0;
+                const el = document.getElementById('p-score-display');
+                // تأثير بصري عند تغير النقاط
+                if(el.innerText != score) {
+                    el.classList.add('scale-150', 'text-white');
+                    setTimeout(() => el.classList.remove('scale-150', 'text-white'), 300);
+                }
+                el.innerText = score;
             });
 
+            // الاستماع لحالة اللعبة والأسئلة
             rootRef.child('game_state').on('value', handleGameStateChange);
+            // الاستماع للمتصدرين
             rootRef.child('players').on('value', updateMiniLeaderboard);
         }
 
         function updateMiniLeaderboard(snap) {
             const container = document.getElementById('player-mini-leaderboard');
-            if (!snap.exists()) { container.innerHTML = ''; return; }
+            const countEl = document.getElementById('online-count');
+            
+            if (!snap.exists()) { 
+                container.innerHTML = ''; 
+                if(countEl) countEl.innerText = "0 متصل";
+                return; 
+            }
             
             let players = [];
-            snap.forEach(c => players.push(c.val()));
-            // إصلاح ترتيب النقاط: ضمان أنها أرقام
+            let onlineCount = 0;
+            snap.forEach(c => {
+                const p = c.val();
+                players.push(p);
+                if(p.online) onlineCount++;
+            });
+            
+            if(countEl) countEl.innerText = onlineCount + " متصل";
+
+            // الترتيب: النقاط الأكبر أولاً
             players.sort((a,b) => (parseInt(b.score) || 0) - (parseInt(a.score) || 0));
             
             container.innerHTML = players.map((p, i) => 
-                `<div class="inline-block px-3 py-1 bg-blue-800 rounded mr-1 border ${p.name === myName ? 'border-yellow-400' : 'border-blue-600'}">
-                    <span class="text-yellow-300 font-bold">#${i+1}</span> ${p.name} <span class="text-xs font-mono">(${p.score || 0})</span>
+                `<div class="inline-block px-3 py-1 bg-white/10 backdrop-blur-sm rounded-lg mr-2 border border-white/20 min-w-[100px] text-center ${p.name === myName ? 'ring-2 ring-yellow-400 bg-blue-900' : ''}">
+                    <div class="text-[10px] text-gray-300 mb-1 flex justify-center items-center gap-1">
+                        <span class="w-2 h-2 rounded-full ${p.online ? 'bg-green-400' : 'bg-red-400'}"></span>
+                        مركز ${i+1}
+                    </div>
+                    <div class="font-bold truncate text-sm text-white">${p.name}</div> 
+                    <div class="text-xs font-mono text-yellow-300 font-bold">${p.score || 0}</div>
                 </div>`
             ).join('');
         }
@@ -309,7 +432,7 @@
             if (!state || state.status === 'waiting') {
                 qArea.classList.add('hidden');
                 waitMsg.classList.remove('hidden');
-                updateStatus('waiting', 'بانتظار المشرف...');
+                updateStatus('waiting', 'بانتظار السؤال التالي...');
                 isButtonsLocked = false;
                 return;
             }
@@ -318,20 +441,23 @@
                 waitMsg.classList.add('hidden');
                 qArea.classList.remove('hidden');
                 
+                // إذا كان سؤالاً جديداً
                 if (!currentQuestionData || currentQuestionData.id !== state.question.id) {
                     currentQuestionData = state.question;
                     renderOptions(state.question);
-                    updateStatus('active', 'اختر الإجابة بسرعة!');
+                    updateStatus('active', '⚡️ سؤال جديد! أسرع بالإجابة');
                     feedbackArea.classList.add('hidden');
+                    // اهتزاز خفيف للهاتف
+                    if(navigator.vibrate) navigator.vibrate(200);
                 }
 
                 if (state.buzzed_by) {
                     isButtonsLocked = true;
                     disableAllButtons();
                     if (state.buzzed_by === myId) {
-                         if (!state.last_result) updateStatus('info', 'لقد أجبت! جار التحقق...');
+                         if (!state.last_result) updateStatus('info', '🔒 تم تسجيل ضغطتك! بانتظار التحقق...');
                     } else {
-                         updateStatus('locked', 'سبقك منافس آخر!');
+                         updateStatus('locked', '🔒 سبقك منافس آخر! تم إغلاق الأزرار');
                     }
 
                     if (state.last_result) {
@@ -340,17 +466,19 @@
                         let msgHTML = "";
                         if (state.buzzed_by === myId) {
                             if (r.correct) {
-                                feedbackArea.className = 'p-4 rounded-lg text-center font-bold text-sm mb-2 animate-pop border shadow-md bg-green-100 text-green-900 border-green-300';
-                                msgHTML = `🎉 إجابة صحيحة!<br>الرصيد: +10`;
-                                updateStatus('success', 'أحسنت! إجابة صحيحة');
+                                feedbackArea.className = 'p-4 rounded-xl text-center font-bold text-sm mb-2 animate-pop border-2 bg-green-50 text-green-800 border-green-400';
+                                msgHTML = `<div class="text-2xl mb-1">🎉</div><div>إجابة صحيحة!</div><div class="text-xs mt-1 text-green-600">+10 نقاط</div>`;
+                                updateStatus('success', 'أحسنت! إجابتك صحيحة');
+                                if(navigator.vibrate) navigator.vibrate([100, 50, 100]);
                             } else {
-                                feedbackArea.className = 'p-4 rounded-lg text-center font-bold text-sm mb-2 animate-pop border shadow-md bg-red-100 text-red-900 border-red-300';
-                                msgHTML = `❌ إجابة خاطئة!<br>الصحيح: <b>${r.correct_text}</b><br>الرصيد: -10`;
-                                updateStatus('error', 'للأسف! إجابة خاطئة');
+                                feedbackArea.className = 'p-4 rounded-xl text-center font-bold text-sm mb-2 animate-pop border-2 bg-red-50 text-red-800 border-red-400';
+                                msgHTML = `<div class="text-2xl mb-1">❌</div><div>إجابة خاطئة!</div><div class="text-xs mt-1 text-red-600">الإجابة: ${r.correct_text}</div>`;
+                                updateStatus('error', 'للأسف إجابة خاطئة');
+                                if(navigator.vibrate) navigator.vibrate(500);
                             }
                         } else {
-                            feedbackArea.className = 'p-4 rounded-lg text-center font-bold text-sm mb-2 animate-pop border shadow-md bg-blue-50 text-gray-800 border-blue-200';
-                            const verdict = r.correct ? '<span class="text-green-600 font-black">صحيحة</span>' : '<span class="text-red-600 font-black">خاطئة</span>';
+                            feedbackArea.className = 'p-4 rounded-xl text-center font-bold text-sm mb-2 animate-pop border bg-blue-50 text-gray-800 border-blue-200';
+                            const verdict = r.correct ? '<span class="text-green-600 font-black">صحيحة ✅</span>' : '<span class="text-red-600 font-black">خاطئة ❌</span>';
                             msgHTML = `أجاب <b>${r.name}</b>: <b>${r.selected_text}</b> (${verdict})`;
                         }
                         feedbackArea.innerHTML = msgHTML;
@@ -368,7 +496,7 @@
             container.innerHTML = '';
             question.options.forEach((opt, index) => {
                 const btn = document.createElement('button');
-                btn.className = 'btn-option w-full bg-white border-2 border-gray-200 p-4 rounded-xl text-lg font-bold shadow-sm hover:border-blue-400 hover:bg-blue-50 focus:bg-blue-100 mb-2';
+                btn.className = 'btn-option w-full bg-white border-2 border-gray-200 p-4 rounded-xl text-lg font-bold shadow-sm hover:border-blue-500 hover:bg-blue-50 focus:bg-blue-100 mb-2 transition-all duration-200';
                 btn.innerText = opt;
                 btn.onclick = () => handleOptionClick(index);
                 container.appendChild(btn);
@@ -377,6 +505,7 @@
 
         function handleOptionClick(selectedIndex) {
             if (isButtonsLocked) return;
+            // محاولة الحجز (الأسرع فقط)
             rootRef.child('game_state/buzzed_by').transaction((currentData) => {
                 return currentData === null ? myId : undefined;
             }, (error, committed) => {
@@ -417,22 +546,34 @@
         function updateStatus(type, msg) {
             const bar = document.getElementById('status-bar');
             bar.innerText = msg;
-            bar.className = 'absolute bottom-0 w-full p-3 text-center text-white text-sm font-bold transition-colors duration-300 z-20 ' +
-                (type === 'waiting' ? 'bg-gray-500' : type === 'active' ? 'bg-blue-600' : type === 'locked' ? 'bg-red-400' : type === 'success' ? 'bg-green-600' : type === 'error' ? 'bg-red-600' : 'bg-yellow-600');
+            bar.className = 'absolute bottom-0 w-full p-4 text-center text-white text-sm font-bold transition-all duration-300 z-30 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] ' +
+                (type === 'waiting' ? 'bg-gray-500' : type === 'active' ? 'bg-blue-600' : type === 'locked' ? 'bg-orange-500' : type === 'success' ? 'bg-green-600' : type === 'error' ? 'bg-red-600' : 'bg-yellow-600 text-black');
         }
 
         // --- المشرف ---
         function initAdmin() {
             rootRef.child('players').on('value', snap => {
                 const list = document.getElementById('admin-players-list');
+                const counter = document.getElementById('admin-online-counter');
                 list.innerHTML = '';
-                snap.forEach(p => {
-                    const val = p.val();
-                    const li = document.createElement('li');
-                    li.className = 'flex justify-between bg-gray-700 p-2 rounded';
-                    li.innerHTML = `<span>${val.name} <span class="${val.online ? 'text-green-400':'text-red-400'}">●</span></span> <span>${val.score || 0}</span>`;
-                    list.appendChild(li);
-                });
+                let onlineCount = 0;
+                
+                if(snap.exists()){
+                    snap.forEach(p => {
+                        const val = p.val();
+                        if(val.online) onlineCount++;
+                        const li = document.createElement('li');
+                        li.className = 'flex justify-between items-center bg-slate-900/50 p-2 rounded border border-slate-700';
+                        li.innerHTML = `
+                            <div class="flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full ${val.online ? 'bg-green-400' : 'bg-red-400'}"></span>
+                                <span>${val.name}</span>
+                            </div>
+                            <span class="font-mono bg-slate-800 px-2 rounded">${val.score || 0}</span>`;
+                        list.appendChild(li);
+                    });
+                }
+                if(counter) counter.innerText = onlineCount + " متصل";
             });
 
             rootRef.child('access_codes').on('value', snap => {
@@ -444,9 +585,9 @@
                         const status = codeSnap.val().status;
                         const taker = codeSnap.val().taken_by || '';
                         const div = document.createElement('div');
-                        div.className = `p-1 rounded ${status === 'waiting' ? 'bg-yellow-600' : 'bg-gray-600'} relative group`;
-                        const deleteBtn = `<button onclick="adminDeleteCode('${code}')" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 shadow">×</button>`;
-                        div.innerHTML = `${deleteBtn}<b>${code}</b><br><span class="text-xs">${status==='waiting'?'متاح':taker}</span>`;
+                        div.className = `p-2 rounded border text-xs relative group flex flex-col items-center justify-center ${status === 'waiting' ? 'bg-green-900/30 border-green-700 text-green-300' : 'bg-slate-700 border-slate-600 text-gray-400'}`;
+                        const deleteBtn = `<button onclick="adminDeleteCode('${code}')" class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-[10px] opacity-0 group-hover:opacity-100 shadow hover:bg-red-600">×</button>`;
+                        div.innerHTML = `${deleteBtn}<b class="text-sm tracking-widest">${code}</b><span class="text-[10px] truncate w-full text-center">${status==='waiting'?'متاح':taker}</span>`;
                         container.appendChild(div);
                     });
                 }
@@ -459,16 +600,16 @@
                     const q = qSnap.val();
                     const isAsked = q.was_asked === true;
                     const div = document.createElement('div');
-                    div.className = `flex flex-col bg-gray-700 p-2 rounded text-xs border-l-4 ${isAsked ? 'border-gray-500 opacity-70' : 'border-blue-500'}`;
+                    div.className = `flex flex-col bg-slate-700 p-2 rounded text-xs border-l-4 mb-1 ${isAsked ? 'border-gray-500 opacity-60' : 'border-blue-500'}`;
                     const topRow = document.createElement('div');
-                    topRow.className = 'flex justify-between items-start mb-1';
+                    topRow.className = 'flex justify-between items-center mb-1';
                     const btns = document.createElement('div');
                     btns.className = 'flex gap-1 min-w-[120px] justify-end';
-                    const publishBtn = isAsked ? `<button disabled class="bg-gray-500 text-gray-300 px-2 py-1 rounded cursor-not-allowed text-[10px]">منشور</button>` : `<button onclick="adminPublishQuestion('${qSnap.key}')" class="bg-blue-600 px-2 py-1 rounded hover:bg-blue-500 text-white">نشر</button>`;
+                    const publishBtn = isAsked ? `<button disabled class="bg-slate-600 text-gray-400 px-2 py-1 rounded cursor-not-allowed text-[10px]">تم</button>` : `<button onclick="adminPublishQuestion('${qSnap.key}')" class="bg-blue-600 px-2 py-1 rounded hover:bg-blue-500 text-white">نشر</button>`;
                     const editBtn = `<button onclick="adminEditQuestion('${qSnap.key}')" class="bg-yellow-600 px-2 py-1 rounded hover:bg-yellow-500 text-white">تعديل</button>`;
                     const deleteBtn = `<button onclick="adminDeleteQuestion('${qSnap.key}')" class="bg-red-600 px-2 py-1 rounded hover:bg-red-500 text-white">حذف</button>`;
                     btns.innerHTML = `${publishBtn} ${editBtn} ${deleteBtn}`;
-                    topRow.innerHTML = `<span class="truncate w-1/2 font-bold">${q.text}</span>`;
+                    topRow.innerHTML = `<span class="truncate w-1/2 font-bold text-white" title="${q.text}">${q.text}</span>`;
                     topRow.appendChild(btns);
                     div.appendChild(topRow);
                     list.appendChild(div);
@@ -476,25 +617,43 @@
             });
         }
 
-        function adminGenerateCodes() {
-            if(!confirm('هل أنت متأكد؟ سيتم مسح جميع المتسابقين!')) return;
+        // --- وظائف التوليد الآمنة ---
+        function adminAddCodes() {
             const count = parseInt(document.getElementById('admin-players-count').value);
             if (!count || count <= 0) return alert('أدخل عدداً صحيحاً');
+            
+            // قراءة الأكواد الحالية لتجنب التكرار
+            rootRef.child('access_codes').once('value').then(snap => {
+                const existingCodes = snap.exists() ? Object.keys(snap.val()) : [];
+                const updates = {};
+                let generated = 0;
+                
+                while(generated < count) {
+                    const code = Math.floor(1000 + Math.random() * 9000).toString();
+                    if (!existingCodes.includes(code) && !updates[code]) {
+                        updates[code] = { status: 'waiting' };
+                        generated++;
+                    }
+                }
+                
+                // استخدام update بدلاً من set للحفاظ على القديم
+                rootRef.child('access_codes').update(updates);
+            });
+        }
+
+        function adminGenerateCodes() {
+            if(!confirm('⚠️ تحذير شديد!\n\nهذا الزر سيقوم بمسح جميع المتسابقين الحاليين وإعادة تعيين اللعبة بالكامل.\n\nهل أنت متأكد أنك تريد بدء مسابقة جديدة؟')) return;
+            
+            const count = parseInt(document.getElementById('admin-players-count').value);
+            if (!count || count <= 0) return alert('أدخل عدداً صحيحاً');
+            
+            // مسح شامل
             rootRef.child('access_codes').remove();
             rootRef.child('players').remove();
             rootRef.child('history_log').remove();
             rootRef.child('game_state').set({ status: 'waiting' });
-            const updates = {};
-            for(let i=0; i<count; i++) {
-                const code = Math.floor(1000 + Math.random() * 9000);
-                updates[code] = { status: 'waiting' };
-            }
-            rootRef.child('access_codes').update(updates);
-        }
-
-        function adminAddCodes() {
-            const count = parseInt(document.getElementById('admin-players-count').value);
-            if (!count || count <= 0) return alert('أدخل عدداً صحيحاً');
+            
+            // توليد جديد
             const updates = {};
             for(let i=0; i<count; i++) {
                 const code = Math.floor(1000 + Math.random() * 9000);
@@ -504,7 +663,10 @@
         }
 
         function adminDeleteCode(code) {
-            if(confirm('حذف؟')) { rootRef.child('access_codes/' + code).remove(); rootRef.child('players/player_' + code).remove(); }
+            if(confirm('حذف الكود ' + code + '؟ سيتم طرد اللاعب المرتبط به.')) { 
+                rootRef.child('access_codes/' + code).remove(); 
+                rootRef.child('players/player_' + code).remove(); 
+            }
         }
 
         function adminAddToBank() {
@@ -526,18 +688,18 @@
                 document.getElementById('admin-q-correct').value = q.correctIndex;
                 editingQuestionKey = key;
                 const btn = document.getElementById('btn-add-bank');
-                btn.innerText = 'حفظ التعديلات'; btn.className = 'flex-1 bg-orange-600 p-2 rounded font-bold';
+                btn.innerText = 'حفظ التعديلات'; btn.className = 'flex-1 bg-orange-600 p-2 rounded-lg font-bold shadow';
                 document.getElementById('btn-cancel-edit').classList.remove('hidden');
             });
         }
-        function adminDeleteQuestion(key) { if(confirm('حذف؟')) { rootRef.child('question_bank/' + key).remove(); if(editingQuestionKey === key) resetAdminForm(); }}
+        function adminDeleteQuestion(key) { if(confirm('حذف السؤال؟')) { rootRef.child('question_bank/' + key).remove(); if(editingQuestionKey === key) resetAdminForm(); }}
         function resetAdminForm() {
             document.getElementById('admin-q-text').value = ''; document.getElementById('admin-q-options').value = ''; document.getElementById('admin-q-correct').value = '';
             editingQuestionKey = null;
-            const btn = document.getElementById('btn-add-bank'); btn.innerText = 'إضافة للبنك'; btn.className = 'flex-1 bg-purple-600 p-2 rounded font-bold';
+            const btn = document.getElementById('btn-add-bank'); btn.innerText = 'حفظ في البنك'; btn.className = 'flex-1 bg-indigo-600 p-2 rounded-lg font-bold shadow';
             document.getElementById('btn-cancel-edit').classList.add('hidden');
         }
-        function adminResetBankStatus() { if(!confirm('إعادة تفعيل الأسئلة؟')) return; rootRef.child('question_bank').once('value', snap => { snap.forEach(q => { q.ref.update({ was_asked: false }); }); }); }
+        function adminResetBankStatus() { if(!confirm('إعادة تفعيل جميع الأسئلة للنشر؟')) return; rootRef.child('question_bank').once('value', snap => { snap.forEach(q => { q.ref.update({ was_asked: false }); }); }); }
         function adminPublishQuestion(qKey) {
             rootRef.child('question_bank/'+qKey).once('value').then(snap => {
                 const qData = snap.val(); qData.id = Date.now();
@@ -559,7 +721,7 @@
                     waitingArea.classList.add('hidden'); qArea.classList.remove('hidden');
                     document.getElementById('audience-q-text').innerText = state.question.text;
                     const optsDiv = document.getElementById('audience-options');
-                    optsDiv.innerHTML = state.question.options.map(o => `<div class="bg-indigo-100 p-4 rounded-xl text-indigo-900 border-2 border-indigo-200">${o}</div>`).join('');
+                    optsDiv.innerHTML = state.question.options.map(o => `<div class="bg-indigo-50/10 backdrop-blur-sm p-6 rounded-2xl text-white border border-white/20 font-bold shadow-lg transform hover:scale-105 transition-all duration-300">${o}</div>`).join('');
                 } else {
                     waitingArea.classList.remove('hidden'); qArea.classList.add('hidden');
                 }
@@ -568,13 +730,13 @@
                     const r = state.last_result; overlay.classList.remove('hidden');
                     const box = document.getElementById('audience-result-box');
                     if (r.correct) {
-                        box.className = 'bg-white text-black p-8 rounded-2xl shadow-2xl text-center border-4 border-green-500 transform scale-110';
-                        box.innerHTML = `<h2 class="text-4xl font-bold text-green-600 mb-2">إجابة صحيحة! 🎉</h2><p class="text-2xl">المتسابق: <b>${r.name}</b></p><p class="text-xl mt-2">حصل على <b>10+</b> نقاط</p>`;
+                        box.className = 'relative bg-white text-black p-10 rounded-3xl shadow-2xl text-center border-8 border-double border-green-500 min-w-[400px] transform scale-110';
+                        box.innerHTML = `<h2 class="text-5xl font-black text-green-600 mb-4 animate-bounce">إجابة صحيحة! 🎉</h2><p class="text-3xl mb-2">المتسابق: <b class="text-blue-600">${r.name}</b></p><div class="bg-green-100 inline-block px-4 py-1 rounded-full text-green-800 font-bold mt-2">+10 نقاط</div>`;
                     } else {
-                        box.className = 'bg-white text-black p-8 rounded-2xl shadow-2xl text-center border-4 border-red-500 transform scale-110';
-                        box.innerHTML = `<h2 class="text-4xl font-bold text-red-600 mb-2">إجابة خاطئة ❌</h2><p class="text-2xl">المتسابق: <b>${r.name}</b></p><p class="text-lg mt-2 text-gray-600">الإجابة الصحيحة كانت: ${r.correct_text}</p>`;
+                        box.className = 'relative bg-white text-black p-10 rounded-3xl shadow-2xl text-center border-8 border-double border-red-500 min-w-[400px] transform scale-110';
+                        box.innerHTML = `<h2 class="text-5xl font-black text-red-600 mb-4">إجابة خاطئة ❌</h2><p class="text-3xl mb-2">المتسابق: <b class="text-blue-600">${r.name}</b></p><p class="text-xl mt-4 text-gray-500">الإجابة الصحيحة كانت:</p><p class="text-2xl font-bold text-green-600 mt-1">${r.correct_text}</p>`;
                     }
-                    setTimeout(() => { overlay.classList.add('hidden'); }, 5000);
+                    setTimeout(() => { overlay.classList.add('hidden'); }, 6000);
                 } else { overlay.classList.add('hidden'); }
             });
             
@@ -586,9 +748,15 @@
                 players.sort((a,b) => (parseInt(b.score) || 0) - (parseInt(a.score) || 0));
                 
                 board.innerHTML = players.map((p, i) => 
-                    `<div class="flex justify-between items-center p-3 rounded-xl mb-2 bg-white/10 hover:bg-white/20 transition">
-                        <div class="flex items-center gap-3"><span class="flex items-center justify-center w-8 h-8 rounded-full ${i===0?'bg-yellow-400 text-black font-black':'bg-indigo-700 text-white font-bold'}">${i+1}</span><span class="font-bold text-lg">${p.name}</span></div>
-                        <span class="font-mono bg-black/30 px-3 py-1 rounded text-yellow-300 font-bold">${p.score || 0}</span>
+                    `<div class="flex justify-between items-center p-4 rounded-2xl mb-3 bg-white/5 border border-white/10 hover:bg-white/10 transition transform hover:translate-x-1 shadow-lg">
+                        <div class="flex items-center gap-4">
+                            <span class="flex items-center justify-center w-10 h-10 rounded-full shadow-lg text-xl ${i===0?'bg-gradient-to-br from-yellow-300 to-orange-500 text-black font-black ring-4 ring-yellow-400/30': i===1 ? 'bg-gray-300 text-gray-800 font-bold' : i===2 ? 'bg-orange-700 text-orange-200 font-bold' : 'bg-slate-700 text-white font-bold'}">${i+1}</span>
+                            <div>
+                                <span class="font-bold text-xl block">${p.name}</span>
+                                <span class="text-xs opacity-50 ${p.online ? 'text-green-400' : 'text-red-400'}">● ${p.online ? 'متصل' : 'غير متصل'}</span>
+                            </div>
+                        </div>
+                        <span class="font-mono bg-black/40 px-4 py-2 rounded-xl text-yellow-300 font-black text-2xl tracking-widest">${p.score || 0}</span>
                     </div>`
                 ).join('');
             });
@@ -598,8 +766,14 @@
                 const items = []; snap.forEach(child => items.push(child.val()));
                 items.reverse().forEach(h => {
                     const div = document.createElement('div');
-                    div.className = `p-2 rounded mb-2 text-xs border-r-4 ${h.correct ? 'bg-green-900/40 border-green-500' : 'bg-red-900/40 border-red-500'}`;
-                    div.innerHTML = `<div class="flex justify-between font-bold text-white"><span>${h.name}</span><span>${h.correct ? '+10' : '-10'}</span></div><div class="text-gray-300 truncate mt-1">${h.question_text}</div>`;
+                    div.className = `p-3 rounded-xl mb-3 border-r-4 shadow-md backdrop-blur-sm transition hover:bg-white/5 ${h.correct ? 'bg-green-900/30 border-green-500' : 'bg-red-900/30 border-red-500'}`;
+                    div.innerHTML = `
+                        <div class="flex justify-between font-bold text-white mb-1">
+                            <span class="text-blue-300">${h.name}</span>
+                            <span class="${h.correct ? 'text-green-400' : 'text-red-400'}">${h.correct ? '+10' : '-10'}</span>
+                        </div>
+                        <div class="text-gray-400 text-xs truncate">${h.question_text}</div>
+                    `;
                     list.appendChild(div);
                 });
             });
