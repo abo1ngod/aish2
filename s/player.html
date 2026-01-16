@@ -1716,10 +1716,30 @@
             document.getElementById('yourFinalScore').textContent = playerData.score || 0;
 
             const teamsArray = Object.entries(teamsData).sort((a, b) => (b[1].score || 0) - (a[1].score || 0));
-            const winner = teamsArray.length > 0 ? teamsArray[0][1].name : '';
-            const isWinner = teamsArray.length > 0 && teamsArray[0][0] === playerData.teamId;
 
-            document.getElementById('finalTitle').textContent = isWinner ? '🎉 فريقك فاز!' : 'انتهت الجولة!';
+            // Find winners (teams with highest score)
+            let finalTitle = 'انتهت الجولة!';
+            if (teamsArray.length > 0) {
+                const highestScore = teamsArray[0][1].score || 0;
+                const winners = teamsArray.filter(([id, team]) => (team.score || 0) === highestScore);
+
+                if (winners.length === 1) {
+                    // One winner
+                    const isMyTeamWinner = winners[0][0] === playerData.teamId;
+                    finalTitle = isMyTeamWinner ? '🎉 فريقك فاز!' : `🏆 فاز ${winners[0][1].name}!`;
+                } else if (winners.length > 1) {
+                    // Tie between multiple teams
+                    const winnerNames = winners.map(([id, team]) => team.name);
+                    const isMyTeamInTie = winners.some(([id]) => id === playerData.teamId);
+                    if (isMyTeamInTie) {
+                        finalTitle = '🤝 تعادل! فريقك ضمن المتعادلين';
+                    } else {
+                        finalTitle = '🤝 تعادل بين: ' + winnerNames.join(' و ');
+                    }
+                }
+            }
+
+            document.getElementById('finalTitle').textContent = finalTitle;
 
             const ranks = ['🥇', '🥈', '🥉'];
             document.getElementById('finalScoresList').innerHTML = teamsArray.map(([id, team], index) => `
