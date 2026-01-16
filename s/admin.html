@@ -2915,7 +2915,14 @@
         }
 
         function updateTeamName(index, name) {
-            teams[index].name = name;
+            // Prevent empty team names
+            const trimmedName = (name || '').trim();
+            if (!trimmedName) {
+                teams[index].name = 'الفريق ' + (index + 1);
+                renderTeams();
+                return;
+            }
+            teams[index].name = trimmedName;
         }
 
         // Store selected contestants for each team dropdown
@@ -3040,6 +3047,11 @@
                 return;
             }
 
+            // Ensure team has a valid name
+            if (!teams[teamIndex].name || teams[teamIndex].name.trim() === '' || teams[teamIndex].name === 'undefined') {
+                teams[teamIndex].name = 'الفريق ' + (teamIndex + 1);
+            }
+
             selected.forEach(key => {
                 const c = contestants[key];
                 if (!c) return;
@@ -3106,6 +3118,13 @@
                 showToast('أضف متسابقين أولاً', 'warning');
                 return;
             }
+
+            // Validate team names - fix any empty names
+            teams.forEach((team, index) => {
+                if (!team.name || team.name.trim() === '' || team.name === 'undefined') {
+                    team.name = 'الفريق ' + (index + 1);
+                }
+            });
 
             // Prepare teams data
             const teamsData = {};

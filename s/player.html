@@ -1416,7 +1416,10 @@
             const container = document.getElementById('otherTeamsList');
             if (!container) return;
 
-            const teamsArray = Object.entries(teamsData).sort((a, b) => (b[1].score || 0) - (a[1].score || 0));
+            // Filter out teams with undefined or empty names
+            const teamsArray = Object.entries(teamsData)
+                .filter(([teamId, team]) => team && team.name && team.name !== 'undefined')
+                .sort((a, b) => (b[1].score || 0) - (a[1].score || 0));
             const rankIcons = ['🥇', '🥈', '🥉'];
 
             // Group players by team
@@ -1805,7 +1808,10 @@
 
         function renderScores() {
             const container = document.getElementById('scoresList');
-            const teamsArray = Object.entries(teamsData).sort((a, b) => (b[1].score || 0) - (a[1].score || 0));
+            // Filter out teams with undefined or empty names
+            const teamsArray = Object.entries(teamsData)
+                .filter(([id, team]) => team && team.name && team.name !== 'undefined')
+                .sort((a, b) => (b[1].score || 0) - (a[1].score || 0));
 
             const ranks = ['🥇', '🥈', '🥉'];
 
@@ -1852,7 +1858,10 @@
 
             document.getElementById('yourFinalScore').textContent = playerData.score || 0;
 
-            const teamsArray = Object.entries(teamsData).sort((a, b) => (b[1].score || 0) - (a[1].score || 0));
+            // Filter out teams with undefined or empty names
+            const teamsArray = Object.entries(teamsData)
+                .filter(([id, team]) => team && team.name && team.name !== 'undefined')
+                .sort((a, b) => (b[1].score || 0) - (a[1].score || 0));
 
             // Find winners (teams with highest score)
             let finalTitle = 'انتهت الجولة!';
