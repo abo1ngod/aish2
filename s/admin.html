@@ -617,16 +617,6 @@
         .player-item .status.online { background: var(--success); }
         .player-item .status.offline { background: rgba(255,255,255,0.3); }
 
-        .player-item .code {
-            font-family: monospace;
-            font-size: 14px;
-            padding: 2px 8px;
-            background: rgba(99, 102, 241, 0.2);
-            border-radius: 4px;
-            color: var(--light);
-            font-weight: 700;
-        }
-
         .add-player-form {
             display: flex;
             gap: 8px;
@@ -1961,7 +1951,6 @@
         let teams = [];
         let usedQuestions = [];
         let selectedQuestionId = null;
-        let playerCodeCounter = 10;
         let currentEditingContestantKey = null;
         let contestantsCurrentPage = 1;
         const contestantsPerPage = 40;
@@ -2040,9 +2029,68 @@
             loadQuestions();
             loadContestants();
             setupConnectionMonitor();
-            generateRoundId();
             loadRoundsHistory();
-            initializeTeams();
+            checkActiveRound();
+        }
+
+        // Check for active round to restore session
+        function checkActiveRound() {
+            rootRef.child('rounds').orderByChild('status').equalTo('active').once('value', (snapshot) => {
+                const rounds = snapshot.val();
+                if (rounds) {
+                    const roundIds = Object.keys(rounds);
+                    if (roundIds.length > 0) {
+                        // Found active round - restore it
+                        const activeRoundId = roundIds[0];
+                        const activeRound = rounds[activeRoundId];
+
+                        currentRoundId = activeRoundId;
+                        isRoundActive = true;
+
+                        // Restore round name
+                        document.getElementById('roundName').value = activeRound.name || '';
+
+                        // Restore teams from round data
+                        teams = [];
+                        if (activeRound.teams) {
+                            Object.entries(activeRound.teams).forEach(([teamId, teamData]) => {
+                                const teamPlayers = [];
+                                if (activeRound.players) {
+                                    Object.entries(activeRound.players).forEach(([playerId, playerData]) => {
+                                        if (playerData.teamId === teamId) {
+                                            teamPlayers.push({
+                                                name: playerData.name,
+                                                civilId: playerId,
+                                                teamId: teamId,
+                                                teamName: teamData.name,
+                                                score: playerData.score || 0,
+                                                online: playerData.online || false
+                                            });
+                                        }
+                                    });
+                                }
+                                teams.push({
+                                    id: teamId,
+                                    name: teamData.name,
+                                    players: teamPlayers
+                                });
+                            });
+                        }
+
+                        // Restore used questions
+                        usedQuestions = activeRound.usedQuestions || [];
+
+                        renderTeams();
+                        listenToRound();
+                        showToast('تم استعادة الجولة النشطة', 'success');
+                        document.querySelector('[data-tab="live"]').click();
+                        return;
+                    }
+                }
+                // No active round - initialize fresh
+                generateRoundId();
+                initializeTeams();
+            });
         }
 
         function initializeTeams() {
@@ -2831,12 +2879,9 @@
                                     <span class="status ${p.online ? 'online' : 'offline'}"></span>
                                     <span>${p.name}</span>
                                 </div>
-                                <div style="display: flex; align-items: center; gap: 8px;">
-                                    <span class="code">${p.civilId ? p.civilId.slice(-4) : p.code}</span>
-                                    <button class="btn-icon delete" onclick="removePlayer(${index}, ${pi})">
-                                        <i class="fas fa-times"></i>
-                                    </button>
-                                </div>
+                                <button class="btn-icon delete" onclick="removePlayer(${index}, ${pi})">
+                                    <i class="fas fa-times"></i>
+                                </button>
                             </div>
                         `).join('')}
                     </div>
@@ -3325,7 +3370,6 @@
                     btn.disabled = false;
                     btn.textContent = 'حذف';
                     generateRoundId();
-                    playerCodeCounter = 10;
                     initializeTeams();
                     usedQuestions = [];
                     selectedQuestionId = null;
