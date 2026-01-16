@@ -1770,9 +1770,6 @@
                         </div>
                     </div>
                     <div class="control-buttons">
-                        <button class="btn btn-primary" id="publishBtn" onclick="publishQuestion()">
-                            <i class="fas fa-paper-plane"></i> نشر السؤال
-                        </button>
                         <button class="btn btn-warning" onclick="revealAnswer()">
                             <i class="fas fa-eye"></i> كشف الإجابة
                         </button>
@@ -2213,11 +2210,15 @@
                 const q = questions[key];
                 const isUsed = usedQuestions.includes(key);
                 return `
-                    <div class="question-select-item ${isUsed ? 'used' : ''} ${selectedQuestionId === key ? 'selected' : ''}"
-                         onclick="selectQuestion('${key}')">
+                    <div class="question-select-item ${isUsed ? 'used' : ''}">
                         <span class="category">${q.category}</span>
                         <span class="text" style="flex:1; margin: 0 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${q.text}</span>
-                        ${isUsed ? '<i class="fas fa-check-circle" style="color: var(--success);"></i>' : ''}
+                        ${isUsed
+                            ? '<i class="fas fa-check-circle" style="color: var(--success);"></i>'
+                            : `<button class="btn btn-success btn-sm" onclick="publishQuestionDirect('${key}')" style="padding: 5px 12px; font-size: 12px;">
+                                <i class="fas fa-paper-plane"></i> نشر
+                               </button>`
+                        }
                     </div>
                 `;
             }).join('');
@@ -2900,10 +2901,6 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="selected-contestants-tags" id="selectedTags_${index}"></div>
-                        <button class="btn btn-primary" onclick="addSelectedContestants(${index})" style="margin-top: 10px; width: 100%;">
-                            <i class="fas fa-user-plus"></i> إضافة المحددين
-                        </button>
                     </div>
                 </div>
             `).join('');
@@ -3007,19 +3004,34 @@
         }
 
         function toggleContestantSelection(teamIndex, contestantKey) {
-            if (!teamSelectedContestants[teamIndex]) {
-                teamSelectedContestants[teamIndex] = [];
+            const c = contestants[contestantKey];
+            if (!c) return;
+
+            // Ensure team has a valid name
+            if (!teams[teamIndex].name || teams[teamIndex].name.trim() === '' || teams[teamIndex].name === 'undefined') {
+                teams[teamIndex].name = 'الفريق ' + (teamIndex + 1);
             }
 
-            const idx = teamSelectedContestants[teamIndex].indexOf(contestantKey);
-            if (idx > -1) {
-                teamSelectedContestants[teamIndex].splice(idx, 1);
-            } else {
-                teamSelectedContestants[teamIndex].push(contestantKey);
+            const player = {
+                name: c.name,
+                civilId: c.civilId,
+                contestantKey: contestantKey,
+                teamId: teams[teamIndex].id,
+                teamName: teams[teamIndex].name,
+                online: false,
+                score: 0
+            };
+
+            teams[teamIndex].players.push(player);
+
+            if (currentRoundId) {
+                rootRef.child(`rounds/${currentRoundId}/players/${c.civilId}`).set(player);
             }
 
-            populateContestantDropdown(teamIndex);
-            renderSelectedTags(teamIndex);
+            // Close dropdown and refresh
+            document.getElementById('dropdownMenu_' + teamIndex).classList.remove('active');
+            renderTeams();
+            showToast(`تم إضافة ${c.name}`, 'success');
         }
 
         function renderSelectedTags(teamIndex) {
@@ -3116,6 +3128,13 @@
             const totalPlayers = teams.reduce((sum, t) => sum + t.players.length, 0);
             if (totalPlayers === 0) {
                 showToast('أضف متسابقين أولاً', 'warning');
+                return;
+            }
+
+            // Check if any team has no players
+            const emptyTeam = teams.find(t => t.players.length === 0);
+            if (emptyTeam) {
+                showToast(`الفريق "${emptyTeam.name}" لا يحتوي على متسابقين`, 'warning');
                 return;
             }
 
@@ -3282,16 +3301,22 @@
             `;
         }
 
-        function publishQuestion() {
-            if (!selectedQuestionId) {
-                showToast('اختر سؤالاً أولاً', 'warning');
+        function publishQuestionDirect(questionKey) {
+            if (!currentRoundId || !isRoundActive) {
+                showToast('لا توجد جولة نشطة', 'warning');
                 return;
             }
 
-            const q = questions[selectedQuestionId];
+            if (usedQuestions.includes(questionKey)) {
+                showToast('تم نشر هذا السؤال مسبقاً', 'warning');
+                return;
+            }
+
+            const q = questions[questionKey];
+            if (!q) return;
 
             const questionData = {
-                id: selectedQuestionId,
+                id: questionKey,
                 text: q.text,
                 options: q.options,
                 correct: q.correct,
@@ -3305,10 +3330,10 @@
 
             rootRef.child(`rounds/${currentRoundId}/answers`).remove();
             rootRef.child(`rounds/${currentRoundId}/currentQuestion`).set(questionData).then(() => {
-                usedQuestions.push(selectedQuestionId);
+                usedQuestions.push(questionKey);
                 rootRef.child(`rounds/${currentRoundId}/usedQuestions`).set(usedQuestions);
 
-                selectedQuestionId = null;
+                renderQuestionSelector();
                 showToast('تم نشر السؤال!', 'success');
                 if (sounds.playBuzzer) sounds.playBuzzer();
             });
