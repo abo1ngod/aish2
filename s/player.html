@@ -1,0 +1,1761 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>المسابقة - المتسابق</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #ec4899;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --dark: #1e1b4b;
+            --darker: #0f0a2e;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background: linear-gradient(135deg, var(--darker) 0%, var(--dark) 50%, #1a1333 100%);
+            min-height: 100vh;
+            min-height: -webkit-fill-available;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        html {
+            height: -webkit-fill-available;
+        }
+
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.1) 0%, transparent 50%);
+            animation: pulse 10s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.2); opacity: 0.3; }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .screen {
+            display: none;
+            flex: 1;
+            flex-direction: column;
+            padding: 20px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        /* Login Screen */
+        .login-box {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 40px 25px;
+            width: 100%;
+            max-width: 350px;
+            text-align: center;
+            animation: slideUp 0.5s ease;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .login-box .icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .login-box h1 {
+            font-size: 1.6rem;
+            margin-bottom: 8px;
+        }
+
+        .login-box p {
+            color: rgba(255,255,255,0.6);
+            margin-bottom: 25px;
+            font-size: 14px;
+        }
+
+        .code-input input {
+            width: 100%;
+            max-width: 280px;
+            padding: 16px 20px;
+            font-size: 18px;
+            text-align: center;
+            background: rgba(255,255,255,0.05);
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 15px;
+            color: white;
+            font-family: monospace;
+            font-weight: 700;
+            letter-spacing: 3px;
+        }
+
+        .code-input input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        /* Not Registered Screen */
+        .not-registered-box {
+            background: rgba(245, 158, 11, 0.1);
+            border: 2px solid var(--warning);
+            border-radius: 24px;
+            padding: 40px 25px;
+            max-width: 350px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .not-registered-box .icon {
+            font-size: 3.5rem;
+            color: var(--warning);
+            margin-bottom: 20px;
+        }
+
+        .not-registered-box h2 {
+            color: var(--warning);
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .not-registered-box p {
+            color: rgba(255,255,255,0.7);
+            font-size: 14px;
+            line-height: 1.8;
+            margin-bottom: 20px;
+        }
+
+        .not-registered-box .btn-audience {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 14px 30px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        /* Player Stats Display */
+        .player-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .stat-item {
+            background: rgba(255,255,255,0.05);
+            padding: 12px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-item .stat-value {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .stat-item .stat-label {
+            font-size: 11px;
+            color: rgba(255,255,255,0.6);
+            margin-top: 4px;
+        }
+
+        .stat-item.team-score .stat-value {
+            color: var(--secondary);
+        }
+
+        /* Other Teams Section */
+        .other-teams-section {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            width: 100%;
+        }
+
+        .other-teams-title {
+            font-size: 13px;
+            color: rgba(255,255,255,0.6);
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .other-teams-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .other-team-item {
+            background: rgba(255,255,255,0.03);
+            border-radius: 10px;
+            padding: 10px 12px;
+        }
+
+        .other-team-item.my-team {
+            background: rgba(99, 102, 241, 0.15);
+            border: 1px solid var(--primary);
+        }
+
+        .other-team-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .other-team-name {
+            font-weight: 600;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .other-team-name .rank-badge {
+            font-size: 12px;
+        }
+
+        .other-team-score {
+            font-weight: 800;
+            color: var(--primary);
+            font-size: 15px;
+        }
+
+        .other-team-players {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .player-tag {
+            font-size: 11px;
+            padding: 3px 8px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 10px;
+            color: rgba(255,255,255,0.7);
+        }
+
+        .player-tag.online {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+        }
+
+        .btn {
+            padding: 16px 32px;
+            border: none;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            max-width: 200px;
+            margin-top: 20px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .error-message {
+            color: var(--danger);
+            margin-top: 15px;
+            display: none;
+            font-size: 14px;
+        }
+
+        /* Waiting Screen */
+        .player-info {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 30px 25px;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+            animation: slideUp 0.5s ease;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        .player-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            margin: 0 auto 15px;
+        }
+
+        .player-name {
+            font-size: 2rem;
+            font-weight: 900;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #fff, #e0e7ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(99, 102, 241, 0.3);
+        }
+
+        .player-team {
+            display: inline-block;
+            padding: 10px 25px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 800;
+            margin-bottom: 25px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+            animation: teamGlow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes teamGlow {
+            0% { box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4); }
+            100% { box-shadow: 0 4px 30px rgba(236, 72, 153, 0.5); }
+        }
+
+        .waiting-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            color: rgba(255,255,255,0.6);
+            font-size: 1rem;
+        }
+
+        .waiting-indicator .dots {
+            display: flex;
+            gap: 5px;
+        }
+
+        .waiting-indicator .dot {
+            width: 8px;
+            height: 8px;
+            background: var(--primary);
+            border-radius: 50%;
+            animation: dotPulse 1.4s infinite;
+        }
+
+        .waiting-indicator .dot:nth-child(2) { animation-delay: 0.2s; }
+        .waiting-indicator .dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes dotPulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(0.5); opacity: 0.5; }
+        }
+
+        /* Question Screen */
+        .question-screen {
+            padding: 0;
+            justify-content: flex-start;
+        }
+
+        .question-header {
+            background: rgba(0,0,0,0.3);
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
+        .score-display {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .score-display i {
+            color: var(--warning);
+        }
+
+        .team-badge {
+            padding: 6px 15px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 700;
+            box-shadow: 0 2px 10px rgba(99, 102, 241, 0.3);
+        }
+
+        .question-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .question-text {
+            text-align: center;
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+
+        .options-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .option-btn {
+            padding: 18px 20px;
+            background: rgba(255,255,255,0.05);
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 15px;
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-align: right;
+            width: 100%;
+        }
+
+        .option-btn:active:not(:disabled) {
+            transform: scale(0.98);
+        }
+
+        .option-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .option-btn .option-letter {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--primary);
+            border-radius: 10px;
+            font-weight: 800;
+            flex-shrink: 0;
+        }
+
+        .option-btn.correct {
+            background: rgba(16, 185, 129, 0.3);
+            border-color: var(--success);
+        }
+
+        .option-btn.correct .option-letter {
+            background: var(--success);
+        }
+
+        .option-btn.wrong {
+            background: rgba(239, 68, 68, 0.3);
+            border-color: var(--danger);
+        }
+
+        .option-btn.wrong .option-letter {
+            background: var(--danger);
+        }
+
+        /* Result Overlay */
+        .result-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            flex-direction: column;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .result-overlay.active {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .result-icon {
+            font-size: 5rem;
+            margin-bottom: 20px;
+        }
+
+        .result-icon.success { color: var(--success); }
+        .result-icon.danger { color: var(--danger); }
+        .result-icon.warning { color: var(--warning); }
+
+        .result-title {
+            font-size: 1.6rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+
+        .result-subtitle {
+            font-size: 1.1rem;
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .result-points {
+            font-size: 2.5rem;
+            font-weight: 900;
+            margin-bottom: 20px;
+        }
+
+        .result-points.positive { color: var(--success); }
+        .result-points.negative { color: var(--danger); }
+
+        .second-chance-timer {
+            font-size: 5rem;
+            font-weight: 900;
+            color: var(--warning);
+            margin: 20px 0;
+            animation: timerPulse 1s infinite;
+        }
+
+        @keyframes timerPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .countdown-text {
+            font-size: 1.2rem;
+            color: rgba(255,255,255,0.7);
+        }
+
+        /* Scores Screen */
+        .scores-screen .scores-box {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 30px 25px;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .scores-title {
+            font-size: 1.4rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .scores-list {
+            text-align: right;
+        }
+
+        .score-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            margin-bottom: 10px;
+        }
+
+        .score-item.my-team {
+            background: rgba(99, 102, 241, 0.2);
+            border: 1px solid var(--primary);
+        }
+
+        .score-item .rank {
+            font-size: 1.2rem;
+            margin-left: 10px;
+        }
+
+        .score-item .team-name {
+            flex: 1;
+            font-weight: 600;
+        }
+
+        .score-item .team-score {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .waiting-next {
+            margin-top: 25px;
+            color: rgba(255,255,255,0.6);
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        /* Final Results */
+        .final-screen .final-box {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 40px 25px;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .trophy-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+
+        .final-title {
+            font-size: 1.8rem;
+            font-weight: 900;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .your-score {
+            font-size: 3rem;
+            font-weight: 900;
+            color: var(--primary);
+            margin: 20px 0;
+        }
+
+        /* Kicked Screen */
+        .kicked-box {
+            background: rgba(239, 68, 68, 0.1);
+            border: 2px solid var(--danger);
+            border-radius: 24px;
+            padding: 40px 25px;
+            max-width: 350px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .kicked-box .icon {
+            font-size: 4rem;
+            color: var(--danger);
+            margin-bottom: 20px;
+        }
+
+        .kicked-box h2 {
+            color: var(--danger);
+            margin-bottom: 10px;
+        }
+
+        .kicked-box p {
+            color: rgba(255,255,255,0.6);
+            font-size: 14px;
+        }
+
+        /* Transfer Request Modal */
+        .transfer-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.85);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 20px;
+        }
+
+        .transfer-modal.active {
+            display: flex;
+        }
+
+        .transfer-box {
+            background: linear-gradient(145deg, rgba(30,27,75,0.98), rgba(15,10,46,0.98));
+            border: 2px solid var(--warning);
+            border-radius: 24px;
+            padding: 30px 25px;
+            max-width: 350px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .transfer-box .icon {
+            font-size: 3rem;
+            color: var(--warning);
+            margin-bottom: 15px;
+        }
+
+        .transfer-box h3 {
+            color: var(--warning);
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+
+        .transfer-box p {
+            color: rgba(255,255,255,0.7);
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .transfer-box .buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .transfer-box .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .transfer-box .btn-accept {
+            background: var(--success);
+            color: white;
+        }
+
+        .transfer-box .btn-reject {
+            background: var(--danger);
+            color: white;
+        }
+
+        /* Waiting for approval */
+        .waiting-approval {
+            background: rgba(245, 158, 11, 0.1);
+            border: 2px solid var(--warning);
+            border-radius: 24px;
+            padding: 40px 25px;
+            max-width: 350px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .waiting-approval .icon {
+            font-size: 3rem;
+            color: var(--warning);
+            margin-bottom: 20px;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .waiting-approval h2 {
+            color: var(--warning);
+            margin-bottom: 10px;
+            font-size: 1.3rem;
+        }
+
+        .waiting-approval p {
+            color: rgba(255,255,255,0.6);
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+
+    <div class="container">
+        <!-- Login Screen -->
+        <div class="screen active" id="loginScreen">
+            <div class="login-box">
+                <div class="icon"><i class="fas fa-gamepad"></i></div>
+                <h1>المسابقة</h1>
+                <p>أدخل رقم السجل المدني الخاص بك</p>
+                <form id="loginForm">
+                    <div class="code-input">
+                        <input type="tel" id="playerCivilId" placeholder="أدخل السجل المدني" maxlength="10" autocomplete="off" inputmode="numeric" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary" id="loginBtn">
+                        <i class="fas fa-sign-in-alt"></i>
+                        دخول
+                    </button>
+                </form>
+                <p class="error-message" id="loginError">
+                    <i class="fas fa-exclamation-circle"></i>
+                    رقم الدخول غير صحيح
+                </p>
+            </div>
+        </div>
+
+        <!-- Not Registered Screen -->
+        <div class="screen" id="notRegisteredScreen">
+            <div class="not-registered-box">
+                <div class="icon"><i class="fas fa-user-slash"></i></div>
+                <h2>غير مسجل في المسابقة</h2>
+                <p>
+                    السجل المدني الذي أدخلته غير مسجل في قائمة المتسابقين.
+                    <br><br>
+                    يرجى التواصل مع المشرف للتسجيل، أو يمكنك متابعة المسابقة كمشاهد.
+                </p>
+                <a href="audience.html" class="btn-audience">
+                    <i class="fas fa-tv"></i>
+                    الذهاب لصفحة الجمهور
+                </a>
+            </div>
+        </div>
+
+        <!-- Not In Round Screen -->
+        <div class="screen" id="notInRoundScreen">
+            <div class="not-registered-box" style="border-color: var(--primary); background: rgba(99, 102, 241, 0.1);">
+                <div class="icon" style="color: var(--primary);"><i class="fas fa-user-clock"></i></div>
+                <h2 style="color: var(--primary);">أنت مسجل لكن لست ضمن الجولة الحالية</h2>
+                <p>
+                    يرجى التواصل مع المشرف للتسجيل في الجولة، أو يمكنك متابعة المسابقة كمشاهد.
+                </p>
+                <a href="audience.html" class="btn-audience">
+                    <i class="fas fa-tv"></i>
+                    الذهاب لصفحة الجمهور
+                </a>
+            </div>
+        </div>
+
+        <!-- Waiting Screen -->
+        <div class="screen" id="waitingScreen">
+            <div class="player-info">
+                <div class="player-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="player-name" id="playerName">-</div>
+                <div class="player-team" id="playerTeam">-</div>
+
+                <!-- Player Stats -->
+                <div class="player-stats" id="playerStats">
+                    <div class="stat-item">
+                        <div class="stat-value" id="statScore">0</div>
+                        <div class="stat-label">نقاطي</div>
+                    </div>
+                    <div class="stat-item team-score">
+                        <div class="stat-value" id="statTeamScore">0</div>
+                        <div class="stat-label">نقاط الفريق</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="statCorrect">0</div>
+                        <div class="stat-label">إجابات صحيحة</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="statWrong">0</div>
+                        <div class="stat-label">إجابات خاطئة</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="statRank">-</div>
+                        <div class="stat-label">ترتيب الفريق</div>
+                    </div>
+                </div>
+
+                <!-- Other Teams Section -->
+                <div class="other-teams-section">
+                    <div class="other-teams-title">الفرق والمتسابقون</div>
+                    <div class="other-teams-list" id="otherTeamsList"></div>
+                </div>
+
+                <div class="waiting-indicator">
+                    <span>في انتظار المشرف</span>
+                    <div class="dots">
+                        <span class="dot"></span>
+                        <span class="dot"></span>
+                        <span class="dot"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Question Screen -->
+        <div class="screen question-screen" id="questionScreen">
+            <div class="question-header">
+                <div class="score-display">
+                    <i class="fas fa-star"></i>
+                    <span id="currentScore">0</span>
+                </div>
+                <div class="team-badge" id="teamBadge">-</div>
+            </div>
+            <div class="question-content">
+                <div class="question-text" id="questionText">جاري تحميل السؤال...</div>
+                <div class="options-container" id="optionsContainer"></div>
+            </div>
+        </div>
+
+        <!-- Scores Screen -->
+        <div class="screen scores-screen" id="scoresScreen">
+            <div class="scores-box">
+                <div class="scores-title">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>النتائج الحالية</span>
+                </div>
+                <div class="scores-list" id="scoresList"></div>
+                <div class="waiting-next">
+                    <i class="fas fa-hourglass-half"></i>
+                    <span>في انتظار السؤال التالي...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Final Screen -->
+        <div class="screen final-screen" id="finalScreen">
+            <div class="final-box">
+                <div class="trophy-icon">🏆</div>
+                <div class="final-title" id="finalTitle">انتهت الجولة!</div>
+                <div class="your-score" id="yourFinalScore">0</div>
+                <p style="color: rgba(255,255,255,0.6);">نقاطك النهائية</p>
+                <div class="scores-list" id="finalScoresList" style="margin-top: 20px;"></div>
+            </div>
+        </div>
+
+        <!-- Kicked Screen -->
+        <div class="screen" id="kickedScreen">
+            <div class="kicked-box">
+                <div class="icon"><i class="fas fa-ban"></i></div>
+                <h2>تم قطع الاتصال</h2>
+                <p>تم تسجيل الدخول من جهاز آخر أو تم إزالتك من الجولة</p>
+            </div>
+        </div>
+
+        <!-- Waiting Approval Screen -->
+        <div class="screen" id="waitingApprovalScreen">
+            <div class="waiting-approval">
+                <div class="icon"><i class="fas fa-hourglass-half"></i></div>
+                <h2>هذا الرقم مستخدم</h2>
+                <p>انتظر قبول أو رفض المتسابق الآخر للانتقال</p>
+            </div>
+        </div>
+
+        <!-- Transfer Request Modal -->
+        <div class="transfer-modal" id="transferModal">
+            <div class="transfer-box">
+                <div class="icon"><i class="fas fa-exchange-alt"></i></div>
+                <h3>طلب نقل الجهاز</h3>
+                <p>يحاول جهاز آخر تسجيل الدخول برقمك. هل تريد الانتقال إلى الجهاز الآخر؟</p>
+                <div class="buttons">
+                    <button class="btn btn-accept" onclick="acceptTransfer()">نعم</button>
+                    <button class="btn btn-reject" onclick="rejectTransfer()">لا</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Result Overlay -->
+        <div class="result-overlay" id="resultOverlay">
+            <div class="result-icon" id="resultIcon"><i class="fas fa-check-circle"></i></div>
+            <div class="result-title" id="resultTitle">نتيجة</div>
+            <div class="result-subtitle" id="resultSubtitle">-</div>
+            <div class="result-points" id="resultPoints">+10</div>
+            <div class="second-chance-timer" id="secondChanceTimer" style="display: none;">10</div>
+            <div class="countdown-text" id="countdownText" style="display: none;">ثانية</div>
+        </div>
+    </div>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBxPO6RKsQ1Cq-mqlCpFTrCuIyxnYdB37U",
+            authDomain: "studentsystem-c1ab1.firebaseapp.com",
+            databaseURL: "https://studentsystem-c1ab1-default-rtdb.firebaseio.com",
+            projectId: "studentsystem-c1ab1",
+            storageBucket: "studentsystem-c1ab1.firebasestorage.app",
+            messagingSenderId: "112215023848",
+            appId: "1:112215023848:web:0adba326a527ee7e37e95d"
+        };
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.database();
+        const rootRef = db.ref('quiz_competition');
+
+        // App State
+        let roundId = null;
+        let playerCivilId = null;
+        let playerData = null;
+        let sessionId = null;
+        let currentQuestion = null;
+        let hasAnswered = false;
+        let teamsData = {};
+        let playersData = {};
+        let secondChanceInterval = null;
+        let playerStats = { correct: 0, wrong: 0 };
+
+        // Sound Effects
+        const sounds = {};
+
+        function initSounds() {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return;
+
+            const audioCtx = new AudioContext();
+            sounds.audioCtx = audioCtx;
+
+            sounds.playCorrect = () => {
+                if (!sounds.audioCtx) return;
+                const ctx = sounds.audioCtx;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.frequency.setValueAtTime(523.25, ctx.currentTime);
+                osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.1);
+                osc.frequency.setValueAtTime(783.99, ctx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+                osc.start(ctx.currentTime);
+                osc.stop(ctx.currentTime + 0.4);
+            };
+
+            sounds.playWrong = () => {
+                if (!sounds.audioCtx) return;
+                const ctx = sounds.audioCtx;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.frequency.setValueAtTime(200, ctx.currentTime);
+                osc.frequency.setValueAtTime(150, ctx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+                osc.start(ctx.currentTime);
+                osc.stop(ctx.currentTime + 0.4);
+            };
+
+            sounds.playBuzzer = () => {
+                if (!sounds.audioCtx) return;
+                const ctx = sounds.audioCtx;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.frequency.setValueAtTime(880, ctx.currentTime);
+                gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
+                osc.start(ctx.currentTime);
+                osc.stop(ctx.currentTime + 0.15);
+            };
+        }
+
+        function generateSessionId() {
+            return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        }
+
+        // Login Form
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const civilId = document.getElementById('playerCivilId').value.trim();
+            const loginBtn = document.getElementById('loginBtn');
+            const errorEl = document.getElementById('loginError');
+
+            if (!civilId || civilId.length !== 10) {
+                errorEl.style.display = 'block';
+                errorEl.innerHTML = '<i class="fas fa-exclamation-circle"></i> أدخل 10 أرقام';
+                return;
+            }
+
+            loginBtn.disabled = true;
+            loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+            try {
+                // First check if this civil ID is registered in contestants
+                const contestantsSnapshot = await rootRef.child('contestants').once('value');
+                const contestants = contestantsSnapshot.val() || {};
+
+                const isRegistered = Object.values(contestants).some(c => c.civilId === civilId);
+
+                if (!isRegistered) {
+                    // Not registered - show not registered screen
+                    loginBtn.disabled = false;
+                    loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> دخول';
+                    showScreen('notRegisteredScreen');
+                    return;
+                }
+
+                // Check for active round with this player
+                const roundsSnapshot = await rootRef.child('rounds').orderByChild('status').equalTo('active').once('value');
+                const rounds = roundsSnapshot.val() || {};
+
+                let foundRound = null;
+                let foundPlayer = null;
+
+                for (const [rId, round] of Object.entries(rounds)) {
+                    if (round.players && round.players[civilId]) {
+                        foundRound = rId;
+                        foundPlayer = round.players[civilId];
+                        break;
+                    }
+                }
+
+                if (!foundPlayer) {
+                    // Registered but not in any active round
+                    loginBtn.disabled = false;
+                    loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> دخول';
+                    showScreen('notInRoundScreen');
+                    return;
+                }
+
+                roundId = foundRound;
+                playerCivilId = civilId;
+                playerData = foundPlayer;
+                sessionId = generateSessionId();
+
+                // Check if player is already online
+                if (foundPlayer.online && foundPlayer.sessionId) {
+                    // Request transfer
+                    await rootRef.child(`rounds/${roundId}/players/${playerCivilId}`).update({
+                        transferRequest: sessionId
+                    });
+                    showScreen('waitingApprovalScreen');
+                    listenForTransferResponse();
+                    loginBtn.disabled = false;
+                    loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> دخول';
+                    return;
+                }
+
+                await rootRef.child(`rounds/${roundId}/players/${playerCivilId}`).update({
+                    sessionId: sessionId,
+                    online: true,
+                    lastSeen: Date.now(),
+                    transferRequest: null
+                });
+
+                showScreen('waitingScreen');
+                updatePlayerInfo();
+                listenToRound();
+                setupPresence();
+                initSounds();
+
+            } catch (error) {
+                console.error('Login error:', error);
+                errorEl.style.display = 'block';
+                errorEl.innerHTML = '<i class="fas fa-exclamation-circle"></i> حدث خطأ';
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> دخول';
+            }
+        });
+
+        function setupPresence() {
+            const playerRef = rootRef.child(`rounds/${roundId}/players/${playerCivilId}`);
+
+            playerRef.onDisconnect().update({
+                online: false,
+                transferRequest: null
+            });
+
+            setInterval(() => {
+                playerRef.update({
+                    lastSeen: Date.now()
+                });
+            }, 30000);
+
+            // Listen for transfer requests
+            playerRef.child('transferRequest').on('value', (snapshot) => {
+                const requestSessionId = snapshot.val();
+                if (requestSessionId && requestSessionId !== sessionId) {
+                    document.getElementById('transferModal').classList.add('active');
+                }
+            });
+
+            // Listen for session changes (after transfer accepted)
+            playerRef.child('sessionId').on('value', (snapshot) => {
+                const currentSessionId = snapshot.val();
+                if (currentSessionId && currentSessionId !== sessionId) {
+                    showScreen('kickedScreen');
+                    if (sounds.playWrong) sounds.playWrong();
+                }
+            });
+        }
+
+        function listenForTransferResponse() {
+            const playerRef = rootRef.child(`rounds/${roundId}/players/${playerCivilId}`);
+
+            playerRef.on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (!data) return;
+
+                // Transfer was accepted - new session is ours
+                if (data.sessionId === sessionId) {
+                    playerRef.off();
+                    playerData = data;
+                    showScreen('waitingScreen');
+                    updatePlayerInfo();
+                    listenToRound();
+                    setupPresence();
+                    initSounds();
+                }
+
+                // Transfer was rejected
+                if (data.transferRequest === null && data.sessionId !== sessionId) {
+                    playerRef.off();
+                    showScreen('kickedScreen');
+                    document.querySelector('#kickedScreen .kicked-box h2').textContent = 'تم رفض الطلب';
+                    document.querySelector('#kickedScreen .kicked-box p').textContent = 'المتسابق الآخر رفض نقل الجهاز';
+                }
+            });
+        }
+
+        function acceptTransfer() {
+            document.getElementById('transferModal').classList.remove('active');
+            const playerRef = rootRef.child(`rounds/${roundId}/players/${playerCivilId}`);
+
+            playerRef.once('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data && data.transferRequest) {
+                    playerRef.update({
+                        sessionId: data.transferRequest,
+                        transferRequest: null
+                    });
+                    showScreen('kickedScreen');
+                    document.querySelector('#kickedScreen .kicked-box h2').textContent = 'تم النقل';
+                    document.querySelector('#kickedScreen .kicked-box p').textContent = 'تم نقل جلستك إلى الجهاز الآخر';
+                }
+            });
+        }
+
+        function rejectTransfer() {
+            document.getElementById('transferModal').classList.remove('active');
+            rootRef.child(`rounds/${roundId}/players/${playerCivilId}`).update({
+                transferRequest: null
+            });
+        }
+
+        function updatePlayerInfo() {
+            document.getElementById('playerName').textContent = playerData.name;
+            document.getElementById('playerTeam').textContent = playerData.teamName;
+            document.getElementById('teamBadge').textContent = playerData.teamName;
+        }
+
+        function listenToRound() {
+            // Listen to player data
+            rootRef.child(`rounds/${roundId}/players/${playerCivilId}`).on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    playerData = data;
+                    document.getElementById('currentScore').textContent = playerData.score || 0;
+                    document.getElementById('statScore').textContent = playerData.score || 0;
+                }
+            });
+
+            // Listen to all players (for displaying team members)
+            rootRef.child(`rounds/${roundId}/players`).on('value', (snapshot) => {
+                playersData = snapshot.val() || {};
+                renderOtherTeams();
+            });
+
+            // Listen to teams
+            rootRef.child(`rounds/${roundId}/teams`).on('value', (snapshot) => {
+                teamsData = snapshot.val() || {};
+                updateTeamRank();
+                updateTeamScore();
+                renderOtherTeams();
+            });
+
+            // Listen to current question
+            rootRef.child(`rounds/${roundId}/currentQuestion`).on('value', (snapshot) => {
+                const question = snapshot.val();
+                handleQuestionUpdate(question);
+            });
+
+            // Listen to round status
+            rootRef.child(`rounds/${roundId}/status`).on('value', (snapshot) => {
+                const status = snapshot.val();
+                if (status === 'finished') {
+                    showFinalResults();
+                }
+            });
+        }
+
+        function updateTeamScore() {
+            if (!playerData || !playerData.teamId || !teamsData[playerData.teamId]) return;
+            const teamScore = teamsData[playerData.teamId].score || 0;
+            document.getElementById('statTeamScore').textContent = teamScore;
+        }
+
+        function renderOtherTeams() {
+            const container = document.getElementById('otherTeamsList');
+            if (!container) return;
+
+            const teamsArray = Object.entries(teamsData).sort((a, b) => (b[1].score || 0) - (a[1].score || 0));
+            const rankIcons = ['🥇', '🥈', '🥉'];
+
+            // Group players by team
+            const playersByTeam = {};
+            Object.entries(playersData).forEach(([id, player]) => {
+                if (!playersByTeam[player.teamId]) {
+                    playersByTeam[player.teamId] = [];
+                }
+                playersByTeam[player.teamId].push(player);
+            });
+
+            container.innerHTML = teamsArray.map(([teamId, team], index) => {
+                const isMyTeam = playerData && playerData.teamId === teamId;
+                const teamPlayers = playersByTeam[teamId] || [];
+                const rankIcon = rankIcons[index] || (index + 1);
+
+                return `
+                    <div class="other-team-item ${isMyTeam ? 'my-team' : ''}">
+                        <div class="other-team-header">
+                            <div class="other-team-name">
+                                <span class="rank-badge">${rankIcon}</span>
+                                ${team.name}
+                                ${isMyTeam ? '<span style="font-size: 10px; color: var(--primary);">(فريقي)</span>' : ''}
+                            </div>
+                            <div class="other-team-score">${team.score || 0}</div>
+                        </div>
+                        <div class="other-team-players">
+                            ${teamPlayers.map(p => `
+                                <span class="player-tag ${p.online ? 'online' : ''}">${p.name}</span>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function handleQuestionUpdate(question) {
+            if (!question) {
+                // No question - show waiting screen with player info and scores
+                showScreen('waitingScreen');
+                renderScores();
+                renderOtherTeams();
+                hideResultOverlay();
+                return;
+            }
+
+            currentQuestion = question;
+
+            if (question.status === 'open') {
+                hasAnswered = false;
+                showScreen('questionScreen');
+                renderQuestion(question);
+                hideResultOverlay();
+                if (sounds.playBuzzer) sounds.playBuzzer();
+
+            } else if (question.status === 'locked') {
+                if (question.lockedBy === playerCivilId) {
+                    // I answered - waiting for result
+                } else if (!hasAnswered) {
+                    // Someone else answered first
+                    showResultOverlay(
+                        'warning',
+                        `${question.lockedByTeamName} أجاب أولاً!`,
+                        'انتظر النتيجة...',
+                        ''
+                    );
+                    disableOptions();
+                }
+
+            } else if (question.status === 'secondChance') {
+                if (question.excludedPlayer === playerCivilId) {
+                    // I'm excluded - show my wrong result
+                    showResultOverlay(
+                        'danger',
+                        'إجابتك خاطئة!',
+                        'تم خصم 10 نقاط',
+                        '-10',
+                        true
+                    );
+                } else if (!hasAnswered) {
+                    // Second chance for me!
+                    showResultOverlay(
+                        'warning',
+                        `${question.lockedByTeamName} أجاب خطأ!`,
+                        'فرصتك الآن! أجب بسرعة',
+                        '',
+                        false,
+                        question.secondChanceEndsAt
+                    );
+                    setTimeout(() => {
+                        hideResultOverlay();
+                        showScreen('questionScreen');
+                        enableOptions();
+                    }, 1500);
+                }
+
+            } else if (question.status === 'revealed' || question.status === 'answered') {
+                // Show correct answer and go to scores
+                if (question.lastAnswerCorrect && question.lastAnswerBy) {
+                    showResultOverlay(
+                        'success',
+                        `${question.lastAnswerTeamName} أجاب صحيحاً!`,
+                        'حصل على 10 نقاط',
+                        '+10'
+                    );
+                }
+                setTimeout(() => {
+                    hideResultOverlay();
+                    showScreen('waitingScreen');
+                    renderOtherTeams();
+                }, 2500);
+            }
+        }
+
+        function renderQuestion(question) {
+            document.getElementById('questionText').textContent = question.text;
+
+            const letters = { a: 'أ', b: 'ب', c: 'ج', d: 'د' };
+            document.getElementById('optionsContainer').innerHTML = ['a', 'b', 'c', 'd'].map(key => `
+                <button class="option-btn" data-answer="${key}" onclick="selectAnswer('${key}')">
+                    <span class="option-letter">${letters[key]}</span>
+                    <span>${question.options[key]}</span>
+                </button>
+            `).join('');
+        }
+
+        async function selectAnswer(answer) {
+            if (hasAnswered) return;
+
+            hasAnswered = true;
+
+            document.querySelectorAll('.option-btn').forEach(btn => {
+                if (btn.dataset.answer === answer) {
+                    btn.style.background = 'rgba(99, 102, 241, 0.3)';
+                    btn.style.borderColor = 'var(--primary)';
+                }
+            });
+
+            disableOptions();
+
+            const questionRef = rootRef.child(`rounds/${roundId}/currentQuestion`);
+
+            try {
+                const result = await questionRef.transaction((current) => {
+                    if (current && (current.status === 'open' || current.status === 'secondChance')) {
+                        if (current.status === 'open') {
+                            current.status = 'locked';
+                            current.lockedBy = playerCivilId;
+                            current.lockedByName = playerData.name;
+                            current.lockedByTeamName = playerData.teamName;
+                            current.lockedByTeamId = playerData.teamId;
+                        }
+                        return current;
+                    }
+                    return;
+                });
+
+                if (result.committed) {
+                    const isCorrect = currentQuestion.correct === answer;
+                    const isSecondChance = currentQuestion.status === 'secondChance';
+
+                    await rootRef.child(`rounds/${roundId}/answers/${playerCivilId}`).set({
+                        civilId: playerCivilId,
+                        playerName: playerData.name,
+                        teamId: playerData.teamId,
+                        teamName: playerData.teamName,
+                        answer: answer,
+                        isCorrect: isCorrect,
+                        isSecondChance: isSecondChance,
+                        timestamp: Date.now()
+                    });
+
+                    let points = 0;
+                    if (isCorrect) {
+                        points = 10;
+                        if (sounds.playCorrect) sounds.playCorrect();
+                    } else {
+                        if (!isSecondChance) {
+                            points = -10;
+                        }
+                        if (sounds.playWrong) sounds.playWrong();
+                    }
+
+                    // Update player score
+                    const newScore = (playerData.score || 0) + points;
+                    await rootRef.child(`rounds/${roundId}/players/${playerCivilId}/score`).set(newScore);
+
+                    // Update player stats
+                    if (isCorrect) {
+                        playerStats.correct++;
+                        document.getElementById('statCorrect').textContent = playerStats.correct;
+                    } else {
+                        playerStats.wrong++;
+                        document.getElementById('statWrong').textContent = playerStats.wrong;
+                    }
+
+                    // Update team score
+                    await rootRef.child(`rounds/${roundId}/teams/${playerData.teamId}/score`).transaction(current => (current || 0) + points);
+
+                    // Mark the answer
+                    document.querySelectorAll('.option-btn').forEach(btn => {
+                        if (btn.dataset.answer === answer) {
+                            btn.classList.add(isCorrect ? 'correct' : 'wrong');
+                        }
+                    });
+
+                    if (isCorrect) {
+                        // Correct answer - update question status
+                        await questionRef.update({
+                            status: 'answered',
+                            lastAnswerCorrect: true,
+                            lastAnswerBy: playerCivilId,
+                            lastAnswerTeamName: playerData.teamName
+                        });
+
+                        showResultOverlay(
+                            'success',
+                            'إجابة صحيحة!',
+                            'أحسنت! حصلت على 10 نقاط',
+                            '+10'
+                        );
+                    } else {
+                        if (isSecondChance) {
+                            // Wrong in second chance - no deduction
+                            showResultOverlay(
+                                'danger',
+                                'إجابة خاطئة!',
+                                'لا يوجد خصم في الفرصة الثانية',
+                                '0'
+                            );
+                        } else {
+                            // Wrong first answer - start second chance
+                            await questionRef.update({
+                                status: 'secondChance',
+                                excludedPlayer: playerCivilId,
+                                secondChanceEndsAt: Date.now() + 10000,
+                                lastAnswerCorrect: false,
+                                lastAnswerBy: playerCivilId,
+                                lastAnswerTeamName: playerData.teamName
+                            });
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Answer error:', error);
+                hasAnswered = false;
+                enableOptions();
+            }
+        }
+
+        function showResultOverlay(type, title, subtitle, points, showAsDeducted = false, countdownTo = null) {
+            const overlay = document.getElementById('resultOverlay');
+            const iconEl = document.getElementById('resultIcon');
+            const titleEl = document.getElementById('resultTitle');
+            const subtitleEl = document.getElementById('resultSubtitle');
+            const pointsEl = document.getElementById('resultPoints');
+            const timerEl = document.getElementById('secondChanceTimer');
+            const countdownTextEl = document.getElementById('countdownText');
+
+            const icons = {
+                success: '<i class="fas fa-check-circle"></i>',
+                danger: '<i class="fas fa-times-circle"></i>',
+                warning: '<i class="fas fa-exclamation-circle"></i>'
+            };
+
+            iconEl.className = 'result-icon ' + type;
+            iconEl.innerHTML = icons[type];
+            titleEl.textContent = title;
+            subtitleEl.textContent = subtitle;
+
+            if (points) {
+                pointsEl.textContent = points;
+                pointsEl.className = 'result-points ' + (points.startsWith('+') ? 'positive' : points.startsWith('-') ? 'negative' : '');
+                pointsEl.style.display = 'block';
+            } else {
+                pointsEl.style.display = 'none';
+            }
+
+            if (countdownTo) {
+                timerEl.style.display = 'block';
+                countdownTextEl.style.display = 'block';
+                startCountdown(countdownTo);
+            } else {
+                timerEl.style.display = 'none';
+                countdownTextEl.style.display = 'none';
+                if (secondChanceInterval) clearInterval(secondChanceInterval);
+            }
+
+            overlay.classList.add('active');
+        }
+
+        function hideResultOverlay() {
+            document.getElementById('resultOverlay').classList.remove('active');
+            if (secondChanceInterval) clearInterval(secondChanceInterval);
+        }
+
+        function startCountdown(endsAt) {
+            const timerEl = document.getElementById('secondChanceTimer');
+
+            if (secondChanceInterval) clearInterval(secondChanceInterval);
+
+            secondChanceInterval = setInterval(() => {
+                const remaining = Math.max(0, Math.ceil((endsAt - Date.now()) / 1000));
+                timerEl.textContent = remaining;
+
+                if (remaining <= 0) {
+                    clearInterval(secondChanceInterval);
+                }
+            }, 100);
+        }
+
+        function disableOptions() {
+            document.querySelectorAll('.option-btn').forEach(btn => {
+                btn.disabled = true;
+            });
+        }
+
+        function enableOptions() {
+            document.querySelectorAll('.option-btn').forEach(btn => {
+                btn.disabled = false;
+            });
+        }
+
+        function renderScores() {
+            const container = document.getElementById('scoresList');
+            const teamsArray = Object.entries(teamsData).sort((a, b) => (b[1].score || 0) - (a[1].score || 0));
+
+            const ranks = ['🥇', '🥈', '🥉'];
+
+            container.innerHTML = teamsArray.map(([id, team], index) => `
+                <div class="score-item ${id === playerData.teamId ? 'my-team' : ''}">
+                    <span class="rank">${ranks[index] || (index + 1)}</span>
+                    <span class="team-name">${team.name}</span>
+                    <span class="team-score">${team.score || 0}</span>
+                </div>
+            `).join('');
+        }
+
+        function showFinalResults() {
+            showScreen('finalScreen');
+
+            document.getElementById('yourFinalScore').textContent = playerData.score || 0;
+
+            const teamsArray = Object.entries(teamsData).sort((a, b) => (b[1].score || 0) - (a[1].score || 0));
+            const winner = teamsArray.length > 0 ? teamsArray[0][1].name : '';
+            const isWinner = teamsArray.length > 0 && teamsArray[0][0] === playerData.teamId;
+
+            document.getElementById('finalTitle').textContent = isWinner ? '🎉 فريقك فاز!' : 'انتهت الجولة!';
+
+            const ranks = ['🥇', '🥈', '🥉'];
+            document.getElementById('finalScoresList').innerHTML = teamsArray.map(([id, team], index) => `
+                <div class="score-item ${id === playerData.teamId ? 'my-team' : ''}">
+                    <span class="rank">${ranks[index] || (index + 1)}</span>
+                    <span class="team-name">${team.name}</span>
+                    <span class="team-score">${team.score || 0}</span>
+                </div>
+            `).join('');
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        // Auto-focus civil ID input
+        document.getElementById('playerCivilId').addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+
+        // Update team rank
+        function updateTeamRank() {
+            if (!playerData || !playerData.teamId) return;
+
+            const teamsArray = Object.entries(teamsData).sort((a, b) => (b[1].score || 0) - (a[1].score || 0));
+            const rank = teamsArray.findIndex(([id]) => id === playerData.teamId) + 1;
+
+            const rankEl = document.getElementById('statRank');
+            if (rank > 0) {
+                const rankIcons = ['🥇', '🥈', '🥉'];
+                rankEl.textContent = rank <= 3 ? rankIcons[rank - 1] : rank;
+            } else {
+                rankEl.textContent = '-';
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,3382 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>لوحة تحكم المسابقة - المشرف</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #ec4899;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --dark: #1e1b4b;
+            --darker: #0f0a2e;
+            --light: #e0e7ff;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background: linear-gradient(135deg, var(--darker) 0%, var(--dark) 50%, #1a1333 100%);
+            min-height: 100vh;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        /* Background Animation */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        .bg-animation span {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: rgba(99, 102, 241, 0.1);
+            border-radius: 50%;
+            animation: float 15s infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
+        }
+
+        .bg-animation span:nth-child(1) { left: 10%; animation-delay: 0s; width: 40px; height: 40px; }
+        .bg-animation span:nth-child(2) { left: 20%; animation-delay: 2s; width: 20px; height: 20px; }
+        .bg-animation span:nth-child(3) { left: 30%; animation-delay: 4s; width: 30px; height: 30px; }
+        .bg-animation span:nth-child(4) { left: 40%; animation-delay: 6s; width: 25px; height: 25px; }
+        .bg-animation span:nth-child(5) { left: 50%; animation-delay: 8s; width: 35px; height: 35px; }
+        .bg-animation span:nth-child(6) { left: 60%; animation-delay: 10s; width: 45px; height: 45px; }
+        .bg-animation span:nth-child(7) { left: 70%; animation-delay: 12s; width: 25px; height: 25px; }
+        .bg-animation span:nth-child(8) { left: 80%; animation-delay: 14s; width: 20px; height: 20px; }
+        .bg-animation span:nth-child(9) { left: 90%; animation-delay: 16s; width: 30px; height: 30px; }
+
+        /* Login Screen */
+        .login-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            background: linear-gradient(135deg, var(--darker) 0%, var(--dark) 100%);
+            padding: 20px;
+        }
+
+        .login-box {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 40px 30px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            animation: slideUp 0.5s ease;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .login-box h1 {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .login-box p {
+            color: rgba(255,255,255,0.6);
+            margin-bottom: 30px;
+        }
+
+        .login-box .icon {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .input-group i {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255,255,255,0.4);
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 15px 45px 15px 15px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: white;
+            font-size: 16px;
+            font-family: inherit;
+            transition: all 0.3s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success), #059669);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger), #dc2626);
+            color: white;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, var(--warning), #d97706);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: 1px solid var(--border);
+        }
+
+        .btn-sm {
+            padding: 8px 14px;
+            font-size: 14px;
+        }
+
+        .login-error {
+            color: var(--danger);
+            margin-top: 15px;
+            display: none;
+        }
+
+        /* Main Dashboard */
+        .dashboard {
+            display: none;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .header h1 {
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header h1 i {
+            color: var(--primary);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .main-content {
+            padding: 15px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 10px 16px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: rgba(255,255,255,0.7);
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex: 1;
+            min-width: 100px;
+            justify-content: center;
+        }
+
+        .tab-btn:hover {
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border-color: transparent;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .card-header h2 {
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-header h2 i {
+            color: var(--primary);
+        }
+
+        /* Questions Bank */
+        .question-form {
+            display: grid;
+            gap: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group label {
+            font-weight: 500;
+            color: rgba(255,255,255,0.8);
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            padding: 12px 15px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: white;
+            font-size: 16px;
+            font-family: inherit;
+            transition: all 0.3s;
+        }
+
+        .form-group textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .ai-generator {
+            padding: 15px 0;
+        }
+
+        .ai-generator .btn {
+            width: 100%;
+        }
+
+        #aiStatus {
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        #aiStatus.loading {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary);
+        }
+
+        #aiStatus.success {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        #aiStatus.error {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        @media (min-width: 600px) {
+            .options-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .option-input {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .option-input .option-label {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--primary);
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .option-input input {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .correct-answer {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .correct-answer label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .correct-answer input[type="radio"] {
+            display: none;
+        }
+
+        .correct-answer input[type="radio"]:checked + label {
+            background: var(--success);
+            border-color: var(--success);
+        }
+
+        .questions-list {
+            max-height: 350px;
+            overflow-y: auto;
+        }
+
+        .question-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 10px;
+            margin-bottom: 8px;
+            transition: all 0.3s;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .question-item:hover {
+            background: rgba(255,255,255,0.08);
+        }
+
+        .question-item .text {
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .question-item .category {
+            font-size: 11px;
+            padding: 3px 8px;
+            background: var(--primary);
+            border-radius: 15px;
+            flex-shrink: 0;
+        }
+
+        .question-item .actions {
+            display: flex;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .btn-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .btn-icon.edit {
+            background: rgba(99, 102, 241, 0.2);
+            color: var(--primary);
+        }
+
+        .btn-icon.delete {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+        }
+
+        .btn-icon:hover {
+            transform: scale(1.1);
+        }
+
+        /* Teams Section */
+        .teams-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .team-card {
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            padding: 15px;
+            border-right: 4px solid var(--primary);
+        }
+
+        .team-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .team-header h3 {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1rem;
+        }
+
+        .team-name-input {
+            padding: 8px 12px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: white;
+            font-family: inherit;
+            font-size: 14px;
+            width: 150px;
+        }
+
+        .player-list {
+            min-height: 60px;
+        }
+
+        .player-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+
+        .player-item .status {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-left: 8px;
+        }
+
+        .player-item .status.online { background: var(--success); }
+        .player-item .status.offline { background: rgba(255,255,255,0.3); }
+
+        .player-item .code {
+            font-family: monospace;
+            font-size: 14px;
+            padding: 2px 8px;
+            background: rgba(99, 102, 241, 0.2);
+            border-radius: 4px;
+            color: var(--light);
+            font-weight: 700;
+        }
+
+        .add-player-form {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            align-items: stretch;
+        }
+
+        .add-player-form input {
+            flex: 1;
+            padding: 10px 12px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: white;
+            font-family: inherit;
+            font-size: 16px;
+            min-width: 0;
+            height: 42px;
+        }
+
+        .add-player-form input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(255,255,255,0.1);
+        }
+
+        .add-player-form .btn {
+            height: 42px;
+            width: 42px;
+            padding: 0;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .add-team-btn {
+            width: 100%;
+            padding: 15px;
+            background: rgba(255,255,255,0.05);
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            color: rgba(255,255,255,0.6);
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .add-team-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        /* Live Control */
+        .live-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 15px 10px;
+            text-align: center;
+        }
+
+        .stat-card .value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-card .label {
+            color: rgba(255,255,255,0.6);
+            font-size: 12px;
+            margin-top: 4px;
+        }
+
+        .teams-scores {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .team-score-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+        }
+
+        .team-score-row .name {
+            font-weight: 600;
+        }
+
+        .team-score-row .score {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .current-question-display {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(236, 72, 153, 0.2));
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .current-question-display h3 {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .current-question-display .options-display {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        @media (min-width: 500px) {
+            .current-question-display .options-display {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .current-question-display .option {
+            padding: 12px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+        }
+
+        .current-question-display .option.correct {
+            background: rgba(16, 185, 129, 0.3);
+            border: 2px solid var(--success);
+        }
+
+        .question-selector {
+            max-height: 250px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+        }
+
+        .question-select-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 10px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+            font-size: 14px;
+        }
+
+        .question-select-item:hover {
+            background: rgba(255,255,255,0.08);
+        }
+
+        .question-select-item.selected {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .question-select-item.used {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .question-select-item input[type="radio"] {
+            display: none;
+        }
+
+        .control-buttons {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+
+        @media (min-width: 500px) {
+            .control-buttons {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .control-buttons .btn {
+            width: 100%;
+        }
+
+        /* Links Section */
+        .links-section {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .link-card {
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            padding: 15px;
+        }
+
+        .link-card h4 {
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .link-display {
+            display: flex;
+            gap: 8px;
+        }
+
+        .link-display input {
+            flex: 1;
+            padding: 10px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: white;
+            font-family: monospace;
+            font-size: 12px;
+            min-width: 0;
+        }
+
+        /* History Tab */
+        .round-history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .round-history-item .info {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .round-history-item .info h4 {
+            margin-bottom: 4px;
+            font-size: 14px;
+        }
+
+        .round-history-item .info p {
+            color: rgba(255,255,255,0.5);
+            font-size: 12px;
+        }
+
+        .round-history-item .result {
+            text-align: left;
+        }
+
+        .round-history-item .winner {
+            color: var(--success);
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .round-history-item .teams-list {
+            font-size: 12px;
+            color: rgba(255,255,255,0.6);
+            margin-top: 5px;
+        }
+
+        .round-history-item .actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--dark);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 25px;
+            max-width: 400px;
+            width: 100%;
+            animation: slideUp 0.3s ease;
+        }
+
+        .modal h3 {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.1rem;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        /* Question View Modal */
+        .question-view-content {
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .view-question-text {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            line-height: 1.6;
+            color: var(--light);
+        }
+
+        .view-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .view-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 15px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            border: 2px solid transparent;
+        }
+
+        .view-option.correct {
+            background: rgba(16, 185, 129, 0.15);
+            border-color: var(--success);
+        }
+
+        .view-option .letter {
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--primary);
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .view-option.correct .letter {
+            background: var(--success);
+        }
+
+        .view-category {
+            display: inline-block;
+            padding: 5px 12px;
+            background: rgba(99, 102, 241, 0.2);
+            border-radius: 15px;
+            font-size: 0.85rem;
+            color: var(--primary);
+        }
+
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            top: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            width: 90%;
+            max-width: 350px;
+        }
+
+        .toast {
+            padding: 12px 20px;
+            background: var(--dark);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .toast.success { border-right: 4px solid var(--success); }
+        .toast.error { border-right: 4px solid var(--danger); }
+        .toast.warning { border-right: 4px solid var(--warning); }
+
+        .toast i {
+            font-size: 1.1rem;
+        }
+
+        .toast.success i { color: var(--success); }
+        .toast.error i { color: var(--danger); }
+        .toast.warning i { color: var(--warning); }
+
+        .empty-state {
+            text-align: center;
+            padding: 30px;
+            color: rgba(255,255,255,0.5);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            opacity: 0.3;
+        }
+
+        /* Team Colors */
+        .team-color-0 { border-right-color: #3b82f6; }
+        .team-color-1 { border-right-color: #ef4444; }
+        .team-color-2 { border-right-color: #10b981; }
+        .team-color-3 { border-right-color: #f59e0b; }
+        .team-color-4 { border-right-color: #8b5cf6; }
+        .team-color-5 { border-right-color: #ec4899; }
+
+        /* Contestants Tab Styles */
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        @media (min-width: 600px) {
+            .form-row {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .contestants-table-container {
+            overflow-x: auto;
+            margin-top: 10px;
+        }
+
+        .contestants-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+        }
+
+        .contestants-table th,
+        .contestants-table td {
+            padding: 12px 10px;
+            text-align: right;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+        }
+
+        .contestants-table th {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--light);
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .contestants-table tbody tr:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .contestants-table .empty-row td {
+            padding: 30px;
+        }
+
+        .contestants-table .actions-cell {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+        }
+
+        .civil-id-badge {
+            font-family: monospace;
+            padding: 3px 8px;
+            background: rgba(99, 102, 241, 0.15);
+            border-radius: 6px;
+            font-size: 13px;
+            letter-spacing: 1px;
+        }
+
+        /* Contestant Edit Modal */
+        .contestant-edit-form .form-group {
+            margin-bottom: 15px;
+        }
+
+        /* Contestants Toolbar */
+        .contestants-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 200px;
+            position: relative;
+        }
+
+        .search-box i {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255,255,255,0.4);
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px 40px 10px 12px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .sort-box select {
+            padding: 10px 12px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+            font-family: inherit;
+            cursor: pointer;
+        }
+
+        .sort-box select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .export-import-btns {
+            display: flex;
+            gap: 8px;
+        }
+
+        .import-btn {
+            cursor: pointer;
+        }
+
+        /* Dropdown Multi-Select for Team Assignment */
+        .contestant-dropdown-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        .contestant-dropdown-trigger {
+            width: 100%;
+            padding: 10px 12px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: white;
+            font-family: inherit;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            min-height: 42px;
+        }
+
+        .contestant-dropdown-trigger:hover {
+            border-color: var(--primary);
+        }
+
+        .contestant-dropdown-trigger .placeholder {
+            color: rgba(255,255,255,0.5);
+        }
+
+        .contestant-dropdown-trigger .selected-count {
+            background: var(--primary);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+
+        .contestant-dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--dark);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-top: 4px;
+            max-height: 250px;
+            overflow-y: auto;
+            z-index: 100;
+            display: none;
+        }
+
+        .contestant-dropdown-menu.active {
+            display: block;
+        }
+
+        .dropdown-search {
+            padding: 10px;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            background: var(--dark);
+        }
+
+        .dropdown-search input {
+            width: 100%;
+            padding: 8px 10px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: white;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .dropdown-search input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .dropdown-item {
+            padding: 10px 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: background 0.2s;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .dropdown-item:hover {
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .dropdown-item.selected {
+            background: rgba(99, 102, 241, 0.15);
+        }
+
+        .dropdown-item.disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .dropdown-item input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--primary);
+        }
+
+        .dropdown-item-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .dropdown-item-name {
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .dropdown-item-details {
+            font-size: 12px;
+            color: rgba(255,255,255,0.5);
+        }
+
+        .dropdown-no-results {
+            padding: 15px;
+            text-align: center;
+            color: rgba(255,255,255,0.5);
+            font-size: 13px;
+        }
+
+        .selected-contestants-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 10px;
+        }
+
+        .contestant-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            background: rgba(99, 102, 241, 0.2);
+            border-radius: 15px;
+            font-size: 12px;
+        }
+
+        .contestant-tag .remove-tag {
+            cursor: pointer;
+            opacity: 0.7;
+        }
+
+        .contestant-tag .remove-tag:hover {
+            opacity: 1;
+        }
+
+        .add-player-section {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+        }
+
+        /* Pagination Styles */
+        .pagination-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .pagination-info {
+            font-size: 13px;
+            color: rgba(255,255,255,0.6);
+        }
+
+        .pagination-buttons {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+
+        .pagination-btn {
+            min-width: 36px;
+            height: 36px;
+            padding: 0 10px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: white;
+            font-family: inherit;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pagination-btn:hover:not(:disabled) {
+            background: rgba(99, 102, 241, 0.2);
+            border-color: var(--primary);
+        }
+
+        .pagination-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .pagination-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .pagination-dots {
+            padding: 0 5px;
+            color: rgba(255,255,255,0.4);
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Animation -->
+    <div class="bg-animation">
+        <span></span><span></span><span></span>
+        <span></span><span></span><span></span>
+        <span></span><span></span><span></span>
+    </div>
+
+    <!-- Login Screen -->
+    <div class="login-container" id="loginScreen">
+        <div class="login-box">
+            <div class="icon"><i class="fas fa-crown"></i></div>
+            <h1>لوحة المشرف</h1>
+            <p>أدخل كلمة المرور للدخول</p>
+            <form id="loginForm">
+                <div class="input-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="adminPassword" placeholder="كلمة المرور" required>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-sign-in-alt"></i>
+                    دخول
+                </button>
+            </form>
+            <p class="login-error" id="loginError">
+                <i class="fas fa-exclamation-circle"></i>
+                كلمة المرور غير صحيحة
+            </p>
+        </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div class="dashboard" id="dashboard">
+        <header class="header">
+            <h1><i class="fas fa-trophy"></i> لوحة التحكم</h1>
+            <div class="header-actions">
+                <span id="connectionStatus" style="color: var(--success); font-size: 12px;">
+                    <i class="fas fa-circle"></i> متصل
+                </span>
+                <button class="btn btn-secondary btn-sm" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="questions">
+                    <i class="fas fa-question-circle"></i>
+                    <span class="tab-text">الأسئلة</span>
+                </button>
+                <button class="tab-btn" data-tab="contestants">
+                    <i class="fas fa-user-graduate"></i>
+                    <span class="tab-text">المتسابقون</span>
+                </button>
+                <button class="tab-btn" data-tab="round">
+                    <i class="fas fa-users"></i>
+                    <span class="tab-text">الجولة</span>
+                </button>
+                <button class="tab-btn" data-tab="live">
+                    <i class="fas fa-play-circle"></i>
+                    <span class="tab-text">مباشر</span>
+                </button>
+                <button class="tab-btn" data-tab="history">
+                    <i class="fas fa-history"></i>
+                    <span class="tab-text">السجل</span>
+                </button>
+            </div>
+
+            <!-- Questions Tab -->
+            <div class="tab-content active" id="questions-tab">
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-plus-circle"></i> إضافة سؤال</h2>
+                    </div>
+                    <form class="question-form" id="questionForm">
+                        <div class="form-group">
+                            <label>نص السؤال</label>
+                            <textarea id="questionText" placeholder="اكتب السؤال هنا..." required></textarea>
+                        </div>
+                        <div class="options-grid">
+                            <div class="option-input">
+                                <span class="option-label">أ</span>
+                                <input type="text" id="optionA" placeholder="الخيار الأول" required>
+                            </div>
+                            <div class="option-input">
+                                <span class="option-label">ب</span>
+                                <input type="text" id="optionB" placeholder="الخيار الثاني" required>
+                            </div>
+                            <div class="option-input">
+                                <span class="option-label">ج</span>
+                                <input type="text" id="optionC" placeholder="الخيار الثالث" required>
+                            </div>
+                            <div class="option-input">
+                                <span class="option-label">د</span>
+                                <input type="text" id="optionD" placeholder="الخيار الرابع" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>الإجابة الصحيحة</label>
+                            <div class="correct-answer">
+                                <input type="radio" name="correct" value="a" id="correctA" checked>
+                                <label for="correctA">أ</label>
+                                <input type="radio" name="correct" value="b" id="correctB">
+                                <label for="correctB">ب</label>
+                                <input type="radio" name="correct" value="c" id="correctC">
+                                <label for="correctC">ج</label>
+                                <input type="radio" name="correct" value="d" id="correctD">
+                                <label for="correctD">د</label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>التصنيف</label>
+                            <input type="text" id="questionCategory" placeholder="مثال: علوم، جغرافيا...">
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> حفظ السؤال
+                        </button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-robot"></i> توليد أسئلة بالذكاء الاصطناعي</h2>
+                    </div>
+                    <div class="ai-generator">
+                        <div class="form-group">
+                            <label>مفتاح Gemini API</label>
+                            <input type="password" id="geminiApiKey" placeholder="أدخل مفتاح API">
+                        </div>
+                        <div class="form-group">
+                            <label>موضوع الأسئلة أو النص المصدر</label>
+                            <textarea id="aiPrompt" placeholder="مثال: أسئلة عن الجغرافيا العربية، أو الصق نصاً لتوليد أسئلة منه..." rows="4"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>عدد الأسئلة</label>
+                            <input type="number" id="aiQuestionsCount" min="1" max="20" value="5">
+                        </div>
+                        <button type="button" class="btn btn-secondary" onclick="generateQuestionsAI()" id="generateBtn">
+                            <i class="fas fa-magic"></i> توليد الأسئلة
+                        </button>
+                        <div id="aiStatus" style="margin-top: 10px; display: none;"></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-list"></i> الأسئلة</h2>
+                        <span id="questionsCount">0 سؤال</span>
+                    </div>
+                    <div class="questions-list" id="questionsList">
+                        <div class="empty-state">
+                            <i class="fas fa-inbox"></i>
+                            <p>لا توجد أسئلة بعد</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contestants Tab -->
+            <div class="tab-content" id="contestants-tab">
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-user-plus"></i> إضافة متسابق</h2>
+                    </div>
+                    <form class="contestant-form" id="contestantForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>الاسم الكامل</label>
+                                <input type="text" id="contestantName" placeholder="اسم المتسابق" required>
+                            </div>
+                            <div class="form-group">
+                                <label>السجل المدني</label>
+                                <input type="text" id="contestantCivilId" placeholder="رقم السجل المدني" required pattern="[0-9]{10}" title="يجب إدخال 10 أرقام">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>الصف</label>
+                                <input type="text" id="contestantGrade" placeholder="مثال: الأول متوسط">
+                            </div>
+                            <div class="form-group">
+                                <label>الشعبة</label>
+                                <input type="text" id="contestantSection" placeholder="مثال: أ">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> حفظ المتسابق
+                        </button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-users"></i> قائمة المتسابقين</h2>
+                        <span id="contestantsCount">0 متسابق</span>
+                    </div>
+
+                    <!-- Search and Filter Bar -->
+                    <div class="contestants-toolbar">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="contestantsSearch" placeholder="بحث بالاسم أو السجل المدني...">
+                        </div>
+                        <div class="sort-box">
+                            <select id="contestantsSort">
+                                <option value="name-asc">الاسم (أ-ي)</option>
+                                <option value="name-desc">الاسم (ي-أ)</option>
+                                <option value="grade-asc">الصف (تصاعدي)</option>
+                                <option value="grade-desc">الصف (تنازلي)</option>
+                                <option value="date-asc">الأقدم</option>
+                                <option value="date-desc">الأحدث</option>
+                            </select>
+                        </div>
+                        <div class="export-import-btns">
+                            <button class="btn btn-secondary btn-sm" onclick="exportContestantsExcel()">
+                                <i class="fas fa-file-export"></i> تصدير
+                            </button>
+                            <label class="btn btn-secondary btn-sm import-btn">
+                                <i class="fas fa-file-import"></i> استيراد
+                                <input type="file" id="importExcelFile" accept=".xlsx,.xls,.csv" onchange="importContestantsExcel(event)" hidden>
+                            </label>
+                            <button class="btn btn-danger btn-sm" onclick="deleteAllContestants()">
+                                <i class="fas fa-trash"></i> حذف الكل
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="contestants-table-container">
+                        <table class="contestants-table" id="contestantsTable">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>الاسم</th>
+                                    <th>السجل المدني</th>
+                                    <th>الصف</th>
+                                    <th>الشعبة</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="contestantsList">
+                                <tr class="empty-row">
+                                    <td colspan="6">
+                                        <div class="empty-state">
+                                            <i class="fas fa-user-slash"></i>
+                                            <p>لا يوجد متسابقون مسجلون</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Round Setup Tab -->
+            <div class="tab-content" id="round-tab">
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-cog"></i> إعداد الجولة</h2>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label>اسم الجولة</label>
+                        <input type="text" id="roundName" placeholder="مثال: جولة الجغرافيا">
+                    </div>
+
+                    <div class="teams-container" id="teamsContainer">
+                        <!-- Teams will be added here -->
+                    </div>
+
+                    <button class="add-team-btn" onclick="addTeam()">
+                        <i class="fas fa-plus"></i> إضافة فريق جديد
+                    </button>
+
+
+                    <div style="margin-top: 20px; text-align: center;">
+                        <button class="btn btn-success" id="startRoundBtn" onclick="startRound()">
+                            <i class="fas fa-rocket"></i> بدء الجولة
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live Control Tab -->
+            <div class="tab-content" id="live-tab">
+                <div class="live-stats">
+                    <div class="stat-card">
+                        <div class="value" id="currentQuestionNum">0</div>
+                        <div class="label">السؤال</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value" id="totalQuestions">0</div>
+                        <div class="label">الإجمالي</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value" id="onlinePlayers">0</div>
+                        <div class="label">متصل</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-chart-bar"></i> النتائج</h2>
+                    </div>
+                    <div class="teams-scores" id="teamsScores">
+                        <!-- Teams scores will be shown here -->
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-question"></i> السؤال الحالي</h2>
+                        <span id="questionStatus" style="padding: 4px 12px; background: rgba(255,255,255,0.1); border-radius: 15px; font-size: 12px;">
+                            انتظار
+                        </span>
+                    </div>
+                    <div class="current-question-display" id="currentQuestionDisplay">
+                        <p style="color: rgba(255,255,255,0.5);">لم يتم نشر سؤال بعد</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-paper-plane"></i> اختر السؤال</h2>
+                    </div>
+                    <div class="question-selector" id="questionSelector">
+                        <div class="empty-state">
+                            <i class="fas fa-inbox"></i>
+                            <p>لا توجد أسئلة</p>
+                        </div>
+                    </div>
+                    <div class="control-buttons">
+                        <button class="btn btn-primary" id="publishBtn" onclick="publishQuestion()">
+                            <i class="fas fa-paper-plane"></i> نشر السؤال
+                        </button>
+                        <button class="btn btn-warning" onclick="revealAnswer()">
+                            <i class="fas fa-eye"></i> كشف الإجابة
+                        </button>
+                        <button class="btn btn-secondary" onclick="nextQuestion()">
+                            <i class="fas fa-forward"></i> التالي
+                        </button>
+                        <button class="btn btn-danger" onclick="endRound()">
+                            <i class="fas fa-stop"></i> إنهاء الجولة
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- History Tab -->
+            <div class="tab-content" id="history-tab">
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-history"></i> سجل الجولات</h2>
+                    </div>
+                    <div id="roundsHistory">
+                        <div class="empty-state">
+                            <i class="fas fa-clock"></i>
+                            <p>لا توجد جولات سابقة</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal-overlay" id="deleteModal">
+        <div class="modal">
+            <h3><i class="fas fa-exclamation-triangle" style="color: var(--danger);"></i> تأكيد الحذف</h3>
+            <p id="deleteModalText">هل أنت متأكد من حذف هذا العنصر؟</p>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary btn-sm" onclick="closeModal('deleteModal')">إلغاء</button>
+                <button class="btn btn-danger btn-sm" id="confirmDeleteBtn">حذف</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Question View Modal -->
+    <div class="modal-overlay" id="questionViewModal">
+        <div class="modal" style="max-width: 500px;">
+            <h3><i class="fas fa-eye" style="color: var(--primary);"></i> تفاصيل السؤال</h3>
+            <div class="question-view-content">
+                <div class="view-question-text" id="viewQuestionText"></div>
+                <div class="view-options" id="viewOptions"></div>
+                <div class="view-category" id="viewCategory"></div>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary btn-sm" onclick="closeModal('questionViewModal')">إغلاق</button>
+                <button class="btn btn-primary btn-sm" id="viewToEditBtn">
+                    <i class="fas fa-edit"></i> تعديل
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Question Edit Modal -->
+    <div class="modal-overlay" id="questionEditModal">
+        <div class="modal" style="max-width: 550px;">
+            <h3><i class="fas fa-edit" style="color: var(--warning);"></i> تعديل السؤال</h3>
+            <div class="edit-form">
+                <div class="form-group">
+                    <label>نص السؤال</label>
+                    <textarea id="editQuestionText" rows="3"></textarea>
+                </div>
+                <div class="options-grid">
+                    <div class="option-input">
+                        <span class="option-label">أ</span>
+                        <input type="text" id="editOptionA">
+                    </div>
+                    <div class="option-input">
+                        <span class="option-label">ب</span>
+                        <input type="text" id="editOptionB">
+                    </div>
+                    <div class="option-input">
+                        <span class="option-label">ج</span>
+                        <input type="text" id="editOptionC">
+                    </div>
+                    <div class="option-input">
+                        <span class="option-label">د</span>
+                        <input type="text" id="editOptionD">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>الإجابة الصحيحة</label>
+                    <div class="correct-answer">
+                        <input type="radio" name="editCorrect" value="a" id="editCorrectA">
+                        <label for="editCorrectA">أ</label>
+                        <input type="radio" name="editCorrect" value="b" id="editCorrectB">
+                        <label for="editCorrectB">ب</label>
+                        <input type="radio" name="editCorrect" value="c" id="editCorrectC">
+                        <label for="editCorrectC">ج</label>
+                        <input type="radio" name="editCorrect" value="d" id="editCorrectD">
+                        <label for="editCorrectD">د</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>التصنيف</label>
+                    <input type="text" id="editQuestionCategory">
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary btn-sm" onclick="closeModal('questionEditModal')">إلغاء</button>
+                <button class="btn btn-success btn-sm" id="saveEditBtn">
+                    <i class="fas fa-save"></i> حفظ
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contestant Edit Modal -->
+    <div class="modal-overlay" id="contestantEditModal">
+        <div class="modal" style="max-width: 450px;">
+            <h3><i class="fas fa-user-edit" style="color: var(--warning);"></i> تعديل بيانات المتسابق</h3>
+            <div class="contestant-edit-form">
+                <div class="form-group">
+                    <label>الاسم الكامل</label>
+                    <input type="text" id="editContestantName">
+                </div>
+                <div class="form-group">
+                    <label>السجل المدني</label>
+                    <input type="text" id="editContestantCivilId" pattern="[0-9]{10}">
+                </div>
+                <div class="form-group">
+                    <label>الصف</label>
+                    <input type="text" id="editContestantGrade">
+                </div>
+                <div class="form-group">
+                    <label>الشعبة</label>
+                    <input type="text" id="editContestantSection">
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary btn-sm" onclick="closeModal('contestantEditModal')">إلغاء</button>
+                <button class="btn btn-success btn-sm" id="saveContestantEditBtn">
+                    <i class="fas fa-save"></i> حفظ
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBxPO6RKsQ1Cq-mqlCpFTrCuIyxnYdB37U",
+            authDomain: "studentsystem-c1ab1.firebaseapp.com",
+            databaseURL: "https://studentsystem-c1ab1-default-rtdb.firebaseio.com",
+            projectId: "studentsystem-c1ab1",
+            storageBucket: "studentsystem-c1ab1.firebasestorage.app",
+            messagingSenderId: "112215023848",
+            appId: "1:112215023848:web:0adba326a527ee7e37e95d"
+        };
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.database();
+        const rootRef = db.ref('quiz_competition');
+
+        // App State
+        let currentRoundId = null;
+        let isRoundActive = false;
+        let questions = {};
+        let contestants = {};
+        let teams = [];
+        let usedQuestions = [];
+        let selectedQuestionId = null;
+        let playerCodeCounter = 10;
+        let currentEditingContestantKey = null;
+        let contestantsCurrentPage = 1;
+        const contestantsPerPage = 40;
+
+        // Admin Password
+        const ADMIN_PASSWORD = 'admin123';
+
+        // Sound Effects
+        const sounds = {};
+
+        function initSounds() {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return;
+
+            const audioCtx = new AudioContext();
+            sounds.audioCtx = audioCtx;
+
+            sounds.playCorrect = () => {
+                if (!sounds.audioCtx) return;
+                const ctx = sounds.audioCtx;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.frequency.setValueAtTime(523.25, ctx.currentTime);
+                osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.1);
+                osc.frequency.setValueAtTime(783.99, ctx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+                osc.start(ctx.currentTime);
+                osc.stop(ctx.currentTime + 0.4);
+            };
+
+            sounds.playBuzzer = () => {
+                if (!sounds.audioCtx) return;
+                const ctx = sounds.audioCtx;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.frequency.setValueAtTime(880, ctx.currentTime);
+                gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
+                osc.start(ctx.currentTime);
+                osc.stop(ctx.currentTime + 0.15);
+            };
+        }
+
+        // Login
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const password = document.getElementById('adminPassword').value;
+
+            if (password === ADMIN_PASSWORD) {
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('dashboard').style.display = 'block';
+                initSounds();
+                initializeApp();
+                showToast('تم تسجيل الدخول بنجاح', 'success');
+            } else {
+                document.getElementById('loginError').style.display = 'block';
+                document.getElementById('adminPassword').value = '';
+            }
+        });
+
+        function logout() {
+            document.getElementById('dashboard').style.display = 'none';
+            document.getElementById('loginScreen').style.display = 'flex';
+            document.getElementById('adminPassword').value = '';
+            document.getElementById('loginError').style.display = 'none';
+        }
+
+        // Initialize App
+        function initializeApp() {
+            loadQuestions();
+            loadContestants();
+            setupConnectionMonitor();
+            generateRoundId();
+            loadRoundsHistory();
+            initializeTeams();
+        }
+
+        function initializeTeams() {
+            teams = [];
+            addTeam();
+            addTeam();
+        }
+
+        // Connection Monitor
+        function setupConnectionMonitor() {
+            const connectedRef = db.ref('.info/connected');
+            connectedRef.on('value', (snap) => {
+                const statusEl = document.getElementById('connectionStatus');
+                if (snap.val() === true) {
+                    statusEl.innerHTML = '<i class="fas fa-circle"></i> متصل';
+                    statusEl.style.color = 'var(--success)';
+                } else {
+                    statusEl.innerHTML = '<i class="fas fa-circle"></i> غير متصل';
+                    statusEl.style.color = 'var(--danger)';
+                }
+            });
+        }
+
+        // Tabs
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+                this.classList.add('active');
+                document.getElementById(this.dataset.tab + '-tab').classList.add('active');
+            });
+        });
+
+        // Questions Management
+        document.getElementById('questionForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const question = {
+                text: document.getElementById('questionText').value,
+                options: {
+                    a: document.getElementById('optionA').value,
+                    b: document.getElementById('optionB').value,
+                    c: document.getElementById('optionC').value,
+                    d: document.getElementById('optionD').value
+                },
+                correct: document.querySelector('input[name="correct"]:checked').value,
+                category: document.getElementById('questionCategory').value || 'عام',
+                createdAt: Date.now()
+            };
+
+            const newRef = rootRef.child('questions').push();
+            newRef.set(question).then(() => {
+                showToast('تم حفظ السؤال بنجاح', 'success');
+                this.reset();
+                document.getElementById('correctA').checked = true;
+            }).catch(err => {
+                showToast('حدث خطأ: ' + err.message, 'error');
+            });
+        });
+
+        function loadQuestions() {
+            rootRef.child('questions').on('value', (snapshot) => {
+                questions = snapshot.val() || {};
+                renderQuestionsList();
+                renderQuestionSelector();
+                document.getElementById('questionsCount').textContent = Object.keys(questions).length + ' سؤال';
+                document.getElementById('totalQuestions').textContent = Object.keys(questions).length;
+            });
+        }
+
+        function renderQuestionsList() {
+            const container = document.getElementById('questionsList');
+            const keys = Object.keys(questions);
+
+            if (keys.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <p>لا توجد أسئلة بعد</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = keys.map(key => {
+                const q = questions[key];
+                return `
+                    <div class="question-item" onclick="viewQuestion('${key}')" style="cursor: pointer;">
+                        <span class="category">${q.category}</span>
+                        <span class="text">${q.text}</span>
+                        <div class="actions">
+                            <button class="btn-icon edit" onclick="event.stopPropagation(); openEditModal('${key}')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn-icon delete" onclick="event.stopPropagation(); deleteQuestion('${key}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderQuestionSelector() {
+            const container = document.getElementById('questionSelector');
+            const keys = Object.keys(questions);
+
+            if (keys.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <p>لا توجد أسئلة</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = keys.map(key => {
+                const q = questions[key];
+                const isUsed = usedQuestions.includes(key);
+                return `
+                    <div class="question-select-item ${isUsed ? 'used' : ''} ${selectedQuestionId === key ? 'selected' : ''}"
+                         onclick="selectQuestion('${key}')">
+                        <span class="category">${q.category}</span>
+                        <span class="text" style="flex:1; margin: 0 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${q.text}</span>
+                        ${isUsed ? '<i class="fas fa-check-circle" style="color: var(--success);"></i>' : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function selectQuestion(key) {
+            if (usedQuestions.includes(key)) return;
+            selectedQuestionId = key;
+            renderQuestionSelector();
+        }
+
+        function deleteQuestion(key) {
+            const modal = document.getElementById('deleteModal');
+            document.getElementById('deleteModalText').textContent = 'هل أنت متأكد من حذف هذا السؤال؟';
+            modal.classList.add('active');
+
+            document.getElementById('confirmDeleteBtn').onclick = function() {
+                rootRef.child('questions/' + key).remove().then(() => {
+                    showToast('تم حذف السؤال', 'success');
+                    closeModal('deleteModal');
+                });
+            };
+        }
+
+        let currentViewingQuestionKey = null;
+
+        function viewQuestion(key) {
+            const q = questions[key];
+            if (!q) return;
+
+            currentViewingQuestionKey = key;
+            const letters = { a: 'أ', b: 'ب', c: 'ج', d: 'د' };
+
+            document.getElementById('viewQuestionText').textContent = q.text;
+            document.getElementById('viewOptions').innerHTML = ['a', 'b', 'c', 'd'].map(opt => `
+                <div class="view-option ${q.correct === opt ? 'correct' : ''}">
+                    <span class="letter">${letters[opt]}</span>
+                    <span>${q.options[opt]}</span>
+                    ${q.correct === opt ? '<i class="fas fa-check" style="margin-right: auto; color: var(--success);"></i>' : ''}
+                </div>
+            `).join('');
+            document.getElementById('viewCategory').textContent = q.category || 'عام';
+
+            document.getElementById('viewToEditBtn').onclick = function() {
+                closeModal('questionViewModal');
+                openEditModal(key);
+            };
+
+            document.getElementById('questionViewModal').classList.add('active');
+        }
+
+        function openEditModal(key) {
+            const q = questions[key];
+            if (!q) return;
+
+            currentViewingQuestionKey = key;
+
+            document.getElementById('editQuestionText').value = q.text;
+            document.getElementById('editOptionA').value = q.options.a;
+            document.getElementById('editOptionB').value = q.options.b;
+            document.getElementById('editOptionC').value = q.options.c;
+            document.getElementById('editOptionD').value = q.options.d;
+            document.getElementById('editQuestionCategory').value = q.category || '';
+            document.querySelector(`input[name="editCorrect"][value="${q.correct}"]`).checked = true;
+
+            document.getElementById('saveEditBtn').onclick = function() {
+                saveQuestionEdit(key);
+            };
+
+            document.getElementById('questionEditModal').classList.add('active');
+        }
+
+        function saveQuestionEdit(key) {
+            const text = document.getElementById('editQuestionText').value.trim();
+            const optionA = document.getElementById('editOptionA').value.trim();
+            const optionB = document.getElementById('editOptionB').value.trim();
+            const optionC = document.getElementById('editOptionC').value.trim();
+            const optionD = document.getElementById('editOptionD').value.trim();
+            const category = document.getElementById('editQuestionCategory').value.trim() || 'عام';
+            const correct = document.querySelector('input[name="editCorrect"]:checked').value;
+
+            if (!text || !optionA || !optionB || !optionC || !optionD) {
+                showToast('أكمل جميع الحقول', 'warning');
+                return;
+            }
+
+            rootRef.child('questions/' + key).update({
+                text: text,
+                options: { a: optionA, b: optionB, c: optionC, d: optionD },
+                correct: correct,
+                category: category
+            }).then(() => {
+                showToast('تم تحديث السؤال', 'success');
+                closeModal('questionEditModal');
+            });
+        }
+
+        function editQuestion(key) {
+            openEditModal(key);
+        }
+
+        // AI Question Generation
+        async function generateQuestionsAI() {
+            const apiKey = document.getElementById('geminiApiKey').value.trim();
+            const prompt = document.getElementById('aiPrompt').value.trim();
+            const count = parseInt(document.getElementById('aiQuestionsCount').value) || 5;
+            const btn = document.getElementById('generateBtn');
+            const status = document.getElementById('aiStatus');
+
+            if (!apiKey) {
+                showToast('أدخل مفتاح Gemini API', 'warning');
+                return;
+            }
+
+            if (!prompt) {
+                showToast('أدخل موضوع الأسئلة أو النص المصدر', 'warning');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التوليد...';
+            status.style.display = 'block';
+            status.className = 'loading';
+            status.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري توليد الأسئلة...';
+
+            const systemPrompt = `أنت مولد أسئلة اختيار من متعدد. قم بإنشاء ${count} أسئلة بالضبط بناءً على الموضوع أو النص التالي.
+
+يجب أن يكون الرد بصيغة JSON فقط بدون أي نص إضافي، بالشكل التالي:
+[
+  {
+    "text": "نص السؤال",
+    "options": {"a": "الخيار أ", "b": "الخيار ب", "c": "الخيار ج", "d": "الخيار د"},
+    "correct": "a",
+    "category": "التصنيف"
+  }
+]
+
+الموضوع أو النص: ${prompt}`;
+
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{
+                                text: systemPrompt
+                            }]
+                        }],
+                        generationConfig: {
+                            temperature: 0.7
+                        }
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('فشل الاتصال بـ Gemini API');
+                }
+
+                const data = await response.json();
+                const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+
+                // Extract JSON from response
+                const jsonMatch = text.match(/\[[\s\S]*\]/);
+                if (!jsonMatch) {
+                    throw new Error('لم يتم العثور على أسئلة صالحة');
+                }
+
+                const generatedQuestions = JSON.parse(jsonMatch[0]);
+
+                // Add questions to database
+                let addedCount = 0;
+                for (const q of generatedQuestions) {
+                    if (q.text && q.options && q.correct) {
+                        await rootRef.child('questions').push({
+                            text: q.text,
+                            options: {
+                                a: q.options.a || '',
+                                b: q.options.b || '',
+                                c: q.options.c || '',
+                                d: q.options.d || ''
+                            },
+                            correct: q.correct,
+                            category: q.category || 'عام'
+                        });
+                        addedCount++;
+                    }
+                }
+
+                status.className = 'success';
+                status.innerHTML = `<i class="fas fa-check-circle"></i> تم إضافة ${addedCount} سؤال بنجاح`;
+                showToast(`تم إضافة ${addedCount} سؤال`, 'success');
+                document.getElementById('aiPrompt').value = '';
+
+            } catch (error) {
+                console.error('AI Error:', error);
+                status.className = 'error';
+                status.innerHTML = `<i class="fas fa-exclamation-circle"></i> خطأ: ${error.message}`;
+                showToast('فشل توليد الأسئلة', 'danger');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-magic"></i> توليد الأسئلة';
+            }
+        }
+
+        // Contestants Management
+        function loadContestants() {
+            rootRef.child('contestants').on('value', (snapshot) => {
+                contestants = snapshot.val() || {};
+                renderContestantsList();
+                document.getElementById('contestantsCount').textContent = Object.keys(contestants).length + ' متسابق';
+            });
+        }
+
+        function renderContestantsList() {
+            const container = document.getElementById('contestantsList');
+            const searchVal = (document.getElementById('contestantsSearch')?.value || '').toLowerCase();
+            const sortVal = document.getElementById('contestantsSort')?.value || 'name-asc';
+
+            let keys = Object.keys(contestants);
+
+            // Filter by search
+            if (searchVal) {
+                keys = keys.filter(key => {
+                    const c = contestants[key];
+                    return c.name.toLowerCase().includes(searchVal) ||
+                           c.civilId.includes(searchVal);
+                });
+            }
+
+            // Sort
+            keys.sort((a, b) => {
+                const cA = contestants[a];
+                const cB = contestants[b];
+
+                switch (sortVal) {
+                    case 'name-asc':
+                        return cA.name.localeCompare(cB.name, 'ar');
+                    case 'name-desc':
+                        return cB.name.localeCompare(cA.name, 'ar');
+                    case 'grade-asc':
+                        return (cA.grade || '').localeCompare(cB.grade || '', 'ar');
+                    case 'grade-desc':
+                        return (cB.grade || '').localeCompare(cA.grade || '', 'ar');
+                    case 'date-asc':
+                        return (cA.createdAt || 0) - (cB.createdAt || 0);
+                    case 'date-desc':
+                        return (cB.createdAt || 0) - (cA.createdAt || 0);
+                    default:
+                        return 0;
+                }
+            });
+
+            if (keys.length === 0) {
+                container.innerHTML = `
+                    <tr class="empty-row">
+                        <td colspan="6">
+                            <div class="empty-state">
+                                <i class="fas fa-user-slash"></i>
+                                <p>${searchVal ? 'لا توجد نتائج للبحث' : 'لا يوجد متسابقون مسجلون'}</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                renderContestantsPagination(0, 0);
+                return;
+            }
+
+            // Pagination
+            const totalPages = Math.ceil(keys.length / contestantsPerPage);
+            if (contestantsCurrentPage > totalPages) contestantsCurrentPage = totalPages;
+            if (contestantsCurrentPage < 1) contestantsCurrentPage = 1;
+
+            const startIndex = (contestantsCurrentPage - 1) * contestantsPerPage;
+            const endIndex = startIndex + contestantsPerPage;
+            const pageKeys = keys.slice(startIndex, endIndex);
+
+            container.innerHTML = pageKeys.map((key, index) => {
+                const c = contestants[key];
+                return `
+                    <tr>
+                        <td>${startIndex + index + 1}</td>
+                        <td>${c.name}</td>
+                        <td><span class="civil-id-badge">${c.civilId}</span></td>
+                        <td>${c.grade || '-'}</td>
+                        <td>${c.section || '-'}</td>
+                        <td>
+                            <div class="actions-cell">
+                                <button class="btn-icon edit" onclick="openContestantEditModal('${key}')">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn-icon delete" onclick="deleteContestant('${key}')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            renderContestantsPagination(keys.length, totalPages);
+        }
+
+        function renderContestantsPagination(totalItems, totalPages) {
+            let paginationContainer = document.getElementById('contestantsPagination');
+            if (!paginationContainer) {
+                paginationContainer = document.createElement('div');
+                paginationContainer.id = 'contestantsPagination';
+                paginationContainer.className = 'pagination-container';
+                document.querySelector('.contestants-table-container').after(paginationContainer);
+            }
+
+            if (totalPages <= 1) {
+                paginationContainer.innerHTML = '';
+                return;
+            }
+
+            let buttonsHtml = '';
+
+            // Previous button
+            buttonsHtml += `<button class="pagination-btn" ${contestantsCurrentPage === 1 ? 'disabled' : ''} onclick="goToContestantsPage(${contestantsCurrentPage - 1})">
+                <i class="fas fa-chevron-right"></i>
+            </button>`;
+
+            // Page numbers
+            const maxButtons = 5;
+            let startPage = Math.max(1, contestantsCurrentPage - Math.floor(maxButtons / 2));
+            let endPage = Math.min(totalPages, startPage + maxButtons - 1);
+            if (endPage - startPage < maxButtons - 1) {
+                startPage = Math.max(1, endPage - maxButtons + 1);
+            }
+
+            if (startPage > 1) {
+                buttonsHtml += `<button class="pagination-btn" onclick="goToContestantsPage(1)">1</button>`;
+                if (startPage > 2) buttonsHtml += `<span class="pagination-dots">...</span>`;
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                buttonsHtml += `<button class="pagination-btn ${i === contestantsCurrentPage ? 'active' : ''}" onclick="goToContestantsPage(${i})">${i}</button>`;
+            }
+
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) buttonsHtml += `<span class="pagination-dots">...</span>`;
+                buttonsHtml += `<button class="pagination-btn" onclick="goToContestantsPage(${totalPages})">${totalPages}</button>`;
+            }
+
+            // Next button
+            buttonsHtml += `<button class="pagination-btn" ${contestantsCurrentPage === totalPages ? 'disabled' : ''} onclick="goToContestantsPage(${contestantsCurrentPage + 1})">
+                <i class="fas fa-chevron-left"></i>
+            </button>`;
+
+            paginationContainer.innerHTML = `
+                <div class="pagination-info">عرض ${(contestantsCurrentPage - 1) * contestantsPerPage + 1} - ${Math.min(contestantsCurrentPage * contestantsPerPage, totalItems)} من ${totalItems}</div>
+                <div class="pagination-buttons">${buttonsHtml}</div>
+            `;
+        }
+
+        function goToContestantsPage(page) {
+            contestantsCurrentPage = page;
+            renderContestantsList();
+        }
+
+        // Search and Sort Event Listeners
+        document.getElementById('contestantsSearch')?.addEventListener('input', renderContestantsList);
+        document.getElementById('contestantsSort')?.addEventListener('change', renderContestantsList);
+
+        // Export Contestants to Excel/CSV
+        function exportContestantsExcel() {
+            const keys = Object.keys(contestants);
+            if (keys.length === 0) {
+                showToast('لا يوجد متسابقون للتصدير', 'warning');
+                return;
+            }
+
+            // Create CSV content
+            let csv = '\uFEFF'; // BOM for UTF-8
+            csv += 'الاسم,السجل المدني,الصف,الشعبة\n';
+
+            keys.forEach(key => {
+                const c = contestants[key];
+                csv += `"${c.name}","${c.civilId}","${c.grade || ''}","${c.section || ''}"\n`;
+            });
+
+            // Download
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'contestants_' + new Date().toISOString().slice(0, 10) + '.csv';
+            link.click();
+
+            showToast('تم تصدير البيانات بنجاح', 'success');
+        }
+
+        // Import Contestants from Excel/CSV
+        function importContestantsExcel(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                const content = e.target.result;
+                let rows = [];
+
+                // Parse CSV
+                if (file.name.endsWith('.csv')) {
+                    const lines = content.split('\n');
+                    lines.forEach((line, idx) => {
+                        if (idx === 0) return; // Skip header
+                        if (!line.trim()) return;
+
+                        // Parse CSV line (handle quoted values)
+                        const values = [];
+                        let current = '';
+                        let inQuotes = false;
+
+                        for (let char of line) {
+                            if (char === '"') {
+                                inQuotes = !inQuotes;
+                            } else if (char === ',' && !inQuotes) {
+                                values.push(current.trim());
+                                current = '';
+                            } else {
+                                current += char;
+                            }
+                        }
+                        values.push(current.trim());
+
+                        if (values.length >= 2) {
+                            rows.push({
+                                name: values[0],
+                                civilId: values[1],
+                                grade: values[2] || '',
+                                section: values[3] || ''
+                            });
+                        }
+                    });
+                }
+
+                if (rows.length === 0) {
+                    showToast('لم يتم العثور على بيانات صالحة', 'error');
+                    return;
+                }
+
+                // Validate and import
+                let imported = 0;
+                let skipped = 0;
+                const existingCivilIds = new Set(Object.values(contestants).map(c => c.civilId));
+
+                rows.forEach(row => {
+                    if (!row.name || !row.civilId) {
+                        skipped++;
+                        return;
+                    }
+
+                    if (!/^[0-9]{10}$/.test(row.civilId)) {
+                        skipped++;
+                        return;
+                    }
+
+                    if (existingCivilIds.has(row.civilId)) {
+                        skipped++;
+                        return;
+                    }
+
+                    existingCivilIds.add(row.civilId);
+
+                    rootRef.child('contestants').push({
+                        name: row.name,
+                        civilId: row.civilId,
+                        grade: row.grade,
+                        section: row.section,
+                        createdAt: Date.now()
+                    });
+
+                    imported++;
+                });
+
+                showToast(`تم استيراد ${imported} متسابق، تم تخطي ${skipped}`, imported > 0 ? 'success' : 'warning');
+
+                // Reset file input
+                event.target.value = '';
+            };
+
+            reader.readAsText(file);
+        }
+
+        // Contestant Form Submit
+        document.getElementById('contestantForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const name = document.getElementById('contestantName').value.trim();
+            const civilId = document.getElementById('contestantCivilId').value.trim();
+            const grade = document.getElementById('contestantGrade').value.trim();
+            const section = document.getElementById('contestantSection').value.trim();
+
+            if (!name || !civilId) {
+                showToast('أدخل الاسم والسجل المدني', 'warning');
+                return;
+            }
+
+            if (!/^[0-9]{10}$/.test(civilId)) {
+                showToast('السجل المدني يجب أن يكون 10 أرقام', 'warning');
+                return;
+            }
+
+            // Check for duplicate civil ID
+            const existingKey = Object.keys(contestants).find(k => contestants[k].civilId === civilId);
+            if (existingKey) {
+                showToast('السجل المدني مسجل مسبقاً!', 'error');
+                return;
+            }
+
+            const contestant = {
+                name: name,
+                civilId: civilId,
+                grade: grade || '',
+                section: section || '',
+                createdAt: Date.now()
+            };
+
+            rootRef.child('contestants').push(contestant).then(() => {
+                showToast('تم حفظ المتسابق بنجاح', 'success');
+                this.reset();
+            }).catch(err => {
+                showToast('حدث خطأ: ' + err.message, 'error');
+            });
+        });
+
+        function openContestantEditModal(key) {
+            const c = contestants[key];
+            if (!c) return;
+
+            currentEditingContestantKey = key;
+
+            document.getElementById('editContestantName').value = c.name;
+            document.getElementById('editContestantCivilId').value = c.civilId;
+            document.getElementById('editContestantGrade').value = c.grade || '';
+            document.getElementById('editContestantSection').value = c.section || '';
+
+            document.getElementById('saveContestantEditBtn').onclick = function() {
+                saveContestantEdit(key);
+            };
+
+            document.getElementById('contestantEditModal').classList.add('active');
+        }
+
+        function saveContestantEdit(key) {
+            const name = document.getElementById('editContestantName').value.trim();
+            const civilId = document.getElementById('editContestantCivilId').value.trim();
+            const grade = document.getElementById('editContestantGrade').value.trim();
+            const section = document.getElementById('editContestantSection').value.trim();
+
+            if (!name || !civilId) {
+                showToast('أدخل الاسم والسجل المدني', 'warning');
+                return;
+            }
+
+            if (!/^[0-9]{10}$/.test(civilId)) {
+                showToast('السجل المدني يجب أن يكون 10 أرقام', 'warning');
+                return;
+            }
+
+            // Check for duplicate civil ID (excluding current)
+            const existingKey = Object.keys(contestants).find(k => k !== key && contestants[k].civilId === civilId);
+            if (existingKey) {
+                showToast('السجل المدني مسجل مسبقاً لمتسابق آخر!', 'error');
+                return;
+            }
+
+            rootRef.child('contestants/' + key).update({
+                name: name,
+                civilId: civilId,
+                grade: grade,
+                section: section
+            }).then(() => {
+                showToast('تم تحديث بيانات المتسابق', 'success');
+                closeModal('contestantEditModal');
+            });
+        }
+
+        function deleteContestant(key) {
+            const c = contestants[key];
+            const modal = document.getElementById('deleteModal');
+            document.getElementById('deleteModalText').textContent = `هل أنت متأكد من حذف المتسابق "${c.name}"؟`;
+            modal.classList.add('active');
+
+            document.getElementById('confirmDeleteBtn').onclick = function() {
+                rootRef.child('contestants/' + key).remove().then(() => {
+                    showToast('تم حذف المتسابق', 'success');
+                    closeModal('deleteModal');
+                });
+            };
+        }
+
+        function deleteAllContestants() {
+            const keys = Object.keys(contestants);
+            if (keys.length === 0) {
+                showToast('لا يوجد متسابقون للحذف', 'warning');
+                return;
+            }
+
+            const modal = document.getElementById('deleteModal');
+            document.getElementById('deleteModalText').textContent = `هل أنت متأكد من حذف جميع المتسابقين (${keys.length} متسابق)؟ هذا الإجراء لا يمكن التراجع عنه.`;
+            modal.classList.add('active');
+
+            document.getElementById('confirmDeleteBtn').onclick = function() {
+                rootRef.child('contestants').remove().then(() => {
+                    showToast('تم حذف جميع المتسابقين', 'success');
+                    closeModal('deleteModal');
+                });
+            };
+        }
+
+        // Teams Management
+        function addTeam() {
+            const teamIndex = teams.length;
+            const teamId = 'team_' + Date.now() + '_' + teamIndex;
+            teams.push({
+                id: teamId,
+                name: 'الفريق ' + (teamIndex + 1),
+                players: [],
+                score: 0
+            });
+            renderTeams();
+        }
+
+        function removeTeam(index) {
+            if (teams.length <= 2) {
+                showToast('يجب وجود فريقين على الأقل', 'warning');
+                return;
+            }
+            teams.splice(index, 1);
+            renderTeams();
+        }
+
+        function renderTeams() {
+            const container = document.getElementById('teamsContainer');
+            container.innerHTML = teams.map((team, index) => `
+                <div class="team-card team-color-${index % 6}">
+                    <div class="team-header">
+                        <h3>
+                            <i class="fas fa-flag"></i>
+                            <input type="text" class="team-name-input" value="${team.name}"
+                                   onchange="updateTeamName(${index}, this.value)"
+                                   placeholder="اسم الفريق">
+                        </h3>
+                        <button class="btn btn-danger btn-sm" onclick="removeTeam(${index})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                    <div class="player-list" id="teamPlayers_${index}">
+                        ${team.players.length === 0 ? '<p style="text-align: center; color: rgba(255,255,255,0.5); padding: 10px; font-size: 13px;">لا يوجد متسابقون</p>' : ''}
+                        ${team.players.map((p, pi) => `
+                            <div class="player-item">
+                                <div style="display: flex; align-items: center;">
+                                    <span class="status ${p.online ? 'online' : 'offline'}"></span>
+                                    <span>${p.name}</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span class="code">${p.civilId ? p.civilId.slice(-4) : p.code}</span>
+                                    <button class="btn-icon delete" onclick="removePlayer(${index}, ${pi})">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="add-player-section">
+                        <div class="contestant-dropdown-wrapper" id="dropdown_${index}">
+                            <div class="contestant-dropdown-trigger" onclick="toggleContestantDropdown(${index})">
+                                <span class="placeholder">اختر متسابقين للإضافة...</span>
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                            <div class="contestant-dropdown-menu" id="dropdownMenu_${index}">
+                                <div class="dropdown-search">
+                                    <input type="text" id="dropdownSearch_${index}" placeholder="بحث..." oninput="filterDropdownContestants(${index})">
+                                </div>
+                                <div class="dropdown-items" id="dropdownItems_${index}">
+                                    <!-- Items will be rendered here -->
+                                </div>
+                            </div>
+                        </div>
+                        <div class="selected-contestants-tags" id="selectedTags_${index}"></div>
+                        <button class="btn btn-primary" onclick="addSelectedContestants(${index})" style="margin-top: 10px; width: 100%;">
+                            <i class="fas fa-user-plus"></i> إضافة المحددين
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+
+            // Populate dropdowns after rendering
+            teams.forEach((team, index) => {
+                populateContestantDropdown(index);
+            });
+        }
+
+        function updateTeamName(index, name) {
+            teams[index].name = name;
+        }
+
+        // Store selected contestants for each team dropdown
+        let teamSelectedContestants = {};
+
+        function getAssignedContestantIds() {
+            const assigned = new Set();
+            teams.forEach(team => {
+                team.players.forEach(p => {
+                    if (p.contestantKey) {
+                        assigned.add(p.contestantKey);
+                    }
+                });
+            });
+            // Also add currently selected (pending) contestants
+            Object.values(teamSelectedContestants).forEach(selected => {
+                selected.forEach(key => assigned.add(key));
+            });
+            return assigned;
+        }
+
+        function populateContestantDropdown(teamIndex) {
+            const container = document.getElementById('dropdownItems_' + teamIndex);
+            if (!container) return;
+
+            const assignedIds = getAssignedContestantIds();
+            const keys = Object.keys(contestants);
+
+            if (keys.length === 0) {
+                container.innerHTML = '<div class="dropdown-no-results">لا يوجد متسابقون مسجلون</div>';
+                return;
+            }
+
+            const currentTeamSelected = teamSelectedContestants[teamIndex] || [];
+
+            container.innerHTML = keys.map(key => {
+                const c = contestants[key];
+                const isAssigned = assignedIds.has(key) && !currentTeamSelected.includes(key);
+                const isSelected = currentTeamSelected.includes(key);
+
+                return `
+                    <div class="dropdown-item ${isSelected ? 'selected' : ''} ${isAssigned ? 'disabled' : ''}"
+                         onclick="${isAssigned ? '' : `toggleContestantSelection(${teamIndex}, '${key}')`}">
+                        <input type="checkbox" ${isSelected ? 'checked' : ''} ${isAssigned ? 'disabled' : ''}>
+                        <div class="dropdown-item-info">
+                            <div class="dropdown-item-name">${c.name}</div>
+                            <div class="dropdown-item-details">${c.civilId} | ${c.grade || '-'} - ${c.section || '-'}</div>
+                        </div>
+                        ${isAssigned ? '<span style="font-size: 11px; color: var(--warning);">مضاف</span>' : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function toggleContestantDropdown(teamIndex) {
+            const menu = document.getElementById('dropdownMenu_' + teamIndex);
+
+            // Close all other dropdowns
+            document.querySelectorAll('.contestant-dropdown-menu').forEach(m => {
+                if (m.id !== 'dropdownMenu_' + teamIndex) {
+                    m.classList.remove('active');
+                }
+            });
+
+            menu.classList.toggle('active');
+
+            if (menu.classList.contains('active')) {
+                populateContestantDropdown(teamIndex);
+                document.getElementById('dropdownSearch_' + teamIndex).focus();
+            }
+        }
+
+        function filterDropdownContestants(teamIndex) {
+            const searchVal = document.getElementById('dropdownSearch_' + teamIndex).value.toLowerCase();
+            const container = document.getElementById('dropdownItems_' + teamIndex);
+            const items = container.querySelectorAll('.dropdown-item');
+
+            items.forEach(item => {
+                const text = item.textContent.toLowerCase();
+                item.style.display = text.includes(searchVal) ? 'flex' : 'none';
+            });
+        }
+
+        function toggleContestantSelection(teamIndex, contestantKey) {
+            if (!teamSelectedContestants[teamIndex]) {
+                teamSelectedContestants[teamIndex] = [];
+            }
+
+            const idx = teamSelectedContestants[teamIndex].indexOf(contestantKey);
+            if (idx > -1) {
+                teamSelectedContestants[teamIndex].splice(idx, 1);
+            } else {
+                teamSelectedContestants[teamIndex].push(contestantKey);
+            }
+
+            populateContestantDropdown(teamIndex);
+            renderSelectedTags(teamIndex);
+        }
+
+        function renderSelectedTags(teamIndex) {
+            const container = document.getElementById('selectedTags_' + teamIndex);
+            const selected = teamSelectedContestants[teamIndex] || [];
+
+            container.innerHTML = selected.map(key => {
+                const c = contestants[key];
+                return c ? `
+                    <span class="contestant-tag">
+                        ${c.name}
+                        <span class="remove-tag" onclick="toggleContestantSelection(${teamIndex}, '${key}')">
+                            <i class="fas fa-times"></i>
+                        </span>
+                    </span>
+                ` : '';
+            }).join('');
+        }
+
+        function addSelectedContestants(teamIndex) {
+            const selected = teamSelectedContestants[teamIndex] || [];
+
+            if (selected.length === 0) {
+                showToast('اختر متسابقين أولاً', 'warning');
+                return;
+            }
+
+            selected.forEach(key => {
+                const c = contestants[key];
+                if (!c) return;
+
+                const player = {
+                    name: c.name,
+                    civilId: c.civilId,
+                    contestantKey: key,
+                    teamId: teams[teamIndex].id,
+                    teamName: teams[teamIndex].name,
+                    online: false,
+                    score: 0
+                };
+
+                teams[teamIndex].players.push(player);
+
+                if (currentRoundId) {
+                    rootRef.child(`rounds/${currentRoundId}/players/${c.civilId}`).set(player);
+                }
+            });
+
+            showToast(`تم إضافة ${selected.length} متسابق`, 'success');
+
+            // Clear selection
+            teamSelectedContestants[teamIndex] = [];
+            renderTeams();
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.contestant-dropdown-wrapper')) {
+                document.querySelectorAll('.contestant-dropdown-menu').forEach(m => {
+                    m.classList.remove('active');
+                });
+            }
+        });
+
+        function removePlayer(teamIndex, playerIndex) {
+            const player = teams[teamIndex].players[playerIndex];
+            if (currentRoundId) {
+                const playerId = player.civilId || player.code;
+                rootRef.child(`rounds/${currentRoundId}/players/${playerId}`).remove();
+            }
+            teams[teamIndex].players.splice(playerIndex, 1);
+            renderTeams();
+            showToast('تم حذف المتسابق', 'success');
+        }
+
+        // Round Management
+        function generateRoundId() {
+            currentRoundId = 'round_' + Math.random().toString(36).substr(2, 9);
+        }
+
+        function startRound() {
+            const roundName = document.getElementById('roundName').value.trim();
+
+            if (!roundName) {
+                showToast('أدخل اسم الجولة أولاً', 'warning');
+                return;
+            }
+
+            const totalPlayers = teams.reduce((sum, t) => sum + t.players.length, 0);
+            if (totalPlayers === 0) {
+                showToast('أضف متسابقين أولاً', 'warning');
+                return;
+            }
+
+            // Prepare teams data
+            const teamsData = {};
+            teams.forEach((team, index) => {
+                teamsData[team.id] = {
+                    name: team.name,
+                    score: 0,
+                    colorIndex: index % 6
+                };
+            });
+
+            // Prepare players data
+            const playersData = {};
+            teams.forEach(team => {
+                team.players.forEach(player => {
+                    player.teamName = team.name;
+                    const playerId = player.civilId || player.code;
+                    playersData[playerId] = player;
+                });
+            });
+
+            const roundData = {
+                name: roundName,
+                status: 'active',
+                createdAt: Date.now(),
+                teams: teamsData,
+                players: playersData,
+                currentQuestion: null,
+                usedQuestions: []
+            };
+
+            rootRef.child(`rounds/${currentRoundId}`).set(roundData).then(() => {
+                isRoundActive = true;
+                showToast('تم بدء الجولة!', 'success');
+                document.querySelector('[data-tab="live"]').click();
+                listenToRound();
+            });
+        }
+
+        function listenToRound() {
+            if (!currentRoundId) return;
+
+            // Listen to players status
+            rootRef.child(`rounds/${currentRoundId}/players`).on('value', (snapshot) => {
+                const data = snapshot.val() || {};
+                let onlineCount = 0;
+
+                // Update teams with player data
+                teams.forEach(team => {
+                    team.players = team.players.map(p => {
+                        const playerId = p.civilId || p.code;
+                        if (data[playerId]) {
+                            if (data[playerId].online) onlineCount++;
+                            return { ...p, ...data[playerId] };
+                        }
+                        return p;
+                    });
+                });
+
+                document.getElementById('onlinePlayers').textContent = onlineCount;
+                renderTeams();
+            });
+
+            // Listen to teams scores
+            rootRef.child(`rounds/${currentRoundId}/teams`).on('value', (snapshot) => {
+                const data = snapshot.val() || {};
+                renderTeamsScores(data);
+            });
+
+            // Listen to current question
+            rootRef.child(`rounds/${currentRoundId}/currentQuestion`).on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    renderCurrentQuestion(data);
+                }
+            });
+
+            // Listen to used questions
+            rootRef.child(`rounds/${currentRoundId}/usedQuestions`).on('value', (snapshot) => {
+                usedQuestions = snapshot.val() || [];
+                renderQuestionSelector();
+                document.getElementById('currentQuestionNum').textContent = usedQuestions.length;
+            });
+        }
+
+        function renderTeamsScores(teamsData) {
+            const container = document.getElementById('teamsScores');
+            const teamsArray = Object.entries(teamsData).sort((a, b) => (b[1].score || 0) - (a[1].score || 0));
+
+            container.innerHTML = teamsArray.map(([id, team], index) => `
+                <div class="team-score-row">
+                    <span class="name">${index === 0 ? '🥇 ' : index === 1 ? '🥈 ' : index === 2 ? '🥉 ' : ''}${team.name}</span>
+                    <span class="score">${team.score || 0}</span>
+                </div>
+            `).join('');
+        }
+
+        function renderCurrentQuestion(q) {
+            const container = document.getElementById('currentQuestionDisplay');
+            const statusEl = document.getElementById('questionStatus');
+
+            if (!q || !q.text) {
+                container.innerHTML = '<p style="color: rgba(255,255,255,0.5);">لم يتم نشر سؤال بعد</p>';
+                statusEl.textContent = 'انتظار';
+                return;
+            }
+
+            statusEl.textContent = q.status === 'open' ? 'مفتوح' :
+                                   q.status === 'locked' ? 'مقفل' :
+                                   q.status === 'secondChance' ? 'فرصة ثانية' : 'منتهي';
+
+            container.innerHTML = `
+                <h3>${q.text}</h3>
+                <div class="options-display">
+                    <div class="option ${q.revealed && q.correct === 'a' ? 'correct' : ''}">
+                        <span style="background: var(--primary); padding: 4px 10px; border-radius: 5px; font-weight: 700;">أ</span>
+                        ${q.options.a}
+                    </div>
+                    <div class="option ${q.revealed && q.correct === 'b' ? 'correct' : ''}">
+                        <span style="background: var(--primary); padding: 4px 10px; border-radius: 5px; font-weight: 700;">ب</span>
+                        ${q.options.b}
+                    </div>
+                    <div class="option ${q.revealed && q.correct === 'c' ? 'correct' : ''}">
+                        <span style="background: var(--primary); padding: 4px 10px; border-radius: 5px; font-weight: 700;">ج</span>
+                        ${q.options.c}
+                    </div>
+                    <div class="option ${q.revealed && q.correct === 'd' ? 'correct' : ''}">
+                        <span style="background: var(--primary); padding: 4px 10px; border-radius: 5px; font-weight: 700;">د</span>
+                        ${q.options.d}
+                    </div>
+                </div>
+                ${q.lockedBy ? `<p style="margin-top: 15px; color: var(--warning);">⚡ ${q.lockedByTeamName} أجاب!</p>` : ''}
+            `;
+        }
+
+        function publishQuestion() {
+            if (!selectedQuestionId) {
+                showToast('اختر سؤالاً أولاً', 'warning');
+                return;
+            }
+
+            const q = questions[selectedQuestionId];
+
+            const questionData = {
+                id: selectedQuestionId,
+                text: q.text,
+                options: q.options,
+                correct: q.correct,
+                status: 'open',
+                publishedAt: Date.now(),
+                lockedBy: null,
+                lockedByName: null,
+                lockedByTeamName: null,
+                revealed: false
+            };
+
+            rootRef.child(`rounds/${currentRoundId}/answers`).remove();
+            rootRef.child(`rounds/${currentRoundId}/currentQuestion`).set(questionData).then(() => {
+                usedQuestions.push(selectedQuestionId);
+                rootRef.child(`rounds/${currentRoundId}/usedQuestions`).set(usedQuestions);
+
+                selectedQuestionId = null;
+                showToast('تم نشر السؤال!', 'success');
+                if (sounds.playBuzzer) sounds.playBuzzer();
+            });
+        }
+
+        function revealAnswer() {
+            if (!currentRoundId) return;
+
+            rootRef.child(`rounds/${currentRoundId}/currentQuestion/revealed`).set(true);
+            rootRef.child(`rounds/${currentRoundId}/currentQuestion/status`).set('revealed');
+
+            if (sounds.playCorrect) sounds.playCorrect();
+        }
+
+        function nextQuestion() {
+            rootRef.child(`rounds/${currentRoundId}/currentQuestion`).set(null);
+            rootRef.child(`rounds/${currentRoundId}/answers`).remove();
+            showToast('جاهز للسؤال التالي', 'success');
+        }
+
+        function endRound() {
+            if (!currentRoundId || !isRoundActive) {
+                showToast('لا توجد جولة نشطة لإنهائها', 'warning');
+                return;
+            }
+
+            const modal = document.getElementById('deleteModal');
+            document.querySelector('#deleteModal h3').innerHTML = '<i class="fas fa-flag-checkered" style="color: var(--warning);"></i> إنهاء الجولة';
+            document.getElementById('deleteModalText').textContent = 'هل أنت متأكد من إنهاء هذه الجولة؟';
+            modal.classList.add('active');
+
+            const btn = document.getElementById('confirmDeleteBtn');
+            btn.textContent = 'إنهاء';
+            btn.onclick = function() {
+                btn.disabled = true;
+                rootRef.child(`rounds/${currentRoundId}`).update({
+                    status: 'finished',
+                    finishedAt: Date.now()
+                }).then(() => {
+                    isRoundActive = false;
+                    showToast('تم إنهاء الجولة', 'success');
+                    closeModal('deleteModal');
+                    btn.disabled = false;
+                    btn.textContent = 'حذف';
+                    generateRoundId();
+                    playerCodeCounter = 10;
+                    initializeTeams();
+                    usedQuestions = [];
+                    selectedQuestionId = null;
+                    loadRoundsHistory();
+                    document.getElementById('roundName').value = '';
+                });
+            };
+        }
+
+        // History
+        function loadRoundsHistory() {
+            rootRef.child('rounds').orderByChild('status').equalTo('finished').on('value', (snapshot) => {
+                const data = snapshot.val() || {};
+                const container = document.getElementById('roundsHistory');
+                const rounds = Object.entries(data).sort((a, b) => (b[1].finishedAt || 0) - (a[1].finishedAt || 0));
+
+                if (rounds.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-clock"></i>
+                            <p>لا توجد جولات سابقة</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = rounds.map(([id, round]) => {
+                    const date = new Date(round.finishedAt || round.createdAt);
+                    const teamsArray = Object.entries(round.teams || {}).sort((a, b) => (b[1].score || 0) - (a[1].score || 0));
+                    const winner = teamsArray.length > 0 ? teamsArray[0][1].name : 'غير محدد';
+                    const teamsText = teamsArray.map(([, t]) => `${t.name}: ${t.score || 0}`).join(' | ');
+
+                    return `
+                        <div class="round-history-item">
+                            <div class="info">
+                                <h4>${round.name || 'جولة'}</h4>
+                                <p>${date.toLocaleDateString('ar-SA')} - ${date.toLocaleTimeString('ar-SA', {hour: '2-digit', minute: '2-digit'})}</p>
+                                <div class="teams-list">${teamsText}</div>
+                            </div>
+                            <div class="result">
+                                <p class="winner">🏆 ${winner}</p>
+                            </div>
+                            <div class="actions">
+                                <button class="btn-icon delete" onclick="deleteRound('${id}')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            });
+        }
+
+        function deleteRound(roundId) {
+            const modal = document.getElementById('deleteModal');
+            document.getElementById('deleteModalText').textContent = 'هل أنت متأكد من حذف هذه الجولة من السجل؟';
+            modal.classList.add('active');
+
+            document.getElementById('confirmDeleteBtn').onclick = function() {
+                rootRef.child('rounds/' + roundId).remove().then(() => {
+                    showToast('تم حذف الجولة', 'success');
+                    closeModal('deleteModal');
+                });
+            };
+        }
+
+        // Utilities
+        function copyLink(inputId) {
+            const input = document.getElementById(inputId);
+            input.select();
+            document.execCommand('copy');
+            showToast('تم نسخ الرابط', 'success');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+
+            const icons = {
+                success: 'fa-check-circle',
+                error: 'fa-times-circle',
+                warning: 'fa-exclamation-circle'
+            };
+
+            toast.innerHTML = `
+                <i class="fas ${icons[type]}"></i>
+                <span>${message}</span>
+            `;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.animation = 'slideIn 0.3s ease reverse';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        document.querySelectorAll('.modal-overlay').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
