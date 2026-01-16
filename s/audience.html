@@ -1208,7 +1208,14 @@
             // Listen to teams
             rootRef.child(`rounds/${roundId}/teams`).on('value', (snapshot) => {
                 const teams = snapshot.val() || [];
-                teamsData = Array.isArray(teams) ? teams : Object.values(teams);
+                if (Array.isArray(teams)) {
+                    teamsData = teams;
+                } else {
+                    teamsData = Object.entries(teams).map(([id, team]) => ({
+                        ...team,
+                        id: id
+                    }));
+                }
                 renderTeams();
             });
 
