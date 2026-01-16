@@ -969,12 +969,6 @@
             <!-- Teams will be dynamically rendered -->
         </div>
 
-        <!-- Always Visible Previous Rounds -->
-        <div class="always-previous-rounds" id="alwaysPreviousRounds" style="display: none;">
-            <h3>📜 المنافسات السابقة</h3>
-            <div id="alwaysPreviousRoundsList"></div>
-        </div>
-
         <!-- Question Section -->
         <div class="question-section" id="questionSection">
             <!-- Waiting State -->
@@ -1026,6 +1020,12 @@
                 <h3>📜 المنافسات السابقة</h3>
                 <div id="previousRoundsList"></div>
             </div>
+        </div>
+
+        <!-- Always Visible Previous Rounds -->
+        <div class="always-previous-rounds" id="alwaysPreviousRounds" style="display: none;">
+            <h3>📜 المنافسات السابقة</h3>
+            <div id="alwaysPreviousRoundsList"></div>
         </div>
     </div>
 
@@ -1245,7 +1245,7 @@
             const sortedTeams = teamsData.map((team, index) => ({
                 ...team,
                 index: index,
-                players: Object.values(playersData).filter(p => p.teamIndex === index)
+                players: Object.values(playersData).filter(p => p.teamIndex === index || p.teamId === team.id)
             })).sort((a, b) => (b.score || 0) - (a.score || 0));
 
             container.innerHTML = sortedTeams.map((team, rank) => {
@@ -1262,13 +1262,8 @@
                         <div class="team-rank">${rank + 1}</div>
                         <div class="team-name">${team.name || 'فريق ' + (team.index + 1)}</div>
                         <div class="team-score ${scoreChanged ? 'changed' : ''}">${score}</div>
-                        <div class="team-players">
-                            ${team.players.map(p => `
-                                <div class="player-badge">
-                                    <span class="status ${p.online ? 'online' : 'offline'}"></span>
-                                    <span>${p.name}</span>
-                                </div>
-                            `).join('')}
+                        <div class="team-players-names" style="font-size: 0.85rem; color: rgba(255,255,255,0.6); margin-bottom: 8px;">
+                            ${team.players.map(p => p.name).join('، ') || ''}
                         </div>
                     </div>
                 `;
