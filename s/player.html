@@ -488,10 +488,10 @@
         }
 
         .question-content {
-            flex: 1;
             display: flex;
             flex-direction: column;
             padding: 20px;
+            padding-top: 10px;
             width: 100%;
             max-width: 500px;
             margin: 0 auto;
@@ -501,16 +501,14 @@
             text-align: center;
             font-size: 1.3rem;
             font-weight: 700;
-            margin-bottom: 25px;
+            margin-bottom: 15px;
             line-height: 1.6;
         }
 
         .options-container {
-            flex: 1;
             display: flex;
             flex-direction: column;
             gap: 12px;
-            justify-content: center;
         }
 
         .option-btn {
@@ -1497,17 +1495,20 @@
                 }
 
             } else if (question.status === 'secondChance') {
-                if (question.excludedPlayer === playerCivilId) {
-                    // I'm excluded - show my wrong result
+                // Check if player's team is excluded
+                const isMyTeamExcluded = playerData && playerData.teamId === question.excludedTeamId;
+
+                if (isMyTeamExcluded) {
+                    // My team is excluded - show waiting message
                     showResultOverlay(
                         'danger',
-                        'إجابتك خاطئة!',
-                        'تم خصم 10 نقاط',
+                        'إجابة فريقكم خاطئة!',
+                        'تم خصم 10 نقاط - انتظروا السؤال التالي',
                         '-10',
                         true
                     );
                 } else if (!hasAnswered) {
-                    // Second chance for me!
+                    // Second chance for other teams!
                     showResultOverlay(
                         'warning',
                         `${question.lockedByTeamName} أجاب خطأ!`,
@@ -1519,6 +1520,8 @@
                     setTimeout(() => {
                         hideResultOverlay();
                         showScreen('questionScreen');
+                        renderQuestion(question);
+                        startSecondChanceTimer(question.secondChanceEndsAt);
                         enableOptions();
                     }, 1500);
                 }
@@ -1577,6 +1580,29 @@
                 } else {
                     timerEl.classList.remove('danger');
                 }
+
+                if (remaining <= 0) {
+                    clearInterval(questionTimerInterval);
+                    questionTimerInterval = null;
+                }
+            }, 100);
+        }
+
+        function startSecondChanceTimer(endsAt) {
+            const timerEl = document.getElementById('questionTimer');
+            if (!timerEl) return;
+
+            if (questionTimerInterval) {
+                clearInterval(questionTimerInterval);
+            }
+
+            // Set timer to danger mode (red) for second chance
+            timerEl.classList.add('danger');
+
+            questionTimerInterval = setInterval(() => {
+                const remaining = Math.max(0, Math.ceil((endsAt - Date.now()) / 1000));
+
+                timerEl.textContent = remaining;
 
                 if (remaining <= 0) {
                     clearInterval(questionTimerInterval);
@@ -1718,6 +1744,7 @@
                             await questionRef.update({
                                 status: 'secondChance',
                                 excludedPlayer: playerCivilId,
+                                excludedTeamId: playerData.teamId,
                                 secondChanceEndsAt: Date.now() + 10000,
                                 lastAnswerCorrect: false,
                                 lastAnswerBy: playerCivilId,

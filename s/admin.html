@@ -1476,6 +1476,9 @@
                 <span id="connectionStatus" style="color: var(--success); font-size: 12px;">
                     <i class="fas fa-circle"></i> متصل
                 </span>
+                <button class="btn btn-warning btn-sm" onclick="document.getElementById('passwordModal').classList.add('active')" title="تغيير كلمة المرور">
+                    <i class="fas fa-key"></i>
+                </button>
                 <button class="btn btn-secondary btn-sm" onclick="logout()">
                     <i class="fas fa-sign-out-alt"></i>
                 </button>
@@ -1915,6 +1918,51 @@
         </div>
     </div>
 
+    <!-- Question Preview Modal -->
+    <div class="modal-overlay" id="questionPreviewModal">
+        <div class="modal" style="max-width: 550px;">
+            <h3 style="margin-bottom: 20px;"><i class="fas fa-question-circle" style="color: var(--primary);"></i> معاينة السؤال</h3>
+            <div id="questionPreviewContent">
+                <p id="previewQuestionText" style="font-size: 1.2rem; font-weight: 700; margin-bottom: 20px; line-height: 1.6;"></p>
+                <div id="previewOptions" style="display: flex; flex-direction: column; gap: 10px;">
+                </div>
+            </div>
+            <div class="modal-buttons" style="margin-top: 25px;">
+                <button class="btn btn-secondary btn-sm" onclick="closeModal('questionPreviewModal')">إلغاء</button>
+                <button class="btn btn-success" id="previewPublishBtn" onclick="publishPreviewedQuestion()">
+                    <i class="fas fa-paper-plane"></i> نشر السؤال
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Password Change Modal -->
+    <div class="modal-overlay" id="passwordModal">
+        <div class="modal" style="max-width: 400px;">
+            <h3><i class="fas fa-key" style="color: var(--warning);"></i> تغيير كلمة المرور</h3>
+            <div style="display: flex; flex-direction: column; gap: 15px; margin: 20px 0;">
+                <div class="form-group">
+                    <label>كلمة المرور الحالية</label>
+                    <input type="password" id="currentPassword" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: rgba(255,255,255,0.05); color: white;">
+                </div>
+                <div class="form-group">
+                    <label>كلمة المرور الجديدة</label>
+                    <input type="password" id="newPassword" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: rgba(255,255,255,0.05); color: white;">
+                </div>
+                <div class="form-group">
+                    <label>تأكيد كلمة المرور الجديدة</label>
+                    <input type="password" id="confirmPassword" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: rgba(255,255,255,0.05); color: white;">
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary btn-sm" onclick="closeModal('passwordModal')">إلغاء</button>
+                <button class="btn btn-success btn-sm" onclick="changePassword()">
+                    <i class="fas fa-check"></i> تغيير
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Container -->
     <div class="toast-container" id="toastContainer"></div>
 
@@ -1954,7 +2002,7 @@
         let questionTimeoutTimer = null;
 
         // Admin Password
-        const ADMIN_PASSWORD = 'admin123';
+        let adminPassword = 'admin123';
 
         // Sound Effects
         const sounds = {};
@@ -1997,12 +2045,23 @@
             };
         }
 
+        // Load admin password from Firebase
+        function loadAdminPassword() {
+            rootRef.child('settings/adminPassword').once('value', (snapshot) => {
+                const storedPassword = snapshot.val();
+                if (storedPassword) {
+                    adminPassword = storedPassword;
+                }
+            });
+        }
+        loadAdminPassword();
+
         // Login
         document.getElementById('loginForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const password = document.getElementById('adminPassword').value;
 
-            if (password === ADMIN_PASSWORD) {
+            if (password === adminPassword) {
                 document.getElementById('loginScreen').style.display = 'none';
                 document.getElementById('dashboard').style.display = 'block';
                 initSounds();
@@ -2013,6 +2072,36 @@
                 document.getElementById('adminPassword').value = '';
             }
         });
+
+        function changePassword() {
+            const currentPass = document.getElementById('currentPassword').value;
+            const newPass = document.getElementById('newPassword').value;
+            const confirmPass = document.getElementById('confirmPassword').value;
+
+            if (currentPass !== adminPassword) {
+                showToast('كلمة المرور الحالية غير صحيحة', 'danger');
+                return;
+            }
+
+            if (!newPass || newPass.length < 4) {
+                showToast('كلمة المرور الجديدة يجب أن تكون 4 أحرف على الأقل', 'warning');
+                return;
+            }
+
+            if (newPass !== confirmPass) {
+                showToast('كلمة المرور الجديدة غير متطابقة', 'danger');
+                return;
+            }
+
+            rootRef.child('settings/adminPassword').set(newPass).then(() => {
+                adminPassword = newPass;
+                document.getElementById('currentPassword').value = '';
+                document.getElementById('newPassword').value = '';
+                document.getElementById('confirmPassword').value = '';
+                closeModal('passwordModal');
+                showToast('تم تغيير كلمة المرور بنجاح', 'success');
+            });
+        }
 
         function logout() {
             document.getElementById('dashboard').style.display = 'none';
@@ -2210,24 +2299,41 @@
                 const q = questions[key];
                 const isUsed = usedQuestions.includes(key);
                 return `
-                    <div class="question-select-item ${isUsed ? 'used' : ''}">
-                        <span class="category">${q.category}</span>
-                        <span class="text" style="flex:1; margin: 0 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${q.text}</span>
-                        ${isUsed
-                            ? '<i class="fas fa-check-circle" style="color: var(--success);"></i>'
-                            : `<button class="btn btn-success btn-sm" onclick="publishQuestionDirect('${key}')" style="padding: 5px 12px; font-size: 12px;">
-                                <i class="fas fa-paper-plane"></i> نشر
-                               </button>`
-                        }
+                    <div class="question-select-item ${isUsed ? 'used' : ''}" onclick="${isUsed ? '' : `openQuestionPreview('${key}')`}" style="cursor: ${isUsed ? 'default' : 'pointer'};">
+                        <span class="text" style="flex:1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${q.text}</span>
+                        ${isUsed ? '<i class="fas fa-check-circle" style="color: var(--success);"></i>' : ''}
                     </div>
                 `;
             }).join('');
         }
 
-        function selectQuestion(key) {
-            if (usedQuestions.includes(key)) return;
-            selectedQuestionId = key;
-            renderQuestionSelector();
+        let previewQuestionKey = null;
+
+        function openQuestionPreview(key) {
+            const q = questions[key];
+            if (!q) return;
+
+            previewQuestionKey = key;
+
+            document.getElementById('previewQuestionText').textContent = q.text;
+
+            const letters = { a: 'أ', b: 'ب', c: 'ج', d: 'د' };
+            document.getElementById('previewOptions').innerHTML = ['a', 'b', 'c', 'd'].map(opt => `
+                <div style="padding: 12px 15px; background: rgba(255,255,255,0.05); border: 2px solid ${opt === q.correct ? 'var(--success)' : 'rgba(255,255,255,0.1)'}; border-radius: 10px; display: flex; align-items: center; gap: 10px;">
+                    <span style="background: var(--primary); padding: 4px 10px; border-radius: 5px; font-weight: 700;">${letters[opt]}</span>
+                    <span style="flex: 1;">${q.options[opt]}</span>
+                    ${opt === q.correct ? '<i class="fas fa-check" style="color: var(--success);"></i>' : ''}
+                </div>
+            `).join('');
+
+            document.getElementById('questionPreviewModal').classList.add('active');
+        }
+
+        function publishPreviewedQuestion() {
+            if (!previewQuestionKey) return;
+            publishQuestionDirect(previewQuestionKey);
+            closeModal('questionPreviewModal');
+            previewQuestionKey = null;
         }
 
         function deleteQuestion(key) {
@@ -3426,6 +3532,13 @@
                     selectedQuestionId = null;
                     loadRoundsHistory();
                     document.getElementById('roundName').value = '';
+
+                    // Clear current question display
+                    document.getElementById('currentQuestionDisplay').innerHTML = '<p style="color: rgba(255,255,255,0.5);">لم يتم نشر سؤال بعد</p>';
+                    document.getElementById('questionStatus').textContent = 'انتظار';
+
+                    // Clear question selector
+                    renderQuestionSelector();
                 });
             };
         }
