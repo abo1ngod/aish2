@@ -1965,6 +1965,7 @@
         let currentEditingContestantKey = null;
         let contestantsCurrentPage = 1;
         const contestantsPerPage = 40;
+        let questionTimeoutTimer = null;
 
         // Admin Password
         const ADMIN_PASSWORD = 'admin123';
@@ -3161,6 +3162,12 @@
             const container = document.getElementById('currentQuestionDisplay');
             const statusEl = document.getElementById('questionStatus');
 
+            // Clear previous timeout timer
+            if (questionTimeoutTimer) {
+                clearTimeout(questionTimeoutTimer);
+                questionTimeoutTimer = null;
+            }
+
             if (!q || !q.text) {
                 container.innerHTML = '<p style="color: rgba(255,255,255,0.5);">لم يتم نشر سؤال بعد</p>';
                 statusEl.textContent = 'انتظار';
@@ -3169,7 +3176,23 @@
 
             statusEl.textContent = q.status === 'open' ? 'مفتوح' :
                                    q.status === 'locked' ? 'مقفل' :
-                                   q.status === 'secondChance' ? 'فرصة ثانية' : 'منتهي';
+                                   q.status === 'secondChance' ? 'فرصة ثانية' :
+                                   q.status === 'timeout' ? 'انتهى الوقت' : 'منتهي';
+
+            // Start 30 second timeout if question is open and no one answered
+            if (q.status === 'open' && !q.lockedBy) {
+                const timeElapsed = Date.now() - q.publishedAt;
+                const remainingTime = 30000 - timeElapsed;
+
+                if (remainingTime > 0) {
+                    questionTimeoutTimer = setTimeout(() => {
+                        deductAllTeamsForTimeout();
+                    }, remainingTime);
+                } else if (timeElapsed < 35000) {
+                    // If just passed 30 seconds, deduct now
+                    deductAllTeamsForTimeout();
+                }
+            }
 
             container.innerHTML = `
                 <h3>${q.text}</h3>
@@ -3237,9 +3260,44 @@
         }
 
         function nextQuestion() {
+            if (questionTimeoutTimer) {
+                clearTimeout(questionTimeoutTimer);
+                questionTimeoutTimer = null;
+            }
             rootRef.child(`rounds/${currentRoundId}/currentQuestion`).set(null);
             rootRef.child(`rounds/${currentRoundId}/answers`).remove();
             showToast('جاهز للسؤال التالي', 'success');
+        }
+
+        function deductAllTeamsForTimeout() {
+            if (!currentRoundId) return;
+
+            rootRef.child(`rounds/${currentRoundId}/currentQuestion`).once('value', (snapshot) => {
+                const q = snapshot.val();
+                // Only deduct if question is still open and no one answered
+                if (q && q.status === 'open' && !q.lockedBy) {
+                    rootRef.child(`rounds/${currentRoundId}/teams`).once('value', (teamsSnapshot) => {
+                        const teamsData = teamsSnapshot.val() || {};
+                        const updates = {};
+
+                        Object.keys(teamsData).forEach(teamId => {
+                            const currentScore = teamsData[teamId].score || 0;
+                            updates[`${teamId}/score`] = currentScore - 3;
+                        });
+
+                        rootRef.child(`rounds/${currentRoundId}/teams`).update(updates);
+
+                        // Mark question as timed out
+                        rootRef.child(`rounds/${currentRoundId}/currentQuestion`).update({
+                            status: 'timeout',
+                            timedOut: true
+                        });
+
+                        showToast('انتهى الوقت! تم خصم 3 نقاط من كل فريق', 'warning');
+                        if (sounds.playWrong) sounds.playWrong();
+                    });
+                }
+            });
         }
 
         function endRound() {

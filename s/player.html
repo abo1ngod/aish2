@@ -456,6 +456,27 @@
             box-shadow: 0 2px 10px rgba(99, 102, 241, 0.3);
         }
 
+        .question-timer {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(245, 158, 11, 0.2);
+            border: 3px solid var(--warning);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            font-weight: 900;
+            color: var(--warning);
+            animation: timerPulse 1s infinite;
+        }
+
+        .question-timer.danger {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+
         .question-content {
             flex: 1;
             display: flex;
@@ -965,6 +986,7 @@
                     <i class="fas fa-star"></i>
                     <span id="currentScore">0</span>
                 </div>
+                <div class="question-timer" id="questionTimer">30</div>
                 <div class="team-badge" id="teamBadge">-</div>
             </div>
             <div class="question-content">
@@ -1074,6 +1096,7 @@
         let playersData = {};
         let secondChanceInterval = null;
         let playerStats = { correct: 0, wrong: 0 };
+        let questionTimerInterval = null;
 
         // Sound Effects
         const sounds = {};
@@ -1409,6 +1432,12 @@
         }
 
         function handleQuestionUpdate(question) {
+            // Clear question timer when question changes
+            if (questionTimerInterval) {
+                clearInterval(questionTimerInterval);
+                questionTimerInterval = null;
+            }
+
             if (!question) {
                 // No question - show waiting screen with player info and scores
                 showScreen('waitingScreen');
@@ -1425,6 +1454,7 @@
                 showScreen('questionScreen');
                 renderQuestion(question);
                 hideResultOverlay();
+                startQuestionTimer(question.publishedAt);
                 if (sounds.playBuzzer) sounds.playBuzzer();
 
             } else if (question.status === 'locked') {
@@ -1468,6 +1498,11 @@
                     }, 1500);
                 }
 
+            } else if (question.status === 'timeout') {
+                // Time ran out - show correct answer and deduction
+                if (sounds.playWrong) sounds.playWrong();
+                showTimeoutResult(question);
+
             } else if (question.status === 'revealed' || question.status === 'answered') {
                 // Show correct answer and go to scores
                 if (question.lastAnswerCorrect && question.lastAnswerBy) {
@@ -1496,6 +1531,57 @@
                     <span>${question.options[key]}</span>
                 </button>
             `).join('');
+        }
+
+        function startQuestionTimer(publishedAt) {
+            const timerEl = document.getElementById('questionTimer');
+            if (!timerEl) return;
+
+            if (questionTimerInterval) {
+                clearInterval(questionTimerInterval);
+            }
+
+            questionTimerInterval = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - publishedAt) / 1000);
+                const remaining = Math.max(0, 30 - elapsed);
+
+                timerEl.textContent = remaining;
+
+                if (remaining <= 10) {
+                    timerEl.classList.add('danger');
+                } else {
+                    timerEl.classList.remove('danger');
+                }
+
+                if (remaining <= 0) {
+                    clearInterval(questionTimerInterval);
+                    questionTimerInterval = null;
+                }
+            }, 100);
+        }
+
+        function showTimeoutResult(question) {
+            // Show the correct answer on the options
+            const correctLetter = { a: 'أ', b: 'ب', c: 'ج', d: 'د' }[question.correct];
+            document.querySelectorAll('.option-btn').forEach(btn => {
+                if (btn.dataset.answer === question.correct) {
+                    btn.classList.add('correct');
+                }
+            });
+
+            // Show timeout overlay
+            showResultOverlay(
+                'danger',
+                'انتهى الوقت!',
+                `الإجابة الصحيحة: ${question.options[question.correct]}`,
+                '-3'
+            );
+
+            setTimeout(() => {
+                hideResultOverlay();
+                showScreen('waitingScreen');
+                renderOtherTeams();
+            }, 3000);
         }
 
         async function selectAnswer(answer) {
