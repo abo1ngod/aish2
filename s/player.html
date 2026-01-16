@@ -1229,8 +1229,9 @@
                 playerData = foundPlayer;
                 sessionId = generateSessionId();
 
-                // Check if player is already online
-                if (foundPlayer.online && foundPlayer.sessionId) {
+                // Check if player is already online (with recent activity)
+                const isRecentlyActive = foundPlayer.lastSeen && (Date.now() - foundPlayer.lastSeen < 120000); // 2 minutes
+                if (foundPlayer.online && foundPlayer.sessionId && isRecentlyActive) {
                     // Request transfer
                     await rootRef.child(`rounds/${roundId}/players/${playerCivilId}`).update({
                         transferRequest: sessionId
@@ -1818,19 +1819,23 @@
         }
 
         function logoutAfterRoundEnd() {
-            // Clear all listeners
-            if (roundId) {
-                rootRef.child(`rounds/${roundId}/players/${playerCivilId}`).off();
-                rootRef.child(`rounds/${roundId}/players`).off();
-                rootRef.child(`rounds/${roundId}/teams`).off();
-                rootRef.child(`rounds/${roundId}/currentQuestion`).off();
-                rootRef.child(`rounds/${roundId}/status`).off();
-                rootRef.child(`rounds/${roundId}/name`).off();
+            if (roundId && playerCivilId) {
+                const currentRoundId = roundId;
+                const currentPlayerCivilId = playerCivilId;
 
-                // Mark player as offline
-                rootRef.child(`rounds/${roundId}/players/${playerCivilId}`).update({
+                // Mark player as offline FIRST (before clearing listeners)
+                rootRef.child(`rounds/${currentRoundId}/players/${currentPlayerCivilId}`).update({
                     online: false,
-                    sessionId: null
+                    sessionId: null,
+                    lastSeen: 0
+                }).then(() => {
+                    // Clear all listeners after update completes
+                    rootRef.child(`rounds/${currentRoundId}/players/${currentPlayerCivilId}`).off();
+                    rootRef.child(`rounds/${currentRoundId}/players`).off();
+                    rootRef.child(`rounds/${currentRoundId}/teams`).off();
+                    rootRef.child(`rounds/${currentRoundId}/currentQuestion`).off();
+                    rootRef.child(`rounds/${currentRoundId}/status`).off();
+                    rootRef.child(`rounds/${currentRoundId}/name`).off();
                 });
             }
 
