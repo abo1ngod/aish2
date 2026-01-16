@@ -3024,8 +3024,15 @@
 
             teams[teamIndex].players.push(player);
 
-            if (currentRoundId) {
+            if (currentRoundId && isRoundActive) {
+                // Add player to Firebase
                 rootRef.child(`rounds/${currentRoundId}/players/${c.civilId}`).set(player);
+
+                // Ensure team exists in Firebase with proper data
+                rootRef.child(`rounds/${currentRoundId}/teams/${teams[teamIndex].id}`).update({
+                    name: teams[teamIndex].name,
+                    colorIndex: teamIndex % 6
+                });
             }
 
             // Close dropdown and refresh
