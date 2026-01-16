@@ -390,6 +390,16 @@
             100% { box-shadow: 0 4px 30px rgba(236, 72, 153, 0.5); }
         }
 
+        .round-name-display {
+            font-size: 14px;
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 15px;
+            padding: 6px 15px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            display: inline-block;
+        }
+
         .waiting-indicator {
             display: flex;
             align-items: center;
@@ -937,6 +947,7 @@
                 </div>
                 <div class="player-name" id="playerName">-</div>
                 <div class="player-team" id="playerTeam">-</div>
+                <div class="round-name-display" id="roundNameDisplay"></div>
 
                 <!-- Player Stats -->
                 <div class="player-stats" id="playerStats">
@@ -1375,11 +1386,21 @@
                 handleQuestionUpdate(question);
             });
 
+            // Listen to round name
+            rootRef.child(`rounds/${roundId}/name`).on('value', (snapshot) => {
+                const roundName = snapshot.val();
+                const roundNameEl = document.getElementById('roundNameDisplay');
+                if (roundNameEl && roundName) {
+                    roundNameEl.textContent = '🏆 ' + roundName;
+                }
+            });
+
             // Listen to round status
             rootRef.child(`rounds/${roundId}/status`).on('value', (snapshot) => {
                 const status = snapshot.val();
                 if (status === 'finished') {
                     showFinalResults();
+                    logoutAfterRoundEnd();
                 }
             });
         }
@@ -1794,6 +1815,31 @@
                     <span class="team-score">${team.score || 0}</span>
                 </div>
             `).join('');
+        }
+
+        function logoutAfterRoundEnd() {
+            // Clear all listeners
+            if (roundId) {
+                rootRef.child(`rounds/${roundId}/players/${playerCivilId}`).off();
+                rootRef.child(`rounds/${roundId}/players`).off();
+                rootRef.child(`rounds/${roundId}/teams`).off();
+                rootRef.child(`rounds/${roundId}/currentQuestion`).off();
+                rootRef.child(`rounds/${roundId}/status`).off();
+                rootRef.child(`rounds/${roundId}/name`).off();
+
+                // Mark player as offline
+                rootRef.child(`rounds/${roundId}/players/${playerCivilId}`).update({
+                    online: false,
+                    sessionId: null
+                });
+            }
+
+            // Reset state
+            roundId = null;
+            sessionId = null;
+            playerData = null;
+            teamsData = {};
+            playersData = {};
         }
 
         function showFinalResults() {
