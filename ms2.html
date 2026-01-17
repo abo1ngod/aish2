@@ -39,9 +39,20 @@
         /* Visitor Styles */
         .visitor-avatar { @apply w-10 h-10 rounded-full flex items-center justify-center font-bold text-white shadow; }
         .status-dot { @apply w-3 h-3 rounded-full absolute bottom-0 right-0 border-2 border-white; }
+
+        /* Toast Notification */
+        #toast-notification {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.8); color: white; padding: 10px 20px; border-radius: 20px;
+            z-index: 100; opacity: 0; transition: opacity 0.3s; pointer-events: none;
+            font-size: 0.9rem; font-weight: bold;
+        }
+        .show-toast { opacity: 1 !important; }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen text-gray-800 select-none overflow-hidden">
+
+    <div id="toast-notification">تم إرسال التحدي! 🚀</div>
 
     <div id="app" class="max-w-md mx-auto h-screen bg-white shadow-2xl relative overflow-y-auto overflow-x-hidden mobile-safe-h">
         
@@ -98,8 +109,8 @@
         </div>
 
         <!-- شاشة صالة الانتظار للزوار -->
-        <div id="screen-visitor-lobby" class="hidden flex flex-col h-full bg-slate-50 relative">
-            <div class="bg-purple-700 text-white p-4 shadow-lg flex justify-between items-center sticky top-0 z-20">
+        <div id="screen-visitor-lobby" class="hidden flex flex-col h-full bg-slate-50 relative overflow-hidden">
+            <div class="bg-purple-700 text-white p-4 shadow-lg flex justify-between items-center sticky top-0 z-20 shrink-0">
                 <div>
                     <h2 class="font-bold text-lg">صالة التحدي ⚔️</h2>
                     <p id="visitor-my-name" class="text-xs opacity-80">...</p>
@@ -107,9 +118,9 @@
                 <button onclick="logoutVisitor()" class="bg-red-500/20 px-3 py-1 rounded hover:bg-red-500 text-xs">خروج</button>
             </div>
 
-            <div class="p-4 overflow-y-auto pb-20">
+            <div class="flex-1 p-4 overflow-y-auto pb-24">
                 <h3 class="font-bold text-gray-500 mb-2 text-sm">المتواجدون الآن:</h3>
-                <div id="visitors-list" class="grid gap-3"></div>
+                <div id="visitors-list" class="flex flex-col gap-3"></div>
             </div>
 
             <!-- مودال الدعوة -->
@@ -129,14 +140,14 @@
         <!-- شاشة المعركة (Battle) -->
         <div id="screen-battle" class="hidden flex flex-col h-full bg-slate-900 text-white">
             <!-- الهيدر والنتيجة -->
-            <div class="bg-slate-800 p-2 shadow-lg grid grid-cols-3 items-center">
+            <div class="bg-slate-800 p-2 shadow-lg grid grid-cols-3 items-center shrink-0">
                 <div class="text-center">
                     <div class="text-xs text-blue-300 mb-1" id="battle-p1-name">أنا</div>
                     <div class="text-3xl font-black text-white" id="battle-p1-score">0</div>
                 </div>
                 <div class="text-center flex flex-col items-center">
                     <div class="text-xs text-gray-400">الوقت</div>
-                    <div id="battle-timer" class="text-2xl font-mono font-bold text-yellow-400">30</div>
+                    <div id="battle-timer" class="text-2xl font-mono font-bold text-yellow-400">--</div>
                 </div>
                 <div class="text-center">
                     <div class="text-xs text-red-300 mb-1" id="battle-p2-name">الخصم</div>
@@ -144,22 +155,20 @@
                 </div>
             </div>
 
-            <!-- منطقة السؤال -->
-            <div class="flex-1 p-4 flex flex-col justify-center overflow-y-auto">
+            <!-- منطقة السؤال (تم رفعها للأعلى عبر justify-start و pt-6) -->
+            <div class="flex-1 p-4 flex flex-col justify-start pt-6 overflow-y-auto">
                 <div id="battle-q-container" class="w-full space-y-4">
                     <div class="bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/10 text-center relative">
-                        <span id="battle-phase-badge" class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white text-[10px] px-2 py-1 rounded-full">الجولة الأساسية</span>
+                        <span id="battle-phase-badge" class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white text-[10px] px-2 py-1 rounded-full">الجولة مفتوحة</span>
                         <p id="battle-q-text" class="text-xl font-bold leading-relaxed">...</p>
                     </div>
                     <div id="battle-options" class="space-y-3"></div>
+                    
+                    <!-- زر إنهاء الجولة تحت الخيارات مباشرة -->
+                    <button onclick="forceEndRound()" class="w-full mt-4 bg-yellow-600/20 text-yellow-400 border border-yellow-600/50 p-3 rounded-xl font-bold text-sm hover:bg-yellow-600/30 transition">🏁 إنهاء الجولة</button>
                 </div>
                 
                 <div id="battle-result-msg" class="hidden text-center mt-4 p-4 rounded-xl bg-slate-800/50 border border-slate-700 animate-pop"></div>
-            </div>
-
-            <div class="p-4 bg-slate-800 flex gap-2">
-                <button onclick="forceEndRound()" class="flex-1 bg-yellow-600/20 text-yellow-400 border border-yellow-600/50 p-3 rounded-xl font-bold text-sm">إنهاء الجولة 🏁</button>
-                <button onclick="exitBattle()" class="flex-1 bg-red-600/20 text-red-400 border border-red-600/50 p-3 rounded-xl font-bold text-sm">انسحاب</button>
             </div>
         </div>
 
@@ -182,7 +191,7 @@
         </div>
 
 
-        <!-- 2. شاشة المتسابق (القديمة - لم يتم المساس بها) -->
+        <!-- 2. شاشة المتسابق (القديمة) -->
         <div id="screen-player" class="hidden flex flex-col h-full relative bg-gray-50">
             <!-- الهيدر -->
             <div class="bg-blue-600 text-white p-3 shadow-lg z-20 relative sticky top-0">
@@ -327,15 +336,12 @@
                 <div class="text-right w-full md:w-auto text-center"><span id="audience-clock" class="text-sm font-mono opacity-70">00:00</span></div>
             </header>
             
-            <!-- تم تعديل الشبكة لتكون متجاوبة: عمود واحد على الجوال، وشبكة كاملة على الشاشات الأكبر -->
             <div class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 h-auto pb-6 px-1 md:px-4">
-                <!-- السجل: يظهر في الأسفل على الجوال -->
                 <div class="order-3 lg:order-1 lg:col-span-3 glass-panel rounded-3xl p-5 flex flex-col h-64 lg:h-full overflow-hidden shadow-2xl">
                     <h3 class="font-bold text-blue-300 mb-4 border-b border-white/10 pb-2 text-center flex items-center justify-center gap-2">📜 سجل الأحداث</h3>
                     <div id="audience-history-list" class="space-y-3 overflow-y-auto flex-1 text-sm custom-scrollbar pr-2"></div>
                 </div>
                 
-                <!-- المنطقة الوسطى: تظهر أولاً على الجوال -->
                 <div class="order-1 lg:order-2 lg:col-span-6 flex flex-col justify-start lg:justify-center items-center relative min-h-[300px]">
                     <div id="audience-waiting" class="text-center animate-pulse mt-10 lg:mt-0">
                         <div class="text-8xl mb-6 opacity-80 filter drop-shadow-lg">⏳</div>
@@ -350,14 +356,12 @@
                         <div id="audience-options" class="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-5 text-xl md:text-2xl font-bold"></div>
                     </div>
                     
-                    <!-- النتيجة المنبثقة -->
                     <div id="audience-result-overlay" class="hidden absolute inset-0 flex items-center justify-center z-50 animate-pop">
                         <div class="absolute inset-0 bg-black/70 backdrop-blur-sm rounded-3xl"></div>
                         <div id="audience-result-box" class="relative bg-white text-black p-6 md:p-10 rounded-3xl shadow-2xl text-center border-8 border-double min-w-[280px] md:min-w-[300px] transform scale-110 mx-4"></div>
                     </div>
                 </div>
                 
-                <!-- الترتيب: يظهر ثانياً على الجوال -->
                 <div class="order-2 lg:order-3 lg:col-span-3 glass-panel rounded-3xl p-5 flex flex-col h-64 lg:h-full overflow-hidden shadow-2xl">
                     <h3 class="font-bold text-yellow-400 mb-4 border-b border-white/10 pb-2 text-center flex items-center justify-center gap-2">📊 الترتيب العام</h3>
                     <div id="audience-leaderboard" class="space-y-3 overflow-y-auto flex-1 pr-2 custom-scrollbar"></div>
@@ -379,7 +383,7 @@
         };
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        const rootRef = db.ref('quiz_project_v6_clean001'); 
+        const rootRef = db.ref('quiz_project_v6_clean'); 
         const visitorsRef = db.ref('visitors');
         const battlesRef = db.ref('battles');
 
@@ -396,6 +400,9 @@
         let battleData = null;
         let opponentName = '';
         let battleTimerInterval = null;
+        
+        // Tracking Sent Requests locally to update UI
+        let myPendingRequests = new Set();
 
         // --- استرجاع الجلسة ---
         window.onload = function() {
@@ -432,7 +439,6 @@
                     myId = savedVisitorId;
                     myName = savedVisitorName;
                     
-                    // نقوم بتحديث بيانات الزائر في قاعدة البيانات للتأكد من وجوده
                     visitorsRef.child(myId).update({
                         name: myName,
                         status: 'waiting'
@@ -444,6 +450,13 @@
                 }
             }
         };
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast-notification');
+            toast.innerText = msg;
+            toast.classList.add('show-toast');
+            setTimeout(() => { toast.classList.remove('show-toast'); }, 3000);
+        }
 
         function joinGame(role, isAuto = false) {
             myRole = role;
@@ -573,7 +586,6 @@
             ).join('');
         }
 
-        // دالة خلط المصفوفة (Fisher-Yates)
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -602,7 +614,6 @@
                 
                 if (!currentQuestionData || currentQuestionData.id !== state.question.id) {
                     currentQuestionData = state.question;
-                    // خلط الخيارات هنا فقط عند عرضها للمستخدم
                     renderOptions(state.question);
                     updateStatus('active', '⚡️ سؤال جديد! أسرع بالإجابة');
                     feedbackArea.classList.add('hidden');
@@ -653,17 +664,13 @@
             const container = document.getElementById('options-container');
             container.innerHTML = '';
             
-            // إنشاء كائنات للخيارات لحفظ النص الأصلي والفهرس الأصلي
             let optionsObj = question.options.map((opt, i) => ({ text: opt, originalIndex: i }));
-            
-            // خلط الخيارات
             optionsObj = shuffleArray(optionsObj);
 
             optionsObj.forEach((optObj) => {
                 const btn = document.createElement('button');
                 btn.className = 'btn-option w-full bg-white border-2 border-gray-200 p-4 rounded-xl text-lg font-bold shadow-sm hover:border-blue-500 hover:bg-blue-50 focus:bg-blue-100 mb-2 transition-all duration-200';
                 btn.innerText = optObj.text;
-                // عند النقر نرسل الفهرس الأصلي للتحقق من الإجابة الصحيحة
                 btn.onclick = () => handleOptionClick(optObj.originalIndex);
                 container.appendChild(btn);
             });
@@ -825,10 +832,7 @@
 
                 const data = await response.json();
                 let rawText = data.candidates[0].content.parts[0].text;
-                
-                // تنظيف النص في حال كان يحتوي على markdown
                 rawText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
-                
                 const questions = JSON.parse(rawText);
 
                 if (!Array.isArray(questions)) throw new Error('تنسيق البيانات غير صحيح');
@@ -848,8 +852,6 @@
 
                 statusDiv.innerText = `تمت إضافة ${addedCount} سؤال بنجاح! ✅`;
                 statusDiv.classList.replace('text-indigo-200', 'text-green-400');
-                
-                // مسح الحقول
                 document.getElementById('ai-topic').value = '';
 
             } catch (error) {
@@ -962,11 +964,10 @@
             const name = document.getElementById('visitor-name-gen').value.trim();
             if(!name) return alert('الرجاء إدخال الاسم');
             
-            // توليد كود من 4 أرقام
             const code = Math.floor(1000 + Math.random() * 9000).toString();
             myName = name;
             myVisitorCode = code;
-            myId = 'visitor_' + code; // ID فريد
+            myId = 'visitor_' + code; 
 
             document.getElementById('visitor-step-1').classList.add('hidden');
             document.getElementById('visitor-step-2').classList.remove('hidden');
@@ -977,14 +978,12 @@
             const inputCode = document.getElementById('visitor-code-confirm').value.trim();
             if(inputCode !== myVisitorCode) return alert('الكود غير مطابق!');
 
-            // تسجيل الزائر في Firebase
             visitorsRef.child(myId).set({
                 name: myName,
-                status: 'waiting', // waiting, busy
+                status: 'waiting', 
                 current_battle: null,
                 request_from: null
             }).then(() => {
-                // حفظ الجلسة
                 localStorage.setItem('visitor_code', myVisitorCode);
                 localStorage.setItem('visitor_id', myId);
                 localStorage.setItem('visitor_name', myName);
@@ -992,8 +991,6 @@
                 document.getElementById('screen-visitor-auth').classList.add('hidden');
                 document.getElementById('screen-visitor-lobby').classList.remove('hidden');
                 initVisitorLobby();
-                
-                // تمت إزالة onDisconnect ليحتفظ بدخوله حتى الخروج اليدوي
             });
         }
 
@@ -1008,7 +1005,6 @@
         function initVisitorLobby() {
             document.getElementById('visitor-my-name').innerText = `${myName} (${myVisitorCode})`;
             
-            // مراقبة قائمة الزوار
             visitorsRef.on('value', snap => {
                 const list = document.getElementById('visitors-list');
                 list.innerHTML = '';
@@ -1017,18 +1013,31 @@
                     const v = child.val();
                     const vid = child.key;
                     if(vid === myId) {
-                        // مراقبة الطلبات الواردة لي
                         if(v.request_from && !document.getElementById('battle-request-modal').classList.contains('hidden') === false) {
                             showBattleRequest(v.request_from);
                         }
                         if(v.current_battle) {
-                            // تم قبولي أو بدأت المعركة
                             enterBattle(v.current_battle);
                         }
-                        return; // لا أعرض نفسي في القائمة
+                        return; 
                     }
 
                     const isBusy = v.status === 'busy';
+                    
+                    // منطق حالة الطلب
+                    let statusHtml = '';
+                    if (myPendingRequests.has(vid)) {
+                        if (v.request_from === myId) {
+                             statusHtml = `<span class="text-orange-500 text-xs font-bold animate-pulse">ننتظر الموافقة...</span>`;
+                        } else {
+                             // إذا لم يعد طلبي موجوداً وهو ليس مشغولاً معي، فقد تم الرفض
+                             statusHtml = `<span class="text-red-500 text-xs font-bold">تم الرفض</span>`;
+                             // حذف من القائمة بعد فترة قصيرة لتحديث الواجهة (يتم تلقائياً بالتحديث القادم)
+                        }
+                    } else {
+                        statusHtml = `<div class="text-[10px] text-gray-500">${isBusy ? 'في مسابقة' : 'ينتظر تحدي'}</div>`;
+                    }
+
                     const div = document.createElement('div');
                     div.className = `bg-white p-3 rounded-xl shadow-sm flex justify-between items-center border-l-4 ${isBusy ? 'border-red-400 opacity-60' : 'border-green-400'}`;
                     div.innerHTML = `
@@ -1039,10 +1048,10 @@
                             </div>
                             <div>
                                 <div class="font-bold text-sm">${v.name}</div>
-                                <div class="text-[10px] text-gray-500">${isBusy ? 'في مسابقة' : 'ينتظر تحدي'}</div>
+                                ${statusHtml}
                             </div>
                         </div>
-                        ${!isBusy ? `<button onclick="requestBattle('${vid}')" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-indigo-700">تحدي ⚔️</button>` : ''}
+                        ${!isBusy && !myPendingRequests.has(vid) ? `<button onclick="requestBattle('${vid}')" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-indigo-700">تحدي ⚔️</button>` : ''}
                     `;
                     list.appendChild(div);
                 });
@@ -1050,9 +1059,9 @@
         }
 
         function requestBattle(targetId) {
-            // إرسال طلب
             visitorsRef.child(targetId).update({ request_from: myId });
-            alert('تم إرسال التحدي! بانتظار الموافقة...');
+            myPendingRequests.add(targetId);
+            showToast('تم إرسال التحدي! ⚔️');
         }
 
         function showBattleRequest(requesterId) {
@@ -1060,15 +1069,12 @@
                 const name = snap.val()?.name || 'مجهول';
                 document.getElementById('requester-name').innerText = `يريدك المتسابق "${name}" في تحدي مباشر!`;
                 document.getElementById('battle-request-modal').classList.remove('hidden');
-                
-                // حفظ ID الطالب للقبول/الرفض
                 document.getElementById('battle-request-modal').dataset.requester = requesterId;
             });
         }
 
         function rejectBattle() {
             const reqId = document.getElementById('battle-request-modal').dataset.requester;
-            // مسح الطلب
             visitorsRef.child(myId).update({ request_from: null });
             document.getElementById('battle-request-modal').classList.add('hidden');
         }
@@ -1076,22 +1082,16 @@
         async function acceptBattle() {
             const opponentId = document.getElementById('battle-request-modal').dataset.requester;
             
-            // إنشاء معركة جديدة
             const newBattleRef = battlesRef.push();
             battleId = newBattleRef.key;
             
-            // جلب أسئلة عشوائية من البنك
             const qSnap = await rootRef.child('question_bank').once('value');
             let allQuestions = [];
             qSnap.forEach(q => allQuestions.push({ key: q.key, ...q.val() }));
             
             if(allQuestions.length === 0) return alert('لا توجد أسئلة في البنك!');
             
-            // خلط واختيار 5 أسئلة مثلاً للجولة
             allQuestions = shuffleArray(allQuestions);
-            
-            // التأكد من أن الأسئلة مهيأة بشكل صحيح كمصفوفة
-            // نأخذ أول 10 أسئلة كحد أقصى للجولة
             const selectedQuestions = allQuestions.slice(0, 10);
             
             const battleInitData = {
@@ -1100,15 +1100,14 @@
                 questions: selectedQuestions,
                 current_q_index: 0,
                 scores: { [opponentId]: 0, [myId]: 0 },
-                state: 'active', // active, ended
-                phase: 'main', // main (30s), second_chance (10s)
+                state: 'active', 
+                phase: 'main', 
                 turn_start_time: firebase.database.ServerValue.TIMESTAMP,
-                turn_data: {} // لتسجيل من أجاب
+                turn_data: {} 
             };
             
             await newBattleRef.set(battleInitData);
             
-            // تحديث حالة اللاعبين وتوجيههم للمعركة
             const updates = {};
             updates[`visitors/${myId}/status`] = 'busy';
             updates[`visitors/${myId}/current_battle`] = battleId;
@@ -1124,34 +1123,40 @@
 
         function enterBattle(bId) {
             battleId = bId;
+            
+            // إلغاء أي طلبات معلقة قمت بإرسالها للآخرين
+            visitorsRef.once('value', snap => {
+                snap.forEach(v => {
+                    if (v.val().request_from === myId) {
+                        visitorsRef.child(v.key).update({ request_from: null });
+                    }
+                });
+            });
+            myPendingRequests.clear();
+
             document.getElementById('screen-visitor-lobby').classList.add('hidden');
             document.getElementById('screen-battle').classList.remove('hidden');
             
-            // مراقبة بيانات المعركة
             battlesRef.child(battleId).on('value', handleBattleUpdate);
         }
 
         function handleBattleUpdate(snap) {
             if(!snap.exists()) {
-                // انتهت المعركة أو ألغيت
                 returnToLobby();
                 return;
             }
             
             battleData = snap.val();
             
-            // معرفة الخصم
             const isP1 = myId === battleData.p1;
             const opponentId = isP1 ? battleData.p2 : battleData.p1;
             
-            // تحديث الأسماء (مرة واحدة أو عند الحاجة)
             visitorsRef.child(opponentId).once('value').then(s => {
                 opponentName = s.val()?.name || 'الخصم';
                 document.getElementById('battle-p1-name').innerText = 'أنا (' + myName + ')';
                 document.getElementById('battle-p2-name').innerText = opponentName;
             });
 
-            // تحديث النتائج
             const myScore = battleData.scores[myId] || 0;
             const opScore = battleData.scores[opponentId] || 0;
             document.getElementById('battle-p1-score').innerText = myScore;
@@ -1162,55 +1167,54 @@
                 return;
             }
 
-            // عرض السؤال الحالي
             if (battleData.questions && battleData.questions[battleData.current_q_index]) {
                 const q = battleData.questions[battleData.current_q_index];
                 renderBattleQuestion(q, battleData.phase);
+                
+                // الانتقال التلقائي إذا تم تحديد trigger_next
+                if (battleData.trigger_next) {
+                    setTimeout(() => nextBattleQuestion(battleId), 1000);
+                }
             } else {
-                // انتهت الأسئلة - نتأكد من عدم وجود بيانات لأسئلة متبقية
                 battlesRef.child(battleId).update({ state: 'ended' });
             }
         }
 
         function renderBattleQuestion(q, phase) {
-            const qContainer = document.getElementById('battle-q-container');
             const resMsg = document.getElementById('battle-result-msg');
-            
-            // التحقق هل أجبت مسبقاً في هذه الدورة؟
             const myTurn = battleData.turn_data && battleData.turn_data[myId];
             
             document.getElementById('battle-q-text').innerText = q.text;
             const badge = document.getElementById('battle-phase-badge');
             
+            clearInterval(battleTimerInterval);
+            const timerEl = document.getElementById('battle-timer');
+
             if (phase === 'main') {
-                badge.innerText = 'الجولة الأساسية (30ث)';
+                badge.innerText = 'الجولة مفتوحة';
                 badge.className = 'absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white text-[10px] px-2 py-1 rounded-full';
+                timerEl.innerText = "∞";
             } else {
                 badge.innerText = 'فرصة ثانية (10ث)';
                 badge.className = 'absolute -top-3 left-1/2 transform -translate-x-1/2 bg-orange-600 text-white text-[10px] px-2 py-1 rounded-full animate-pulse';
+                
+                // مؤقت الفرصة الثانية فقط
+                let timeLeft = 10;
+                timerEl.innerText = timeLeft;
+                battleTimerInterval = setInterval(() => {
+                    timeLeft--;
+                    timerEl.innerText = timeLeft;
+                    if(timeLeft <= 0) {
+                        clearInterval(battleTimerInterval);
+                        if(myId === battleData.p1) nextBattleQuestion(battleId);
+                    }
+                }, 1000);
             }
 
-            // إدارة المؤقت (محلي تقريبي)
-            clearInterval(battleTimerInterval);
-            let timeLeft = phase === 'main' ? 30 : 10;
-            
-            document.getElementById('battle-timer').innerText = timeLeft;
-            battleTimerInterval = setInterval(() => {
-                timeLeft--;
-                document.getElementById('battle-timer').innerText = timeLeft;
-                if(timeLeft <= 0) {
-                    clearInterval(battleTimerInterval);
-                    // إذا أنا "المضيف" للمعركة (p1) أقوم بنقل الحالة لانتهاء الوقت
-                    if(myId === battleData.p1) handleBattleTimeout();
-                }
-            }, 1000);
-
-            // عرض الخيارات
             const optsDiv = document.getElementById('battle-options');
             optsDiv.innerHTML = '';
             
             if (myTurn) {
-                // لقد أجبت بالفعل، انتظر النتيجة أو الخصم
                 resMsg.classList.remove('hidden');
                 if(myTurn.correct) {
                     resMsg.innerHTML = '<span class="text-green-400 font-bold">إجابتك صحيحة! بانتظار الانتقال...</span>';
@@ -1219,7 +1223,6 @@
                 }
             } else {
                 resMsg.classList.add('hidden');
-                // خلط الخيارات
                 let optionsObj = q.options.map((opt, i) => ({ text: opt, originalIndex: i }));
                 optionsObj = shuffleArray(optionsObj);
                 
@@ -1237,45 +1240,34 @@
             const isCorrect = (selectedIdx === correctIdx);
             const phase = battleData.phase;
             
-            // استخدام transaction لتجنب تضارب النقاط
             battlesRef.child(battleId).transaction(current => {
                 if(!current) return;
-                
-                // إذا تغيرت المرحلة أو السؤال أثناء الضغط
                 if (current.phase !== phase) return;
-                if (current.turn_data && current.turn_data[myId]) return; // أجبت مسبقاً
+                if (current.turn_data && current.turn_data[myId]) return;
 
                 if (!current.turn_data) current.turn_data = {};
                 current.turn_data[myId] = { correct: isCorrect, timestamp: Date.now() };
                 
-                // منطق احتساب النقاط
                 if (phase === 'main') {
                     if (isCorrect) {
                         current.scores[myId] += 10;
-                        // الأسرع والصحيح ينهي السؤال
                         current.trigger_next = true; 
                     } else {
                         current.scores[myId] -= 10;
-                        // خطأ، ننتقل للفرصة الثانية للخصم
                         current.trigger_phase_change = true;
                     }
                 } else {
-                    // فرصة ثانية
                     if (isCorrect) {
                         current.scores[myId] += 10;
                     } 
-                    // في الفرصة الثانية سواء صح أو خطأ ننتقل للتالي
                     current.trigger_next = true;
                 }
-
                 return current;
             }, (error, committed, snapshot) => {
                 if(committed) {
                     const val = snapshot.val();
-                    if(val.trigger_next) {
-                        // التأكد من استدعاء الانتقال للسؤال التالي
-                         setTimeout(() => nextBattleQuestion(battleId), 1500); 
-                    } else if (val.trigger_phase_change) {
+                    // trigger_next يتم التعامل معه في handleBattleUpdate
+                     if (val.trigger_phase_change) {
                          battlesRef.child(battleId).update({
                              phase: 'second_chance',
                              turn_start_time: firebase.database.ServerValue.TIMESTAMP
@@ -1285,30 +1277,18 @@
             });
         }
 
-        function handleBattleTimeout() {
-            // انتهى الوقت
-            nextBattleQuestion(battleId);
-        }
-
         function nextBattleQuestion(bId) {
-            // الانتقال للسؤال التالي (يقوم به شخص واحد عادة P1)
             battlesRef.child(bId).transaction(data => {
                 if(!data) return;
                 
-                // إذا تم الانتقال بالفعل (من قبل اللاعب الآخر مثلاً) لا نفعل شيئاً
-                // ولكن للتبسيط سنقوم بزيادة العداد فقط
-                
-                // نزيد العداد فقط إذا لم يكتمل الانتقال بعد
                 if (data.trigger_next === true || data.phase === 'second_chance' || data.phase === 'main') {
-                    // منطق الانتقال
                     data.current_q_index = (data.current_q_index || 0) + 1;
                     data.phase = 'main';
-                    data.turn_data = {}; // تصفير الإجابات
+                    data.turn_data = {}; 
                     data.turn_start_time = firebase.database.ServerValue.TIMESTAMP;
                     data.trigger_next = null;
                     data.trigger_phase_change = null;
                     
-                    // التحقق من نهاية الأسئلة
                     if(data.questions && data.current_q_index >= data.questions.length) {
                         data.state = 'ended';
                     }
@@ -1346,22 +1326,12 @@
             }
         }
 
-        function exitBattle() {
-            if(confirm('هل أنت متأكد من الانسحاب؟ ستخسر الجولة.')) {
-                // إنهاء المعركة
-                battlesRef.child(battleId).update({ state: 'ended' });
-                returnToLobby();
-            }
-        }
-
         function returnToLobby() {
-            // تنظيف
             if(battleId) battlesRef.child(battleId).off();
             document.getElementById('screen-battle').classList.add('hidden');
             document.getElementById('screen-battle-end').classList.add('hidden');
             document.getElementById('screen-visitor-lobby').classList.remove('hidden');
             
-            // إعادة الحالة لـ waiting
             visitorsRef.child(myId).update({
                 status: 'waiting',
                 current_battle: null,
@@ -1371,7 +1341,6 @@
             battleId = null;
             battleData = null;
         }
-
     </script>
 </body>
 </html>
