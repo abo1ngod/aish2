@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بنك الأسئلة</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            direction: rtl;
+            padding: 15px;
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: clamp(1.5em, 5vw, 2.5em);
+            margin-bottom: 10px;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        .nav-btn {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.9em;
+            flex: 1 1 auto;
+            min-width: 120px;
+        }
+
+        .nav-btn:hover {
+            background: #764ba2;
+        }
+
+        /* Card */
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: clamp(1.3em, 4vw, 1.8em);
+            color: #1f2937;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #667eea;
+            font-weight: bold;
+        }
+
+        /* Form */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #374151;
+            font-size: 1em;
+        }
+
+        input[type="text"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 1em;
+            font-family: inherit;
+        }
+
+        input[type="text"]:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        @media (min-width: 768px) {
+            .options-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+            width: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .btn-small {
+            padding: 8px 15px;
+            font-size: 0.9em;
+            width: auto;
+        }
+
+        /* Search and Filter */
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            flex: 1 1 200px;
+        }
+
+        .filter-box {
+            flex: 0 1 150px;
+        }
+
+        /* Questions List */
+        .questions-list {
+            display: grid;
+            gap: 15px;
+        }
+
+        .question-item {
+            background: #f9fafb;
+            padding: 20px;
+            border-radius: 12px;
+            border: 2px solid #e5e7eb;
+            transition: all 0.3s;
+        }
+
+        .question-item:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .question-text {
+            font-size: 1.1em;
+            color: #1f2937;
+            font-weight: bold;
+            flex: 1 1 300px;
+        }
+
+        .question-actions {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        .options-list {
+            margin: 15px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+        }
+
+        .option-item {
+            padding: 8px;
+            margin-bottom: 8px;
+            border-radius: 5px;
+            font-size: 0.95em;
+        }
+
+        .option-item.correct {
+            background: #d1fae5;
+            color: #065f46;
+            font-weight: bold;
+        }
+
+        .question-meta {
+            font-size: 0.85em;
+            color: #6b7280;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        /* Alert */
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-weight: bold;
+            display: none;
+        }
+
+        .alert.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 2px solid #10b981;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 2px solid #ef4444;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            padding: 15px;
+            overflow-y: auto;
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .modal-title {
+            font-size: 1.5em;
+            color: #1f2937;
+            font-weight: bold;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 2em;
+            cursor: pointer;
+            color: #6b7280;
+        }
+
+        .modal-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0;
+            }
+
+            .card {
+                padding: 15px;
+            }
+
+            .question-item {
+                padding: 15px;
+            }
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+
+        .badge-category {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .badge-difficulty {
+            background: #fef3c7;
+            color: #92400e;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>بنك الأسئلة</h1>
+            <div class="nav-buttons">
+                <button class="nav-btn" onclick="window.location.href='admin.html'">لوحة التحكم</button>
+                <button class="nav-btn" onclick="window.location.href='contestants.html'">إدارة المتسابقين</button>
+            </div>
+        </div>
+
+        <!-- Alerts -->
+        <div id="alertSuccess" class="alert alert-success"></div>
+        <div id="alertError" class="alert alert-error"></div>
+
+        <!-- Add Question Form -->
+        <div class="card">
+            <h2 class="card-title">إضافة سؤال جديد</h2>
+            <form id="questionForm">
+                <div class="form-group">
+                    <label>نص السؤال</label>
+                    <textarea id="questionText" placeholder="اكتب السؤال هنا..." required></textarea>
+                </div>
+
+                <div class="options-grid">
+                    <div class="form-group">
+                        <label>الخيار أ</label>
+                        <input type="text" id="optionA" placeholder="الخيار الأول" required>
+                    </div>
+                    <div class="form-group">
+                        <label>الخيار ب</label>
+                        <input type="text" id="optionB" placeholder="الخيار الثاني" required>
+                    </div>
+                    <div class="form-group">
+                        <label>الخيار ج</label>
+                        <input type="text" id="optionC" placeholder="الخيار الثالث" required>
+                    </div>
+                    <div class="form-group">
+                        <label>الخيار د</label>
+                        <input type="text" id="optionD" placeholder="الخيار الرابع" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>الإجابة الصحيحة</label>
+                    <select id="correctAnswer" required>
+                        <option value="">اختر الإجابة الصحيحة</option>
+                        <option value="A">أ</option>
+                        <option value="B">ب</option>
+                        <option value="C">ج</option>
+                        <option value="D">د</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>الفئة (اختياري)</label>
+                    <input type="text" id="category" placeholder="مثال: علوم، تاريخ، رياضيات">
+                </div>
+
+                <div class="form-group">
+                    <label>مستوى الصعوبة (اختياري)</label>
+                    <select id="difficulty">
+                        <option value="">غير محدد</option>
+                        <option value="سهل">سهل</option>
+                        <option value="متوسط">متوسط</option>
+                        <option value="صعب">صعب</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-success">إضافة السؤال</button>
+            </form>
+        </div>
+
+        <!-- Questions List -->
+        <div class="card">
+            <h2 class="card-title">قائمة الأسئلة</h2>
+            
+            <div class="controls">
+                <input type="text" id="searchBox" class="search-box" placeholder="بحث في الأسئلة...">
+                <select id="filterCategory" class="filter-box">
+                    <option value="">كل الفئات</option>
+                </select>
+                <select id="filterDifficulty" class="filter-box">
+                    <option value="">كل المستويات</option>
+                    <option value="سهل">سهل</option>
+                    <option value="متوسط">متوسط</option>
+                    <option value="صعب">صعب</option>
+                </select>
+            </div>
+
+            <div class="questions-list" id="questionsList">
+                <div style="text-align: center; padding: 40px; color: #6b7280;">
+                    جاري التحميل...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Question Modal -->
+    <div id="editQuestionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">تعديل السؤال</h3>
+                <button class="close-btn" onclick="closeModal('editQuestionModal')">&times;</button>
+            </div>
+            <form id="editQuestionForm">
+                <input type="hidden" id="editQuestionId">
+                
+                <div class="form-group">
+                    <label>نص السؤال</label>
+                    <textarea id="editQuestionText" required></textarea>
+                </div>
+
+                <div class="options-grid">
+                    <div class="form-group">
+                        <label>الخيار أ</label>
+                        <input type="text" id="editOptionA" required>
+                    </div>
+                    <div class="form-group">
+                        <label>الخيار ب</label>
+                        <input type="text" id="editOptionB" required>
+                    </div>
+                    <div class="form-group">
+                        <label>الخيار ج</label>
+                        <input type="text" id="editOptionC" required>
+                    </div>
+                    <div class="form-group">
+                        <label>الخيار د</label>
+                        <input type="text" id="editOptionD" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>الإجابة الصحيحة</label>
+                    <select id="editCorrectAnswer" required>
+                        <option value="A">أ</option>
+                        <option value="B">ب</option>
+                        <option value="C">ج</option>
+                        <option value="D">د</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>الفئة</label>
+                    <input type="text" id="editCategory">
+                </div>
+
+                <div class="form-group">
+                    <label>مستوى الصعوبة</label>
+                    <select id="editDifficulty">
+                        <option value="">غير محدد</option>
+                        <option value="سهل">سهل</option>
+                        <option value="متوسط">متوسط</option>
+                        <option value="صعب">صعب</option>
+                    </select>
+                </div>
+
+                <div class="modal-buttons">
+                    <button type="button" class="btn btn-danger" onclick="closeModal('editQuestionModal')">إلغاء</button>
+                    <button type="submit" class="btn btn-success">حفظ التعديلات</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBxPO6RKsQ1Cq-mqlCpFTrCuIyxnYdB37U",
+            authDomain: "studentsystem-c1ab1.firebaseapp.com",
+            databaseURL: "https://studentsystem-c1ab1-default-rtdb.firebaseio.com",
+            projectId: "studentsystem-c1ab1",
+            storageBucket: "studentsystem-c1ab1.firebasestorage.app",
+            messagingSenderId: "112215023848",
+            appId: "1:112215023848:web:0adba326a527ee7e37e95d"
+        };
+        
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        
+        const db = firebase.database();
+        const rootRef = db.ref('vo_001');
+        
+        let questionsData = {};
+        let categories = new Set();
+
+        // Alerts
+        function showAlert(type, message) {
+            const alertEl = type === 'success' ? document.getElementById('alertSuccess') : document.getElementById('alertError');
+            alertEl.textContent = message;
+            alertEl.classList.add('show');
+            setTimeout(() => alertEl.classList.remove('show'), 3000);
+        }
+
+        // Modal
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+        }
+
+        // Add Question
+        document.getElementById('questionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const questionData = {
+                text: document.getElementById('questionText').value.trim(),
+                options: {
+                    A: document.getElementById('optionA').value.trim(),
+                    B: document.getElementById('optionB').value.trim(),
+                    C: document.getElementById('optionC').value.trim(),
+                    D: document.getElementById('optionD').value.trim()
+                },
+                correctAnswer: document.getElementById('correctAnswer').value,
+                category: document.getElementById('category').value.trim() || 'عام',
+                difficulty: document.getElementById('difficulty').value || 'غير محدد',
+                createdAt: firebase.database.ServerValue.TIMESTAMP
+            };
+            
+            const questionId = 'q_' + Date.now();
+            
+            try {
+                await rootRef.child(`questions/${questionId}`).set(questionData);
+                showAlert('success', 'تم إضافة السؤال بنجاح');
+                document.getElementById('questionForm').reset();
+            } catch (error) {
+                showAlert('error', 'خطأ: ' + error.message);
+            }
+        });
+
+        // Load Questions
+        rootRef.child('questions').on('value', (snapshot) => {
+            questionsData = snapshot.val() || {};
+            updateQuestionsList();
+            updateCategoriesFilter();
+        });
+
+        function updateQuestionsList() {
+            const container = document.getElementById('questionsList');
+            const searchTerm = document.getElementById('searchBox').value.toLowerCase();
+            const filterCategory = document.getElementById('filterCategory').value;
+            const filterDifficulty = document.getElementById('filterDifficulty').value;
+            
+            container.innerHTML = '';
+            
+            let filtered = Object.entries(questionsData);
+            
+            // Apply filters
+            if (filterCategory) {
+                filtered = filtered.filter(([id, q]) => q.category === filterCategory);
+            }
+            
+            if (filterDifficulty) {
+                filtered = filtered.filter(([id, q]) => q.difficulty === filterDifficulty);
+            }
+            
+            if (searchTerm) {
+                filtered = filtered.filter(([id, q]) => 
+                    q.text.toLowerCase().includes(searchTerm) ||
+                    Object.values(q.options).some(opt => opt.toLowerCase().includes(searchTerm))
+                );
+            }
+            
+            if (filtered.length === 0) {
+                container.innerHTML = '<div style="text-align: center; padding: 40px; color: #6b7280;">لا توجد أسئلة</div>';
+                return;
+            }
+            
+            // Sort by creation date (newest first)
+            filtered.sort((a, b) => (b[1].createdAt || 0) - (a[1].createdAt || 0));
+            
+            filtered.forEach(([questionId, question]) => {
+                const questionItem = document.createElement('div');
+                questionItem.className = 'question-item';
+                
+                questionItem.innerHTML = `
+                    <div class="question-header">
+                        <div class="question-text">${question.text}</div>
+                        <div class="question-actions">
+                            <button class="btn btn-primary btn-small" onclick="publishQuestion('${questionId}')">نشر</button>
+                            <button class="btn btn-warning btn-small" onclick="editQuestion('${questionId}')">تعديل</button>
+                            <button class="btn btn-danger btn-small" onclick="deleteQuestion('${questionId}')">حذف</button>
+                        </div>
+                    </div>
+                    
+                    <div class="options-list">
+                        ${Object.entries(question.options).map(([key, value]) => `
+                            <div class="option-item ${key === question.correctAnswer ? 'correct' : ''}">
+                                ${key}. ${value} ${key === question.correctAnswer ? '✓' : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                    
+                    <div class="question-meta">
+                        <span class="badge badge-category">${question.category || 'عام'}</span>
+                        ${question.difficulty ? `<span class="badge badge-difficulty">${question.difficulty}</span>` : ''}
+                    </div>
+                `;
+                
+                container.appendChild(questionItem);
+            });
+        }
+
+        function updateCategoriesFilter() {
+            categories.clear();
+            Object.values(questionsData).forEach(q => {
+                if (q.category) categories.add(q.category);
+            });
+            
+            const select = document.getElementById('filterCategory');
+            const currentValue = select.value;
+            select.innerHTML = '<option value="">كل الفئات</option>';
+            
+            Array.from(categories).sort().forEach(cat => {
+                const option = document.createElement('option');
+                option.value = cat;
+                option.textContent = cat;
+                select.appendChild(option);
+            });
+            
+            select.value = currentValue;
+        }
+
+        // Search and Filter
+        document.getElementById('searchBox').addEventListener('input', updateQuestionsList);
+        document.getElementById('filterCategory').addEventListener('change', updateQuestionsList);
+        document.getElementById('filterDifficulty').addEventListener('change', updateQuestionsList);
+
+        // Publish Question to Active Round
+        async function publishQuestion(questionId) {
+            const question = questionsData[questionId];
+            
+            try {
+                const activeRoundSnapshot = await rootRef.child('rounds/active').once('value');
+                const activeRoundId = activeRoundSnapshot.val();
+                
+                if (!activeRoundId) {
+                    showAlert('error', 'لا توجد جولة نشطة. يرجى بدء جولة أولاً');
+                    return;
+                }
+                
+                const questionData = {
+                    id: questionId,
+                    text: question.text,
+                    options: question.options,
+                    correctAnswer: question.correctAnswer,
+                    status: 'open',
+                    publishedAt: firebase.database.ServerValue.TIMESTAMP
+                };
+                
+                await rootRef.child(`rounds/${activeRoundId}/currentQuestion`).set(questionData);
+                showAlert('success', 'تم نشر السؤال في الجولة النشطة');
+            } catch (error) {
+                showAlert('error', 'خطأ: ' + error.message);
+            }
+        }
+
+        // Edit Question
+        function editQuestion(questionId) {
+            const question = questionsData[questionId];
+            
+            document.getElementById('editQuestionId').value = questionId;
+            document.getElementById('editQuestionText').value = question.text;
+            document.getElementById('editOptionA').value = question.options.A;
+            document.getElementById('editOptionB').value = question.options.B;
+            document.getElementById('editOptionC').value = question.options.C;
+            document.getElementById('editOptionD').value = question.options.D;
+            document.getElementById('editCorrectAnswer').value = question.correctAnswer;
+            document.getElementById('editCategory').value = question.category || '';
+            document.getElementById('editDifficulty').value = question.difficulty || '';
+            
+            document.getElementById('editQuestionModal').classList.add('show');
+        }
+
+        document.getElementById('editQuestionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const questionId = document.getElementById('editQuestionId').value;
+            
+            const questionData = {
+                text: document.getElementById('editQuestionText').value.trim(),
+                options: {
+                    A: document.getElementById('editOptionA').value.trim(),
+                    B: document.getElementById('editOptionB').value.trim(),
+                    C: document.getElementById('editOptionC').value.trim(),
+                    D: document.getElementById('editOptionD').value.trim()
+                },
+                correctAnswer: document.getElementById('editCorrectAnswer').value,
+                category: document.getElementById('editCategory').value.trim() || 'عام',
+                difficulty: document.getElementById('editDifficulty').value || 'غير محدد'
+            };
+            
+            try {
+                await rootRef.child(`questions/${questionId}`).update(questionData);
+                showAlert('success', 'تم تحديث السؤال بنجاح');
+                closeModal('editQuestionModal');
+            } catch (error) {
+                showAlert('error', 'خطأ: ' + error.message);
+            }
+        });
+
+        // Delete Question
+        async function deleteQuestion(questionId) {
+            if (confirm('هل أنت متأكد من حذف هذا السؤال؟')) {
+                try {
+                    await rootRef.child(`questions/${questionId}`).remove();
+                    showAlert('success', 'تم حذف السؤال بنجاح');
+                } catch (error) {
+                    showAlert('error', 'خطأ: ' + error.message);
+                }
+            }
+        }
+    </script>
+</body>
+</html>

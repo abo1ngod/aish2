@@ -16,26 +16,26 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             direction: rtl;
+            padding: 15px;
         }
 
         .container {
             max-width: 1400px;
             margin: 0 auto;
-            padding: 20px;
         }
 
         /* Header */
         .header {
             background: white;
-            padding: 30px;
+            padding: 20px;
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
 
         .header h1 {
             color: #667eea;
-            font-size: 2.5em;
+            font-size: clamp(1.5em, 5vw, 2.5em);
             margin-bottom: 10px;
         }
 
@@ -79,21 +79,29 @@
         /* Grid Layout */
         .dashboard-grid {
             display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 30px;
-            margin-bottom: 30px;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        @media (min-width: 1024px) {
+            .dashboard-grid {
+                grid-template-columns: 2fr 1fr;
+                gap: 30px;
+                margin-bottom: 30px;
+            }
         }
 
         /* Card Styles */
         .card {
             background: white;
             border-radius: 15px;
-            padding: 30px;
+            padding: 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
 
         .card-title {
-            font-size: 1.8em;
+            font-size: clamp(1.3em, 4vw, 1.8em);
             color: #1f2937;
             margin-bottom: 20px;
             padding-bottom: 15px;
@@ -140,8 +148,14 @@
 
         .options-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr;
             gap: 15px;
+        }
+
+        @media (min-width: 768px) {
+            .options-grid {
+                grid-template-columns: 1fr 1fr;
+            }
         }
 
         /* Buttons */
@@ -204,33 +218,32 @@
         }
 
         /* Teams Table */
+        .table-container {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
         .teams-table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
+            min-width: 600px;
         }
 
         .teams-table th,
         .teams-table td {
-            padding: 15px;
+            padding: 12px;
             text-align: center;
             border-bottom: 2px solid #e5e7eb;
+            font-size: 0.95em;
         }
 
-        .teams-table th {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            font-size: 1.1em;
-        }
-
-        .teams-table tr:hover {
-            background: #f3f4f6;
-        }
-
-        .score-value {
-            font-size: 1.5em;
-            font-weight: bold;
-            color: #667eea;
+        @media (max-width: 768px) {
+            .teams-table th,
+            .teams-table td {
+                padding: 8px;
+                font-size: 0.85em;
+            }
         }
 
         /* Players List */
@@ -284,9 +297,15 @@
         /* Control Buttons Section */
         .controls-section {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: 1fr;
             gap: 15px;
             margin-top: 20px;
+        }
+
+        @media (min-width: 768px) {
+            .controls-section {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            }
         }
 
         /* Alerts */
@@ -326,21 +345,29 @@
             border: 2px solid #ef4444;
         }
 
-        /* Responsive */
-        @media (max-width: 1024px) {
-            .dashboard-grid {
-                grid-template-columns: 1fr;
-            }
+        /* Navigation Buttons */
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 15px;
         }
 
-        @media (max-width: 768px) {
-            .options-grid {
-                grid-template-columns: 1fr;
-            }
+        .nav-btn {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.9em;
+            flex: 1 1 auto;
+            min-width: 120px;
+        }
 
-            .controls-section {
-                grid-template-columns: 1fr;
-            }
+        .nav-btn:hover {
+            background: #764ba2;
         }
     </style>
 </head>
@@ -349,6 +376,10 @@
         <!-- Header -->
         <div class="header">
             <h1>لوحة التحكم - إدارة المسابقة</h1>
+            <div class="nav-buttons">
+                <button class="nav-btn" onclick="window.location.href='contestants.html'">إدارة المتسابقين</button>
+                <button class="nav-btn" onclick="window.location.href='questions-bank.html'">بنك الأسئلة</button>
+            </div>
             <div class="round-status">
                 <div class="round-info">
                     <span>الجولة الحالية: </span>
@@ -433,21 +464,23 @@
         <!-- Teams Scoreboard -->
         <div class="card">
             <h2 class="card-title">لوحة نقاط الفرق</h2>
-            <table class="teams-table" id="teamsTable">
-                <thead>
-                    <tr>
-                        <th>الترتيب</th>
-                        <th>اسم الفريق</th>
-                        <th>النقاط</th>
-                        <th>عدد اللاعبين</th>
-                    </tr>
-                </thead>
-                <tbody id="teamsTableBody">
-                    <tr>
-                        <td colspan="4">لا توجد بيانات</td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="table-container">
+                <table class="teams-table" id="teamsTable">
+                    <thead>
+                        <tr>
+                            <th>الترتيب</th>
+                            <th>اسم الفريق</th>
+                            <th>النقاط</th>
+                            <th>عدد اللاعبين</th>
+                        </tr>
+                    </thead>
+                    <tbody id="teamsTableBody">
+                        <tr>
+                            <td colspan="4">لا توجد بيانات</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <!-- Online Players -->
