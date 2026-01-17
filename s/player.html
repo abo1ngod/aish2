@@ -1616,6 +1616,22 @@
                 if (remaining <= 0) {
                     clearInterval(questionTimerInterval);
                     questionTimerInterval = null;
+
+                    // Time expired without answering - show message and go to waiting
+                    if (!hasAnswered) {
+                        if (sounds.playWrong) sounds.playWrong();
+                        showResultOverlay(
+                            'warning',
+                            'انتهى الوقت!',
+                            'لم تتمكن من الإجابة في الوقت المحدد',
+                            '0'
+                        );
+                        setTimeout(() => {
+                            hideResultOverlay();
+                            showScreen('waitingScreen');
+                            renderOtherTeams();
+                        }, 2000);
+                    }
                 }
             }, 100);
         }
