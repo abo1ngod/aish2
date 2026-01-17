@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+    <!-- اخر حديث مع الاحصاءات -->
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -938,7 +939,270 @@
 
         /* Hide screens */
         #home-screen { display: block; }
-        #game-screen, #results-screen, #leaderboard-screen { display: none; }
+        #game-screen, #results-screen, #leaderboard-screen, #stats-screen { display: none; }
+
+        /* General Statistics Styles */
+        .last-joined-card {
+            background: linear-gradient(135deg, rgba(26, 95, 74, 0.4), rgba(212, 175, 55, 0.2));
+            border: 2px solid var(--primary);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .last-joined-title {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+
+        .last-joined-title i {
+            color: var(--secondary);
+            margin-left: 8px;
+        }
+
+        .last-joined-list {
+            margin-top: 10px;
+        }
+
+        .last-joined-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            background: rgba(26, 95, 74, 0.2);
+            border-radius: 10px;
+            margin-bottom: 8px;
+        }
+
+        .last-joined-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .last-joined-item .name {
+            color: var(--secondary);
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .last-joined-item .datetime {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .last-joined-item .datetime i {
+            font-size: 0.75rem;
+        }
+
+        .last-joined-empty {
+            color: var(--text-muted);
+            text-align: center;
+            padding: 15px;
+        }
+
+        /* Multi-select Dropdown */
+        .multi-select-container {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .multi-select-header {
+            background: rgba(26, 95, 74, 0.3);
+            border: 2px solid var(--primary);
+            border-radius: 12px;
+            padding: 15px 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+        }
+
+        .multi-select-header:hover {
+            border-color: var(--secondary);
+        }
+
+        .multi-select-header span {
+            color: var(--text-light);
+        }
+
+        .multi-select-header i {
+            color: var(--secondary);
+            transition: transform 0.3s;
+        }
+
+        .multi-select-header.open i {
+            transform: rotate(180deg);
+        }
+
+        .multi-select-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--bg-card);
+            border: 2px solid var(--primary);
+            border-radius: 12px;
+            margin-top: 5px;
+            z-index: 100;
+            max-height: 300px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .multi-select-dropdown.show {
+            display: block;
+        }
+
+        .search-box {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .search-box i {
+            color: var(--text-muted);
+        }
+
+        .search-box input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-light);
+            font-size: 1rem;
+            font-family: 'Tajawal', sans-serif;
+            outline: none;
+        }
+
+        .search-box input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .select-all-row {
+            padding: 10px 15px;
+            border-bottom: 1px solid var(--primary);
+            background: rgba(26, 95, 74, 0.2);
+        }
+
+        .select-all-row label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            color: var(--secondary);
+            font-weight: 600;
+        }
+
+        .students-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .student-item {
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .student-item:hover {
+            background: rgba(26, 95, 74, 0.3);
+        }
+
+        .student-item label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            flex: 1;
+            color: var(--text-light);
+        }
+
+        .student-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--secondary);
+        }
+
+        /* Stats Table */
+        .stats-table-container {
+            overflow-x: auto;
+        }
+
+        .stats-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: center;
+        }
+
+        .stats-table th {
+            background: var(--primary);
+            color: var(--secondary);
+            padding: 15px 10px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .stats-table td {
+            padding: 12px 10px;
+            border-bottom: 1px solid rgba(26, 95, 74, 0.3);
+            color: var(--text-light);
+        }
+
+        .stats-table tbody tr:hover {
+            background: rgba(26, 95, 74, 0.2);
+        }
+
+        .stats-table .student-name-cell {
+            text-align: right;
+            font-weight: 500;
+        }
+
+        .stats-table .points-positive {
+            color: var(--success);
+            font-weight: 700;
+        }
+
+        .stats-table .points-negative {
+            color: var(--danger);
+            font-weight: 700;
+        }
+
+        .stats-table .points-zero {
+            color: var(--text-muted);
+        }
+
+        .no-data-message {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+        }
+
+        .no-data-message i {
+            font-size: 3rem;
+            color: var(--primary);
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        @media (max-width: 600px) {
+            .stats-table th, .stats-table td {
+                padding: 10px 6px;
+                font-size: 0.85rem;
+            }
+            .last-joined-name {
+                font-size: 1.2rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1003,6 +1267,11 @@
                     <i class="fas fa-medal"></i>
                     <h3>لوحة المتصدرين</h3>
                     <p>شاهد أفضل النتائج</p>
+                </div>
+                <div class="menu-card" onclick="showGeneralStats()">
+                    <i class="fas fa-chart-bar"></i>
+                    <h3>الإحصاءات العامة</h3>
+                    <p>عرض إحصائيات الطلاب</p>
                 </div>
             </div>
         </div>
@@ -1075,6 +1344,62 @@
             <div class="leaderboard">
                 <h3><i class="fas fa-crown"></i> لوحة المتصدرين</h3>
                 <div id="leaderboard-list"></div>
+            </div>
+            <div class="btn-container" style="margin-top: 25px;">
+                <button class="btn" onclick="goHome()">
+                    <i class="fas fa-arrow-right"></i> العودة
+                </button>
+            </div>
+        </div>
+
+        <!-- General Statistics Screen -->
+        <div id="stats-screen" class="game-screen">
+            <div class="leaderboard">
+                <h3><i class="fas fa-chart-bar"></i> الإحصاءات العامة</h3>
+
+                <!-- آخر من انضم -->
+                <div class="last-joined-card" id="last-joined-card">
+                    <div class="last-joined-title"><i class="fas fa-user-plus"></i> آخر من انضم إلى المسابقة</div>
+                    <div class="last-joined-list" id="last-joined-list">-</div>
+                </div>
+
+                <!-- Multi-select Dropdown -->
+                <div class="multi-select-container">
+                    <div class="multi-select-header" onclick="toggleMultiSelect()">
+                        <span id="selected-count">اختر الطلاب للعرض (الكل)</span>
+                        <i class="fas fa-chevron-down" id="dropdown-arrow"></i>
+                    </div>
+                    <div class="multi-select-dropdown" id="multi-select-dropdown">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="student-search" placeholder="ابحث عن طالب..." oninput="filterStudents()">
+                        </div>
+                        <div class="select-all-row">
+                            <label>
+                                <input type="checkbox" id="select-all-checkbox" onchange="toggleSelectAll()">
+                                <span>تحديد الكل</span>
+                            </label>
+                        </div>
+                        <div class="students-list" id="students-list"></div>
+                    </div>
+                </div>
+
+                <!-- Stats Table -->
+                <div class="stats-table-container">
+                    <table class="stats-table" id="stats-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>اسم الطالب</th>
+                                <th><i class="fas fa-question-circle"></i> الأسئلة</th>
+                                <th><i class="fas fa-check" style="color: var(--success);"></i> صحيحة</th>
+                                <th><i class="fas fa-times" style="color: var(--danger);"></i> خاطئة</th>
+                                <th><i class="fas fa-star" style="color: var(--secondary);"></i> النقاط</th>
+                            </tr>
+                        </thead>
+                        <tbody id="stats-table-body"></tbody>
+                    </table>
+                </div>
             </div>
             <div class="btn-container" style="margin-top: 25px;">
                 <button class="btn" onclick="goHome()">
@@ -1321,7 +1646,7 @@
             // ورقة عمل الدرس (15)
             { unit: 15, type: "mcq", question: "شبه الله \"الكلمة الطيبة\" في الآيات بـ:", options: ["شجرة طيبة أصلها ثابت", "شجرة خبيثة اجتثت", "جبل راسخ"], correct: 0 },
             { unit: 15, type: "mcq", question: "المقصود بـ (دار البوار) التي أحل الكفار قومهم فيها:", options: ["الدنيا", "جهنم", "القبر"], correct: 1 },
-            { unit: 15, type: "mcq", question: "(لَئِن شَكَرْتُمْ لَأَزِيدَنَّكُمْ) تدل على أن الشكر سبب لـ:", options: ["بقاء النعمة وزيادتها", "زوال النعمة", "ثبات النعمة دون زيادة"], correct: 0 },
+            { unit: 15, type: "mcq", question: "(لَئِن شَكَرْتُمْ لَأَزِيدَنَّكُمْ) تدل على أن الشكر سب�� لـ:", options: ["بقاء النعمة وزيادتها", "زوال النعمة", "ثبات النعمة دون زيادة"], correct: 0 },
             { unit: 15, type: "tf", question: "الكلمة الخبيثة (الكفر) لها أصل ثابت في الأرض كالجبال.", correct: false },
             { unit: 15, type: "tf", question: "تثبيت الله للمؤمنين يكون في الدنيا فقط دون الآخرة.", correct: false },
             { unit: 15, type: "tf", question: "كفر النعم وجحودها سبب لزوالها وحلول العذاب.", correct: true },
@@ -1536,6 +1861,8 @@
                 usersDB[id].totalScore = 0;
                 usersDB[id].gamesPlayed = 0;
                 usersDB[id].maxStreak = 0;
+                usersDB[id].correctAnswers = 0;
+                usersDB[id].wrongAnswers = 0;
                 saveUserToFirebase(usersDB[id]);
                 if (currentUser && currentUser.id === id) {
                     loadUserStats();
@@ -1653,6 +1980,8 @@
                 totalScore: 0,
                 gamesPlayed: 0,
                 maxStreak: 0,
+                correctAnswers: 0,
+                wrongAnswers: 0,
                 registeredAt: new Date().toISOString()
             };
             saveUserToFirebase(usersDB[id]);
@@ -1703,6 +2032,17 @@
                 currentUser.totalScore = gameState.totalScore;
                 currentUser.gamesPlayed = gameState.gamesPlayed;
                 currentUser.maxStreak = gameState.maxStreak;
+                currentUser.correctAnswers = currentUser.correctAnswers || 0;
+                currentUser.wrongAnswers = currentUser.wrongAnswers || 0;
+                usersDB[currentUser.id] = currentUser;
+                saveUserToFirebase(currentUser);
+            }
+        }
+
+        function saveGameAnswers(correct, wrong) {
+            if (currentUser) {
+                currentUser.correctAnswers = (currentUser.correctAnswers || 0) + correct;
+                currentUser.wrongAnswers = (currentUser.wrongAnswers || 0) + wrong;
                 usersDB[currentUser.id] = currentUser;
                 saveUserToFirebase(currentUser);
             }
@@ -2010,6 +2350,8 @@
             gameState.gamesPlayed++;
             gameState.totalScore += gameState.score;
 
+            // Save correct and wrong answers for this game session
+            saveGameAnswers(gameState.correctAnswers, gameState.wrongAnswers);
             saveUserStats();
 
             const percentage = Math.round((gameState.correctAnswers / gameState.currentQuestions.length) * 100);
@@ -2157,6 +2499,248 @@
                 </div>
             `;
             document.body.appendChild(modal);
+        }
+
+        // ========== General Statistics Functions ==========
+        let selectedStudents = new Set();
+        let allStudentsSorted = [];
+
+        function showGeneralStats() {
+            populateStudentsList();
+            updateLastJoined();
+            updateStatsTable();
+            showScreen('stats-screen');
+        }
+
+        function updateLastJoined() {
+            const users = Object.values(usersDB);
+            const container = document.getElementById('last-joined-list');
+
+            if (users.length === 0) {
+                container.innerHTML = '<div class="last-joined-empty">لا يوجد مسجلين بعد</div>';
+                return;
+            }
+
+            // Sort by registration date descending
+            const sortedByDate = users.filter(u => u.registeredAt).sort((a, b) => {
+                return new Date(b.registeredAt) - new Date(a.registeredAt);
+            });
+
+            if (sortedByDate.length === 0) {
+                container.innerHTML = '<div class="last-joined-empty">لا تتوفر بيانات التسجيل</div>';
+                return;
+            }
+
+            // Get last 5 users
+            const lastFive = sortedByDate.slice(0, 5);
+
+            container.innerHTML = lastFive.map(user => {
+                const date = new Date(user.registeredAt);
+                const formattedDate = formatArabicDateTime(date);
+                return `
+                    <div class="last-joined-item">
+                        <span class="name">${user.name}</span>
+                        <span class="datetime">
+                            <i class="fas fa-calendar-alt"></i>
+                            ${formattedDate}
+                        </span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function formatArabicDateTime(date) {
+            const day = date.getDate();
+            const month = date.getMonth() + 1;
+            const year = date.getFullYear();
+            const hours = date.getHours();
+            const minutes = date.getMinutes().toString().padStart(2, '0');
+            const period = hours >= 12 ? 'م' : 'ص';
+            const hour12 = hours % 12 || 12;
+
+            return `${day}/${month}/${year} - ${hour12}:${minutes} ${period}`;
+        }
+
+        function populateStudentsList() {
+            const users = Object.values(usersDB);
+            // Sort alphabetically by name
+            allStudentsSorted = users.sort((a, b) => a.name.localeCompare(b.name, 'ar'));
+
+            // Initialize: select all students by default
+            if (selectedStudents.size === 0 && allStudentsSorted.length > 0) {
+                allStudentsSorted.forEach(u => selectedStudents.add(u.id));
+            }
+
+            renderStudentsList(allStudentsSorted);
+            updateSelectAllCheckbox();
+            updateSelectedCount();
+        }
+
+        function renderStudentsList(students) {
+            const container = document.getElementById('students-list');
+            if (students.length === 0) {
+                container.innerHTML = '<div class="no-data-message" style="padding: 20px;">لا يوجد طلاب</div>';
+                return;
+            }
+            container.innerHTML = students.map(student => `
+                <div class="student-item">
+                    <label>
+                        <input type="checkbox" value="${student.id}"
+                            ${selectedStudents.has(student.id) ? 'checked' : ''}
+                            onchange="toggleStudent('${student.id}')">
+                        <span>${student.name}</span>
+                    </label>
+                </div>
+            `).join('');
+        }
+
+        function toggleMultiSelect() {
+            const dropdown = document.getElementById('multi-select-dropdown');
+            const header = document.querySelector('.multi-select-header');
+            dropdown.classList.toggle('show');
+            header.classList.toggle('open');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            const container = document.querySelector('.multi-select-container');
+            if (container && !container.contains(e.target)) {
+                document.getElementById('multi-select-dropdown').classList.remove('show');
+                document.querySelector('.multi-select-header').classList.remove('open');
+            }
+        });
+
+        function filterStudents() {
+            const searchTerm = document.getElementById('student-search').value.toLowerCase().trim();
+            const filtered = allStudentsSorted.filter(s => s.name.toLowerCase().includes(searchTerm));
+            renderStudentsList(filtered);
+        }
+
+        function toggleStudent(studentId) {
+            if (selectedStudents.has(studentId)) {
+                selectedStudents.delete(studentId);
+            } else {
+                selectedStudents.add(studentId);
+            }
+            updateSelectAllCheckbox();
+            updateSelectedCount();
+            updateStatsTable();
+        }
+
+        function toggleSelectAll() {
+            const selectAllCheckbox = document.getElementById('select-all-checkbox');
+            if (selectAllCheckbox.checked) {
+                allStudentsSorted.forEach(s => selectedStudents.add(s.id));
+            } else {
+                selectedStudents.clear();
+            }
+            renderStudentsList(allStudentsSorted);
+            updateSelectedCount();
+            updateStatsTable();
+        }
+
+        function updateSelectAllCheckbox() {
+            const selectAllCheckbox = document.getElementById('select-all-checkbox');
+            if (allStudentsSorted.length === 0) {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = false;
+            } else if (selectedStudents.size === allStudentsSorted.length) {
+                selectAllCheckbox.checked = true;
+                selectAllCheckbox.indeterminate = false;
+            } else if (selectedStudents.size === 0) {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = false;
+            } else {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = true;
+            }
+        }
+
+        function updateSelectedCount() {
+            const countEl = document.getElementById('selected-count');
+            if (selectedStudents.size === 0) {
+                countEl.textContent = 'اختر الطلاب للعرض';
+            } else if (selectedStudents.size === allStudentsSorted.length) {
+                countEl.textContent = 'اختر الطلاب للعرض (الكل)';
+            } else {
+                countEl.textContent = `تم تحديد ${selectedStudents.size} طالب`;
+            }
+        }
+
+        function updateStatsTable() {
+            const tbody = document.getElementById('stats-table-body');
+            const users = Object.values(usersDB);
+
+            if (users.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6">
+                            <div class="no-data-message">
+                                <i class="fas fa-users-slash"></i>
+                                لا يوجد طلاب مسجلين بعد
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            // Filter and sort selected students alphabetically
+            const selectedUsers = users
+                .filter(u => selectedStudents.has(u.id))
+                .sort((a, b) => a.name.localeCompare(b.name, 'ar'));
+
+            if (selectedUsers.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6">
+                            <div class="no-data-message">
+                                <i class="fas fa-filter"></i>
+                                اختر طلاباً من القائمة لعرض إحصائياتهم
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = selectedUsers.map((user, index) => {
+                // Check if user has answer tracking data
+                const hasAnswerData = user.correctAnswers !== undefined || user.wrongAnswers !== undefined;
+                const correctAnswers = user.correctAnswers || 0;
+                const wrongAnswers = user.wrongAnswers || 0;
+                const totalQuestions = correctAnswers + wrongAnswers;
+                // Points: +1 for correct, -1 for wrong
+                const netPoints = correctAnswers - wrongAnswers;
+
+                // If user played games but has no answer data (old user before tracking)
+                if (user.gamesPlayed > 0 && !hasAnswerData) {
+                    return `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td class="student-name-cell">${user.name}</td>
+                            <td colspan="4" style="color: var(--text-muted); text-align: center; font-size: 0.85rem;">
+                                <i class="fas fa-clock"></i> تبدأ الإحصائيات من الجولة القادمة
+                            </td>
+                        </tr>
+                    `;
+                }
+
+                let pointsClass = 'points-zero';
+                if (netPoints > 0) pointsClass = 'points-positive';
+                else if (netPoints < 0) pointsClass = 'points-negative';
+
+                return `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td class="student-name-cell">${user.name}</td>
+                        <td>${totalQuestions}</td>
+                        <td style="color: var(--success);">${correctAnswers}</td>
+                        <td style="color: var(--danger);">${wrongAnswers}</td>
+                        <td class="${pointsClass}">${netPoints > 0 ? '+' : ''}${netPoints}</td>
+                    </tr>
+                `;
+            }).join('');
         }
 
         // تشغيل التطبيق
