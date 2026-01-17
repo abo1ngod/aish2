@@ -1074,12 +1074,20 @@
             const AudioContext = window.AudioContext || window.webkitAudioContext;
             if (!AudioContext) return;
 
-            const audioCtx = new AudioContext();
-            sounds.audioCtx = audioCtx;
+            // Create AudioContext lazily on first user interaction
+            function ensureAudioContext() {
+                if (!sounds.audioCtx) {
+                    sounds.audioCtx = new AudioContext();
+                }
+                if (sounds.audioCtx.state === 'suspended') {
+                    sounds.audioCtx.resume();
+                }
+                return sounds.audioCtx;
+            }
 
             sounds.playCorrect = () => {
-                if (!sounds.audioCtx) return;
-                const ctx = sounds.audioCtx;
+                const ctx = ensureAudioContext();
+                if (!ctx) return;
                 const osc = ctx.createOscillator();
                 const gain = ctx.createGain();
                 osc.connect(gain);
@@ -1094,8 +1102,8 @@
             };
 
             sounds.playWrong = () => {
-                if (!sounds.audioCtx) return;
-                const ctx = sounds.audioCtx;
+                const ctx = ensureAudioContext();
+                if (!ctx) return;
                 const osc = ctx.createOscillator();
                 const gain = ctx.createGain();
                 osc.connect(gain);
@@ -1109,8 +1117,8 @@
             };
 
             sounds.playBuzzer = () => {
-                if (!sounds.audioCtx) return;
-                const ctx = sounds.audioCtx;
+                const ctx = ensureAudioContext();
+                if (!ctx) return;
                 const osc = ctx.createOscillator();
                 const gain = ctx.createGain();
                 osc.connect(gain);
@@ -1123,8 +1131,8 @@
             };
 
             sounds.playFanfare = () => {
-                if (!sounds.audioCtx) return;
-                const ctx = sounds.audioCtx;
+                const ctx = ensureAudioContext();
+                if (!ctx) return;
                 const notes = [523.25, 659.25, 783.99, 1046.50];
                 notes.forEach((freq, i) => {
                     const osc = ctx.createOscillator();
@@ -1506,7 +1514,15 @@
         function renderPreviousRoundsHTML(rounds) {
             return rounds.map(([id, round]) => {
                 const teams = round.teams || [];
-                const teamsArray = Array.isArray(teams) ? teams : Object.values(teams);
+                let teamsArray;
+                if (Array.isArray(teams)) {
+                    teamsArray = teams;
+                } else {
+                    teamsArray = Object.entries(teams).map(([teamId, team]) => ({
+                        ...team,
+                        id: teamId
+                    }));
+                }
                 const players = round.players || {};
                 const playersArray = Object.values(players);
 
