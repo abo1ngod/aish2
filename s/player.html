@@ -1497,22 +1497,24 @@
             } else if (question.status === 'secondChance') {
                 // Check if player's team is excluded
                 const isMyTeamExcluded = playerData && playerData.teamId === question.excludedTeamId;
+                const excludedPlayerName = question.excludedPlayerName || question.lockedByName || 'متسابق';
+                const excludedTeamName = question.excludedTeamName || question.lockedByTeamName || 'فريق';
 
                 if (isMyTeamExcluded) {
-                    // My team is excluded - show waiting message
+                    // My team is excluded - show message that our teammate answered wrong
                     showResultOverlay(
                         'danger',
-                        'إجابة فريقكم خاطئة!',
-                        'تم خصم 10 نقاط - انتظروا السؤال التالي',
+                        'إجابة خاطئة!',
+                        `المتسابق ${excludedPlayerName} من فريقكم إجابته خاطئة وتم خصم 10 نقاط`,
                         '-10',
                         true
                     );
                 } else if (!hasAnswered) {
-                    // Second chance for other teams!
+                    // Second chance for other teams - show message about wrong answer and chance
                     showResultOverlay(
                         'warning',
-                        `${question.lockedByTeamName} أجاب خطأ!`,
-                        'فرصتك الآن! أجب بسرعة',
+                        'فرصتكم الآن!',
+                        `المتسابق ${excludedPlayerName} من فريق ${excludedTeamName} إجابته خاطئة وتم خصم 10 نقاط\nالآن فرصتكم للإجابة خلال 10 ثوان`,
                         '',
                         false,
                         question.secondChanceEndsAt
@@ -1532,20 +1534,27 @@
                 showTimeoutResult(question);
 
             } else if (question.status === 'revealed' || question.status === 'answered') {
-                // Show correct answer and go to scores
-                if (question.lastAnswerCorrect && question.lastAnswerBy) {
+                // Show correct answer and go to waiting
+                if (question.lastAnswerCorrect && question.lastAnswerBy && question.lastAnswerBy !== playerCivilId) {
+                    const answerPlayerName = question.lastAnswerByName || 'متسابق';
+                    const answerTeamName = question.lastAnswerTeamName || 'فريق';
                     showResultOverlay(
                         'success',
-                        `${question.lastAnswerTeamName} أجاب صحيحاً!`,
-                        'حصل على 10 نقاط',
+                        'إجابة صحيحة!',
+                        `المتسابق ${answerPlayerName} من فريق ${answerTeamName} إجابته صحيحة وتم رصد 10 نقاط`,
                         '+10'
                     );
-                }
-                setTimeout(() => {
+                    setTimeout(() => {
+                        hideResultOverlay();
+                        showScreen('waitingScreen');
+                        renderOtherTeams();
+                    }, 3000);
+                } else if (!question.lastAnswerCorrect) {
+                    // No correct answer - just go to waiting
                     hideResultOverlay();
                     showScreen('waitingScreen');
                     renderOtherTeams();
-                }, 2500);
+                }
             }
         }
 
@@ -1721,33 +1730,48 @@
                             status: 'answered',
                             lastAnswerCorrect: true,
                             lastAnswerBy: playerCivilId,
+                            lastAnswerByName: playerData.name,
                             lastAnswerTeamName: playerData.teamName
                         });
 
+                        // Show message for 3 seconds then go to waiting
                         showResultOverlay(
                             'success',
                             'إجابة صحيحة!',
-                            'أحسنت! حصلت على 10 نقاط',
+                            `المتسابق ${playerData.name} من فريق ${playerData.teamName} إجابته صحيحة وتم رصد 10 نقاط`,
                             '+10'
                         );
+                        setTimeout(() => {
+                            hideResultOverlay();
+                            showScreen('waitingScreen');
+                            renderOtherTeams();
+                        }, 3000);
                     } else {
                         if (isSecondChance) {
-                            // Wrong in second chance - no deduction
+                            // Wrong in second chance - no deduction, go to waiting
                             showResultOverlay(
                                 'danger',
                                 'إجابة خاطئة!',
                                 'لا يوجد خصم في الفرصة الثانية',
                                 '0'
                             );
+                            setTimeout(() => {
+                                hideResultOverlay();
+                                showScreen('waitingScreen');
+                                renderOtherTeams();
+                            }, 3000);
                         } else {
                             // Wrong first answer - start second chance
                             await questionRef.update({
                                 status: 'secondChance',
                                 excludedPlayer: playerCivilId,
+                                excludedPlayerName: playerData.name,
                                 excludedTeamId: playerData.teamId,
+                                excludedTeamName: playerData.teamName,
                                 secondChanceEndsAt: Date.now() + 10000,
                                 lastAnswerCorrect: false,
                                 lastAnswerBy: playerCivilId,
+                                lastAnswerByName: playerData.name,
                                 lastAnswerTeamName: playerData.teamName
                             });
                         }
