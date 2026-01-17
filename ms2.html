@@ -157,8 +157,9 @@
                 <div id="battle-result-msg" class="hidden text-center mt-4 p-4 rounded-xl bg-slate-800/50 border border-slate-700 animate-pop"></div>
             </div>
 
-            <div class="p-4 bg-slate-800">
-                <button onclick="exitBattle()" class="w-full bg-red-600/20 text-red-400 border border-red-600/50 p-3 rounded-xl font-bold text-sm">انسحاب من المعركة</button>
+            <div class="p-4 bg-slate-800 flex gap-2">
+                <button onclick="forceEndRound()" class="flex-1 bg-yellow-600/20 text-yellow-400 border border-yellow-600/50 p-3 rounded-xl font-bold text-sm">إنهاء الجولة 🏁</button>
+                <button onclick="exitBattle()" class="flex-1 bg-red-600/20 text-red-400 border border-red-600/50 p-3 rounded-xl font-bold text-sm">انسحاب</button>
             </div>
         </div>
 
@@ -431,17 +432,14 @@
                     myId = savedVisitorId;
                     myName = savedVisitorName;
                     
-                    // التحقق من وجود الزائر
-                    visitorsRef.child(myId).once('value').then(snap => {
-                        if(snap.exists()) {
-                            document.getElementById('screen-login').classList.add('hidden');
-                            document.getElementById('screen-visitor-lobby').classList.remove('hidden');
-                            initVisitorLobby();
-                        } else {
-                            localStorage.removeItem('visitor_code');
-                            localStorage.removeItem('visitor_id');
-                            localStorage.removeItem('visitor_name');
-                        }
+                    // نقوم بتحديث بيانات الزائر في قاعدة البيانات للتأكد من وجوده
+                    visitorsRef.child(myId).update({
+                        name: myName,
+                        status: 'waiting'
+                    }).then(() => {
+                        document.getElementById('screen-login').classList.add('hidden');
+                        document.getElementById('screen-visitor-lobby').classList.remove('hidden');
+                        initVisitorLobby();
                     });
                 }
             }
@@ -995,8 +993,7 @@
                 document.getElementById('screen-visitor-lobby').classList.remove('hidden');
                 initVisitorLobby();
                 
-                // عند الإغلاق أو الخروج
-                visitorsRef.child(myId).onDisconnect().remove();
+                // تمت إزالة onDisconnect ليحتفظ بدخوله حتى الخروج اليدوي
             });
         }
 
@@ -1093,10 +1090,14 @@
             // خلط واختيار 5 أسئلة مثلاً للجولة
             allQuestions = shuffleArray(allQuestions);
             
+            // التأكد من أن الأسئلة مهيأة بشكل صحيح كمصفوفة
+            // نأخذ أول 10 أسئلة كحد أقصى للجولة
+            const selectedQuestions = allQuestions.slice(0, 10);
+            
             const battleInitData = {
                 p1: opponentId,
                 p2: myId,
-                questions: allQuestions,
+                questions: selectedQuestions,
                 current_q_index: 0,
                 scores: { [opponentId]: 0, [myId]: 0 },
                 state: 'active', // active, ended
@@ -1162,11 +1163,11 @@
             }
 
             // عرض السؤال الحالي
-            const q = battleData.questions[battleData.current_q_index];
-            if(q) {
+            if (battleData.questions && battleData.questions[battleData.current_q_index]) {
+                const q = battleData.questions[battleData.current_q_index];
                 renderBattleQuestion(q, battleData.phase);
             } else {
-                // انتهت الأسئلة
+                // انتهت الأسئلة - نتأكد من عدم وجود بيانات لأسئلة متبقية
                 battlesRef.child(battleId).update({ state: 'ended' });
             }
         }
@@ -1190,11 +1191,8 @@
             }
 
             // إدارة المؤقت (محلي تقريبي)
-            // نحتاج لحساب الوقت المتبقي بناء على وقت السيرفر
-            // للتبسيط سنعتمد العد التنازلي المحلي الذي يتجدد مع كل تحديث للحالة
             clearInterval(battleTimerInterval);
             let timeLeft = phase === 'main' ? 30 : 10;
-            // يمكن تحسين هذا بحساب الفرق بين Date.now() و battleData.turn_start_time
             
             document.getElementById('battle-timer').innerText = timeLeft;
             battleTimerInterval = setInterval(() => {
@@ -1275,12 +1273,12 @@
                 if(committed) {
                     const val = snapshot.val();
                     if(val.trigger_next) {
-                        setTimeout(() => nextBattleQuestion(battleId), 1500); // تأخير بسيط للرؤية
+                        // التأكد من استدعاء الانتقال للسؤال التالي
+                         setTimeout(() => nextBattleQuestion(battleId), 1500); 
                     } else if (val.trigger_phase_change) {
                          battlesRef.child(battleId).update({
                              phase: 'second_chance',
                              turn_start_time: firebase.database.ServerValue.TIMESTAMP
-                             // لا نمسح turn_data لنعرف أن الأول أخطأ
                          });
                     }
                 }
@@ -1289,31 +1287,40 @@
 
         function handleBattleTimeout() {
             // انتهى الوقت
-            if (battleData.phase === 'main') {
-                // ننتقل للسؤال التالي مباشرة
-                nextBattleQuestion(battleId);
-            } else {
-                nextBattleQuestion(battleId);
-            }
+            nextBattleQuestion(battleId);
         }
 
         function nextBattleQuestion(bId) {
             // الانتقال للسؤال التالي (يقوم به شخص واحد عادة P1)
             battlesRef.child(bId).transaction(data => {
                 if(!data) return;
-                data.current_q_index++;
-                data.phase = 'main';
-                data.turn_data = {}; // تصفير الإجابات
-                data.turn_start_time = firebase.database.ServerValue.TIMESTAMP;
-                data.trigger_next = null;
-                data.trigger_phase_change = null;
                 
-                // التحقق من نهاية الأسئلة
-                if(data.current_q_index >= data.questions.length) {
-                    data.state = 'ended';
+                // إذا تم الانتقال بالفعل (من قبل اللاعب الآخر مثلاً) لا نفعل شيئاً
+                // ولكن للتبسيط سنقوم بزيادة العداد فقط
+                
+                // نزيد العداد فقط إذا لم يكتمل الانتقال بعد
+                if (data.trigger_next === true || data.phase === 'second_chance' || data.phase === 'main') {
+                    // منطق الانتقال
+                    data.current_q_index = (data.current_q_index || 0) + 1;
+                    data.phase = 'main';
+                    data.turn_data = {}; // تصفير الإجابات
+                    data.turn_start_time = firebase.database.ServerValue.TIMESTAMP;
+                    data.trigger_next = null;
+                    data.trigger_phase_change = null;
+                    
+                    // التحقق من نهاية الأسئلة
+                    if(data.questions && data.current_q_index >= data.questions.length) {
+                        data.state = 'ended';
+                    }
                 }
                 return data;
             });
+        }
+
+        function forceEndRound() {
+            if(confirm('هل أنت متأكد من إنهاء الجولة للجميع؟')) {
+                battlesRef.child(battleId).update({ state: 'ended' });
+            }
         }
 
         function showBattleResult(myScore, opScore) {
