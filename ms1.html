@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>نظام المسابقات v6</title>
+    <title>نظام المسابقات v6 - AI Edition</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -23,21 +23,29 @@
         .scrolling-wrapper { overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; }
         .scrolling-wrapper::-webkit-scrollbar { display: none; }
         
-        /* تحسينات بصرية للأزرار */
+        /* Custom Scrollbar for better UX */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+        ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.4); }
+
         .btn-primary { @apply bg-blue-600 text-white shadow-lg hover:bg-blue-700 active:bg-blue-800 transition-all; }
         .btn-danger { @apply bg-red-600 text-white shadow hover:bg-red-700 active:bg-red-800 transition-all; }
         .btn-success { @apply bg-green-600 text-white shadow hover:bg-green-700 active:bg-green-800 transition-all; }
+        
+        /* تحسينات العرض للجوال */
+        .mobile-safe-h { min-height: 100vh; min-height: -webkit-fill-available; }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen text-gray-800 select-none overflow-hidden">
 
-    <div id="app" class="max-w-md mx-auto h-screen bg-white shadow-2xl relative overflow-y-auto">
+    <div id="app" class="max-w-md mx-auto h-screen bg-white shadow-2xl relative overflow-y-auto overflow-x-hidden mobile-safe-h">
         
         <!-- 1. شاشة الدخول -->
-        <div id="screen-login" class="flex flex-col h-full justify-center items-center p-6 space-y-8 bg-gradient-to-b from-blue-50 to-white">
+        <div id="screen-login" class="flex flex-col min-h-full justify-center items-center p-6 space-y-8 bg-gradient-to-b from-blue-50 to-white">
             <div class="text-center">
                 <h1 class="text-5xl font-black text-blue-600 mb-2">المسابقة 🚀</h1>
-                <p class="text-gray-500 text-sm">الإصدار السادس - المحسن</p>
+                <p class="text-gray-500 text-sm">الإصدار الذكي - AI</p>
             </div>
             
             <div id="login-loading" class="hidden text-gray-500 flex flex-col items-center animate-pulse">
@@ -57,7 +65,7 @@
                 <button onclick="joinGame('player')" class="w-full btn-primary p-4 rounded-xl text-xl font-bold mt-4">دخول كمتسابق 🏃‍♂️</button>
             </div>
 
-            <div class="grid grid-cols-2 gap-3 w-full pt-8 border-t border-gray-200">
+            <div class="grid grid-cols-2 gap-3 w-full pt-8 border-t border-gray-200 pb-8">
                 <button onclick="joinGame('admin')" class="bg-gray-800 text-white p-3 rounded-xl text-sm font-bold hover:bg-gray-900">لوحة المشرف 🛠</button>
                 <button onclick="joinGame('audience')" class="bg-indigo-600 text-white p-3 rounded-xl text-sm font-bold hover:bg-indigo-700">شاشة الجمهور 📺</button>
             </div>
@@ -66,7 +74,7 @@
         <!-- 2. شاشة المتسابق -->
         <div id="screen-player" class="hidden flex flex-col h-full relative bg-gray-50">
             <!-- الهيدر -->
-            <div class="bg-blue-600 text-white p-3 shadow-lg z-20 relative">
+            <div class="bg-blue-600 text-white p-3 shadow-lg z-20 relative sticky top-0">
                 <div class="flex justify-between items-center mb-2">
                     <div class="flex items-center gap-2">
                         <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-xl">👤</div>
@@ -83,7 +91,7 @@
             </div>
 
             <!-- شريط المتسابقين -->
-            <div class="bg-blue-800 text-white text-xs p-2 shadow-inner z-10 border-b border-blue-900">
+            <div class="bg-blue-800 text-white text-xs p-2 shadow-inner z-10 border-b border-blue-900 sticky top-[72px]">
                 <div class="flex items-center justify-between mb-1 opacity-90 px-1">
                     <span class="font-bold">🏆 ترتيب المتسابقين (مباشر):</span>
                     <span id="online-count" class="bg-green-500 text-white px-1 rounded text-[10px]">0 متصل</span>
@@ -92,21 +100,21 @@
             </div>
 
             <!-- منطقة اللعب -->
-            <div class="flex-1 p-4 flex flex-col justify-center pb-24 overflow-y-auto">
-                <div id="waiting-msg" class="text-center text-gray-400 animate-pulse flex flex-col items-center">
+            <div class="flex-1 p-4 flex flex-col justify-start pb-24 overflow-y-auto">
+                <div id="waiting-msg" class="text-center text-gray-400 animate-pulse flex flex-col items-center mt-10">
                     <div class="text-6xl mb-4 opacity-50">⏳</div>
                     <p class="text-2xl font-bold text-gray-600 mb-2">بانتظار السؤال التالي...</p>
                     <p class="text-sm">خليك جاهز وسريع!</p>
                 </div>
 
-                <div id="active-question-area" class="hidden space-y-4 w-full">
+                <div id="active-question-area" class="hidden space-y-4 w-full mt-2">
                     <div class="bg-white p-6 rounded-2xl border-b-4 border-blue-100 shadow-sm mb-4">
                         <p id="q-text" class="text-xl font-bold text-center leading-relaxed text-gray-800">...</p>
                     </div>
                     
                     <div id="feedback-area" class="hidden rounded-xl text-center text-sm mb-2 animate-pop border shadow-md overflow-hidden"></div>
                     
-                    <div id="options-container" class="space-y-3 w-full"></div>
+                    <div id="options-container" class="space-y-3 w-full pb-8"></div>
                 </div>
             </div>
             
@@ -120,10 +128,32 @@
         </div>
 
         <!-- 3. شاشة المشرف -->
-        <div id="screen-admin" class="hidden flex flex-col h-full p-4 bg-slate-900 text-white overflow-y-auto">
-            <h2 class="text-3xl font-black text-yellow-400 mb-6 text-center tracking-tight">لوحة التحكم 🎮</h2>
+        <div id="screen-admin" class="hidden flex flex-col min-h-full p-4 bg-slate-900 text-white overflow-y-auto pb-10">
+            <h2 class="text-3xl font-black text-yellow-400 mb-6 text-center tracking-tight sticky top-0 bg-slate-900 z-50 py-2 border-b border-slate-800">لوحة التحكم 🎮</h2>
             
-            <!-- قسم إدارة اللاعبين (محسن) -->
+            <!-- قسم التوليد بالذكاء الاصطناعي (جديد) -->
+            <div class="bg-gradient-to-br from-indigo-900 to-purple-900 p-5 rounded-2xl mb-6 border border-indigo-500/30 shadow-xl relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-20 h-20 bg-purple-500 blur-3xl opacity-20 pointer-events-none"></div>
+                <h3 class="font-bold text-lg text-indigo-300 mb-4 flex items-center gap-2">
+                    <span>✨</span> توليد أسئلة ذكية (Gemini)
+                </h3>
+                
+                <div class="space-y-3">
+                    <input id="ai-api-key" type="password" class="w-full bg-slate-800/80 text-white p-3 rounded-lg text-xs border border-indigo-500/30 focus:border-indigo-400 outline-none" placeholder="Gemini API Key يلصق هنا">
+                    
+                    <div class="flex gap-2">
+                        <input id="ai-topic" type="text" class="flex-[2] bg-slate-800/80 text-white p-3 rounded-lg text-sm border border-indigo-500/30 outline-none" placeholder="موضوع الأسئلة (مثال: فضاء)">
+                        <input id="ai-count" type="number" min="1" max="10" value="1" class="flex-1 bg-slate-800/80 text-white p-3 rounded-lg text-center font-bold border border-indigo-500/30 outline-none">
+                    </div>
+
+                    <button id="btn-ai-generate" onclick="generateAIQuestions()" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 p-3 rounded-xl font-bold text-sm shadow-lg border border-white/10 flex items-center justify-center gap-2 transition-all">
+                        <span>🤖</span> توليد وإضافة للبنك
+                    </button>
+                    <div id="ai-status" class="text-[10px] text-center text-indigo-200 mt-1 hidden">جاري التفكير والكتابة...</div>
+                </div>
+            </div>
+
+            <!-- قسم إدارة اللاعبين -->
             <div class="bg-slate-800 p-5 rounded-2xl mb-6 border border-slate-700 shadow-xl">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="font-bold text-lg text-blue-300">👥 إدارة المتسابقين</h3>
@@ -135,9 +165,8 @@
                     <div class="flex gap-2 items-center mb-2">
                         <span class="text-xs text-gray-400">العدد:</span>
                         <input id="admin-players-count" type="number" value="1" min="1" class="w-16 bg-slate-700 text-white p-2 rounded text-center font-bold border border-slate-600 focus:border-blue-500 outline-none">
-                        <button onclick="adminAddCodes()" class="flex-1 btn-success py-2 rounded-lg font-bold text-sm">➕ إضافة أكواد (بدون حذف)</button>
+                        <button onclick="adminAddCodes()" class="flex-1 btn-success py-2 rounded-lg font-bold text-sm">➕ إضافة أكواد</button>
                     </div>
-                    <p class="text-[10px] text-gray-400 text-center">اضغط "إضافة" لزيادة لاعبين جدد مع الاحتفاظ بالحاليين</p>
                 </div>
 
                 <div id="admin-codes-display" class="grid grid-cols-4 gap-2 text-center text-xs font-mono max-h-32 overflow-y-auto pr-1"></div>
@@ -148,9 +177,9 @@
                 </div>
             </div>
 
-            <!-- قسم الأسئلة -->
+            <!-- قسم الأسئلة اليدوي -->
             <div class="bg-slate-800 p-5 rounded-2xl mb-6 border border-slate-700 shadow-xl">
-                <h3 class="font-bold text-lg text-blue-300 mb-4">📝 بنك الأسئلة</h3>
+                <h3 class="font-bold text-lg text-blue-300 mb-4">📝 إضافة يدوية</h3>
                 <textarea id="admin-q-text" class="w-full bg-slate-700 text-white p-3 rounded-lg mb-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="نص السؤال هنا..."></textarea>
                 <div class="grid grid-cols-1 gap-2 mb-3">
                     <input id="admin-q-options" class="w-full bg-slate-700 text-white p-3 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="الخيارات: أ، ب، ج">
@@ -163,61 +192,62 @@
                 </div>
                 
                 <div class="flex justify-between items-center mb-2 px-1">
-                     <span class="text-xs text-gray-400">القائمة:</span>
+                     <span class="text-xs text-gray-400">بنك الأسئلة:</span>
                      <button onclick="adminResetBankStatus()" class="text-yellow-400 text-xs hover:text-yellow-300 underline">إعادة تفعيل الكل للنشر</button>
                 </div>
                 <div id="admin-bank-list" class="space-y-2 max-h-60 overflow-y-auto pr-1"></div>
             </div>
 
             <!-- المنطقة الخطرة -->
-            <div class="bg-red-900/30 p-4 rounded-xl border border-red-900/50 mt-auto">
+            <div class="bg-red-900/30 p-4 rounded-xl border border-red-900/50 mt-auto mb-4">
                  <h4 class="text-red-400 text-xs font-bold mb-2 uppercase tracking-wider">منطقة التحكم الحساسة</h4>
                  <div class="flex flex-col gap-2">
-                     <button onclick="adminResetRound()" class="w-full bg-slate-700 text-white p-3 rounded-lg font-bold hover:bg-slate-600 border border-slate-600">إخفاء السؤال الحالي (إيقاف)</button>
-                     <button onclick="adminGenerateCodes()" class="w-full bg-red-600 text-white p-3 rounded-lg font-bold hover:bg-red-500 shadow-lg border border-red-400">⚠️ إنهاء المسابقة وبدء جديدة (مسح الكل)</button>
+                     <button onclick="adminResetRound()" class="w-full bg-slate-700 text-white p-3 rounded-lg font-bold hover:bg-slate-600 border border-slate-600">إيقاف الجولة الحالية</button>
+                     <button onclick="adminGenerateCodes()" class="w-full bg-red-600 text-white p-3 rounded-lg font-bold hover:bg-red-500 shadow-lg border border-red-400">⚠️ تصفير شامل وبدء جديد</button>
                  </div>
             </div>
         </div>
 
         <!-- 4. شاشة الجمهور -->
-        <div id="screen-audience" class="hidden flex-col h-full bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white p-4 overflow-hidden font-tajawal">
-            <header class="text-center mb-6 flex justify-between items-center px-8">
-                <div class="text-left"><span class="text-sm opacity-50">نظام المسابقات</span></div>
-                <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500 drop-shadow-sm">🏆 المسابقة الكبرى</h1>
-                <div class="text-right"><span id="audience-clock" class="text-sm font-mono opacity-70">00:00</span></div>
+        <div id="screen-audience" class="hidden flex-col h-full bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white p-4 overflow-y-auto font-tajawal">
+            <header class="text-center mb-6 flex flex-col md:flex-row justify-between items-center px-2 md:px-8 gap-4">
+                <div class="text-left hidden md:block"><span class="text-sm opacity-50">نظام المسابقات</span></div>
+                <h1 class="text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500 drop-shadow-sm text-center">🏆 المسابقة الكبرى</h1>
+                <div class="text-right w-full md:w-auto text-center"><span id="audience-clock" class="text-sm font-mono opacity-70">00:00</span></div>
             </header>
             
-            <div class="flex-1 grid grid-cols-12 gap-6 h-full pb-6 px-4">
-                <!-- السجل -->
-                <div class="col-span-3 glass-panel rounded-3xl p-5 flex flex-col h-full overflow-hidden shadow-2xl">
+            <!-- تم تعديل الشبكة لتكون متجاوبة: عمود واحد على الجوال، وشبكة كاملة على الشاشات الأكبر -->
+            <div class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 h-auto pb-6 px-1 md:px-4">
+                <!-- السجل: يظهر في الأسفل على الجوال -->
+                <div class="order-3 lg:order-1 lg:col-span-3 glass-panel rounded-3xl p-5 flex flex-col h-64 lg:h-full overflow-hidden shadow-2xl">
                     <h3 class="font-bold text-blue-300 mb-4 border-b border-white/10 pb-2 text-center flex items-center justify-center gap-2">📜 سجل الأحداث</h3>
                     <div id="audience-history-list" class="space-y-3 overflow-y-auto flex-1 text-sm custom-scrollbar pr-2"></div>
                 </div>
                 
-                <!-- المنطقة الوسطى -->
-                <div class="col-span-6 flex flex-col justify-center items-center relative">
-                    <div id="audience-waiting" class="text-center animate-pulse">
+                <!-- المنطقة الوسطى: تظهر أولاً على الجوال -->
+                <div class="order-1 lg:order-2 lg:col-span-6 flex flex-col justify-start lg:justify-center items-center relative min-h-[300px]">
+                    <div id="audience-waiting" class="text-center animate-pulse mt-10 lg:mt-0">
                         <div class="text-8xl mb-6 opacity-80 filter drop-shadow-lg">⏳</div>
-                        <h2 class="text-3xl font-bold tracking-wide">بانتظار السؤال التالي...</h2>
+                        <h2 class="text-2xl md:text-3xl font-bold tracking-wide">بانتظار السؤال التالي...</h2>
                     </div>
                     
-                    <div id="audience-q-area" class="hidden w-full space-y-8 animate-pop z-10">
-                        <div class="bg-white/95 backdrop-blur-md text-slate-900 p-8 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] text-center border-t-8 border-yellow-400 relative">
-                            <div class="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-yellow-400 text-black font-bold px-6 py-1 rounded-full shadow-lg text-sm">سؤال جديد</div>
-                            <p id="audience-q-text" class="text-4xl font-black leading-relaxed mt-2">...</p>
+                    <div id="audience-q-area" class="hidden w-full space-y-4 md:space-y-8 animate-pop z-10">
+                        <div class="bg-white/95 backdrop-blur-md text-slate-900 p-4 md:p-8 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] text-center border-t-8 border-yellow-400 relative mt-8 lg:mt-0">
+                            <div class="absolute -top-5 left-1/2 transform -translate-x-1/2 bg-yellow-400 text-black font-bold px-6 py-1 rounded-full shadow-lg text-xs md:text-sm whitespace-nowrap">سؤال جديد</div>
+                            <p id="audience-q-text" class="text-2xl md:text-4xl font-black leading-relaxed mt-2">...</p>
                         </div>
-                        <div id="audience-options" class="grid grid-cols-2 gap-5 text-2xl font-bold"></div>
+                        <div id="audience-options" class="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-5 text-xl md:text-2xl font-bold"></div>
                     </div>
                     
                     <!-- النتيجة المنبثقة -->
                     <div id="audience-result-overlay" class="hidden absolute inset-0 flex items-center justify-center z-50 animate-pop">
                         <div class="absolute inset-0 bg-black/70 backdrop-blur-sm rounded-3xl"></div>
-                        <div id="audience-result-box" class="relative bg-white text-black p-10 rounded-3xl shadow-2xl text-center border-8 border-double min-w-[300px] transform scale-110"></div>
+                        <div id="audience-result-box" class="relative bg-white text-black p-6 md:p-10 rounded-3xl shadow-2xl text-center border-8 border-double min-w-[280px] md:min-w-[300px] transform scale-110 mx-4"></div>
                     </div>
                 </div>
                 
-                <!-- الترتيب -->
-                <div class="col-span-3 glass-panel rounded-3xl p-5 flex flex-col h-full overflow-hidden shadow-2xl">
+                <!-- الترتيب: يظهر ثانياً على الجوال -->
+                <div class="order-2 lg:order-3 lg:col-span-3 glass-panel rounded-3xl p-5 flex flex-col h-64 lg:h-full overflow-hidden shadow-2xl">
                     <h3 class="font-bold text-yellow-400 mb-4 border-b border-white/10 pb-2 text-center flex items-center justify-center gap-2">📊 الترتيب العام</h3>
                     <div id="audience-leaderboard" class="space-y-3 overflow-y-auto flex-1 pr-2 custom-scrollbar"></div>
                 </div>
@@ -238,7 +268,6 @@
         };
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        // **مهم:** تغيير مسار القاعدة لنسخة جديدة نظيفة تماماً
         const rootRef = db.ref('quiz_project_v6_clean'); 
 
         let myRole = '';
@@ -250,7 +279,6 @@
 
         // --- استرجاع الجلسة ---
         window.onload = function() {
-            // تحديث الساعة للجمهور
             setInterval(() => {
                 const now = new Date();
                 const time = now.toLocaleTimeString('ar-EG', {hour: '2-digit', minute:'2-digit'});
@@ -269,7 +297,6 @@
                         myName = snap.val().name;
                         joinGame('player', true); 
                     } else {
-                        // البيانات محذوفة من السيرفر (بسبب إعادة تعيين المشرف)
                         localStorage.removeItem('quiz_player_id');
                         document.getElementById('login-form').classList.remove('hidden');
                         document.getElementById('login-loading').classList.add('hidden');
@@ -286,20 +313,17 @@
                     const codeInput = document.getElementById('player-code-input').value.trim();
                     if(!nameInput || !codeInput) { alert('الرجاء كتابة الاسم وكود الاشتراك'); return; }
 
-                    // التحقق من الكود
                     rootRef.child('access_codes/' + codeInput).once('value').then(snapshot => {
                         if (snapshot.exists()) {
                             const data = snapshot.val();
                             if (data.status === 'waiting') {
-                                // الكود متاح وجديد
                                 myId = 'player_' + codeInput;
                                 myName = nameInput;
                                 enterGame(codeInput, nameInput);
                             } else if (data.status === 'taken') {
-                                // الكود مستخدم، هل هو لنفس الشخص؟ (إعادة دخول)
                                 if (confirm('هذا الكود مستخدم بالفعل باسم "' + data.taken_by + '". هل أنت هذا الشخص وتريد استكمال اللعب؟')) {
                                     myId = 'player_' + codeInput;
-                                    myName = nameInput; // أو نستخدم الاسم المسجل data.taken_by
+                                    myName = nameInput; 
                                     enterGame(codeInput, nameInput);
                                 } else {
                                     alert('يرجى طلب كود جديد من المشرف.');
@@ -318,8 +342,9 @@
                     document.getElementById('screen-admin').classList.remove('hidden');
                     initAdmin();
                 } else if (role === 'audience') {
-                    document.getElementById('app').classList.remove('max-w-md');
-                    document.getElementById('app').classList.add('w-full');
+                    const app = document.getElementById('app');
+                    app.classList.remove('max-w-md');
+                    app.classList.add('w-full', 'bg-slate-900'); 
                     document.getElementById('screen-audience').classList.remove('hidden');
                     document.getElementById('screen-audience').classList.add('flex');
                     initAudience();
@@ -329,7 +354,6 @@
 
         function enterGame(code, name) {
             localStorage.setItem('quiz_player_id', myId);
-            // تحديث حالة الكود
             rootRef.child('access_codes/' + code).update({ status: 'taken', taken_by: name });
             startPlayerView();
         }
@@ -343,12 +367,6 @@
         }
 
         function logoutPlayer() {
-            if(myId) {
-                // عند الخروج الطوعي، نحرر الكود ليستخدمه شخص آخر (اختياري)
-                // const code = myId.split('_')[1];
-                // rootRef.child('access_codes/' + code).update({ status: 'waiting', taken_by: null });
-                // لن نمسح اللاعب من قاعدة البيانات حتى لا تضيع نقاطه إذا عاد، فقط من الجهاز
-            }
             localStorage.removeItem('quiz_player_id');
             location.reload();
         }
@@ -356,7 +374,6 @@
         function initPlayer(name, id) {
             const playerRef = rootRef.child('players/' + id);
             
-            // مراقبة إذا قام المشرف بمسح المسابقة (إعادة تعيين)
             playerRef.on('value', snap => {
                 if (!snap.exists() && myRole === 'player') {
                     localStorage.removeItem('quiz_player_id');
@@ -365,16 +382,12 @@
                 }
             });
 
-            // تسجيل اللاعب
             playerRef.update({ name: name, online: true });
-            // عند انقطاع الاتصال
             playerRef.onDisconnect().update({ online: false }); 
 
-            // الاستماع للنقاط
             playerRef.child('score').on('value', snap => {
                 const score = snap.val() || 0;
                 const el = document.getElementById('p-score-display');
-                // تأثير بصري عند تغير النقاط
                 if(el.innerText != score) {
                     el.classList.add('scale-150', 'text-white');
                     setTimeout(() => el.classList.remove('scale-150', 'text-white'), 300);
@@ -382,9 +395,7 @@
                 el.innerText = score;
             });
 
-            // الاستماع لحالة اللعبة والأسئلة
             rootRef.child('game_state').on('value', handleGameStateChange);
-            // الاستماع للمتصدرين
             rootRef.child('players').on('value', updateMiniLeaderboard);
         }
 
@@ -408,7 +419,6 @@
             
             if(countEl) countEl.innerText = onlineCount + " متصل";
 
-            // الترتيب: النقاط الأكبر أولاً
             players.sort((a,b) => (parseInt(b.score) || 0) - (parseInt(a.score) || 0));
             
             container.innerHTML = players.map((p, i) => 
@@ -441,13 +451,11 @@
                 waitMsg.classList.add('hidden');
                 qArea.classList.remove('hidden');
                 
-                // إذا كان سؤالاً جديداً
                 if (!currentQuestionData || currentQuestionData.id !== state.question.id) {
                     currentQuestionData = state.question;
                     renderOptions(state.question);
                     updateStatus('active', '⚡️ سؤال جديد! أسرع بالإجابة');
                     feedbackArea.classList.add('hidden');
-                    // اهتزاز خفيف للهاتف
                     if(navigator.vibrate) navigator.vibrate(200);
                 }
 
@@ -505,7 +513,6 @@
 
         function handleOptionClick(selectedIndex) {
             if (isButtonsLocked) return;
-            // محاولة الحجز (الأسرع فقط)
             rootRef.child('game_state/buzzed_by').transaction((currentData) => {
                 return currentData === null ? myId : undefined;
             }, (error, committed) => {
@@ -617,12 +624,92 @@
             });
         }
 
-        // --- وظائف التوليد الآمنة ---
+        // --- وظائف التوليد بالذكاء الاصطناعي ---
+        async function generateAIQuestions() {
+            const apiKey = document.getElementById('ai-api-key').value.trim();
+            const topic = document.getElementById('ai-topic').value.trim();
+            const count = parseInt(document.getElementById('ai-count').value);
+            const statusDiv = document.getElementById('ai-status');
+            const btn = document.getElementById('btn-ai-generate');
+
+            if (!apiKey) return alert('الرجاء إدخال مفتاح Gemini API');
+            if (!topic) return alert('الرجاء إدخال الموضوع');
+            if (!count || count < 1) return alert('الرجاء إدخال عدد صحيح');
+
+            btn.disabled = true;
+            btn.classList.add('opacity-50', 'cursor-not-allowed');
+            statusDiv.classList.remove('hidden');
+            statusDiv.innerText = `جاري توليد ${count} أسئلة عن "${topic}"...`;
+
+            const prompt = `
+                أنت مساعد لإعداد المسابقات. قم بتوليد ${count} أسئلة اختيار من متعدد حول موضوع "${topic}".
+                المتطلبات:
+                1. اللغة: العربية.
+                2. الخيارات: 4 خيارات لكل سؤال.
+                3. التنسيق: مصفوفة JSON فقط تحتوي على كائنات.
+                4. هيكل الكائن: { "text": "نص السؤال", "options": ["خ1", "خ2", "خ3", "خ4"], "correctIndex": رقم_من_0_الى_3 }
+                5. ممنوع استخدام markdown block مثل \`\`\`json. فقط النص الخام للـ JSON.
+                6. الأسئلة يجب أن تكون متنوعة وصعبة قليلاً ومناسبة للمسابقات العامة.
+            `;
+
+            try {
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+                
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: prompt }] }]
+                    })
+                });
+
+                if (!response.ok) throw new Error('فشل الاتصال بـ Gemini API');
+
+                const data = await response.json();
+                let rawText = data.candidates[0].content.parts[0].text;
+                
+                // تنظيف النص في حال كان يحتوي على markdown
+                rawText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+                
+                const questions = JSON.parse(rawText);
+
+                if (!Array.isArray(questions)) throw new Error('تنسيق البيانات غير صحيح');
+
+                let addedCount = 0;
+                questions.forEach(q => {
+                    if (q.text && Array.isArray(q.options) && q.options.length === 4 && typeof q.correctIndex === 'number') {
+                        rootRef.child('question_bank').push({
+                            text: q.text,
+                            options: q.options,
+                            correctIndex: q.correctIndex,
+                            was_asked: false
+                        });
+                        addedCount++;
+                    }
+                });
+
+                statusDiv.innerText = `تمت إضافة ${addedCount} سؤال بنجاح! ✅`;
+                statusDiv.classList.replace('text-indigo-200', 'text-green-400');
+                
+                // مسح الحقول
+                document.getElementById('ai-topic').value = '';
+
+            } catch (error) {
+                console.error(error);
+                statusDiv.innerText = `حدث خطأ: ${error.message}`;
+                statusDiv.classList.replace('text-indigo-200', 'text-red-400');
+            } finally {
+                btn.disabled = false;
+                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                setTimeout(() => statusDiv.classList.add('hidden'), 5000);
+            }
+        }
+
+        // --- وظائف التوليد اليدوي ---
         function adminAddCodes() {
             const count = parseInt(document.getElementById('admin-players-count').value);
             if (!count || count <= 0) return alert('أدخل عدداً صحيحاً');
             
-            // قراءة الأكواد الحالية لتجنب التكرار
             rootRef.child('access_codes').once('value').then(snap => {
                 const existingCodes = snap.exists() ? Object.keys(snap.val()) : [];
                 const updates = {};
@@ -636,7 +723,6 @@
                     }
                 }
                 
-                // استخدام update بدلاً من set للحفاظ على القديم
                 rootRef.child('access_codes').update(updates);
             });
         }
@@ -647,13 +733,11 @@
             const count = parseInt(document.getElementById('admin-players-count').value);
             if (!count || count <= 0) return alert('أدخل عدداً صحيحاً');
             
-            // مسح شامل
             rootRef.child('access_codes').remove();
             rootRef.child('players').remove();
             rootRef.child('history_log').remove();
             rootRef.child('game_state').set({ status: 'waiting' });
             
-            // توليد جديد
             const updates = {};
             for(let i=0; i<count; i++) {
                 const code = Math.floor(1000 + Math.random() * 9000);
@@ -708,76 +792,6 @@
             });
         }
         function adminResetRound() { rootRef.child('game_state').update({ status: 'waiting', buzzed_by: null }); }
-
-        // --- الجمهور ---
-        function initAudience() {
-            rootRef.child('game_state').on('value', snap => {
-                const state = snap.val();
-                const qArea = document.getElementById('audience-q-area');
-                const waitingArea = document.getElementById('audience-waiting');
-                const overlay = document.getElementById('audience-result-overlay');
-                
-                if (state && state.status === 'active') {
-                    waitingArea.classList.add('hidden'); qArea.classList.remove('hidden');
-                    document.getElementById('audience-q-text').innerText = state.question.text;
-                    const optsDiv = document.getElementById('audience-options');
-                    optsDiv.innerHTML = state.question.options.map(o => `<div class="bg-indigo-50/10 backdrop-blur-sm p-6 rounded-2xl text-white border border-white/20 font-bold shadow-lg transform hover:scale-105 transition-all duration-300">${o}</div>`).join('');
-                } else {
-                    waitingArea.classList.remove('hidden'); qArea.classList.add('hidden');
-                }
-
-                if (state && state.last_result) {
-                    const r = state.last_result; overlay.classList.remove('hidden');
-                    const box = document.getElementById('audience-result-box');
-                    if (r.correct) {
-                        box.className = 'relative bg-white text-black p-10 rounded-3xl shadow-2xl text-center border-8 border-double border-green-500 min-w-[400px] transform scale-110';
-                        box.innerHTML = `<h2 class="text-5xl font-black text-green-600 mb-4 animate-bounce">إجابة صحيحة! 🎉</h2><p class="text-3xl mb-2">المتسابق: <b class="text-blue-600">${r.name}</b></p><div class="bg-green-100 inline-block px-4 py-1 rounded-full text-green-800 font-bold mt-2">+10 نقاط</div>`;
-                    } else {
-                        box.className = 'relative bg-white text-black p-10 rounded-3xl shadow-2xl text-center border-8 border-double border-red-500 min-w-[400px] transform scale-110';
-                        box.innerHTML = `<h2 class="text-5xl font-black text-red-600 mb-4">إجابة خاطئة ❌</h2><p class="text-3xl mb-2">المتسابق: <b class="text-blue-600">${r.name}</b></p><p class="text-xl mt-4 text-gray-500">الإجابة الصحيحة كانت:</p><p class="text-2xl font-bold text-green-600 mt-1">${r.correct_text}</p>`;
-                    }
-                    setTimeout(() => { overlay.classList.add('hidden'); }, 6000);
-                } else { overlay.classList.add('hidden'); }
-            });
-            
-            rootRef.child('players').on('value', snap => {
-                const board = document.getElementById('audience-leaderboard');
-                if (!snap.exists()) { board.innerHTML = ''; return; }
-                let players = [];
-                snap.forEach(c => players.push(c.val()));
-                players.sort((a,b) => (parseInt(b.score) || 0) - (parseInt(a.score) || 0));
-                
-                board.innerHTML = players.map((p, i) => 
-                    `<div class="flex justify-between items-center p-4 rounded-2xl mb-3 bg-white/5 border border-white/10 hover:bg-white/10 transition transform hover:translate-x-1 shadow-lg">
-                        <div class="flex items-center gap-4">
-                            <span class="flex items-center justify-center w-10 h-10 rounded-full shadow-lg text-xl ${i===0?'bg-gradient-to-br from-yellow-300 to-orange-500 text-black font-black ring-4 ring-yellow-400/30': i===1 ? 'bg-gray-300 text-gray-800 font-bold' : i===2 ? 'bg-orange-700 text-orange-200 font-bold' : 'bg-slate-700 text-white font-bold'}">${i+1}</span>
-                            <div>
-                                <span class="font-bold text-xl block">${p.name}</span>
-                                <span class="text-xs opacity-50 ${p.online ? 'text-green-400' : 'text-red-400'}">● ${p.online ? 'متصل' : 'غير متصل'}</span>
-                            </div>
-                        </div>
-                        <span class="font-mono bg-black/40 px-4 py-2 rounded-xl text-yellow-300 font-black text-2xl tracking-widest">${p.score || 0}</span>
-                    </div>`
-                ).join('');
-            });
-
-            rootRef.child('history_log').limitToLast(10).on('value', snap => {
-                const list = document.getElementById('audience-history-list'); list.innerHTML = '';
-                const items = []; snap.forEach(child => items.push(child.val()));
-                items.reverse().forEach(h => {
-                    const div = document.createElement('div');
-                    div.className = `p-3 rounded-xl mb-3 border-r-4 shadow-md backdrop-blur-sm transition hover:bg-white/5 ${h.correct ? 'bg-green-900/30 border-green-500' : 'bg-red-900/30 border-red-500'}`;
-                    div.innerHTML = `
-                        <div class="flex justify-between font-bold text-white mb-1">
-                            <span class="text-blue-300">${h.name}</span>
-                            <span class="${h.correct ? 'text-green-400' : 'text-red-400'}">${h.correct ? '+10' : '-10'}</span>
-                        </div>
-                        <div class="text-gray-400 text-xs truncate">${h.question_text}</div>
-                    `;
-                    list.appendChild(div);
-                });
-            });
-        }
     </script>
 </body>
 </html>
