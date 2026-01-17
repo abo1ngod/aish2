@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>واجهة اللاعب - المسابقة</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            direction: rtl;
+            overflow: hidden;
+        }
+
+        /* Screen Container */
+        .screen {
+            display: none;
+            min-height: 100vh;
+            padding: 20px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .screen.active {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Card Container */
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .card-large {
+            max-width: 900px;
+        }
+
+        .card-title {
+            font-size: 2.5em;
+            color: #1f2937;
+            text-align: center;
+            margin-bottom: 30px;
+            font-weight: bold;
+        }
+
+        .card-icon {
+            font-size: 5em;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #374151;
+            font-size: 1.2em;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 15px;
+            border: 3px solid #d1d5db;
+            border-radius: 12px;
+            font-size: 1.2em;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        /* Buttons */
+        .btn {
+            width: 100%;
+            padding: 18px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.3em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* Player Info Header */
+        .player-header {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .player-info-item {
+            text-align: center;
+        }
+
+        .player-info-label {
+            font-size: 0.9em;
+            color: #6b7280;
+            margin-bottom: 5px;
+        }
+
+        .player-info-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #1f2937;
+        }
+
+        .score-highlight {
+            color: #667eea;
+            font-size: 2em;
+        }
+
+        /* Teams List */
+        .teams-list {
+            display: grid;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .team-item {
+            background: #f9fafb;
+            padding: 20px;
+            border-radius: 12px;
+            border: 3px solid transparent;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .team-item.my-team {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+        }
+
+        .team-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #1f2937;
+        }
+
+        .team-score {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        /* Question Display */
+        .question-container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #e5e7eb;
+        }
+
+        .question-number {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #6b7280;
+        }
+
+        .timer {
+            font-size: 3em;
+            font-weight: bold;
+            color: #ef4444;
+            min-width: 100px;
+            text-align: center;
+        }
+
+        .timer.warning {
+            color: #f59e0b;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .question-text {
+            font-size: 1.8em;
+            color: #1f2937;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            text-align: center;
+            padding: 30px;
+            background: #f9fafb;
+            border-radius: 15px;
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Answer Options */
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .option-btn {
+            padding: 30px;
+            border: 4px solid #d1d5db;
+            border-radius: 15px;
+            background: white;
+            font-size: 1.3em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+            text-align: center;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            border-color: #667eea;
+            background: #eef2ff;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .option-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .option-btn.selected {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+        }
+
+        .option-btn.correct {
+            border-color: #10b981;
+            background: #10b981;
+            color: white;
+            animation: correctPulse 0.5s;
+        }
+
+        .option-btn.wrong {
+            border-color: #ef4444;
+            background: #ef4444;
+            color: white;
+            animation: shake 0.5s;
+        }
+
+        @keyframes correctPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        /* Result Overlay */
+        .result-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .result-overlay.show {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .result-card {
+            background: white;
+            padding: 50px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 500px;
+        }
+
+        .result-icon {
+            font-size: 6em;
+            margin-bottom: 20px;
+        }
+
+        .result-text {
+            font-size: 2em;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 20px;
+        }
+
+        .result-points {
+            font-size: 3em;
+            font-weight: bold;
+            margin-bottom: 30px;
+        }
+
+        .result-points.positive {
+            color: #10b981;
+        }
+
+        .result-points.negative {
+            color: #ef4444;
+        }
+
+        /* Second Chance Banner */
+        .second-chance-banner {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 20px;
+            animation: slideDown 0.5s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Message Box */
+        .message-box {
+            background: #dbeafe;
+            border: 3px solid #3b82f6;
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            font-size: 1.2em;
+            color: #1e40af;
+            margin-bottom: 20px;
+        }
+
+        .message-box.warning {
+            background: #fef3c7;
+            border-color: #f59e0b;
+            color: #92400e;
+        }
+
+        .message-box.error {
+            background: #fee2e2;
+            border-color: #ef4444;
+            color: #991b1b;
+        }
+
+        /* Spinner */
+        .spinner {
+            border: 8px solid #f3f4f6;
+            border-top: 8px solid #667eea;
+            border-radius: 50%;
+            width: 80px;
+            height: 80px;
+            animation: spin 1s linear infinite;
+            margin: 30px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .card {
+                padding: 25px;
+            }
+
+            .card-title {
+                font-size: 1.8em;
+            }
+
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .question-text {
+                font-size: 1.4em;
+            }
+
+            .player-header {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- LOGIN SCREEN -->
+    <div id="loginScreen" class="screen active">
+        <div class="card">
+            <div class="card-icon">🎯</div>
+            <h1 class="card-title">مسابقة المعرفة</h1>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label>الرقم المدني</label>
+                    <input type="text" id="civilIdInput" placeholder="أدخل رقمك المدني" required>
+                </div>
+                <button type="submit" class="btn btn-primary">دخول</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- NOT REGISTERED SCREEN -->
+    <div id="notRegisteredScreen" class="screen">
+        <div class="card">
+            <div class="card-icon">❌</div>
+            <h2 class="card-title">غير مسجل</h2>
+            <div class="message-box error">
+                عذراً، هذا الرقم المدني غير مسجل في المسابقة
+            </div>
+            <button class="btn btn-primary" onclick="showScreen('loginScreen')">العودة</button>
+        </div>
+    </div>
+
+    <!-- NOT IN ROUND SCREEN -->
+    <div id="notInRoundScreen" class="screen">
+        <div class="card">
+            <div class="card-icon">⏸️</div>
+            <h2 class="card-title">لا توجد جولة نشطة</h2>
+            <div class="message-box warning">
+                لا توجد جولة نشطة حالياً. يرجى الانتظار حتى يبدأ المشرف الجولة القادمة
+            </div>
+            <div class="spinner"></div>
+        </div>
+    </div>
+
+    <!-- WAITING APPROVAL SCREEN -->
+    <div id="waitingApprovalScreen" class="screen">
+        <div class="card">
+            <div class="card-icon">⏳</div>
+            <h2 class="card-title">انتظار الموافقة</h2>
+            <div class="message-box warning">
+                يوجد جهاز آخر مسجل دخول بهذا الحساب. يرجى الموافقة على الانتقال إلى هذا الجهاز
+            </div>
+            <div class="spinner"></div>
+        </div>
+    </div>
+
+    <!-- KICKED SCREEN -->
+    <div id="kickedScreen" class="screen">
+        <div class="card">
+            <div class="card-icon">🚫</div>
+            <h2 class="card-title">تم إيقاف الجلسة</h2>
+            <div class="message-box error">
+                تم تسجيل الدخول من جهاز آخر
+            </div>
+            <button class="btn btn-primary" onclick="location.reload()">إعادة المحاولة</button>
+        </div>
+    </div>
+
+    <!-- WAITING SCREEN -->
+    <div id="waitingScreen" class="screen">
+        <!-- Player Header -->
+        <div class="player-header">
+            <div class="player-info-item">
+                <div class="player-info-label">اللاعب</div>
+                <div class="player-info-value" id="playerNameDisplay">--</div>
+            </div>
+            <div class="player-info-item">
+                <div class="player-info-label">الفريق</div>
+                <div class="player-info-value" id="teamNameDisplay">--</div>
+            </div>
+            <div class="player-info-item">
+                <div class="player-info-label">نقاط الفريق</div>
+                <div class="player-info-value score-highlight" id="teamScoreDisplay">0</div>
+            </div>
+            <div class="player-info-item">
+                <div class="player-info-label">نقاطي</div>
+                <div class="player-info-value score-highlight" id="playerScoreDisplay">0</div>
+            </div>
+        </div>
+
+        <div class="card card-large">
+            <div class="card-icon">⏳</div>
+            <h2 class="card-title">في انتظار السؤال التالي...</h2>
+            
+            <h3 style="font-size: 1.5em; color: #1f2937; margin-bottom: 20px; text-align: center;">ترتيب الفرق</h3>
+            <div class="teams-list" id="teamsList">
+                <!-- Teams will be populated here -->
+            </div>
+            
+            <div class="spinner"></div>
+        </div>
+    </div>
+
+    <!-- QUESTION SCREEN -->
+    <div id="questionScreen" class="screen">
+        <!-- Player Header -->
+        <div class="player-header">
+            <div class="player-info-item">
+                <div class="player-info-label">اللاعب</div>
+                <div class="player-info-value" id="playerNameDisplay2">--</div>
+            </div>
+            <div class="player-info-item">
+                <div class="player-info-label">الفريق</div>
+                <div class="player-info-value" id="teamNameDisplay2">--</div>
+            </div>
+            <div class="player-info-item">
+                <div class="player-info-label">نقاط الفريق</div>
+                <div class="player-info-value score-highlight" id="teamScoreDisplay2">0</div>
+            </div>
+            <div class="player-info-item">
+                <div class="player-info-label">نقاطي</div>
+                <div class="player-info-value score-highlight" id="playerScoreDisplay2">0</div>
+            </div>
+        </div>
+
+        <!-- Second Chance Banner -->
+        <div id="secondChanceBanner" class="second-chance-banner" style="display: none;">
+            ⚡ فرصة ثانية! الفريق الآخر أخطأ في الإجابة
+        </div>
+
+        <div class="question-container">
+            <div class="question-header">
+                <div class="question-number" id="questionNumber">السؤال #1</div>
+                <div class="timer" id="timer">30</div>
+            </div>
+            
+            <div class="question-text" id="questionText">
+                نص السؤال سيظهر هنا...
+            </div>
+
+            <div class="options-grid" id="optionsGrid">
+                <button class="option-btn" data-option="A">أ</button>
+                <button class="option-btn" data-option="B">ب</button>
+                <button class="option-btn" data-option="C">ج</button>
+                <button class="option-btn" data-option="D">د</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FINAL SCREEN -->
+    <div id="finalScreen" class="screen">
+        <div class="card card-large">
+            <div class="card-icon">🏆</div>
+            <h2 class="card-title">انتهت الجولة!</h2>
+            
+            <h3 style="font-size: 1.8em; color: #1f2937; margin-bottom: 25px; text-align: center;">النتائج النهائية</h3>
+            <div class="teams-list" id="finalTeamsList">
+                <!-- Final teams results -->
+            </div>
+
+            <div style="margin-top: 30px; padding: 25px; background: #eef2ff; border-radius: 15px; text-align: center;">
+                <div style="font-size: 1.2em; color: #6b7280; margin-bottom: 10px;">نقاطك النهائية</div>
+                <div style="font-size: 3em; font-weight: bold; color: #667eea;" id="finalPlayerScore">0</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Result Overlay -->
+    <div id="resultOverlay" class="result-overlay">
+        <div class="result-card">
+            <div class="result-icon" id="resultIcon">✅</div>
+            <div class="result-text" id="resultText">إجابة صحيحة!</div>
+            <div class="result-points" id="resultPoints">+10</div>
+        </div>
+    </div>
+
+    <!-- إضافة Firebase SDK والتكوين -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script>
+        // ============================================
+        // FIREBASE CONFIGURATION
+        // ============================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyBxPO6RKsQ1Cq-mqlCpFTrCuIyxnYdB37U",
+            authDomain: "studentsystem-c1ab1.firebaseapp.com",
+            databaseURL: "https://studentsystem-c1ab1-default-rtdb.firebaseio.com",
+            projectId: "studentsystem-c1ab1",
+            storageBucket: "studentsystem-c1ab1.firebasestorage.app",
+            messagingSenderId: "112215023848",
+            appId: "1:112215023848:web:0adba326a527ee7e37e95d"
+        };
+        
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        
+        const db = firebase.database();
+        const rootRef = db.ref('vo_001');
+
+        // ============================================
+        // GLOBAL STATE
+        // ============================================
+        let currentRoundId = null;
+        let playerCivilId = null;
+        let sessionId = null;
+        let currentQuestion = null;
+        let hasAnswered = false;
+        let teamsData = {};
+        let playersData = {};
+        let playerData = null;
+        let timerInterval = null;
+        let questionNumber = 0;
+
+        // ============================================
+        // SOUND EFFECTS (PLACEHOLDER)
+        // ============================================
+        function playCorrectSound() {
+            console.log('🔊 Playing correct answer sound');
+            // TODO: Add actual sound playing logic
+        }
+
+        function playWrongSound() {
+            console.log('🔊 Playing wrong answer sound');
+            // TODO: Add actual sound playing logic
+        }
+
+        function playBuzzerSound() {
+            console.log('🔊 Playing buzzer sound');
+            // TODO: Add actual sound playing logic
+        }
+
+        // ============================================
+        // SCREEN MANAGEMENT
+        // ============================================
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        // ============================================
+        // LOGIN FLOW
+        // ============================================
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const civilId = document.getElementById('civilIdInput').value.trim();
+            
+            if (!civilId) return;
+            
+            playerCivilId = civilId;
+            await validatePlayer(civilId);
+        });
+
+        async function validatePlayer(civilId) {
+            try {
+                // Check if player exists in contestants
+                const contestantSnapshot = await rootRef.child(`contestants/${civilId}`).once('value');
+                
+                if (!contestantSnapshot.exists()) {
+                    showScreen('notRegisteredScreen');
+                    return;
+                }
+                
+                playerData = contestantSnapshot.val();
+                
+                // Check if there's an active round
+                const activeRoundSnapshot = await rootRef.child('rounds/active').once('value');
+                const activeRoundId = activeRoundSnapshot.val();
+                
+                if (!activeRoundId) {
+                    showScreen('notInRoundScreen');
+                    listenToActiveRound();
+                    return;
+                }
+                
+                currentRoundId = activeRoundId;
+                
+                // Check session and handle multi-device
+                await handleSession(civilId, activeRoundId);
+                
+            } catch (error) {
+                console.error('Login error:', error);
+                alert('خطأ في تسجيل الدخول: ' + error.message);
+            }
+        }
+
+        async function handleSession(civilId, roundId) {
+            const playerRef = rootRef.child(`rounds/${roundId}/players/${civilId}`);
+            const playerSnapshot = await playerRef.once('value');
+            
+            // Generate new session ID
+            sessionId = 'session_' + Date.now();
+            
+            if (playerSnapshot.exists()) {
+                const existingPlayer = playerSnapshot.val();
+                if (existingPlayer.sessionId && existingPlayer.online) {
+                    // There's another active session
+                    showScreen('waitingApprovalScreen');
+                    // In real implementation, would show approval UI on other device
+                    // For now, just override after 3 seconds
+                    setTimeout(() => {
+                        joinRound(civilId, roundId);
+                    }, 3000);
+                    return;
+                }
+            }
+            
+            await joinRound(civilId, roundId);
+        }
+
+        async function joinRound(civilId, roundId) {
+            try {
+                await rootRef.child(`rounds/${roundId}/players/${civilId}`).set({
+                    name: playerData.name,
+                    teamId: playerData.teamId,
+                    civilId: civilId,
+                    sessionId: sessionId,
+                    online: true,
+                    score: 0,
+                    joinedAt: firebase.database.ServerValue.TIMESTAMP
+                });
+                
+                // Set up presence system
+                setupPresence(civilId, roundId);
+                
+                // Initialize listeners
+                initializeGameListeners(roundId);
+                
+                // Show waiting screen
+                updatePlayerInfo();
+                showScreen('waitingScreen');
+                
+            } catch (error) {
+                console.error('Error joining round:', error);
+                alert('خطأ في الانضمام للجولة: ' + error.message);
+            }
+        }
+
+        function setupPresence(civilId, roundId) {
+            const playerRef = rootRef.child(`rounds/${roundId}/players/${civilId}`);
+            const connectedRef = db.ref('.info/connected');
+            
+            connectedRef.on('value', (snapshot) => {
+                if (snapshot.val() === true) {
+                    playerRef.onDisconnect().update({ online: false });
+                }
+            });
+            
+            // Listen for session changes (kicked)
+            playerRef.child('sessionId').on('value', (snapshot) => {
+                const currentSessionId = snapshot.val();
+                if (currentSessionId && currentSessionId !== sessionId) {
+                    // We've been kicked
+                    showScreen('kickedScreen');
+                }
+            });
+        }
+
+        function listenToActiveRound() {
+            rootRef.child('rounds/active').on('value', (snapshot) => {
+                const activeRoundId = snapshot.val();
+                if (activeRoundId && playerCivilId) {
+                    currentRoundId = activeRoundId;
+                    handleSession(playerCivilId, activeRoundId);
+                }
+            });
+        }
+
+        // ============================================
+        // GAME LISTENERS
+        // ============================================
+        function initializeGameListeners(roundId) {
+            // Listen to round data
+            rootRef.child(`rounds/${roundId}`).on('value', (snapshot) => {
+                const roundData = snapshot.val();
+                if (!roundData) return;
+                
+                // Update teams data
+                if (roundData.teams) {
+                    teamsData = roundData.teams;
+                    updateTeamsDisplay();
+                }
+                
+                // Update players data
+                if (roundData.players) {
+                    playersData = roundData.players;
+                    updatePlayerInfo();
+                }
+                
+                // Check round status
+                if (roundData.status === 'finished') {
+                    showFinalScreen();
+                }
+                
+                // Listen to question
+                if (roundData.currentQuestion) {
+                    handleQuestionUpdate(roundData.currentQuestion);
+                } else {
+                    // No question, show waiting
+                    if (document.getElementById('questionScreen').classList.contains('active')) {
+                        showScreen('waitingScreen');
+                    }
+                }
+            });
+        }
+
+        function handleQuestionUpdate(question) {
+            const previousQuestionId = currentQuestion ? currentQuestion.id : null;
+            currentQuestion = question;
+            
+            // New question
+            if (question.id !== previousQuestionId) {
+                questionNumber++;
+                hasAnswered = false;
+                displayQuestion(question);
+            }
+            
+            // Question status changes
+            if (question.status === 'open') {
+                if (!hasAnswered) {
+                    // Can answer
+                    enableAnswerButtons();
+                }
+            } else if (question.status === 'locked') {
+                disableAnswerButtons();
+                revealCorrectAnswer();
+            } else if (question.status === 'secondChance') {
+                handleSecondChance(question);
+            }
+        }
+
+        function displayQuestion(question) {
+            showScreen('questionScreen');
+            
+            document.getElementById('questionNumber').textContent = `السؤال #${questionNumber}`;
+            document.getElementById('questionText').textContent = question.text;
+            
+            // Update options
+            const optionButtons = document.querySelectorAll('.option-btn');
+            optionButtons.forEach(btn => {
+                const option = btn.dataset.option;
+                btn.textContent = `${option}. ${question.options[option]}`;
+                btn.className = 'option-btn';
+                btn.disabled = false;
+            });
+            
+            // Start timer
+            startTimer(30);
+            
+            // Hide second chance banner
+            document.getElementById('secondChanceBanner').style.display = 'none';
+        }
+
+        function handleSecondChance(question) {
+            if (!hasAnswered && question.excludedTeam !== playerData.teamId) {
+                // We get a second chance
+                document.getElementById('secondChanceBanner').style.display = 'block';
+                enableAnswerButtons();
+                startTimer(10);
+            }
+        }
+
+        // ============================================
+        // ANSWER HANDLING
+        // ============================================
+        document.querySelectorAll('.option-btn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                if (hasAnswered || !currentQuestion) return;
+                
+                const selectedOption = btn.dataset.option;
+                await submitAnswer(selectedOption);
+            });
+        });
+
+        async function submitAnswer(selectedOption) {
+            hasAnswered = true;
+            disableAnswerButtons();
+            
+            // Highlight selected
+            document.querySelector(`[data-option="${selectedOption}"]`).classList.add('selected');
+            
+            try {
+                const isCorrect = selectedOption === currentQuestion.correctAnswer;
+                let points = 0;
+                
+                if (isCorrect) {
+                    points = 10;
+                    playCorrectSound();
+                    showResultOverlay('✅', 'إجابة صحيحة!', '+10', 'positive');
+                    
+                    // Update scores
+                    await updateScores(points);
+                    
+                } else {
+                    const isFirstAttempt = currentQuestion.status === 'open';
+                    
+                    if (isFirstAttempt) {
+                        points = -10;
+                        playWrongSound();
+                        showResultOverlay('❌', 'إجابة خاطئة!', '-10', 'negative');
+                        
+                        // Mark team as excluded for second chance
+                        await rootRef.child(`rounds/${currentRoundId}/currentQuestion`).update({
+                            status: 'secondChance',
+                            excludedTeam: playerData.teamId
+                        });
+                    } else {
+                        // Second chance wrong
+                        points = 0;
+                        playWrongSound();
+                        showResultOverlay('❌', 'إجابة خاطئة!', '0', 'negative');
+                    }
+                    
+                    await updateScores(points);
+                }
+                
+                // Record answer
+                await rootRef.child(`rounds/${currentRoundId}/answers/${currentQuestion.id}/${playerCivilId}`).set({
+                    option: selectedOption,
+                    isCorrect: isCorrect,
+                    points: points,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                });
+                
+            } catch (error) {
+                console.error('Error submitting answer:', error);
+            }
+        }
+
+        async function updateScores(points) {
+            // Update player score
+            const playerRef = rootRef.child(`rounds/${currentRoundId}/players/${playerCivilId}`);
+            await playerRef.child('score').transaction((currentScore) => {
+                return (currentScore || 0) + points;
+            });
+            
+            // Update team score
+            const teamRef = rootRef.child(`rounds/${currentRoundId}/teams/${playerData.teamId}`);
+            await teamRef.child('score').transaction((currentScore) => {
+                return (currentScore || 0) + points;
+            });
+        }
+
+        // ============================================
+        // UI UPDATES
+        // ============================================
+        function updatePlayerInfo() {
+            if (!playerData || !playersData[playerCivilId]) return;
+            
+            const player = playersData[playerCivilId];
+            const team = teamsData[playerData.teamId];
+            
+            // Update all player info displays
+            document.querySelectorAll('[id^="playerNameDisplay"]').forEach(el => {
+                el.textContent = player.name || playerData.name;
+            });
+            
+            document.querySelectorAll('[id^="teamNameDisplay"]').forEach(el => {
+                el.textContent = team ? team.name : '--';
+            });
+            
+            document.querySelectorAll('[id^="teamScoreDisplay"]').forEach(el => {
+                el.textContent = team ? team.score : 0;
+            });
+            
+            document.querySelectorAll('[id^="playerScoreDisplay"]').forEach(el => {
+                el.textContent = player.score || 0;
+            });
+        }
+
+        function updateTeamsDisplay() {
+            const container = document.getElementById('teamsList');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            // Sort teams by score
+            const sortedTeams = Object.entries(teamsData).sort((a, b) => b[1].score - a[1].score);
+            
+            sortedTeams.forEach(([teamId, team]) => {
+                const isMyTeam = teamId === playerData.teamId;
+                
+                const teamEl = document.createElement('div');
+                teamEl.className = `team-item ${isMyTeam ? 'my-team' : ''}`;
+                teamEl.innerHTML = `
+                    <div class="team-name">${team.name}</div>
+                    <div class="team-score">${team.score}</div>
+                `;
+                container.appendChild(teamEl);
+            });
+        }
+
+        function showResultOverlay(icon, text, points, type) {
+            document.getElementById('resultIcon').textContent = icon;
+            document.getElementById('resultText').textContent = text;
+            document.getElementById('resultPoints').textContent = points;
+            document.getElementById('resultPoints').className = `result-points ${type}`;
+            document.getElementById('resultOverlay').classList.add('show');
+            
+            setTimeout(() => {
+                document.getElementById('resultOverlay').classList.remove('show');
+            }, 3000);
+        }
+
+        function showFinalScreen() {
+            stopTimer();
+            showScreen('finalScreen');
+            
+            // Update final teams list
+            const container = document.getElementById('finalTeamsList');
+            container.innerHTML = '';
+            
+            const sortedTeams = Object.entries(teamsData).sort((a, b) => b[1].score - a[1].score);
+            
+            sortedTeams.forEach(([teamId, team], index) => {
+                const rank = index + 1;
+                const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank;
+                const isMyTeam = teamId === playerData.teamId;
+                
+                const teamEl = document.createElement('div');
+                teamEl.className = `team-item ${isMyTeam ? 'my-team' : ''}`;
+                teamEl.innerHTML = `
+                    <div class="team-name">${medal} ${team.name}</div>
+                    <div class="team-score">${team.score}</div>
+                `;
+                container.appendChild(teamEl);
+            });
+            
+            // Update player final score
+            const playerScore = playersData[playerCivilId]?.score || 0;
+            document.getElementById('finalPlayerScore').textContent = playerScore;
+        }
+
+        // ============================================
+        // TIMER
+        // ============================================
+        function startTimer(seconds) {
+            stopTimer();
+            
+            let timeLeft = seconds;
+            updateTimerDisplay(timeLeft);
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay(timeLeft);
+                
+                if (timeLeft <= 0) {
+                    stopTimer();
+                    if (!hasAnswered) {
+                        playBuzzerSound();
+                        hasAnswered = true;
+                        disableAnswerButtons();
+                    }
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay(seconds) {
+            const timerEl = document.getElementById('timer');
+            if (timerEl) {
+                timerEl.textContent = seconds;
+                
+                if (seconds <= 5) {
+                    timerEl.className = 'timer';
+                } else if (seconds <= 10) {
+                    timerEl.className = 'timer warning';
+                } else {
+                    timerEl.className = 'timer';
+                }
+            }
+        }
+
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        function enableAnswerButtons() {
+            document.querySelectorAll('.option-btn').forEach(btn => {
+                btn.disabled = false;
+            });
+        }
+
+        function disableAnswerButtons() {
+            document.querySelectorAll('.option-btn').forEach(btn => {
+                btn.disabled = true;
+            });
+        }
+
+        function revealCorrectAnswer() {
+            if (!currentQuestion) return;
+            
+            const correctOption = currentQuestion.correctAnswer;
+            document.querySelectorAll('.option-btn').forEach(btn => {
+                if (btn.dataset.option === correctOption) {
+                    btn.classList.add('correct');
+                }
+            });
+        }
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🚀 Player Interface Initialized');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>شاشة العرض العامة - المسابقة</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3a8a 0%, #7c3aed 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            direction: rtl;
+            overflow: hidden;
+        }
+
+        /* Header */
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+
+        .header h1 {
+            color: #1e3a8a;
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .round-name {
+            color: #7c3aed;
+            font-size: 1.8em;
+            font-weight: bold;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 40px;
+            gap: 30px;
+        }
+
+        /* Question Section */
+        .question-section {
+            background: white;
+            border-radius: 25px;
+            padding: 50px;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.3);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            padding-bottom: 30px;
+            border-bottom: 5px solid #e5e7eb;
+        }
+
+        .question-label {
+            font-size: 2em;
+            color: #6b7280;
+            font-weight: bold;
+        }
+
+        .timer-display {
+            font-size: 5em;
+            font-weight: bold;
+            color: #ef4444;
+            text-align: center;
+            min-width: 150px;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .timer-display.warning {
+            color: #f59e0b;
+        }
+
+        .timer-display.safe {
+            color: #10b981;
+        }
+
+        .question-text {
+            font-size: 3em;
+            color: #1f2937;
+            line-height: 1.6;
+            text-align: center;
+            padding: 40px;
+            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+            border-radius: 20px;
+            border: 5px solid #1e3a8a;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .correct-answer-reveal {
+            margin-top: 30px;
+            padding: 30px;
+            background: #d1fae5;
+            border: 5px solid #10b981;
+            border-radius: 20px;
+            text-align: center;
+            display: none;
+        }
+
+        .correct-answer-reveal.show {
+            display: block;
+            animation: slideDown 0.5s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .correct-answer-label {
+            font-size: 1.8em;
+            color: #065f46;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .correct-answer-text {
+            font-size: 2.5em;
+            color: #047857;
+            font-weight: bold;
+        }
+
+        /* Leaderboard Section */
+        .leaderboard-section {
+            background: white;
+            border-radius: 25px;
+            padding: 40px;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.3);
+            max-height: 500px;
+        }
+
+        .leaderboard-header {
+            font-size: 2.5em;
+            color: #1e3a8a;
+            margin-bottom: 30px;
+            text-align: center;
+            font-weight: bold;
+            border-bottom: 5px solid #1e3a8a;
+            padding-bottom: 20px;
+        }
+
+        .teams-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .team-card {
+            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+            padding: 30px;
+            border-radius: 20px;
+            border: 5px solid transparent;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .team-card.highlight {
+            border-color: #fbbf24;
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            box-shadow: 0 0 30px rgba(251, 191, 36, 0.5);
+            animation: glow 2s infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 30px rgba(251, 191, 36, 0.5); }
+            50% { box-shadow: 0 0 50px rgba(251, 191, 36, 0.8); }
+        }
+
+        .team-rank {
+            position: absolute;
+            top: -15px;
+            right: 20px;
+            background: #1e3a8a;
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .team-card.highlight .team-rank {
+            background: #fbbf24;
+            color: #1f2937;
+        }
+
+        .team-name {
+            font-size: 2.2em;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 15px;
+            margin-top: 20px;
+        }
+
+        .team-score {
+            font-size: 4em;
+            font-weight: bold;
+            color: #1e3a8a;
+            text-align: center;
+        }
+
+        .team-card.highlight .team-score {
+            color: #92400e;
+        }
+
+        .answered-first-badge {
+            background: #10b981;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        /* Waiting State */
+        .waiting-state {
+            text-align: center;
+            padding: 60px;
+            display: none;
+        }
+
+        .waiting-state.show {
+            display: block;
+        }
+
+        .waiting-icon {
+            font-size: 8em;
+            margin-bottom: 30px;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .waiting-text {
+            font-size: 3em;
+            color: #6b7280;
+            font-weight: bold;
+        }
+
+        .spinner-large {
+            border: 10px solid #f3f4f6;
+            border-top: 10px solid #1e3a8a;
+            border-radius: 50%;
+            width: 120px;
+            height: 120px;
+            animation: spin 1s linear infinite;
+            margin: 40px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Status Banner */
+        .status-banner {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            display: none;
+        }
+
+        .status-banner.show {
+            display: block;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .header h1 {
+                font-size: 2.5em;
+            }
+
+            .round-name {
+                font-size: 1.5em;
+            }
+
+            .question-text {
+                font-size: 2.2em;
+            }
+
+            .timer-display {
+                font-size: 4em;
+            }
+
+            .teams-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .team-score {
+                font-size: 3em;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 20px;
+            }
+
+            .question-section {
+                padding: 30px;
+            }
+
+            .question-text {
+                font-size: 1.8em;
+            }
+
+            .leaderboard-header {
+                font-size: 2em;
+            }
+
+            .team-name {
+                font-size: 1.8em;
+            }
+        }
+
+        /* Finals Animation */
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: #fbbf24;
+            position: absolute;
+            animation: confetti-fall 3s linear infinite;
+        }
+
+        @keyframes confetti-fall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Status Banner -->
+    <div id="statusBanner" class="status-banner">
+        🎯 المسابقة جارية
+    </div>
+
+    <!-- Header -->
+    <div class="header">
+        <h1>🏆 مسابقة المعرفة</h1>
+        <div class="round-name" id="roundName">الجولة الأولى</div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Question Section -->
+        <div class="question-section">
+            <!-- Waiting State -->
+            <div id="waitingState" class="waiting-state show">
+                <div class="waiting-icon">⏳</div>
+                <div class="waiting-text">في انتظار السؤال التالي...</div>
+                <div class="spinner-large"></div>
+            </div>
+
+            <!-- Active Question -->
+            <div id="activeQuestion" style="display: none;">
+                <div class="question-header">
+                    <div class="question-label" id="questionLabel">السؤال #1</div>
+                    <div class="timer-display" id="timerDisplay">30</div>
+                </div>
+                <div class="question-text" id="questionText">
+                    نص السؤال سيظهر هنا...
+                </div>
+                <div id="correctAnswerReveal" class="correct-answer-reveal">
+                    <div class="correct-answer-label">✅ الإجابة الصحيحة:</div>
+                    <div class="correct-answer-text" id="correctAnswerText">--</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Leaderboard Section -->
+        <div class="leaderboard-section">
+            <div class="leaderboard-header">🏅 لوحة المتصدرين</div>
+            <div class="teams-grid" id="teamsGrid">
+                <!-- Teams will be populated dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK and Configuration -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script>
+        // ============================================
+        // FIREBASE CONFIGURATION
+        // ============================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyBxPO6RKsQ1Cq-mqlCpFTrCuIyxnYdB37U",
+            authDomain: "studentsystem-c1ab1.firebaseapp.com",
+            databaseURL: "https://studentsystem-c1ab1-default-rtdb.firebaseio.com",
+            projectId: "studentsystem-c1ab1",
+            storageBucket: "studentsystem-c1ab1.firebasestorage.app",
+            messagingSenderId: "112215023848",
+            appId: "1:112215023848:web:0adba326a527ee7e37e95d"
+        };
+        
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        
+        const db = firebase.database();
+        const rootRef = db.ref('vo_001');
+
+        // ============================================
+        // GLOBAL STATE
+        // ============================================
+        let currentRoundId = null;
+        let currentQuestion = null;
+        let teamsData = {};
+        let questionNumber = 0;
+        let timerInterval = null;
+        let answeredTeamId = null;
+
+        // ============================================
+        // FIREBASE LISTENERS
+        // ============================================
+        function initializeFirebaseListeners() {
+            // Listen to active round
+            rootRef.child('rounds/active').on('value', (snapshot) => {
+                const activeRoundId = snapshot.val();
+                if (activeRoundId) {
+                    currentRoundId = activeRoundId;
+                    loadRoundData(activeRoundId);
+                } else {
+                    currentRoundId = null;
+                    showWaitingState();
+                }
+            });
+        }
+
+        function loadRoundData(roundId) {
+            // Listen to round data
+            rootRef.child(`rounds/${roundId}`).on('value', (snapshot) => {
+                const roundData = snapshot.val();
+                if (!roundData) return;
+                
+                // Update round name
+                document.getElementById('roundName').textContent = roundData.name || roundId;
+                document.getElementById('statusBanner').classList.add('show');
+                
+                // Update teams
+                if (roundData.teams) {
+                    teamsData = roundData.teams;
+                    updateLeaderboard();
+                }
+                
+                // Handle current question
+                if (roundData.currentQuestion) {
+                    handleQuestionUpdate(roundData.currentQuestion);
+                } else {
+                    showWaitingState();
+                }
+            });
+        }
+
+        function handleQuestionUpdate(question) {
+            const previousQuestionId = currentQuestion ? currentQuestion.id : null;
+            currentQuestion = question;
+            
+            // New question
+            if (question.id !== previousQuestionId) {
+                questionNumber++;
+                displayQuestion(question);
+            }
+            
+            // Question status changes
+            if (question.status === 'locked') {
+                lockQuestion();
+            }
+        }
+
+        function displayQuestion(question) {
+            document.getElementById('waitingState').classList.remove('show');
+            document.getElementById('activeQuestion').style.display = 'block';
+            document.getElementById('questionLabel').textContent = `السؤال #${questionNumber}`;
+            document.getElementById('questionText').textContent = question.text;
+            document.getElementById('correctAnswerReveal').classList.remove('show');
+            
+            answeredTeamId = null;
+            Object.keys(teamsData).forEach(teamId => {
+                teamsData[teamId].answeredFirst = false;
+            });
+            
+            startTimer(30);
+        }
+
+        function lockQuestion() {
+            stopTimer();
+            
+            if (currentQuestion && currentQuestion.correctAnswer) {
+                const correctOptionKey = currentQuestion.correctAnswer;
+                const correctAnswerText = currentQuestion.options[correctOptionKey];
+                
+                document.getElementById('correctAnswerText').textContent = `${correctOptionKey}. ${correctAnswerText}`;
+                document.getElementById('correctAnswerReveal').classList.add('show');
+            }
+        }
+
+        function showWaitingState() {
+            document.getElementById('waitingState').classList.add('show');
+            document.getElementById('activeQuestion').style.display = 'none';
+            document.getElementById('statusBanner').classList.remove('show');
+            stopTimer();
+        }
+
+        // ============================================
+        // TIMER
+        // ============================================
+        function startTimer(seconds) {
+            stopTimer();
+            
+            let timeLeft = seconds;
+            updateTimerDisplay(timeLeft);
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay(timeLeft);
+                
+                if (timeLeft <= 0) {
+                    stopTimer();
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay(seconds) {
+            const timerEl = document.getElementById('timerDisplay');
+            timerEl.textContent = seconds;
+            
+            if (seconds <= 5) {
+                timerEl.className = 'timer-display';
+            } else if (seconds <= 10) {
+                timerEl.className = 'timer-display warning';
+            } else {
+                timerEl.className = 'timer-display safe';
+            }
+        }
+
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        // ============================================
+        // LEADERBOARD
+        // ============================================
+        function updateLeaderboard() {
+            const container = document.getElementById('teamsGrid');
+            container.innerHTML = '';
+            
+            // Sort teams by score (descending)
+            const sortedTeams = Object.entries(teamsData).sort((a, b) => b[1].score - a[1].score);
+            
+            sortedTeams.forEach(([teamId, team], index) => {
+                const rank = index + 1;
+                const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank;
+                
+                const teamCard = document.createElement('div');
+                teamCard.className = `team-card ${team.answeredFirst ? 'highlight' : ''}`;
+                teamCard.innerHTML = `
+                    <div class="team-rank">${medal}</div>
+                    <div class="team-name">${team.name}</div>
+                    <div class="team-score">${team.score}</div>
+                    ${team.answeredFirst ? '<div class="answered-first-badge">⚡ أجاب أولاً</div>' : ''}
+                `;
+                container.appendChild(teamCard);
+            });
+        }
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🚀 Audience Display Initialized');
+            initializeFirebaseListeners();
+        });
+        
+        // Auto-refresh leaderboard every 2 seconds
+        setInterval(() => {
+            if (teamsData && Object.keys(teamsData).length > 0) {
+                updateLeaderboard();
+            }
+        }, 2000);
+    </script>
+</body>
+</html>
