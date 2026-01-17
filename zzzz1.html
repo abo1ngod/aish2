@@ -481,20 +481,53 @@
                             <input type="file" id="import-file" style="display: none;" accept=".csv" onchange="importStudentsExcel()">
                         </div>
                     </div>
-                    
+
+                    <!-- أدوات الفرز والترتيب -->
+                    <div class="admin-controls" style="margin-top: 10px; align-items: center;">
+                        <label style="font-size: 0.9rem; color: var(--text-sub);">ترتيب حسب:</label>
+                        <select id="sort-field" onchange="applyStudentSort()" style="max-width: 120px; margin-bottom: 0; padding: 8px;">
+                            <option value="name">الاسم</option>
+                            <option value="section">الشعبة</option>
+                            <option value="progress">الإنجاز</option>
+                        </select>
+                        <select id="sort-order" onchange="applyStudentSort()" style="max-width: 100px; margin-bottom: 0; padding: 8px;">
+                            <option value="asc">تصاعدي</option>
+                            <option value="desc">تنازلي</option>
+                        </select>
+                        <span style="margin-right: 15px; color: var(--text-sub);">|</span>
+                        <label style="font-size: 0.9rem; color: var(--text-sub);">عرض:</label>
+                        <select id="page-size" onchange="changePageSize()" style="max-width: 100px; margin-bottom: 0; padding: 8px;">
+                            <option value="40" selected>40</option>
+                            <option value="20">20</option>
+                            <option value="60">60</option>
+                            <option value="100">100</option>
+                            <option value="all">الكل</option>
+                        </select>
+                    </div>
+
                     <div class="table-wrapper">
                         <table class="admin-table">
                             <thead>
                                 <tr>
-                                    <th>الاسم</th>
+                                    <th style="cursor: pointer;" onclick="sortByColumn('name')">الاسم <i class="fas fa-sort" id="sort-icon-name"></i></th>
                                     <th>المستخدم</th>
-                                    <th>الشعبة</th>
-                                    <th>الإنجاز</th>
+                                    <th style="cursor: pointer;" onclick="sortByColumn('section')">الشعبة <i class="fas fa-sort" id="sort-icon-section"></i></th>
+                                    <th style="cursor: pointer;" onclick="sortByColumn('progress')">الإنجاز <i class="fas fa-sort" id="sort-icon-progress"></i></th>
                                     <th>إجراءات</th>
                                 </tr>
                             </thead>
                             <tbody id="students-table-body"></tbody>
                         </table>
+                    </div>
+
+                    <!-- أدوات التنقل بين الصفحات -->
+                    <div id="pagination-controls" style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
+                        <button onclick="goToPage('first')" class="btn btn-secondary" style="width: auto; padding: 8px 12px;"><i class="fas fa-angle-double-right"></i></button>
+                        <button onclick="goToPage('prev')" class="btn btn-secondary" style="width: auto; padding: 8px 12px;"><i class="fas fa-angle-right"></i></button>
+                        <span id="page-info" style="font-size: 0.9rem; color: var(--text-sub);">صفحة 1 من 1</span>
+                        <button onclick="goToPage('next')" class="btn btn-secondary" style="width: auto; padding: 8px 12px;"><i class="fas fa-angle-left"></i></button>
+                        <button onclick="goToPage('last')" class="btn btn-secondary" style="width: auto; padding: 8px 12px;"><i class="fas fa-angle-double-left"></i></button>
+                        <span style="margin-right: 10px; font-size: 0.85rem; color: var(--text-sub);" id="total-students-info"></span>
                     </div>
                 </div>
 
@@ -665,22 +698,54 @@
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
             toast.className = 'toast';
-            
+
             let icon = 'info-circle';
             if (type === 'success') icon = 'check-circle';
             if (type === 'error') icon = 'exclamation-circle';
-            
+
             toast.style.borderRight = `5px solid ${type === 'success' ? '#10b981' : (type === 'error' ? '#ef4444' : '#0f766e')}`;
-            
+
             toast.innerHTML = `<i class="fas fa-${icon}"></i> <span>${message}</span>`;
             container.appendChild(toast);
-            
+
             setTimeout(() => {
                 toast.style.opacity = '0';
                 toast.style.transform = 'translateY(20px)';
                 setTimeout(() => toast.remove(), 300);
             }, 3000);
         };
+
+        // Custom Confirm Dialog instead of confirm()
+        window.showConfirmDialog = function(message, onConfirm) {
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.style.display = 'flex';
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width: 400px;">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: var(--accent); margin-bottom: 15px;"></i>
+                    <p style="margin-bottom: 20px; color: var(--text-main); font-size: 1.1rem;">${message}</p>
+                    <div style="display: flex; gap: 10px; justify-content: center;">
+                        <button class="btn btn-danger" style="width: auto; padding: 10px 25px;" id="confirm-yes">نعم</button>
+                        <button class="btn btn-secondary" style="width: auto; padding: 10px 25px;" id="confirm-no">إلغاء</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            modal.querySelector('#confirm-yes').onclick = function() {
+                modal.remove();
+                if(onConfirm) onConfirm();
+            };
+            modal.querySelector('#confirm-no').onclick = function() {
+                modal.remove();
+            };
+        };
+
+        // --- Pagination and Sorting Variables ---
+        window.studentCurrentPage = 1;
+        window.studentPageSize = 40;
+        window.studentSortField = 'name';
+        window.studentSortOrder = 'asc';
 
         // Initialize Application
         window.initApp = async function() {
@@ -1106,22 +1171,79 @@
         }
 
         window.filterStudents = function() {
-            const query = document.getElementById('student-search').value.toLowerCase();
-            renderStudentsTable(query);
+            window.studentCurrentPage = 1;
+            renderStudentsTable();
         }
 
-        window.renderStudentsTable = function(searchQuery = "") {
-            const tbody = document.getElementById('students-table-body'); 
+        // دالة حساب نسبة الإنجاز لطالب
+        window.getStudentProgress = function(u) {
+            const visibleLessonsCount = window.db.lessons.filter(l => !l.hidden).length;
+            let completedVisible = 0;
+            if(u.progress) completedVisible = window.db.lessons.filter(l => !l.hidden && u.progress[l.id] && u.progress[l.id].score >= 50).length;
+            return visibleLessonsCount > 0 ? Math.round((completedVisible/visibleLessonsCount)*100) : 0;
+        }
+
+        window.renderStudentsTable = function() {
+            const tbody = document.getElementById('students-table-body');
             tbody.innerHTML = '';
             const visibleLessonsCount = window.db.lessons.filter(l => !l.hidden).length;
+            const searchQuery = document.getElementById('student-search').value.toLowerCase();
 
-            window.db.users.forEach((u, index) => {
-                if(searchQuery && !u.name.toLowerCase().includes(searchQuery)) return;
+            // فلترة الطلاب
+            let filteredUsers = window.db.users.filter(u => {
+                if(searchQuery && !u.name.toLowerCase().includes(searchQuery) && !u.section.toLowerCase().includes(searchQuery)) return false;
+                return true;
+            });
 
-                let completedVisible = 0;
-                if(u.progress) completedVisible = window.db.lessons.filter(l => !l.hidden && u.progress[l.id] && u.progress[l.id].score >= 50).length;
-                const pct = visibleLessonsCount > 0 ? Math.round((completedVisible/visibleLessonsCount)*100) : 0;
-                
+            // حساب الإنجاز لكل طالب وإضافته مؤقتاً
+            filteredUsers = filteredUsers.map((u, originalIndex) => {
+                return { ...u, _pct: getStudentProgress(u), _originalIndex: window.db.users.indexOf(u) };
+            });
+
+            // الفرز
+            filteredUsers.sort((a, b) => {
+                let valA, valB;
+                if(window.studentSortField === 'name') {
+                    valA = a.name.toLowerCase();
+                    valB = b.name.toLowerCase();
+                } else if(window.studentSortField === 'section') {
+                    valA = a.section.toLowerCase();
+                    valB = b.section.toLowerCase();
+                } else if(window.studentSortField === 'progress') {
+                    valA = a._pct;
+                    valB = b._pct;
+                }
+
+                if(window.studentSortField === 'progress') {
+                    return window.studentSortOrder === 'asc' ? valA - valB : valB - valA;
+                } else {
+                    if(valA < valB) return window.studentSortOrder === 'asc' ? -1 : 1;
+                    if(valA > valB) return window.studentSortOrder === 'asc' ? 1 : -1;
+                    return 0;
+                }
+            });
+
+            const totalStudents = filteredUsers.length;
+
+            // تحديد الصفحة
+            let startIndex = 0;
+            let endIndex = totalStudents;
+            let totalPages = 1;
+
+            if(window.studentPageSize !== 'all') {
+                totalPages = Math.ceil(totalStudents / window.studentPageSize) || 1;
+                if(window.studentCurrentPage > totalPages) window.studentCurrentPage = totalPages;
+                startIndex = (window.studentCurrentPage - 1) * window.studentPageSize;
+                endIndex = Math.min(startIndex + window.studentPageSize, totalStudents);
+            }
+
+            // عرض الطلاب للصفحة الحالية
+            const pagedUsers = filteredUsers.slice(startIndex, endIndex);
+
+            pagedUsers.forEach((u) => {
+                const pct = u._pct;
+                const originalIndex = u._originalIndex;
+
                 tbody.innerHTML += `
                     <tr>
                         <td>${u.name}</td>
@@ -1135,12 +1257,80 @@
                         </td>
                         <td>
                             <div style="display:flex; justify-content:flex-end;">
-                                <button onclick="openEditStudentModal(${index})" class="action-btn-sm btn-edit-sm" title="تعديل"><i class="fas fa-edit"></i></button>
-                                <button onclick="deleteStudent(${index})" class="action-btn-sm btn-del-sm" title="حذف"><i class="fas fa-trash"></i></button>
+                                <button onclick="openEditStudentModal(${originalIndex})" class="action-btn-sm btn-edit-sm" title="تعديل"><i class="fas fa-edit"></i></button>
+                                <button onclick="deleteStudent(${originalIndex})" class="action-btn-sm btn-del-sm" title="حذف"><i class="fas fa-trash"></i></button>
                             </div>
                         </td>
                     </tr>`;
             });
+
+            // تحديث معلومات التنقل
+            const pageInfo = document.getElementById('page-info');
+            const totalInfo = document.getElementById('total-students-info');
+            if(pageInfo) pageInfo.textContent = `صفحة ${window.studentCurrentPage} من ${totalPages}`;
+            if(totalInfo) totalInfo.textContent = `(${totalStudents} طالب)`;
+
+            // تحديث أيقونات الفرز
+            updateSortIcons();
+        }
+
+        // تحديث أيقونات الفرز في رأس الجدول
+        window.updateSortIcons = function() {
+            ['name', 'section', 'progress'].forEach(field => {
+                const icon = document.getElementById('sort-icon-' + field);
+                if(icon) {
+                    if(field === window.studentSortField) {
+                        icon.className = window.studentSortOrder === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down';
+                        icon.style.color = 'var(--primary)';
+                    } else {
+                        icon.className = 'fas fa-sort';
+                        icon.style.color = '#999';
+                    }
+                }
+            });
+        }
+
+        // فرز بالنقر على رأس العمود
+        window.sortByColumn = function(field) {
+            if(window.studentSortField === field) {
+                window.studentSortOrder = window.studentSortOrder === 'asc' ? 'desc' : 'asc';
+            } else {
+                window.studentSortField = field;
+                window.studentSortOrder = 'asc';
+            }
+            document.getElementById('sort-field').value = field;
+            document.getElementById('sort-order').value = window.studentSortOrder;
+            renderStudentsTable();
+        }
+
+        // تطبيق الفرز من القوائم المنسدلة
+        window.applyStudentSort = function() {
+            window.studentSortField = document.getElementById('sort-field').value;
+            window.studentSortOrder = document.getElementById('sort-order').value;
+            renderStudentsTable();
+        }
+
+        // تغيير حجم الصفحة
+        window.changePageSize = function() {
+            const val = document.getElementById('page-size').value;
+            window.studentPageSize = val === 'all' ? 'all' : parseInt(val);
+            window.studentCurrentPage = 1;
+            renderStudentsTable();
+        }
+
+        // التنقل بين الصفحات
+        window.goToPage = function(action) {
+            if(window.studentPageSize === 'all') return;
+            const searchQuery = document.getElementById('student-search').value.toLowerCase();
+            const filteredCount = window.db.users.filter(u => !searchQuery || u.name.toLowerCase().includes(searchQuery) || u.section.toLowerCase().includes(searchQuery)).length;
+            const totalPages = Math.ceil(filteredCount / window.studentPageSize) || 1;
+
+            if(action === 'first') window.studentCurrentPage = 1;
+            else if(action === 'prev' && window.studentCurrentPage > 1) window.studentCurrentPage--;
+            else if(action === 'next' && window.studentCurrentPage < totalPages) window.studentCurrentPage++;
+            else if(action === 'last') window.studentCurrentPage = totalPages;
+
+            renderStudentsTable();
         }
 
         window.openAddStudentModal = function() {
@@ -1189,12 +1379,12 @@
         }
 
         window.deleteStudent = function(index) {
-            if(confirm("هل أنت متأكد من حذف الطالب وسجلاته؟")) {
+            showConfirmDialog("هل أنت متأكد من حذف الطالب وسجلاته؟", function() {
                 window.db.users.splice(index, 1);
                 window.saveDB();
                 renderStudentsTable();
                 window.showToast("تم الحذف", "info");
-            }
+            });
         }
 
         window.renderAdminLessonsList = function() {
@@ -1223,11 +1413,11 @@
         }
 
         window.deleteLesson = function(id) {
-            if(confirm("حذف الدرس نهائياً؟")) {
+            showConfirmDialog("حذف الدرس نهائياً؟", function() {
                 window.db.lessons = window.db.lessons.filter(l => l.id !== id);
                 window.saveDB();
                 renderAdminLessonsList();
-            }
+            });
         }
 
         window.editLesson = function(id) {
