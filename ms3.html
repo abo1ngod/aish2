@@ -1275,11 +1275,15 @@
             // خلط جميع الأسئلة
             allQuestions = shuffleArray(allQuestions);
 
+            // بدء من سؤال عشوائي
+            const startIndex = Math.floor(Math.random() * allQuestions.length);
+            console.log('[DEBUG] Starting battle with question index:', startIndex, 'total:', allQuestions.length);
+
             const battleInitData = {
                 p1: opponentId,
                 p2: myId,
                 questions: allQuestions, // جميع الأسئلة من البنك
-                current_q_index: 0,
+                current_q_index: startIndex,
                 scores: { [opponentId]: 0, [myId]: 0 },
                 state: 'active', // active, ended
                 phase: 'main', // main (30s), second_chance (10s)
@@ -1491,41 +1495,30 @@
 
         function advanceToNextQuestion(expectedQIdx, totalQuestions) {
             console.log('[DEBUG] advanceToNextQuestion called with expectedQIdx:', expectedQIdx, 'totalQuestions:', totalQuestions);
-            battlesRef.child(battleId).transaction(current => {
-                console.log('[DEBUG] transaction current:', JSON.stringify({
-                    current_q_index: current ? current.current_q_index : null,
-                    pending_next: current ? current.pending_next : null,
-                    expectedQIdx: expectedQIdx
-                }));
-                if (!current) {
-                    console.log('[DEBUG] current is null, aborting');
-                    return;
-                }
-                // تحقق أننا لم ننتقل بالفعل
-                if (current.current_q_index !== expectedQIdx) {
-                    console.log('[DEBUG] q_index mismatch, aborting');
-                    return;
-                }
-                if (!current.pending_next) {
-                    console.log('[DEBUG] pending_next is false, aborting');
-                    return;
-                }
 
-                // استخدام totalQuestions الممرر بدلاً من حساب طول المصفوفة
-                const newIndex = (current.current_q_index || 0) + 1;
-                console.log('[DEBUG] newIndex:', newIndex, 'totalQuestions:', totalQuestions);
-                current.current_q_index = (totalQuestions > 0 && newIndex >= totalQuestions) ? 0 : newIndex;
-                console.log('[DEBUG] advancing to new index:', current.current_q_index);
+            // تحقق أننا لم ننتقل بالفعل
+            if (battleData.current_q_index !== expectedQIdx) {
+                console.log('[DEBUG] q_index mismatch, aborting');
+                isAdvancing = false;
+                return;
+            }
 
-                current.phase = 'main';
-                current.turn_data = {};
-                current.pending_next = null;
-                current.turn_start_time = firebase.database.ServerValue.TIMESTAMP;
+            // حساب الفهرس التالي
+            const newIndex = (expectedQIdx + 1) % totalQuestions;
+            console.log('[DEBUG] advancing to new index:', newIndex);
 
-                return current;
-            }, (error, committed, snapshot) => {
-                console.log('[DEBUG] transaction complete:', JSON.stringify({ error: error ? error.message : null, committed: committed }));
-                // إعادة تعيين علامة الانتقال
+            // استخدام update بدلاً من transaction
+            battlesRef.child(battleId).update({
+                current_q_index: newIndex,
+                phase: 'main',
+                turn_data: {},
+                pending_next: null,
+                turn_start_time: firebase.database.ServerValue.TIMESTAMP
+            }).then(() => {
+                console.log('[DEBUG] update complete, new index:', newIndex);
+                isAdvancing = false;
+            }).catch(err => {
+                console.log('[DEBUG] update error:', err);
                 isAdvancing = false;
             });
         }
