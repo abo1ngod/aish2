@@ -1198,17 +1198,26 @@
         }
 
         function requestBattle(targetId) {
-            // منع إرسال طلبات متعددة - إذا يوجد طلب معلق، لا ترسل آخر
-            if (Object.keys(pendingRequests).length > 0) {
-                showToast('لديك طلب تحدي معلق بالفعل!');
-                return;
-            }
-
             // إرسال طلب
             visitorsRef.child(targetId).update({ request_from: myId });
 
             // تتبع الطلب المعلق
             pendingRequests[targetId] = true;
+
+            // إلغاء الطلب تلقائياً بعد 60 ثانية إذا لم يُقبل
+            setTimeout(() => {
+                if (pendingRequests[targetId]) {
+                    visitorsRef.child(targetId).once('value').then(snap => {
+                        const data = snap.val();
+                        // إذا كان الطلب ما زال معلقاً ولم يُقبل
+                        if (data && data.request_from === myId && data.status !== 'busy') {
+                            visitorsRef.child(targetId).update({ request_from: null });
+                            delete pendingRequests[targetId];
+                            showToast('انتهت مهلة طلب التحدي');
+                        }
+                    });
+                }
+            }, 60000);
 
             // عرض رسالة التأكيد لمدة 3 ثوان
             showToast('تم إرسال التحدي! ⚔️', 3000);
@@ -1633,12 +1642,13 @@
         }
 
         function returnToLobby() {
-            // تنظيف وحذف المعركة المنتهية
-            if(battleId) {
-                battlesRef.child(battleId).off();
-                // حذف المعركة من Firebase
-                battlesRef.child(battleId).remove();
+            const currentBattleId = battleId;
+
+            // إلغاء المراقبة
+            if(currentBattleId) {
+                battlesRef.child(currentBattleId).off();
             }
+
             document.getElementById('screen-battle').classList.add('hidden');
             document.getElementById('screen-battle-end').classList.add('hidden');
             document.getElementById('screen-visitor-lobby').classList.remove('hidden');
@@ -1649,6 +1659,20 @@
                 current_battle: null,
                 request_from: null
             });
+
+            // تسجيل خروجي من المعركة ثم حذفها إذا خرج الاثنان
+            if(currentBattleId) {
+                battlesRef.child(currentBattleId).child('exited').child(myId).set(true).then(() => {
+                    // التحقق هل خرج الاثنان
+                    battlesRef.child(currentBattleId).child('exited').once('value').then(snap => {
+                        const exited = snap.val();
+                        if (exited && Object.keys(exited).length >= 2) {
+                            // كلاهما خرج، نحذف المعركة
+                            battlesRef.child(currentBattleId).remove();
+                        }
+                    });
+                });
+            }
 
             battleId = null;
             battleData = null;
