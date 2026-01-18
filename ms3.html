@@ -146,6 +146,8 @@
             <div class="p-4 overflow-y-auto pb-20 flex-1">
                 <h3 class="font-bold text-gray-500 mb-2 text-sm">المتواجدون الآن:</h3>
                 <div id="visitors-list" class="grid gap-3"></div>
+                <!-- زر مسح المعارك القديمة (للتصحيح) -->
+                <button onclick="clearOldBattles()" class="mt-4 text-xs text-red-500 underline">مسح المعارك القديمة</button>
             </div>
 
             <!-- مودال الدعوة -->
@@ -189,8 +191,8 @@
                     </div>
                     <div id="battle-options" class="space-y-2"></div>
 
-                    <!-- زر إنهاء الجولة مباشرة تحت الخيارات -->
-                    <button onclick="forceEndRound()" class="w-full bg-yellow-600/20 text-yellow-400 border border-yellow-600/50 p-3 rounded-xl font-bold text-sm mt-2">إنهاء ا��جولة 🏁</button>
+                    <!-- زر إنهاء الجو��ة مباشرة تحت الخيارات -->
+                    <button onclick="forceEndRound()" class="w-full bg-yellow-600/20 text-yellow-400 border border-yellow-600/50 p-3 rounded-xl font-bold text-sm mt-2">إنهاء الجولة 🏁</button>
                 </div>
 
                 <div id="battle-result-msg" class="hidden text-center mt-3 p-3 rounded-xl bg-slate-800/50 border border-slate-700 animate-pop"></div>
@@ -863,7 +865,7 @@
                         const div = document.createElement('div');
                         div.className = `p-2 rounded border text-xs relative group flex flex-col items-center justify-center ${status === 'waiting' ? 'bg-green-900/30 border-green-700 text-green-300' : 'bg-slate-700 border-slate-600 text-gray-400'}`;
                         const deleteBtn = `<button onclick="adminDeleteCode('${code}')" class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-[10px] opacity-0 group-hover:opacity-100 shadow hover:bg-red-600">×</button>`;
-                        div.innerHTML = `${deleteBtn}<b class="text-sm tracking-widest">${code}</b><span class="text-[10px] truncate w-full text-center">${status==='waiting'?'متا��':taker}</span>`;
+                        div.innerHTML = `${deleteBtn}<b class="text-sm tracking-widest">${code}</b><span class="text-[10px] truncate w-full text-center">${status==='waiting'?'متاح':taker}</span>`;
                         container.appendChild(div);
                     });
                 }
@@ -1248,7 +1250,7 @@
             visitorsRef.child(myId).update({ request_from: null });
             document.getElementById('battle-request-modal').classList.add('hidden');
 
-            // ��سح سجل الرفض بعد 5 ثوان
+            // مسح سجل الرفض بعد 5 ثوان
             setTimeout(() => {
                 visitorsRef.child(myId).child('rejected_by').child(reqId).remove();
             }, 5000);
@@ -1619,9 +1621,21 @@
             }
         }
 
+        function clearOldBattles() {
+            battlesRef.remove().then(() => {
+                console.log('[DEBUG] All battles cleared');
+                showToast('تم مسح جميع المعارك القديمة');
+            });
+        }
+
         function returnToLobby() {
-            // تنظيف
-            if(battleId) battlesRef.child(battleId).off();
+            // تنظيف وحذف المعركة المنتهية
+            if(battleId) {
+                battlesRef.child(battleId).off();
+                // حذف المعركة من Firebase
+                battlesRef.child(battleId).remove();
+                console.log('[DEBUG] Battle deleted:', battleId);
+            }
             document.getElementById('screen-battle').classList.add('hidden');
             document.getElementById('screen-battle-end').classList.add('hidden');
             document.getElementById('screen-visitor-lobby').classList.remove('hidden');
@@ -1636,6 +1650,7 @@
             battleId = null;
             battleData = null;
             pendingRequests = {};
+            isAdvancing = false;
         }
 
     </script>
