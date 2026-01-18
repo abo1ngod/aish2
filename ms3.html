@@ -140,14 +140,12 @@
                     <h2 class="font-bold text-lg">صالة التحدي ⚔️</h2>
                     <p id="visitor-my-name" class="text-xs opacity-80">...</p>
                 </div>
-                <button onclick="logoutVisitor()" class="bg-red-500/20 px-3 py-1 rounded hover:bg-red-500 text-xs">خروج</button>
+                <button onclick="confirmLogoutVisitor()" class="bg-red-500/20 px-3 py-1 rounded hover:bg-red-500 text-xs">خروج</button>
             </div>
 
             <div class="p-4 overflow-y-auto pb-20 flex-1">
                 <h3 class="font-bold text-gray-500 mb-2 text-sm">المتواجدون الآن:</h3>
                 <div id="visitors-list" class="grid gap-3"></div>
-                <!-- زر مسح المعارك القديمة (للتصحيح) -->
-                <button onclick="clearOldBattles()" class="mt-4 text-xs text-red-500 underline">مسح المعارك القديمة</button>
             </div>
 
             <!-- مودال الدعوة -->
@@ -191,8 +189,8 @@
                     </div>
                     <div id="battle-options" class="space-y-2"></div>
 
-                    <!-- زر إنهاء الجو��ة مباشرة تحت الخيارات -->
-                    <button onclick="forceEndRound()" class="w-full bg-yellow-600/20 text-yellow-400 border border-yellow-600/50 p-3 rounded-xl font-bold text-sm mt-2">إنهاء الجولة 🏁</button>
+                    <!-- زر إنهاء الجولة مباشرة تحت الخيارات -->
+                    <button onclick="forceEndRound()" class="w-full bg-yellow-600/20 text-yellow-400 border border-yellow-600/50 p-3 rounded-xl font-bold text-sm mt-2">إنه��ء الجولة 🏁</button>
                 </div>
 
                 <div id="battle-result-msg" class="hidden text-center mt-3 p-3 rounded-xl bg-slate-800/50 border border-slate-700 animate-pop"></div>
@@ -251,7 +249,7 @@
                 <div id="waiting-msg" class="text-center text-gray-400 animate-pulse flex flex-col items-center mt-10">
                     <div class="text-6xl mb-4 opacity-50">⏳</div>
                     <p class="text-2xl font-bold text-gray-600 mb-2">بانتظار السؤال التالي...</p>
-                    <p class="text-sm">خليك جاهز وسريع!</p>
+                    <p class="text-sm">خليك ��اهز وسريع!</p>
                 </div>
 
                 <div id="active-question-area" class="hidden space-y-4 w-full mt-2">
@@ -1122,6 +1120,12 @@
             });
         }
 
+        function confirmLogoutVisitor() {
+            showConfirmDialog('هل أنت متأكد من تسجيل الخروج؟', () => {
+                logoutVisitor();
+            });
+        }
+
         function logoutVisitor() {
             if(myId) visitorsRef.child(myId).remove();
             storage.removeItem('visitor_code');
@@ -1267,17 +1271,12 @@
             const newBattleRef = battlesRef.push();
             battleId = newBattleRef.key;
 
-            // جلب جميع الأسئلة من البنك (بدون حد)
-            console.log('[DEBUG] acceptBattle: fetching questions from bank...');
-            console.log('[DEBUG] acceptBattle: rootRef path:', rootRef.toString());
+            // جلب جميع الأسئلة من البنك
             const qSnap = await rootRef.child('question_bank').once('value');
-            console.log('[DEBUG] acceptBattle: qSnap exists:', qSnap.exists());
-            console.log('[DEBUG] acceptBattle: qSnap numChildren:', qSnap.numChildren());
             let allQuestions = [];
             qSnap.forEach(q => {
                 allQuestions.push({ key: q.key, ...q.val() });
             });
-            console.log('[DEBUG] acceptBattle: fetched questions count:', allQuestions.length);
 
             if(allQuestions.length === 0) return showAlertDialog('لا توجد أسئلة في البنك!');
 
@@ -1286,7 +1285,6 @@
 
             // بدء من سؤال عشوائي
             const startIndex = Math.floor(Math.random() * allQuestions.length);
-            console.log('[DEBUG] Starting battle with question index:', startIndex, 'total:', allQuestions.length);
 
             const battleInitData = {
                 p1: opponentId,
@@ -1335,31 +1333,16 @@
             const prevQIndex = battleData ? battleData.current_q_index : null;
             battleData = snap.val();
 
-            // تح��يل الأسئلة من object إلى array إذا لزم الأمر
-            console.log('[DEBUG] questions before conversion:', typeof battleData.questions, Array.isArray(battleData.questions));
+            // تحويل الأسئلة من object إلى array إذا لزم الأمر
             if (battleData.questions && !Array.isArray(battleData.questions)) {
-                const keys = Object.keys(battleData.questions);
-                console.log('[DEBUG] questions keys:', keys.length, keys.slice(0, 5));
                 battleData.questions = Object.values(battleData.questions);
             }
-            console.log('[DEBUG] questions after conversion:', battleData.questions ? battleData.questions.length : 0);
 
             // إذا كنت p1 وهناك علامة pending_next ولم يتم بدء الانتقال بعد
-            console.log('[DEBUG] handleBattleUpdate:', JSON.stringify({
-                myId: myId,
-                p1: battleData.p1,
-                isP1: myId === battleData.p1,
-                pending_next: battleData.pending_next,
-                state: battleData.state,
-                isAdvancing: isAdvancing,
-                current_q_index: battleData.current_q_index
-            }));
             if (myId === battleData.p1 && battleData.pending_next && battleData.state !== 'ended' && !isAdvancing) {
-                console.log('[DEBUG] p1 will advance to next question');
                 isAdvancing = true;
                 const qIdx = battleData.current_q_index;
                 const totalQuestions = battleData.questions ? battleData.questions.length : 0;
-                console.log('[DEBUG] totalQuestions from battleData:', totalQuestions);
                 setTimeout(() => {
                     advanceToNextQuestion(qIdx, totalQuestions);
                 }, 1500);
@@ -1474,6 +1457,12 @@
                 if (current.phase !== phase) return;
                 if (current.turn_data && current.turn_data[myId]) return; // أجبت مسبقاً
 
+                // إذا أجاب أحد صحيحاً بالفعل، لا تسمح للآخر بالإجابة
+                if (current.turn_data) {
+                    const someoneAnsweredCorrectly = Object.values(current.turn_data).some(t => t.correct);
+                    if (someoneAnsweredCorrectly) return;
+                }
+
                 if (!current.turn_data) current.turn_data = {};
                 current.turn_data[myId] = { correct: isCorrect, timestamp: Date.now() };
 
@@ -1488,7 +1477,7 @@
                         current.pending_next = true;
                     } else {
                         current.scores[myId] -= 10;
-                        // خطأ، ن��تقل للفرصة الثانية للخصم
+                        // خطأ، ننتقل للفرصة الثانية للخصم
                         current.phase = 'second_chance';
                         current.turn_start_time = firebase.database.ServerValue.TIMESTAMP;
                     }
@@ -1507,18 +1496,21 @@
         }
 
         function advanceToNextQuestion(expectedQIdx, totalQuestions) {
-            console.log('[DEBUG] advanceToNextQuestion called with expectedQIdx:', expectedQIdx, 'totalQuestions:', totalQuestions);
-
             // تحقق أننا لم ننتقل بالفعل
             if (battleData.current_q_index !== expectedQIdx) {
-                console.log('[DEBUG] q_index mismatch, aborting');
                 isAdvancing = false;
                 return;
             }
 
             // حساب الفهرس التالي
-            const newIndex = (expectedQIdx + 1) % totalQuestions;
-            console.log('[DEBUG] advancing to new index:', newIndex);
+            const newIndex = expectedQIdx + 1;
+
+            // إذا انتهت الأسئلة، ننهي الجولة
+            if (newIndex >= totalQuestions) {
+                battlesRef.child(battleId).update({ state: 'ended' });
+                isAdvancing = false;
+                return;
+            }
 
             // استخدام update بدلاً من transaction
             const updates = {};
@@ -1528,13 +1520,9 @@
             updates['pending_next'] = null;
             updates['turn_start_time'] = firebase.database.ServerValue.TIMESTAMP;
 
-            console.log('[DEBUG] Sending update:', JSON.stringify(updates));
-
             battlesRef.child(battleId).update(updates).then(() => {
-                console.log('[DEBUG] update complete, new index:', newIndex);
                 isAdvancing = false;
-            }).catch(err => {
-                console.log('[DEBUG] update error:', err.message);
+            }).catch(() => {
                 isAdvancing = false;
             });
         }
@@ -1585,8 +1573,10 @@
                 }
 
                 data.current_q_index = (data.current_q_index || 0) + 1;
+                // إذا انتهت الأسئلة، ننهي الجولة
                 if (questionsArray && data.current_q_index >= questionsArray.length) {
-                    data.current_q_index = 0;
+                    data.state = 'ended';
+                    return data;
                 }
 
                 data.phase = 'main';
@@ -1626,20 +1616,12 @@
             }
         }
 
-        function clearOldBattles() {
-            battlesRef.remove().then(() => {
-                console.log('[DEBUG] All battles cleared');
-                showToast('تم مسح جميع المعارك القديمة');
-            });
-        }
-
         function returnToLobby() {
             // تنظيف وحذف المعركة المنتهية
             if(battleId) {
                 battlesRef.child(battleId).off();
                 // حذف المعركة من Firebase
                 battlesRef.child(battleId).remove();
-                console.log('[DEBUG] Battle deleted:', battleId);
             }
             document.getElementById('screen-battle').classList.add('hidden');
             document.getElementById('screen-battle-end').classList.add('hidden');
