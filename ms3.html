@@ -1422,12 +1422,15 @@
         function submitBattleAnswer(selectedIdx, correctIdx) {
             const isCorrect = (selectedIdx === correctIdx);
             const phase = battleData.phase;
+            const currentQIdx = battleData.current_q_index;
 
-            // استخدام transaction لتجنب تضارب النقاط
+            // استخدام transaction لتجنب تضارب النقاط - أولاً نسجل الإجابة فقط
             battlesRef.child(battleId).transaction(current => {
                 if(!current) return;
 
-                // إذا تغيرت المرحلة أو السؤال أثناء الضغط
+                // إذا تغير السؤال أثناء الضغط - تجاهل
+                if (current.current_q_index !== currentQIdx) return;
+                // إذا تغيرت المرحلة أثناء الضغط
                 if (current.phase !== phase) return;
                 if (current.turn_data && current.turn_data[myId]) return; // أجبت مسبقاً
 
@@ -1441,68 +1444,102 @@
                 if (phase === 'main') {
                     if (isCorrect) {
                         current.scores[myId] += 10;
-                        // الأسرع والصحيح ينهي السؤال
-                        current.trigger_next = true;
+                        // نضع علامة للانتقال بعد تأخير
+                        current.pending_next = true;
                     } else {
                         current.scores[myId] -= 10;
                         // خطأ، ننتقل للفرصة الثانية للخصم
-                        current.trigger_phase_change = true;
+                        current.phase = 'second_chance';
+                        current.turn_start_time = firebase.database.ServerValue.TIMESTAMP;
                     }
                 } else {
                     // فرصة ثانية
                     if (isCorrect) {
                         current.scores[myId] += 10;
                     }
-                    // في الفرصة الثانية سواء صح أو خطأ ننتقل للتالي
-                    current.trigger_next = true;
+                    // نضع علامة للانتقال
+                    current.pending_next = true;
                 }
 
                 return current;
             }, (error, committed, snapshot) => {
-                if(committed) {
-                    const val = snapshot.val();
-                    if(val.trigger_next) {
-                        // التأكد من استدعاء الانتقال للسؤال التالي
-                        const expectedQIndex = val.current_q_index;
-                        setTimeout(() => nextBattleQuestion(battleId, expectedQIndex), 1500);
-                    } else if (val.trigger_phase_change) {
-                         battlesRef.child(battleId).update({
-                             phase: 'second_chance',
-                             turn_start_time: firebase.database.ServerValue.TIMESTAMP
-                         });
+                if (committed && snapshot.val()) {
+                    const data = snapshot.val();
+                    if (data.pending_next) {
+                        // بعد 1.5 ثانية ننتقل للسؤال التالي
+                        setTimeout(() => {
+                            advanceToNextQuestion(currentQIdx);
+                        }, 1500);
                     }
                 }
             });
         }
 
+        function advanceToNextQuestion(expectedQIdx) {
+            battlesRef.child(battleId).transaction(current => {
+                if (!current) return;
+                // تحقق أننا لم ننتقل بالفعل
+                if (current.current_q_index !== expectedQIdx) return;
+                if (!current.pending_next) return;
+
+                // تحويل الأسئلة إذا لزم الأمر
+                let qArr = current.questions;
+                if (qArr && !Array.isArray(qArr)) qArr = Object.values(qArr);
+
+                current.current_q_index = (current.current_q_index || 0) + 1;
+                if (qArr && current.current_q_index >= qArr.length) {
+                    current.current_q_index = 0;
+                }
+
+                current.phase = 'main';
+                current.turn_data = {};
+                current.pending_next = null;
+                current.turn_start_time = firebase.database.ServerValue.TIMESTAMP;
+
+                return current;
+            });
+        }
+
         function handleBattleTimeout() {
             // انتهى الوقت - نتحقق هل أجاب أحد أم لا
-            const currentQIndex = battleData ? battleData.current_q_index : 0;
+            if (!battleData) return;
+
+            const currentQIndex = battleData.current_q_index;
+            const currentPhase = battleData.phase;
 
             battlesRef.child(battleId).transaction(data => {
                 if (!data) return;
 
                 // منع التكرار إذا تم الانتقال بالفعل
                 if (data.current_q_index !== currentQIndex) return;
+                if (data.phase !== currentPhase) return;
 
                 // التحقق هل أجاب أحد المتسابقين
                 const anyoneAnswered = data.turn_data && Object.keys(data.turn_data).length > 0;
 
                 if (!anyoneAnswered) {
-                    // لم يجب أحد - نزيد عداد الأسئلة بدون إجابة
-                    data.no_answer_count = (data.no_answer_count || 0) + 1;
-
-                    // إذا وصلنا 3 أسئلة بدون إجابة ننهي الجولة
-                    if (data.no_answer_count >= 3) {
-                        data.state = 'ended';
+                    // لم يجب أحد
+                    if (currentPhase === 'main') {
+                        // انتقل للفرصة الثانية
+                        data.phase = 'second_chance';
+                        data.turn_start_time = firebase.database.ServerValue.TIMESTAMP;
                         return data;
+                    } else {
+                        // انتهت الفرصة الثانية أيضاً بدون إجابة
+                        data.no_answer_count = (data.no_answer_count || 0) + 1;
+
+                        // إذا وصلنا 3 أسئلة متتالية بدون إجابة ننهي الجولة
+                        if (data.no_answer_count >= 3) {
+                            data.state = 'ended';
+                            return data;
+                        }
                     }
                 } else {
                     // أجاب أحدهم - نصفر العداد
                     data.no_answer_count = 0;
                 }
 
-                // الانتقال مباشرة بدلاً من استخدام trigger_next
+                // الانتقال للسؤال التالي
                 let questionsArray = data.questions;
                 if (questionsArray && !Array.isArray(questionsArray)) {
                     questionsArray = Object.values(questionsArray);
@@ -1516,40 +1553,6 @@
                 data.phase = 'main';
                 data.turn_data = {};
                 data.turn_start_time = firebase.database.ServerValue.TIMESTAMP;
-                data.trigger_next = null;
-                data.trigger_phase_change = null;
-
-                return data;
-            });
-        }
-
-        function nextBattleQuestion(bId, expectedQIndex) {
-            // الانتقال للسؤال التالي
-            battlesRef.child(bId).transaction(data => {
-                if(!data) return;
-
-                // منع الانتقال المتكرر - تحقق أننا ما زلنا على نفس السؤال
-                if (data.current_q_index !== expectedQIndex) return;
-
-                // تحويل الأسئلة من object إلى array إذا لزم الأمر
-                let questionsArray = data.questions;
-                if (questionsArray && !Array.isArray(questionsArray)) {
-                    questionsArray = Object.values(questionsArray);
-                }
-
-                // منطق الانتقال
-                data.current_q_index = (data.current_q_index || 0) + 1;
-
-                // تكرار الأسئلة عند انتهائها (العودة للبداية)
-                if (questionsArray && data.current_q_index >= questionsArray.length) {
-                    data.current_q_index = 0;
-                }
-
-                data.phase = 'main';
-                data.turn_data = {}; // تصفير الإجابات
-                data.turn_start_time = firebase.database.ServerValue.TIMESTAMP;
-                data.trigger_next = null;
-                data.trigger_phase_change = null;
 
                 return data;
             });
