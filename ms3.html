@@ -190,7 +190,7 @@
                     <div id="battle-options" class="space-y-2"></div>
 
                     <!-- زر إنهاء الجولة مباشرة تحت الخيارات -->
-                    <button onclick="forceEndRound()" class="w-full bg-yellow-600/20 text-yellow-400 border border-yellow-600/50 p-3 rounded-xl font-bold text-sm mt-2">إنه��ء الجولة 🏁</button>
+                    <button onclick="forceEndRound()" class="w-full bg-yellow-600/20 text-yellow-400 border border-yellow-600/50 p-3 rounded-xl font-bold text-sm mt-2">إنهاء الجولة 🏁</button>
                 </div>
 
                 <div id="battle-result-msg" class="hidden text-center mt-3 p-3 rounded-xl bg-slate-800/50 border border-slate-700 animate-pop"></div>
@@ -249,7 +249,7 @@
                 <div id="waiting-msg" class="text-center text-gray-400 animate-pulse flex flex-col items-center mt-10">
                     <div class="text-6xl mb-4 opacity-50">⏳</div>
                     <p class="text-2xl font-bold text-gray-600 mb-2">بانتظار السؤال التالي...</p>
-                    <p class="text-sm">خليك ��اهز وسريع!</p>
+                    <p class="text-sm">خليك جاهز وسريع!</p>
                 </div>
 
                 <div id="active-question-area" class="hidden space-y-4 w-full mt-2">
@@ -1147,7 +1147,8 @@
                     const vid = child.key;
                     if(vid === myId) {
                         // مراقبة الطلبات الواردة لي
-                        if(v.request_from && !document.getElementById('battle-request-modal').classList.contains('hidden') === false) {
+                        const modalHidden = document.getElementById('battle-request-modal').classList.contains('hidden');
+                        if(v.request_from && modalHidden) {
                             showBattleRequest(v.request_from);
                         }
                         if(v.current_battle) {
@@ -1197,6 +1198,12 @@
         }
 
         function requestBattle(targetId) {
+            // منع إرسال طلبات متعددة - إذا يوجد طلب معلق، لا ترسل آخر
+            if (Object.keys(pendingRequests).length > 0) {
+                showToast('لديك طلب تحدي معلق بالفعل!');
+                return;
+            }
+
             // إرسال طلب
             visitorsRef.child(targetId).update({ request_from: myId });
 
@@ -1263,9 +1270,16 @@
         async function acceptBattle() {
             const opponentId = document.getElementById('battle-request-modal').dataset.requester;
 
-            // إلغاء جميع الطلبات الأخرى المعلقة
-            const myData = await visitorsRef.child(myId).once('value');
-            const currentRequester = myData.val()?.request_from;
+            // إلغاء جميع الطلبات الأخرى المعلقة من المُرسِل (opponentId) لدى الآخرين
+            const allVisitors = await visitorsRef.once('value');
+            allVisitors.forEach(v => {
+                const vid = v.key;
+                const vData = v.val();
+                // إذا كان هذا الزائر لديه طلب من نفس المُرسِل وليس أنا
+                if (vid !== myId && vData.request_from === opponentId) {
+                    visitorsRef.child(vid).update({ request_from: null });
+                }
+            });
 
             // إنشاء معركة جديدة
             const newBattleRef = battlesRef.push();
@@ -1308,6 +1322,8 @@
 
             updates[`visitors/${opponentId}/status`] = 'busy';
             updates[`visitors/${opponentId}/current_battle`] = battleId;
+            // مسح أي طلبات معلقة لدى المُرسِل
+            updates[`visitors/${opponentId}/request_from`] = null;
 
             await db.ref().update(updates);
 
