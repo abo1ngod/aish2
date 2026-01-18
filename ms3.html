@@ -1511,9 +1511,14 @@
 
                 // تحويل الأسئلة إذا لزم الأمر
                 let qArr = current.questions;
-                if (qArr && !Array.isArray(qArr)) qArr = Object.values(qArr);
+                console.log('[DEBUG] questions type:', typeof qArr, 'isArray:', Array.isArray(qArr));
+                if (qArr && !Array.isArray(qArr)) {
+                    qArr = Object.values(qArr);
+                }
+                console.log('[DEBUG] qArr length:', qArr ? qArr.length : 'null');
 
                 const newIndex = (current.current_q_index || 0) + 1;
+                console.log('[DEBUG] newIndex:', newIndex, 'qArr.length:', qArr ? qArr.length : 'null');
                 current.current_q_index = (qArr && newIndex >= qArr.length) ? 0 : newIndex;
                 console.log('[DEBUG] advancing to new index:', current.current_q_index);
 
