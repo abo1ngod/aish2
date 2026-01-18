@@ -1327,9 +1327,13 @@
             battleData = snap.val();
 
             // تحويل الأسئلة من object إلى array إذا لزم الأمر
+            console.log('[DEBUG] questions before conversion:', typeof battleData.questions, Array.isArray(battleData.questions));
             if (battleData.questions && !Array.isArray(battleData.questions)) {
+                const keys = Object.keys(battleData.questions);
+                console.log('[DEBUG] questions keys:', keys.length, keys.slice(0, 5));
                 battleData.questions = Object.values(battleData.questions);
             }
+            console.log('[DEBUG] questions after conversion:', battleData.questions ? battleData.questions.length : 0);
 
             // إذا كنت p1 وهناك علامة pending_next ولم يتم بدء الانتقال بعد
             console.log('[DEBUG] handleBattleUpdate:', JSON.stringify({
