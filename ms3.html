@@ -1328,7 +1328,17 @@
             }
 
             // إذا كنت p1 وهناك علامة pending_next ولم يتم بدء الانتقال بعد
+            console.log('[DEBUG] handleBattleUpdate:', JSON.stringify({
+                myId: myId,
+                p1: battleData.p1,
+                isP1: myId === battleData.p1,
+                pending_next: battleData.pending_next,
+                state: battleData.state,
+                isAdvancing: isAdvancing,
+                current_q_index: battleData.current_q_index
+            }));
             if (myId === battleData.p1 && battleData.pending_next && battleData.state !== 'ended' && !isAdvancing) {
+                console.log('[DEBUG] p1 will advance to next question');
                 isAdvancing = true;
                 const qIdx = battleData.current_q_index;
                 setTimeout(() => {
@@ -1478,20 +1488,34 @@
         }
 
         function advanceToNextQuestion(expectedQIdx) {
+            console.log('[DEBUG] advanceToNextQuestion called with expectedQIdx:', expectedQIdx);
             battlesRef.child(battleId).transaction(current => {
-                if (!current) return;
+                console.log('[DEBUG] transaction current:', JSON.stringify({
+                    current_q_index: current ? current.current_q_index : null,
+                    pending_next: current ? current.pending_next : null,
+                    expectedQIdx: expectedQIdx
+                }));
+                if (!current) {
+                    console.log('[DEBUG] current is null, aborting');
+                    return;
+                }
                 // تحقق أننا لم ننتقل بالفعل
-                if (current.current_q_index !== expectedQIdx) return;
-                if (!current.pending_next) return;
+                if (current.current_q_index !== expectedQIdx) {
+                    console.log('[DEBUG] q_index mismatch, aborting');
+                    return;
+                }
+                if (!current.pending_next) {
+                    console.log('[DEBUG] pending_next is false, aborting');
+                    return;
+                }
 
                 // تحويل الأسئلة إذا لزم الأمر
                 let qArr = current.questions;
                 if (qArr && !Array.isArray(qArr)) qArr = Object.values(qArr);
 
-                current.current_q_index = (current.current_q_index || 0) + 1;
-                if (qArr && current.current_q_index >= qArr.length) {
-                    current.current_q_index = 0;
-                }
+                const newIndex = (current.current_q_index || 0) + 1;
+                current.current_q_index = (qArr && newIndex >= qArr.length) ? 0 : newIndex;
+                console.log('[DEBUG] advancing to new index:', current.current_q_index);
 
                 current.phase = 'main';
                 current.turn_data = {};
@@ -1499,7 +1523,8 @@
                 current.turn_start_time = firebase.database.ServerValue.TIMESTAMP;
 
                 return current;
-            }, () => {
+            }, (error, committed, snapshot) => {
+                console.log('[DEBUG] transaction complete:', JSON.stringify({ error: error ? error.message : null, committed: committed }));
                 // إعادة تعيين علامة الانتقال
                 isAdvancing = false;
             });
