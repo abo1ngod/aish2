@@ -1386,7 +1386,7 @@
                 if(timeLeft <= 0) {
                     clearInterval(battleTimerInterval);
                     // إذا أنا "المضيف" للمعركة (p1) أقوم بنقل الحالة لانتهاء الوقت
-                    if(myId === battleData.p1) handleBattleTimeout();
+                    if(battleData && myId === battleData.p1) handleBattleTimeout();
                 }
             }, 1000);
 
@@ -1566,3 +1566,4 @@
     </script>
 </body>
 </html>
+
