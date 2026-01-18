@@ -1269,9 +1269,14 @@
 
             // جلب جميع الأسئلة من البنك (بدون حد)
             console.log('[DEBUG] acceptBattle: fetching questions from bank...');
+            console.log('[DEBUG] acceptBattle: rootRef path:', rootRef.toString());
             const qSnap = await rootRef.child('question_bank').once('value');
+            console.log('[DEBUG] acceptBattle: qSnap exists:', qSnap.exists());
+            console.log('[DEBUG] acceptBattle: qSnap numChildren:', qSnap.numChildren());
             let allQuestions = [];
-            qSnap.forEach(q => allQuestions.push({ key: q.key, ...q.val() }));
+            qSnap.forEach(q => {
+                allQuestions.push({ key: q.key, ...q.val() });
+            });
             console.log('[DEBUG] acceptBattle: fetched questions count:', allQuestions.length);
 
             if(allQuestions.length === 0) return showAlertDialog('لا توجد أسئلة في البنك!');
@@ -1330,7 +1335,7 @@
             const prevQIndex = battleData ? battleData.current_q_index : null;
             battleData = snap.val();
 
-            // تحويل الأسئلة من object إلى array إذا لزم الأمر
+            // تح��يل الأسئلة من object إلى array إذا لزم الأمر
             console.log('[DEBUG] questions before conversion:', typeof battleData.questions, Array.isArray(battleData.questions));
             if (battleData.questions && !Array.isArray(battleData.questions)) {
                 const keys = Object.keys(battleData.questions);
@@ -1483,7 +1488,7 @@
                         current.pending_next = true;
                     } else {
                         current.scores[myId] -= 10;
-                        // خطأ، ننتقل للفرصة الثانية للخصم
+                        // خطأ، ن��تقل للفرصة الثانية للخصم
                         current.phase = 'second_chance';
                         current.turn_start_time = firebase.database.ServerValue.TIMESTAMP;
                     }
