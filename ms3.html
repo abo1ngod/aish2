@@ -1471,14 +1471,26 @@
         }
 
         function handleBattleTimeout() {
-            // انتهى الوقت
-            nextBattleQuestion(battleId);
+            // انتهى الوقت - نعيّن trigger_next ثم ننتقل
+            battlesRef.child(battleId).transaction(data => {
+                if (!data) return;
+                if (data.trigger_next) return; // تم التعيين مسبقاً
+                data.trigger_next = true;
+                return data;
+            }, (err, committed) => {
+                if (committed) {
+                    nextBattleQuestion(battleId);
+                }
+            });
         }
 
         function nextBattleQuestion(bId) {
-            // الانتقال للسؤال التالي (يقوم به شخص واحد عادة P1)
+            // الانتقال للسؤال التالي
             battlesRef.child(bId).transaction(data => {
                 if(!data) return;
+
+                // لا تفعل شيء إذا لم يكن هناك trigger للانتقال
+                if (!data.trigger_next) return;
 
                 // تحويل الأسئلة من object إلى array إذا لزم الأمر
                 let questionsArray = data.questions;
@@ -1486,24 +1498,19 @@
                     questionsArray = Object.values(questionsArray);
                 }
 
-                // إذا تم الانتقال بالفعل (من قبل اللاعب الآخر مثلاً) لا نفعل شيئاً
-                // ولكن للتبسيط سنقوم بزيادة العداد فقط
+                // منطق الانتقال
+                data.current_q_index = (data.current_q_index || 0) + 1;
+                data.phase = 'main';
+                data.turn_data = {}; // تصفير الإجابات
+                data.turn_start_time = firebase.database.ServerValue.TIMESTAMP;
+                data.trigger_next = null;
+                data.trigger_phase_change = null;
 
-                // نزيد العداد فقط إذا لم يكتمل الانتقال بعد
-                if (data.trigger_next === true || data.phase === 'second_chance' || data.phase === 'main') {
-                    // منطق الانتقال
-                    data.current_q_index = (data.current_q_index || 0) + 1;
-                    data.phase = 'main';
-                    data.turn_data = {}; // تصفير الإجابات
-                    data.turn_start_time = firebase.database.ServerValue.TIMESTAMP;
-                    data.trigger_next = null;
-                    data.trigger_phase_change = null;
-
-                    // التحقق من نهاية الأسئلة
-                    if(questionsArray && data.current_q_index >= questionsArray.length) {
-                        data.state = 'ended';
-                    }
+                // التحقق من نهاية الأسئلة
+                if(questionsArray && data.current_q_index >= questionsArray.length) {
+                    data.state = 'ended';
                 }
+
                 return data;
             });
         }
@@ -1559,4 +1566,3 @@
     </script>
 </body>
 </html>
-
