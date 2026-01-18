@@ -1341,8 +1341,10 @@
                 console.log('[DEBUG] p1 will advance to next question');
                 isAdvancing = true;
                 const qIdx = battleData.current_q_index;
+                const totalQuestions = battleData.questions ? battleData.questions.length : 0;
+                console.log('[DEBUG] totalQuestions from battleData:', totalQuestions);
                 setTimeout(() => {
-                    advanceToNextQuestion(qIdx);
+                    advanceToNextQuestion(qIdx, totalQuestions);
                 }, 1500);
             }
 
@@ -1487,8 +1489,8 @@
             // الانتقال للسؤال التالي يتم من خلال handleBattleUpdate عندما يراقب p1 التغييرات
         }
 
-        function advanceToNextQuestion(expectedQIdx) {
-            console.log('[DEBUG] advanceToNextQuestion called with expectedQIdx:', expectedQIdx);
+        function advanceToNextQuestion(expectedQIdx, totalQuestions) {
+            console.log('[DEBUG] advanceToNextQuestion called with expectedQIdx:', expectedQIdx, 'totalQuestions:', totalQuestions);
             battlesRef.child(battleId).transaction(current => {
                 console.log('[DEBUG] transaction current:', JSON.stringify({
                     current_q_index: current ? current.current_q_index : null,
@@ -1509,17 +1511,10 @@
                     return;
                 }
 
-                // تحويل الأسئلة إذا لزم الأمر
-                let qArr = current.questions;
-                console.log('[DEBUG] questions type:', typeof qArr, 'isArray:', Array.isArray(qArr));
-                if (qArr && !Array.isArray(qArr)) {
-                    qArr = Object.values(qArr);
-                }
-                console.log('[DEBUG] qArr length:', qArr ? qArr.length : 'null');
-
+                // استخدام totalQuestions الممرر بدلاً من حساب طول المصفوفة
                 const newIndex = (current.current_q_index || 0) + 1;
-                console.log('[DEBUG] newIndex:', newIndex, 'qArr.length:', qArr ? qArr.length : 'null');
-                current.current_q_index = (qArr && newIndex >= qArr.length) ? 0 : newIndex;
+                console.log('[DEBUG] newIndex:', newIndex, 'totalQuestions:', totalQuestions);
+                current.current_q_index = (totalQuestions > 0 && newIndex >= totalQuestions) ? 0 : newIndex;
                 console.log('[DEBUG] advancing to new index:', current.current_q_index);
 
                 current.phase = 'main';
