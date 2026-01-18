@@ -1463,7 +1463,8 @@
                     const val = snapshot.val();
                     if(val.trigger_next) {
                         // التأكد من استدعاء الانتقال للسؤال التالي
-                         setTimeout(() => nextBattleQuestion(battleId), 1500);
+                        const expectedQIndex = val.current_q_index;
+                        setTimeout(() => nextBattleQuestion(battleId, expectedQIndex), 1500);
                     } else if (val.trigger_phase_change) {
                          battlesRef.child(battleId).update({
                              phase: 'second_chance',
@@ -1476,9 +1477,13 @@
 
         function handleBattleTimeout() {
             // انتهى الوقت - نتحقق هل أجاب أحد أم لا
+            const currentQIndex = battleData ? battleData.current_q_index : 0;
+
             battlesRef.child(battleId).transaction(data => {
                 if (!data) return;
-                if (data.trigger_next) return; // تم التعيين مسبقاً
+
+                // منع التكرار إذا تم الانتقال بالفعل
+                if (data.current_q_index !== currentQIndex) return;
 
                 // التحقق هل أجاب أحد المتسابقين
                 const anyoneAnswered = data.turn_data && Object.keys(data.turn_data).length > 0;
@@ -1497,22 +1502,34 @@
                     data.no_answer_count = 0;
                 }
 
-                data.trigger_next = true;
-                return data;
-            }, (err, committed) => {
-                if (committed) {
-                    nextBattleQuestion(battleId);
+                // الانتقال مباشرة بدلاً من استخدام trigger_next
+                let questionsArray = data.questions;
+                if (questionsArray && !Array.isArray(questionsArray)) {
+                    questionsArray = Object.values(questionsArray);
                 }
+
+                data.current_q_index = (data.current_q_index || 0) + 1;
+                if (questionsArray && data.current_q_index >= questionsArray.length) {
+                    data.current_q_index = 0;
+                }
+
+                data.phase = 'main';
+                data.turn_data = {};
+                data.turn_start_time = firebase.database.ServerValue.TIMESTAMP;
+                data.trigger_next = null;
+                data.trigger_phase_change = null;
+
+                return data;
             });
         }
 
-        function nextBattleQuestion(bId) {
+        function nextBattleQuestion(bId, expectedQIndex) {
             // الانتقال للسؤال التالي
             battlesRef.child(bId).transaction(data => {
                 if(!data) return;
 
-                // لا تفعل شيء إذا لم يكن هناك trigger للانتقال
-                if (!data.trigger_next) return;
+                // منع الانتقال المتكرر - تحقق أننا ما زلنا على نفس السؤال
+                if (data.current_q_index !== expectedQIndex) return;
 
                 // تحويل الأسئلة من object إلى array إذا لزم الأمر
                 let questionsArray = data.questions;
