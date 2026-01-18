@@ -1508,17 +1508,20 @@
             console.log('[DEBUG] advancing to new index:', newIndex);
 
             // استخدام update بدلاً من transaction
-            battlesRef.child(battleId).update({
-                current_q_index: newIndex,
-                phase: 'main',
-                turn_data: {},
-                pending_next: null,
-                turn_start_time: firebase.database.ServerValue.TIMESTAMP
-            }).then(() => {
+            const updates = {};
+            updates['current_q_index'] = newIndex;
+            updates['phase'] = 'main';
+            updates['turn_data'] = null;
+            updates['pending_next'] = null;
+            updates['turn_start_time'] = firebase.database.ServerValue.TIMESTAMP;
+
+            console.log('[DEBUG] Sending update:', JSON.stringify(updates));
+
+            battlesRef.child(battleId).update(updates).then(() => {
                 console.log('[DEBUG] update complete, new index:', newIndex);
                 isAdvancing = false;
             }).catch(err => {
-                console.log('[DEBUG] update error:', err);
+                console.log('[DEBUG] update error:', err.message);
                 isAdvancing = false;
             });
         }
