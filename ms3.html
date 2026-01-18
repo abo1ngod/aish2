@@ -431,6 +431,7 @@
         let opponentName = '';
         let battleTimerInterval = null;
         let pendingRequests = {}; // لتتبع الطلبات المعلقة
+        let isAdvancing = false; // لمنع تكرار استدعاء advanceToNextQuestion
 
         // Storage helper using cookies (storage not supported in iframe)
         const storage = {
@@ -862,7 +863,7 @@
                         const div = document.createElement('div');
                         div.className = `p-2 rounded border text-xs relative group flex flex-col items-center justify-center ${status === 'waiting' ? 'bg-green-900/30 border-green-700 text-green-300' : 'bg-slate-700 border-slate-600 text-gray-400'}`;
                         const deleteBtn = `<button onclick="adminDeleteCode('${code}')" class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-[10px] opacity-0 group-hover:opacity-100 shadow hover:bg-red-600">×</button>`;
-                        div.innerHTML = `${deleteBtn}<b class="text-sm tracking-widest">${code}</b><span class="text-[10px] truncate w-full text-center">${status==='waiting'?'متاح':taker}</span>`;
+                        div.innerHTML = `${deleteBtn}<b class="text-sm tracking-widest">${code}</b><span class="text-[10px] truncate w-full text-center">${status==='waiting'?'متا��':taker}</span>`;
                         container.appendChild(div);
                     });
                 }
@@ -1247,7 +1248,7 @@
             visitorsRef.child(myId).update({ request_from: null });
             document.getElementById('battle-request-modal').classList.add('hidden');
 
-            // مسح سجل الرفض بعد 5 ثوان
+            // ��سح سجل الرفض بعد 5 ثوان
             setTimeout(() => {
                 visitorsRef.child(myId).child('rejected_by').child(reqId).remove();
             }, 5000);
@@ -1318,11 +1319,21 @@
                 return;
             }
 
+            const prevQIndex = battleData ? battleData.current_q_index : null;
             battleData = snap.val();
 
             // تحويل الأسئلة من object إلى array إذا لزم الأمر
             if (battleData.questions && !Array.isArray(battleData.questions)) {
                 battleData.questions = Object.values(battleData.questions);
+            }
+
+            // إذا كنت p1 وهناك علامة pending_next ولم يتم بدء الانتقال بعد
+            if (myId === battleData.p1 && battleData.pending_next && battleData.state !== 'ended' && !isAdvancing) {
+                isAdvancing = true;
+                const qIdx = battleData.current_q_index;
+                setTimeout(() => {
+                    advanceToNextQuestion(qIdx);
+                }, 1500);
             }
 
             // معرفة الخصم
@@ -1462,17 +1473,8 @@
                 }
 
                 return current;
-            }, (error, committed, snapshot) => {
-                if (committed && snapshot.val()) {
-                    const data = snapshot.val();
-                    if (data.pending_next) {
-                        // بعد 1.5 ثانية ننتقل للسؤال التالي
-                        setTimeout(() => {
-                            advanceToNextQuestion(currentQIdx);
-                        }, 1500);
-                    }
-                }
             });
+            // الانتقال للسؤال التالي يتم من خلال handleBattleUpdate عندما يراقب p1 التغييرات
         }
 
         function advanceToNextQuestion(expectedQIdx) {
@@ -1497,6 +1499,9 @@
                 current.turn_start_time = firebase.database.ServerValue.TIMESTAMP;
 
                 return current;
+            }, () => {
+                // إعادة تعيين علامة الانتقال
+                isAdvancing = false;
             });
         }
 
