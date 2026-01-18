@@ -1320,6 +1320,11 @@
 
             battleData = snap.val();
 
+            // تحويل الأسئلة من object إلى array إذا لزم الأمر
+            if (battleData.questions && !Array.isArray(battleData.questions)) {
+                battleData.questions = Object.values(battleData.questions);
+            }
+
             // معرفة الخصم
             const isP1 = myId === battleData.p1;
             const opponentId = isP1 ? battleData.p2 : battleData.p1;
@@ -1475,6 +1480,12 @@
             battlesRef.child(bId).transaction(data => {
                 if(!data) return;
 
+                // تحويل الأسئلة من object إلى array إذا لزم الأمر
+                let questionsArray = data.questions;
+                if (questionsArray && !Array.isArray(questionsArray)) {
+                    questionsArray = Object.values(questionsArray);
+                }
+
                 // إذا تم الانتقال بالفعل (من قبل اللاعب الآخر مثلاً) لا نفعل شيئاً
                 // ولكن للتبسيط سنقوم بزيادة العداد فقط
 
@@ -1489,7 +1500,7 @@
                     data.trigger_phase_change = null;
 
                     // التحقق من نهاية الأسئلة
-                    if(data.questions && data.current_q_index >= data.questions.length) {
+                    if(questionsArray && data.current_q_index >= questionsArray.length) {
                         data.state = 'ended';
                     }
                 }

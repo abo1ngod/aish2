@@ -403,6 +403,7 @@
         
         // Tracking Sent Requests locally to update UI
         let myPendingRequests = new Set();
+        let processingTriggerNext = false; // Prevent double trigger locally
 
         // --- استرجاع الجلسة ---
         window.onload = function() {
@@ -1024,15 +1025,12 @@
 
                     const isBusy = v.status === 'busy';
                     
-                    // منطق حالة الطلب
                     let statusHtml = '';
                     if (myPendingRequests.has(vid)) {
                         if (v.request_from === myId) {
                              statusHtml = `<span class="text-orange-500 text-xs font-bold animate-pulse">ننتظر الموافقة...</span>`;
                         } else {
-                             // إذا لم يعد طلبي موجوداً وهو ليس مشغولاً معي، فقد تم الرفض
                              statusHtml = `<span class="text-red-500 text-xs font-bold">تم الرفض</span>`;
-                             // حذف من القائمة بعد فترة قصيرة لتحديث الواجهة (يتم تلقائياً بالتحديث القادم)
                         }
                     } else {
                         statusHtml = `<div class="text-[10px] text-gray-500">${isBusy ? 'في مسابقة' : 'ينتظر تحدي'}</div>`;
@@ -1171,11 +1169,14 @@
                 const q = battleData.questions[battleData.current_q_index];
                 renderBattleQuestion(q, battleData.phase);
                 
-                // الانتقال التلقائي إذا تم تحديد trigger_next
-                // إصلاح: قصر التنفيذ على Player 1 فقط لمنع التكرار
+                // الانتقال التلقائي إذا تم الإجابة
                 if (battleData.trigger_next) {
-                    if (myId === battleData.p1) {
-                        setTimeout(() => nextBattleQuestion(battleId), 1000);
+                    if (myId === battleData.p1 && !processingTriggerNext) {
+                         processingTriggerNext = true;
+                         setTimeout(() => {
+                             nextBattleQuestion(battleId, false); // Not a timeout, it's a trigger
+                             processingTriggerNext = false;
+                         }, 1000);
                     }
                 }
             } else {
@@ -1192,38 +1193,39 @@
             
             clearInterval(battleTimerInterval);
             const timerEl = document.getElementById('battle-timer');
+            const startTime = battleData.turn_start_time || Date.now();
 
             if (phase === 'main') {
                 badge.innerText = 'الجولة الأساسية (30ث)';
                 badge.className = 'absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white text-[10px] px-2 py-1 rounded-full';
                 
-                let timeLeft = 30;
-                timerEl.innerText = timeLeft;
+                const duration = 30;
                 battleTimerInterval = setInterval(() => {
-                    timeLeft--;
-                    timerEl.innerText = timeLeft;
-                    if(timeLeft <= 0) {
+                    const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                    const remaining = duration - elapsed;
+                    timerEl.innerText = remaining > 0 ? remaining : 0;
+                    
+                    if(remaining <= 0) {
                         clearInterval(battleTimerInterval);
-                        // إذا انتهى الوقت، اللاعب 1 هو المسؤول عن الانتقال للسؤال التالي
                         if(myId === battleData.p1) handleBattleTimeout();
                     }
-                }, 1000);
+                }, 500);
 
             } else {
                 badge.innerText = 'فرصة ثانية (10ث)';
                 badge.className = 'absolute -top-3 left-1/2 transform -translate-x-1/2 bg-orange-600 text-white text-[10px] px-2 py-1 rounded-full animate-pulse';
                 
-                // مؤقت الفرصة الثانية
-                let timeLeft = 10;
-                timerEl.innerText = timeLeft;
+                const duration = 10;
                 battleTimerInterval = setInterval(() => {
-                    timeLeft--;
-                    timerEl.innerText = timeLeft;
-                    if(timeLeft <= 0) {
+                    const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                    const remaining = duration - elapsed;
+                    timerEl.innerText = remaining > 0 ? remaining : 0;
+
+                    if(remaining <= 0) {
                         clearInterval(battleTimerInterval);
                         if(myId === battleData.p1) handleBattleTimeout();
                     }
-                }, 1000);
+                }, 500);
             }
 
             const optsDiv = document.getElementById('battle-options');
@@ -1281,7 +1283,6 @@
             }, (error, committed, snapshot) => {
                 if(committed) {
                     const val = snapshot.val();
-                    // trigger_next يتم التعامل معه في handleBattleUpdate
                      if (val.trigger_phase_change) {
                          battlesRef.child(battleId).update({
                              phase: 'second_chance',
@@ -1293,15 +1294,18 @@
         }
         
         function handleBattleTimeout() {
-            // انتهى الوقت
-            nextBattleQuestion(battleId);
+            nextBattleQuestion(battleId, true); // true = isTimeout
         }
 
-        function nextBattleQuestion(bId) {
+        function nextBattleQuestion(bId, isTimeout = false) {
             battlesRef.child(bId).transaction(data => {
                 if(!data) return;
                 
-                if (data.trigger_next === true || data.phase === 'second_chance' || data.phase === 'main') {
+                // Only advance if explicitly triggered (answered) OR if it's a timeout
+                // This prevents the "phase === 'main'" condition from auto-firing on stray updates
+                const shouldAdvance = (data.trigger_next === true) || isTimeout === true;
+                
+                if (shouldAdvance) {
                     data.current_q_index = (data.current_q_index || 0) + 1;
                     data.phase = 'main';
                     data.turn_data = {}; 
