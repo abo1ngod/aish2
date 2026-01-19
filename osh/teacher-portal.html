@@ -1,0 +1,1267 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>بوابة المعلمين - ثانوية عشيرة</title>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary: #1a5f7a;
+            --primary-dark: #134b5f;
+            --primary-light: #2d7d9a;
+            --secondary: #c49b3f;
+            --secondary-light: #d4af5f;
+            --accent: #e8c872;
+            --success: #2ecc71;
+            --danger: #e74c3c;
+            --warning: #f39c12;
+            --dark: #1a1a2e;
+            --light: #f8f9fa;
+            --gray: #6c757d;
+            --bg-gradient: linear-gradient(135deg, #1a5f7a 0%, #134b5f 50%, #0d3d4d 100%);
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            --radius: 16px;
+        }
+
+        .dark {
+            --primary: #2d7d9a;
+            --primary-dark: #1a5f7a;
+            --primary-light: #3d9dba;
+            --dark: #0a0a14;
+            --light: #1a1a2e;
+            --card-bg: rgba(30, 30, 50, 0.95);
+            --bg-gradient: linear-gradient(135deg, #0d1b2a 0%, #1b263b 50%, #0d1b2a 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            color: var(--dark);
+            overflow-x: hidden;
+        }
+
+        .dark body {
+            color: var(--light);
+        }
+
+        .bg-pattern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.1;
+            background-image:
+                radial-gradient(circle at 20% 80%, var(--secondary) 1px, transparent 1px),
+                radial-gradient(circle at 80% 20%, var(--secondary) 1px, transparent 1px),
+                radial-gradient(circle at 40% 40%, var(--accent) 0.5px, transparent 0.5px);
+            background-size: 100px 100px, 150px 150px, 50px 50px;
+            animation: floatBg 20s ease-in-out infinite;
+        }
+
+        @keyframes floatBg {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(1deg); }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .logo-section {
+            text-align: center;
+            padding: 30px 0;
+            animation: fadeInDown 0.8s ease;
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .logo-icon {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, var(--secondary), var(--accent));
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            box-shadow: 0 10px 30px rgba(196, 155, 63, 0.3);
+        }
+
+        .logo-icon i {
+            font-size: 48px;
+            color: white;
+        }
+
+        .school-name {
+            font-family: 'Amiri', serif;
+            font-size: 28px;
+            font-weight: 700;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            margin-bottom: 8px;
+        }
+
+        .portal-name {
+            font-size: 18px;
+            color: var(--accent);
+            font-weight: 500;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 24px;
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+            animation: fadeInUp 0.6s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .dark .card {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .login-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .dark .login-title {
+            color: var(--primary-light);
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .dark .input-group label {
+            color: var(--light);
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 16px 20px 16px 50px;
+            font-size: 18px;
+            font-family: 'Tajawal', sans-serif;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            background: white;
+            text-align: center;
+            letter-spacing: 2px;
+        }
+
+        .dark .input-group input {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(26, 95, 122, 0.1);
+        }
+
+        .input-group i {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray);
+            font-size: 20px;
+        }
+
+        .input-group.with-label i {
+            top: calc(50% + 14px);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 16px;
+            font-size: 18px;
+            font-weight: 700;
+            font-family: 'Tajawal', sans-serif;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            box-shadow: 0 4px 15px rgba(26, 95, 122, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(26, 95, 122, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Loading Overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Dashboard Header */
+        .dashboard-header {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .teacher-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .teacher-avatar {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+        }
+
+        .teacher-details h3 {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 4px;
+        }
+
+        .dark .teacher-details h3 {
+            color: var(--primary-light);
+        }
+
+        .teacher-details p {
+            font-size: 14px;
+            color: var(--gray);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .icon-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            font-size: 16px;
+        }
+
+        .icon-btn.settings {
+            background: rgba(26, 95, 122, 0.1);
+            color: var(--primary);
+        }
+
+        .icon-btn.settings:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .icon-btn.logout {
+            background: rgba(231, 76, 60, 0.1);
+            color: var(--danger);
+        }
+
+        .icon-btn.logout:hover {
+            background: var(--danger);
+            color: white;
+        }
+
+        /* Filter Bar */
+        .filter-bar {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 200px;
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 40px 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            font-family: 'Tajawal', sans-serif;
+        }
+
+        .dark .search-box input {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .search-box i {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray);
+        }
+
+        .filter-select {
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            font-family: 'Tajawal', sans-serif;
+            background: white;
+            cursor: pointer;
+            min-width: 130px;
+        }
+
+        .dark .filter-select {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        /* Students Table */
+        .data-table-wrapper {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 15px;
+            text-align: right;
+            border-bottom: 1px solid #eee;
+        }
+
+        .dark .data-table th,
+        .dark .data-table td {
+            border-bottom-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .data-table th {
+            background: var(--primary);
+            color: white;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+
+        .data-table tbody tr {
+            transition: background 0.2s;
+            cursor: pointer;
+        }
+
+        .data-table tbody tr:hover {
+            background: rgba(26, 95, 122, 0.05);
+        }
+
+        .dark .data-table tbody tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .student-name-cell {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .note-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--success);
+        }
+
+        .note-indicator.empty {
+            background: transparent;
+            border: 2px solid #ddd;
+        }
+
+        /* Pagination */
+        .pagination-controls {
+            padding: 15px;
+            background: var(--card-bg);
+            border-radius: 0 0 12px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .action-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Tajawal', sans-serif;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .action-btn.primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .action-btn.outline {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .action-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .dashboard-header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .teacher-info {
+                flex-direction: column;
+            }
+
+            .filter-bar {
+                flex-direction: column;
+            }
+
+            .filter-select {
+                width: 100%;
+            }
+
+            .data-table th,
+            .data-table td {
+                padding: 10px 8px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-pattern"></div>
+
+    <div class="container">
+        <!-- Login Section -->
+        <div id="loginSection">
+            <div class="logo-section">
+                <div class="logo-icon">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                </div>
+                <h1 class="school-name">ثانوية عشيرة</h1>
+                <p class="portal-name">بوابة المعلمين</p>
+            </div>
+
+            <div class="card">
+                <h2 class="login-title">
+                    <i class="fas fa-sign-in-alt"></i>
+                    تسجيل الدخول
+                </h2>
+
+                <div class="input-group with-label">
+                    <label>السجل المدني</label>
+                    <i class="fas fa-id-card"></i>
+                    <input type="text" id="civilIdInput" placeholder="أدخل السجل المدني" maxlength="10" inputmode="numeric" pattern="[0-9]*">
+                </div>
+
+                <div class="input-group with-label">
+                    <label>كلمة المرور</label>
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="passwordInput" placeholder="أدخل كلمة المرور">
+                </div>
+
+                <button class="btn btn-primary" onclick="handleLogin()">
+                    <i class="fas fa-sign-in-alt"></i>
+                    دخول
+                </button>
+
+                <p style="text-align: center; margin-top: 15px; color: var(--gray); font-size: 14px;">
+                    <i class="fas fa-info-circle"></i>
+                    كلمة المرور الافتراضية هي السجل المدني
+                </p>
+            </div>
+        </div>
+
+        <!-- Dashboard Section -->
+        <div id="dashboardSection" class="hidden">
+            <div class="dashboard-header">
+                <div class="teacher-info">
+                    <div class="teacher-avatar">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                    </div>
+                    <div class="teacher-details">
+                        <h3 id="teacherName">اسم المعلم</h3>
+                        <p id="teacherSections">الشعب: ...</p>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button class="icon-btn settings" onclick="showChangePasswordModal()" title="تغيير كلمة المرور">
+                        <i class="fas fa-cog"></i>
+                    </button>
+                    <button class="icon-btn logout" onclick="logout()" title="تسجيل الخروج">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="filter-bar">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="studentSearch" placeholder="بحث بالاسم..." oninput="filterStudents()">
+                </div>
+                <select class="filter-select" id="gradeFilter" onchange="updateSectionFilter(); filterStudents();">
+                    <option value="">كل الصفوف</option>
+                </select>
+                <select class="filter-select" id="sectionFilter" onchange="filterStudents()">
+                    <option value="">كل الشعب</option>
+                </select>
+            </div>
+
+            <div class="data-table-wrapper">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>الاسم</th>
+                            <th>الصف</th>
+                            <th>الشعبة</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentsTableBody">
+                    </tbody>
+                </table>
+            </div>
+            <div id="paginationContainer"></div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay hidden" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBxPO6RKsQ1Cq-mqlCpFTrCuIyxnYdB37U",
+            authDomain: "studentsystem-c1ab1.firebaseapp.com",
+            databaseURL: "https://studentsystem-c1ab1-default-rtdb.firebaseio.com",
+            projectId: "studentsystem-c1ab1",
+            storageBucket: "studentsystem-c1ab1.firebasestorage.app",
+            messagingSenderId: "112215023848",
+            appId: "1:112215023848:web:0adba326a527ee7e37e95d"
+        };
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+
+        const db = firebase.database();
+        const rootRef = db.ref('q2026_2');
+
+        // State
+        let currentTeacher = null;
+        let allStudents = [];
+        let filteredStudents = [];
+        let currentPage = 1;
+        const PAGE_SIZE = 40;
+        let showAll = false;
+
+        // Dark mode detection
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+
+        // Utility Functions
+        function showLoading(show) {
+            document.getElementById('loadingOverlay').classList.toggle('hidden', !show);
+        }
+
+        function showAlert(title, text, icon) {
+            Swal.fire({
+                title,
+                text,
+                icon,
+                confirmButtonText: 'حسناً',
+                confirmButtonColor: '#1a5f7a'
+            });
+        }
+
+        // Login Function
+        async function handleLogin() {
+            const civilId = document.getElementById('civilIdInput').value.trim();
+            const password = document.getElementById('passwordInput').value;
+
+            if (!civilId || civilId.length !== 10) {
+                showAlert('خطأ', 'السجل المدني يجب أن يكون 10 أرقام', 'error');
+                return;
+            }
+
+            if (!password) {
+                showAlert('خطأ', 'يرجى إدخال كلمة المرور', 'error');
+                return;
+            }
+
+            showLoading(true);
+
+            try {
+                const snap = await rootRef.child('teachers').child(civilId).once('value');
+
+                if (!snap.exists()) {
+                    showLoading(false);
+                    showAlert('خطأ', 'لم يتم العثور على حساب بهذا السجل المدني', 'error');
+                    return;
+                }
+
+                const teacher = snap.val();
+                const storedPassword = teacher.password || civilId;
+
+                if (password !== storedPassword) {
+                    showLoading(false);
+                    showAlert('خطأ', 'كلمة المرور غير صحيحة', 'error');
+                    return;
+                }
+
+                currentTeacher = { civilId, ...teacher };
+
+                // Update last login
+                await rootRef.child('teachers').child(civilId).update({
+                    lastLogin: firebase.database.ServerValue.TIMESTAMP
+                });
+
+                showDashboard();
+                showLoading(false);
+
+            } catch (error) {
+                showLoading(false);
+                console.error(error);
+                showAlert('خطأ', 'حدث خطأ في الاتصال', 'error');
+            }
+        }
+
+        // Show Dashboard
+        async function showDashboard() {
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('dashboardSection').classList.remove('hidden');
+
+            document.getElementById('teacherName').textContent = currentTeacher.name;
+
+            const sectionsText = currentTeacher.sections && currentTeacher.sections.length > 0
+                ? currentTeacher.sections.map(s => `${s.grade} - ${s.section}`).join('، ')
+                : 'لم يحدد';
+            document.getElementById('teacherSections').textContent = `الشعب: ${sectionsText}`;
+
+            populateFilters();
+            await loadStudents();
+        }
+
+        // Populate Filter Dropdowns
+        function populateFilters() {
+            const gradeFilter = document.getElementById('gradeFilter');
+            const grades = [...new Set(currentTeacher.sections?.map(s => s.grade) || [])];
+
+            gradeFilter.innerHTML = '<option value="">كل الصفوف</option>';
+            grades.forEach(grade => {
+                gradeFilter.innerHTML += `<option value="${grade}">${grade}</option>`;
+            });
+
+            updateSectionFilter();
+        }
+
+        function updateSectionFilter() {
+            const gradeFilter = document.getElementById('gradeFilter');
+            const sectionFilter = document.getElementById('sectionFilter');
+            const selectedGrade = gradeFilter.value;
+
+            let sections = [];
+            if (selectedGrade) {
+                sections = currentTeacher.sections
+                    ?.filter(s => s.grade === selectedGrade)
+                    .map(s => s.section) || [];
+            } else {
+                sections = [...new Set(currentTeacher.sections?.map(s => s.section) || [])];
+            }
+
+            sectionFilter.innerHTML = '<option value="">كل الشعب</option>';
+            sections.sort((a, b) => parseInt(a) - parseInt(b)).forEach(section => {
+                sectionFilter.innerHTML += `<option value="${section}">${section}</option>`;
+            });
+        }
+
+        // Load Students
+        async function loadStudents() {
+            showLoading(true);
+
+            try {
+                const snap = await rootRef.child('students').once('value');
+                const studentsData = snap.val() || {};
+
+                // Filter students based on teacher's sections
+                const teacherSections = currentTeacher.sections || [];
+
+                allStudents = Object.entries(studentsData)
+                    .filter(([id, student]) => {
+                        return teacherSections.some(ts =>
+                            ts.grade === student.grade && ts.section === student.section
+                        );
+                    })
+                    .map(([civilId, data]) => ({ civilId, ...data }))
+                    .sort((a, b) => a.name.localeCompare(b.name, 'ar'));
+
+                filterStudents();
+                showLoading(false);
+
+            } catch (error) {
+                showLoading(false);
+                console.error(error);
+                showAlert('خطأ', 'حدث خطأ في تحميل البيانات', 'error');
+            }
+        }
+
+        // Filter Students
+        function filterStudents() {
+            const search = document.getElementById('studentSearch').value.toLowerCase();
+            const grade = document.getElementById('gradeFilter').value;
+            const section = document.getElementById('sectionFilter').value;
+
+            currentPage = 1;
+
+            filteredStudents = allStudents.filter(s => {
+                const matchSearch = s.name.toLowerCase().includes(search);
+                const matchGrade = !grade || s.grade === grade;
+                const matchSection = !section || s.section === section;
+                return matchSearch && matchGrade && matchSection;
+            });
+
+            renderStudentsTable();
+        }
+
+        // Render Students Table
+        async function renderStudentsTable() {
+            const tbody = document.getElementById('studentsTableBody');
+
+            if (filteredStudents.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="3" style="text-align: center; padding: 40px; color: var(--gray);">
+                            <i class="fas fa-users" style="font-size: 32px; margin-bottom: 10px; display: block;"></i>
+                            لا يوجد طلاب
+                        </td>
+                    </tr>
+                `;
+                renderPagination(0);
+                return;
+            }
+
+            // Get teacher's notes to show indicator
+            let teacherNotes = {};
+            try {
+                const notesSnap = await rootRef.child('teacherNotes').once('value');
+                teacherNotes = notesSnap.val() || {};
+            } catch (e) {
+                console.error(e);
+            }
+
+            const totalPages = Math.ceil(filteredStudents.length / PAGE_SIZE);
+            if (currentPage > totalPages) currentPage = totalPages;
+            if (currentPage < 1) currentPage = 1;
+
+            let displayStudents;
+            if (showAll) {
+                displayStudents = filteredStudents;
+            } else {
+                const start = (currentPage - 1) * PAGE_SIZE;
+                const end = start + PAGE_SIZE;
+                displayStudents = filteredStudents.slice(start, end);
+            }
+
+            tbody.innerHTML = displayStudents.map(s => {
+                const hasNote = teacherNotes[s.civilId]?.[currentTeacher.civilId];
+                return `
+                <tr onclick="openStudentNotes('${s.civilId}', '${s.name.replace(/'/g, "\\'")}')">
+                    <td>
+                        <div class="student-name-cell">
+                            <span class="note-indicator ${hasNote ? '' : 'empty'}"></span>
+                            ${s.name}
+                        </div>
+                    </td>
+                    <td>${s.grade}</td>
+                    <td>${s.section}</td>
+                </tr>
+            `}).join('');
+
+            renderPagination(filteredStudents.length);
+        }
+
+        // Render Pagination
+        function renderPagination(total) {
+            const container = document.getElementById('paginationContainer');
+
+            if (total === 0) {
+                container.innerHTML = '';
+                return;
+            }
+
+            const totalPages = Math.ceil(total / PAGE_SIZE);
+            const start = showAll ? 1 : (currentPage - 1) * PAGE_SIZE + 1;
+            const end = showAll ? total : Math.min(currentPage * PAGE_SIZE, total);
+
+            container.innerHTML = `
+                <div class="pagination-controls">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="color: var(--gray);">عرض ${start} - ${end} من ${total}</span>
+                        <button class="action-btn ${showAll ? 'primary' : 'outline'}" onclick="toggleShowAll()">
+                            ${showAll ? 'عرض 40' : 'عرض الكل'}
+                        </button>
+                    </div>
+                    ${!showAll && totalPages > 1 ? `
+                        <div style="display: flex; gap: 5px; align-items: center;">
+                            <button class="action-btn outline" onclick="goToPage(1)" ${currentPage === 1 ? 'disabled' : ''}>
+                                <i class="fas fa-angle-double-right"></i>
+                            </button>
+                            <button class="action-btn outline" onclick="goToPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>
+                                <i class="fas fa-angle-right"></i>
+                            </button>
+                            <span style="padding: 5px 15px; background: var(--primary); color: white; border-radius: 5px;">${currentPage} / ${totalPages}</span>
+                            <button class="action-btn outline" onclick="goToPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>
+                                <i class="fas fa-angle-left"></i>
+                            </button>
+                            <button class="action-btn outline" onclick="goToPage(${totalPages})" ${currentPage === totalPages ? 'disabled' : ''}>
+                                <i class="fas fa-angle-double-left"></i>
+                            </button>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        function goToPage(page) {
+            currentPage = page;
+            renderStudentsTable();
+        }
+
+        function toggleShowAll() {
+            showAll = !showAll;
+            currentPage = 1;
+            renderStudentsTable();
+        }
+
+        // Change Password Modal
+        async function showChangePasswordModal() {
+            const { value: formValues } = await Swal.fire({
+                title: 'تغيير كلمة المرور',
+                html: `
+                    <div style="text-align: right;">
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: 600;">كلمة المرور الحالية:</label>
+                            <input id="swal-current-pass" type="password" class="swal2-input" placeholder="أدخل كلمة المرور الحالية">
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: 600;">كلمة المرور الجديدة:</label>
+                            <input id="swal-new-pass" type="password" class="swal2-input" placeholder="أدخل كلمة المرور الجديدة">
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 5px; font-weight: 600;">تأكيد كلمة المرور:</label>
+                            <input id="swal-confirm-pass" type="password" class="swal2-input" placeholder="أعد إدخال كلمة المرور">
+                        </div>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'حفظ',
+                cancelButtonText: 'إلغاء',
+                confirmButtonColor: '#1a5f7a',
+                preConfirm: () => {
+                    const currentPass = document.getElementById('swal-current-pass').value;
+                    const newPass = document.getElementById('swal-new-pass').value;
+                    const confirmPass = document.getElementById('swal-confirm-pass').value;
+
+                    const storedPassword = currentTeacher.password || currentTeacher.civilId;
+
+                    if (currentPass !== storedPassword) {
+                        Swal.showValidationMessage('كلمة المرور الحالية غير صحيحة');
+                        return false;
+                    }
+
+                    if (!newPass || newPass.length < 4) {
+                        Swal.showValidationMessage('كلمة المرور الجديدة يجب أن تكون 4 أحرف على الأقل');
+                        return false;
+                    }
+
+                    if (newPass !== confirmPass) {
+                        Swal.showValidationMessage('كلمة المرور غير متطابقة');
+                        return false;
+                    }
+
+                    return { newPass };
+                }
+            });
+
+            if (formValues) {
+                try {
+                    await rootRef.child('teachers').child(currentTeacher.civilId).update({
+                        password: formValues.newPass
+                    });
+                    currentTeacher.password = formValues.newPass;
+                    showAlert('تم', 'تم تغيير كلمة المرور بنجاح', 'success');
+                } catch (error) {
+                    showAlert('خطأ', 'حدث خطأ أثناء تغيير كلمة المرور', 'error');
+                }
+            }
+        }
+
+        // Logout
+        function logout() {
+            Swal.fire({
+                title: 'تسجيل الخروج',
+                text: 'هل أنت متأكد من تسجيل الخروج؟',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'خروج',
+                cancelButtonText: 'إلغاء',
+                confirmButtonColor: '#e74c3c'
+            }).then(result => {
+                if (result.isConfirmed) {
+                    currentTeacher = null;
+                    document.getElementById('dashboardSection').classList.add('hidden');
+                    document.getElementById('loginSection').classList.remove('hidden');
+                    document.getElementById('civilIdInput').value = '';
+                    document.getElementById('passwordInput').value = '';
+                }
+            });
+        }
+
+        // Note categories configuration
+        const noteCategories = {
+            positive: {
+                title: '✅ ملاحظات إيجابية',
+                color: '#2ecc71',
+                notes: {
+                    academicExcellent: 'مميز أكاديمياً',
+                    behaviorExcellent: 'مميز سلوكياً',
+                    polite: 'مؤدب ومحترم',
+                    participative: 'مشارك وفعّال',
+                    leadership: 'قيادي',
+                    cooperative: 'متعاون مع زملائه'
+                }
+            },
+            attention: {
+                title: '⚠️ تحتاج انتباه',
+                color: '#f39c12',
+                notes: {
+                    sleepy: 'كثير النوم',
+                    frequentOut: 'كثير الخروج',
+                    lowParticipation: 'قليل المشاركة',
+                    isolated: 'منعزل اجتماعياً',
+                    seemsTired: 'يبدو مرهقاً/حزيناً'
+                }
+            },
+            negative: {
+                title: '🚫 ملاحظات سلبية',
+                color: '#e74c3c',
+                notes: {
+                    troublemaker: 'مشاغب',
+                    bully: 'يتنمر على الآخرين',
+                    disrespectful: 'لا يحترم النظام',
+                    phoneMisuse: 'يستخدم الجوال',
+                    frequentAbsence: 'كثير الغياب'
+                }
+            }
+        };
+
+        // Format date helper
+        function formatDate(timestamp) {
+            if (!timestamp) return '';
+            const date = new Date(timestamp);
+            return date.toLocaleDateString('ar-SA', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // Open Student Notes Modal
+        async function openStudentNotes(studentId, studentName) {
+            showLoading(true);
+
+            try {
+                // Load existing notes for this student from this teacher
+                const notesSnap = await rootRef.child(`teacherNotes/${studentId}/${currentTeacher.civilId}`).once('value');
+                const existingNotes = notesSnap.val() || { notes: {} };
+
+                // Load guidance actions for this student
+                const actionsSnap = await rootRef.child(`studentActions/${studentId}`).once('value');
+                const actions = actionsSnap.val() || {};
+
+                showLoading(false);
+
+                // Build checkboxes HTML
+                let checkboxesHtml = '';
+                Object.entries(noteCategories).forEach(([catKey, category]) => {
+                    checkboxesHtml += `
+                        <div style="margin-bottom: 15px;">
+                            <h4 style="color: ${category.color}; margin-bottom: 10px; font-size: 14px;">${category.title}</h4>
+                            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                    `;
+                    Object.entries(category.notes).forEach(([noteKey, noteLabel]) => {
+                        const isChecked = existingNotes.notes?.[noteKey] ? 'checked' : '';
+                        checkboxesHtml += `
+                            <label style="display: flex; align-items: center; gap: 5px; padding: 8px 12px; background: ${category.color}15; border-radius: 8px; cursor: pointer; font-size: 13px; border: 2px solid transparent; transition: all 0.2s;"
+                                   onmouseover="this.style.borderColor='${category.color}'"
+                                   onmouseout="this.style.borderColor='transparent'">
+                                <input type="checkbox" class="note-checkbox" data-key="${noteKey}" ${isChecked} style="width: 16px; height: 16px; cursor: pointer;">
+                                <span>${noteLabel}</span>
+                            </label>
+                        `;
+                    });
+                    checkboxesHtml += '</div></div>';
+                });
+
+                // Build actions HTML
+                let actionsHtml = '';
+                const actionsList = Object.values(actions).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+                if (actionsList.length > 0) {
+                    actionsHtml = `
+                        <div style="margin-top: 20px; padding-top: 15px; border-top: 2px solid #eee;">
+                            <h4 style="color: var(--secondary); margin-bottom: 10px;">
+                                <i class="fas fa-clipboard-list"></i> إجراءات التوجيه والإرشاد
+                            </h4>
+                            <div style="max-height: 150px; overflow-y: auto;">
+                    `;
+                    actionsList.forEach(action => {
+                        const actionDate = action.createdAt ? new Date(action.createdAt).toLocaleDateString('ar-SA', { year: 'numeric', month: 'short', day: 'numeric' }) : '-';
+                        actionsHtml += `
+                            <div style="padding: 10px; background: #f8f9fa; border-radius: 8px; margin-bottom: 8px; border-right: 3px solid var(--secondary);">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                    <span style="color: var(--gray); font-size: 12px;"><i class="fas fa-calendar"></i> ${actionDate}</span>
+                                </div>
+                                <p style="margin: 0; font-size: 13px; color: #555;">${action.text || ''}</p>
+                            </div>
+                        `;
+                    });
+                    actionsHtml += '</div></div>';
+                }
+
+                // Last update info
+                const lastUpdateHtml = existingNotes.updatedAt
+                    ? `<p style="text-align: center; color: var(--gray); font-size: 12px; margin-bottom: 15px;">
+                         <i class="fas fa-clock"></i> آخر تحديث: ${formatDate(existingNotes.updatedAt)}
+                       </p>`
+                    : '';
+
+                const { value: formValues } = await Swal.fire({
+                    title: `📝 ملاحظات على: ${studentName}`,
+                    html: `
+                        <div style="text-align: right; max-height: 60vh; overflow-y: auto;">
+                            ${lastUpdateHtml}
+                            ${checkboxesHtml}
+                            <div style="margin-top: 15px;">
+                                <h4 style="color: var(--primary); margin-bottom: 10px; font-size: 14px;">
+                                    📝 ملاحظات أخرى
+                                </h4>
+                                <textarea id="otherNotes" class="swal2-textarea" placeholder="أضف ملاحظات إضافية هنا..." style="min-height: 80px; resize: vertical;">${existingNotes.notes?.other || ''}</textarea>
+                            </div>
+                            ${actionsHtml}
+                        </div>
+                    `,
+                    showCancelButton: true,
+                    confirmButtonText: '<i class="fas fa-save"></i> حفظ',
+                    cancelButtonText: 'إلغاء',
+                    confirmButtonColor: '#1a5f7a',
+                    width: '550px',
+                    preConfirm: () => {
+                        const checkboxes = document.querySelectorAll('.note-checkbox');
+                        const notes = {};
+                        checkboxes.forEach(cb => {
+                            notes[cb.dataset.key] = cb.checked;
+                        });
+                        notes.other = document.getElementById('otherNotes').value.trim();
+                        return { notes };
+                    }
+                });
+
+                if (formValues) {
+                    await saveStudentNotes(studentId, formValues.notes);
+                }
+
+            } catch (error) {
+                showLoading(false);
+                console.error(error);
+                showAlert('خطأ', 'حدث خطأ في تحميل البيانات', 'error');
+            }
+        }
+
+        // Save Student Notes
+        async function saveStudentNotes(studentId, notes) {
+            showLoading(true);
+
+            try {
+                await rootRef.child(`teacherNotes/${studentId}/${currentTeacher.civilId}`).set({
+                    teacherId: currentTeacher.civilId,
+                    teacherName: currentTeacher.name,
+                    notes: notes,
+                    createdAt: firebase.database.ServerValue.TIMESTAMP,
+                    updatedAt: firebase.database.ServerValue.TIMESTAMP
+                });
+
+                showLoading(false);
+                showAlert('تم', 'تم حفظ الملاحظات بنجاح', 'success');
+                renderStudentsTable(); // Refresh to update indicator
+
+            } catch (error) {
+                showLoading(false);
+                console.error(error);
+                showAlert('خطأ', 'حدث خطأ في حفظ الملاحظات', 'error');
+            }
+        }
+
+        // Enter key support
+        document.getElementById('civilIdInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') document.getElementById('passwordInput').focus();
+        });
+
+        document.getElementById('passwordInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleLogin();
+        });
+    </script>
+</body>
+</html>
