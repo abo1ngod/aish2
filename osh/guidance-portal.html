@@ -1753,7 +1753,7 @@
                     <option value="">جميع الصفوف</option>
                 </select>
                 <select id="sectionFilter" onchange="applyFilters()">
-                    <option value="">جميع الفصول</option>
+                    <option value="">جميع الشعب</option>
                 </select>
                 <select id="noteTypeFilter" onchange="applyFilters()">
                     <option value="">جميع الطلاب</option>
@@ -1781,7 +1781,7 @@
                             <tr>
                                 <th>#</th>
                                 <th class="sortable sorted" data-sort="name" data-order="asc" onclick="sortTable('name')">الطالب <i class="fas fa-sort-up sort-icon"></i></th>
-                                <th class="sortable" data-sort="grade" data-order="" onclick="sortTable('grade')">الصف / الفصل <i class="fas fa-sort sort-icon"></i></th>
+                                <th class="sortable" data-sort="grade" data-order="" onclick="sortTable('grade')">الصف / الشعبة <i class="fas fa-sort sort-icon"></i></th>
                                 <th class="sortable" data-sort="alert" data-order="" onclick="sortTable('alert')">التنبيه <i class="fas fa-sort sort-icon"></i></th>
                                 <th class="sortable" data-sort="notes" data-order="" onclick="sortTable('notes')">الملاحظات <i class="fas fa-sort sort-icon"></i></th>
                                 <th class="sortable" data-sort="actions" data-order="" onclick="sortTable('actions')">الإجراءات <i class="fas fa-sort sort-icon"></i></th>
@@ -2363,15 +2363,52 @@
                 if (student.section) sections.add(student.section);
             });
 
+            // Sort grades logically (أول، ثاني، ثالث، ...)
+            const gradeKeywords = [
+                { keywords: ['ثاني عشر', 'الثاني عشر'], order: 12 },
+                { keywords: ['حادي عشر', 'الحادي عشر'], order: 11 },
+                { keywords: ['عاشر', 'العاشر'], order: 10 },
+                { keywords: ['تاسع', 'التاسع'], order: 9 },
+                { keywords: ['ثامن', 'الثامن'], order: 8 },
+                { keywords: ['سابع', 'السابع'], order: 7 },
+                { keywords: ['سادس', 'السادس'], order: 6 },
+                { keywords: ['خامس', 'الخامس'], order: 5 },
+                { keywords: ['رابع', 'الرابع'], order: 4 },
+                { keywords: ['ثالث', 'الثالث'], order: 3 },
+                { keywords: ['ثاني', 'الثاني'], order: 2 },
+                { keywords: ['أول', 'اول', 'الأول', 'الاول'], order: 1 }
+            ];
+
+            function getGradeOrder(grade) {
+                for (const item of gradeKeywords) {
+                    for (const keyword of item.keywords) {
+                        if (grade.includes(keyword)) return item.order;
+                    }
+                }
+                return 99;
+            }
+
+            const sortedGrades = Array.from(grades).sort((a, b) => {
+                return getGradeOrder(a) - getGradeOrder(b);
+            });
+
             const gradeFilter = document.getElementById('gradeFilter');
             gradeFilter.innerHTML = '<option value="">جميع الصفوف</option>';
-            Array.from(grades).sort().forEach(grade => {
+            sortedGrades.forEach(grade => {
                 gradeFilter.innerHTML += `<option value="${grade}">${grade}</option>`;
             });
 
+            // Sort sections numerically (1, 2, 3, ..., 12)
+            const sortedSections = Array.from(sections).sort((a, b) => {
+                const numA = parseInt(a) || 0;
+                const numB = parseInt(b) || 0;
+                if (numA && numB) return numA - numB;
+                return a.localeCompare(b, 'ar');
+            });
+
             const sectionFilter = document.getElementById('sectionFilter');
-            sectionFilter.innerHTML = '<option value="">جميع الفصول</option>';
-            Array.from(sections).sort().forEach(section => {
+            sectionFilter.innerHTML = '<option value="">جميع الشعب</option>';
+            sortedSections.forEach(section => {
                 sectionFilter.innerHTML += `<option value="${section}">${section}</option>`;
             });
         }
@@ -2881,7 +2918,7 @@
             document.getElementById('studentInfo').innerHTML = `
                 <div><strong>الرقم المدني:</strong> ${student.civilId || '-'}</div>
                 <div><strong>الصف:</strong> ${student.grade || '-'}</div>
-                <div><strong>الفصل:</strong> ${student.section || '-'}</div>
+                <div><strong>الشعبة:</strong> ${student.section || '-'}</div>
                 <div><strong>التنبيه:</strong> <span class="alert-indicator ${student.alertLevel}">${{red: 'حرج', yellow: 'انتباه', green: 'مميز', gray: 'عادي'}[student.alertLevel]}</span></div>
             `;
 
@@ -3318,7 +3355,7 @@
                     'الاسم': student.name || '-',
                     'الرقم المدني': student.civilId || '-',
                     'الصف': student.grade || '-',
-                    'الفصل': student.section || '-',
+                    'الشعبة': student.section || '-',
                     'التنبيه': alertLabels[student.alertLevel] || 'عادي',
                     'إيجابية': student.positiveCount || 0,
                     'انتباه': student.attentionCount || 0,
@@ -3385,7 +3422,7 @@
                     { wch: 25 },  // الاسم
                     { wch: 15 },  // الرقم المدني
                     { wch: 10 },  // الصف
-                    { wch: 10 },  // الفصل
+                    { wch: 10 },  // الشعبة
                     { wch: 10 },  // التنبيه
                     { wch: 8 },   // إيجابية
                     { wch: 8 },   // انتباه
@@ -3453,7 +3490,7 @@
                     row['الاسم'],
                     row['الرقم المدني'],
                     row['الصف'],
-                    row['الفصل'],
+                    row['الشعبة'],
                     row['التنبيه'] === 'حرج' ? 'Critical' :
                         row['التنبيه'] === 'انتباه' ? 'Attention' :
                         row['التنبيه'] === 'مميز' ? 'Excellent' : 'Normal',
@@ -3609,7 +3646,7 @@
                                 <th>الاسم</th>
                                 <th>الرقم المدني</th>
                                 <th>الصف</th>
-                                <th>الفصل</th>
+                                <th>الشعبة</th>
                                 <th>التنبيه</th>
                                 <th>+</th>
                                 <th>⚠</th>
@@ -3632,7 +3669,7 @@
                         <td>${row['الاسم']}</td>
                         <td>${row['الرقم المدني']}</td>
                         <td>${row['الصف']}</td>
-                        <td>${row['الفصل']}</td>
+                        <td>${row['الشعبة']}</td>
                         <td class="${alertClass}">${row['التنبيه']}</td>
                         <td>${row['إيجابية']}</td>
                         <td>${row['انتباه']}</td>
