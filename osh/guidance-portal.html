@@ -631,6 +631,37 @@
             font-size: 13px;
         }
 
+        .table-header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .clear-filter-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            display: none;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .clear-filter-btn:hover {
+            background: #c0392b;
+            transform: scale(1.05);
+        }
+
+        .clear-filter-btn.show {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
         .students-table {
             width: 100%;
             border-collapse: collapse;
@@ -1725,7 +1756,7 @@
                     <option value="">جميع الفصول</option>
                 </select>
                 <select id="noteTypeFilter" onchange="applyFilters()">
-                    <option value="">جميع الملاحظات</option>
+                    <option value="">جميع الطلاب</option>
                     <option value="hasNotes">لديه ملاحظات</option>
                     <option value="noNotes">بدون ملاحظات</option>
                     <option value="hasActions">لديه إجراءات</option>
@@ -1737,7 +1768,12 @@
             <div class="table-container">
                 <div class="table-header">
                     <h3><i class="fas fa-users"></i> قائمة الطلاب</h3>
-                    <span class="table-count" id="tableCount">0 طالب</span>
+                    <div class="table-header-actions">
+                        <button class="clear-filter-btn" id="clearFilterBtn" onclick="clearNoteFilter()">
+                            <i class="fas fa-times"></i> الكل
+                        </button>
+                        <span class="table-count" id="tableCount">0 طالب</span>
+                    </div>
                 </div>
                 <div style="overflow-x: auto;">
                     <table class="students-table">
@@ -2525,8 +2561,18 @@
             currentNoteFilter = { category, noteKey };
             currentAlertFilter = null;
             document.querySelectorAll('.alert-card').forEach(card => card.classList.remove('active'));
+            document.getElementById('clearFilterBtn').classList.add('show');
             applyFilters();
             scrollToFirstStudent();
+        }
+
+        // Clear all filters and show all students
+        function clearNoteFilter() {
+            currentNoteFilter = null;
+            currentAlertFilter = null;
+            document.querySelectorAll('.alert-card').forEach(card => card.classList.remove('active'));
+            document.getElementById('clearFilterBtn').classList.remove('show');
+            applyFilters();
         }
 
         // Filter by Alert Card
@@ -2537,11 +2583,13 @@
             if (currentAlertFilter === level) {
                 currentAlertFilter = null;
                 document.querySelectorAll('.alert-card').forEach(card => card.classList.remove('active'));
+                document.getElementById('clearFilterBtn').classList.remove('show');
             } else {
                 currentAlertFilter = level;
                 document.querySelectorAll('.alert-card').forEach(card => {
                     card.classList.toggle('active', card.classList.contains(level));
                 });
+                document.getElementById('clearFilterBtn').classList.add('show');
             }
             applyFilters();
             // Scroll to first student in table

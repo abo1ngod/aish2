@@ -604,6 +604,89 @@
                 font-size: 14px;
             }
         }
+
+        /* Nested Modal Overlay */
+        .nested-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+
+        .nested-modal {
+            background: var(--card-bg);
+            border-radius: 16px;
+            width: 90%;
+            max-width: 400px;
+            max-height: 80vh;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .nested-modal-header {
+            padding: 15px 20px;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nested-modal-header h4 {
+            margin: 0;
+            font-size: 16px;
+        }
+
+        .nested-modal-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .nested-modal-body {
+            padding: 15px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .nested-student-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            border-bottom: 1px solid #eee;
+            gap: 10px;
+        }
+
+        .dark .nested-student-row {
+            border-bottom-color: rgba(255,255,255,0.1);
+        }
+
+        .nested-student-info {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .teacher-count-badge {
+            background: var(--primary);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            white-space: nowrap;
+        }
     </style>
 </head>
 <body>
@@ -737,6 +820,32 @@
         const PAGE_SIZE = 40;
         let showAll = false;
 
+        // Cookie helpers for session persistence
+        function setCookie(name, value, days) {
+            let expires = '';
+            if (days) {
+                const date = new Date();
+                date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+                expires = '; expires=' + date.toUTCString();
+            }
+            document.cookie = name + '=' + (value || '') + expires + '; path=/; SameSite=Strict';
+        }
+
+        function getCookie(name) {
+            const nameEQ = name + '=';
+            const ca = document.cookie.split(';');
+            for (let i = 0; i < ca.length; i++) {
+                let c = ca[i];
+                while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+                if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+            }
+            return null;
+        }
+
+        function deleteCookie(name) {
+            document.cookie = name + '=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+        }
+
         // Dark mode detection
         if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
             document.documentElement.classList.add('dark');
@@ -800,6 +909,9 @@
                 }
 
                 currentTeacher = { civilId, ...teacher };
+
+                // Save session
+                setCookie('teacherCivilId', civilId, 7);
 
                 // Update last login
                 await rootRef.child('teachers').child(civilId).update({
@@ -1197,7 +1309,7 @@
                                 const noteName = category.notes[noteKey];
                                 const encodedStudents = encodeURIComponent(JSON.stringify(students.map(s => ({ name: s.name, civilId: s.civilId }))));
                                 statsHtml += `
-                                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: var(--card-bg); border-radius: 8px; cursor: pointer;" onclick="showStudentsForNote('${encodedStudents}', '${noteName}')">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: var(--card-bg); border-radius: 8px; cursor: pointer;" onclick="showStudentsForNote('${encodedStudents}', '${noteName}', '${noteKey}')">
                                         <span>${noteName}</span>
                                         <span style="background: ${category.color}; color: white; padding: 2px 10px; border-radius: 12px; font-size: 12px;">${students.length}</span>
                                     </div>
@@ -1231,30 +1343,72 @@
             }
         }
 
-        // Show Students for a specific note
-        function showStudentsForNote(encodedStudents, noteName) {
+        // Show Students for a specific note (opens as overlay on top of stats modal)
+        async function showStudentsForNote(encodedStudents, noteName, noteKey) {
             const students = JSON.parse(decodeURIComponent(encodedStudents));
 
-            let listHtml = '<div style="max-height: 300px; overflow-y: auto;">';
+            // Get all notes to count teachers for each student
+            let allTeacherNotes = {};
+            try {
+                const notesSnap = await rootRef.child('teacherNotes').once('value');
+                allTeacherNotes = notesSnap.val() || {};
+            } catch (e) {
+                console.error(e);
+            }
+
+            // Build student rows with teacher count
+            let rowsHtml = '';
             students.forEach((student, index) => {
-                listHtml += `
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; border-bottom: 1px solid #eee;">
-                        <span>${index + 1}. ${student.name}</span>
-                        <button class="action-btn outline" style="font-size: 11px; padding: 4px 10px;" onclick="Swal.close(); openStudentNotes('${student.civilId}', '${student.name.replace(/'/g, "\\'")}')">
+                // Count how many teachers gave this note to this student
+                let teacherCount = 0;
+                const studentNotes = allTeacherNotes[student.civilId] || {};
+                Object.values(studentNotes).forEach(teacherData => {
+                    if (teacherData.notes && teacherData.notes[noteKey]) {
+                        teacherCount++;
+                    }
+                });
+
+                rowsHtml += `
+                    <div class="nested-student-row">
+                        <div class="nested-student-info">
+                            <span>${index + 1}. ${student.name}</span>
+                            <span class="teacher-count-badge">${teacherCount} معلم</span>
+                        </div>
+                        <button class="action-btn outline" style="font-size: 11px; padding: 4px 10px;" onclick="closeNestedModal(); Swal.close(); openStudentNotes('${student.civilId}', '${student.name.replace(/'/g, "\\'")}')">
                             <i class="fas fa-edit"></i>
                         </button>
                     </div>
                 `;
             });
-            listHtml += '</div>';
 
-            Swal.fire({
-                title: `<i class="fas fa-users"></i> ${noteName}`,
-                html: listHtml,
-                width: 400,
-                showCloseButton: true,
-                showConfirmButton: false
+            // Create nested modal overlay (on top of SweetAlert)
+            const overlay = document.createElement('div');
+            overlay.className = 'nested-modal-overlay';
+            overlay.id = 'nestedModalOverlay';
+            overlay.innerHTML = `
+                <div class="nested-modal">
+                    <div class="nested-modal-header">
+                        <h4><i class="fas fa-users"></i> ${noteName}</h4>
+                        <button class="nested-modal-close" onclick="closeNestedModal()">&times;</button>
+                    </div>
+                    <div class="nested-modal-body">
+                        ${rowsHtml}
+                    </div>
+                </div>
+            `;
+
+            // Close when clicking overlay background
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) closeNestedModal();
             });
+
+            document.body.appendChild(overlay);
+        }
+
+        // Close nested modal
+        function closeNestedModal() {
+            const overlay = document.getElementById('nestedModalOverlay');
+            if (overlay) overlay.remove();
         }
 
         // Logout
@@ -1270,6 +1424,7 @@
             }).then(result => {
                 if (result.isConfirmed) {
                     currentTeacher = null;
+                    deleteCookie('teacherCivilId');
                     document.getElementById('dashboardSection').classList.add('hidden');
                     document.getElementById('loginSection').classList.remove('hidden');
                     document.getElementById('civilIdInput').value = '';
@@ -1472,6 +1627,26 @@
         document.getElementById('passwordInput').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') handleLogin();
         });
+
+        // Check for saved session on page load
+        (async function checkSavedSession() {
+            const savedCivilId = getCookie('teacherCivilId');
+            if (savedCivilId) {
+                showLoading(true);
+                try {
+                    const snap = await rootRef.child('teachers').child(savedCivilId).once('value');
+                    const teacher = snap.val();
+                    if (teacher) {
+                        currentTeacher = { civilId: savedCivilId, ...teacher };
+                        showDashboard();
+                    }
+                } catch (e) {
+                    console.error(e);
+                    deleteCookie('teacherCivilId');
+                }
+                showLoading(false);
+            }
+        })();
     </script>
 </body>
 </html>
