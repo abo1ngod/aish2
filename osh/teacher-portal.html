@@ -366,6 +366,16 @@
             color: white;
         }
 
+        .icon-btn.stats {
+            background: rgba(52, 152, 219, 0.1);
+            color: #3498db;
+        }
+
+        .icon-btn.stats:hover {
+            background: #3498db;
+            color: white;
+        }
+
         .icon-btn.logout {
             background: rgba(231, 76, 60, 0.1);
             color: var(--danger);
@@ -502,6 +512,32 @@
             border: 2px solid #ddd;
         }
 
+        .notes-badges {
+            display: flex;
+            gap: 4px;
+            margin-right: 8px;
+        }
+
+        .note-badge {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-weight: 600;
+            color: white;
+        }
+
+        .note-badge.positive {
+            background: #2ecc71;
+        }
+
+        .note-badge.attention {
+            background: #f39c12;
+        }
+
+        .note-badge.negative {
+            background: #e74c3c;
+        }
+
         /* Pagination */
         .pagination-controls {
             padding: 15px;
@@ -627,6 +663,9 @@
                     </div>
                 </div>
                 <div class="header-actions">
+                    <button class="icon-btn stats" onclick="showTeacherStats()" title="إحصائياتي">
+                        <i class="fas fa-chart-bar"></i>
+                    </button>
                     <button class="icon-btn settings" onclick="showChangePasswordModal()" title="تغيير كلمة المرور">
                         <i class="fas fa-cog"></i>
                     </button>
@@ -914,13 +953,39 @@
             }
 
             tbody.innerHTML = displayStudents.map(s => {
-                const hasNote = teacherNotes[s.civilId]?.[currentTeacher.civilId];
+                const studentNoteData = teacherNotes[s.civilId]?.[currentTeacher.civilId];
+                const hasNote = !!studentNoteData;
+
+                // Count notes by category
+                let positiveCount = 0, attentionCount = 0, negativeCount = 0;
+                if (studentNoteData && studentNoteData.notes) {
+                    const notes = studentNoteData.notes;
+                    Object.keys(notes).forEach(key => {
+                        if (notes[key]) {
+                            if (noteCategories.positive.notes[key]) positiveCount++;
+                            else if (noteCategories.attention.notes[key]) attentionCount++;
+                            else if (noteCategories.negative.notes[key]) negativeCount++;
+                        }
+                    });
+                }
+
+                // Build badges HTML
+                let badgesHtml = '';
+                if (positiveCount > 0 || attentionCount > 0 || negativeCount > 0) {
+                    badgesHtml = '<div class="notes-badges">';
+                    if (positiveCount > 0) badgesHtml += `<span class="note-badge positive">+${positiveCount}</span>`;
+                    if (attentionCount > 0) badgesHtml += `<span class="note-badge attention">!${attentionCount}</span>`;
+                    if (negativeCount > 0) badgesHtml += `<span class="note-badge negative">-${negativeCount}</span>`;
+                    badgesHtml += '</div>';
+                }
+
                 return `
                 <tr onclick="openStudentNotes('${s.civilId}', '${s.name.replace(/'/g, "\\'")}')">
                     <td>
                         <div class="student-name-cell">
                             <span class="note-indicator ${hasNote ? '' : 'empty'}"></span>
                             ${s.name}
+                            ${badgesHtml}
                         </div>
                     </td>
                     <td>${s.grade}</td>
@@ -1047,6 +1112,151 @@
             }
         }
 
+        // Show Teacher Stats Modal
+        async function showTeacherStats() {
+            showLoading(true);
+
+            try {
+                const notesSnap = await rootRef.child('teacherNotes').once('value');
+                const allNotes = notesSnap.val() || {};
+
+                // Count stats for current teacher
+                let studentsWithNotes = 0;
+                let totalNotes = 0;
+                const notesBreakdown = {
+                    positive: {},
+                    attention: {},
+                    negative: {}
+                };
+
+                // Initialize note counts
+                Object.keys(noteCategories.positive.notes).forEach(key => notesBreakdown.positive[key] = []);
+                Object.keys(noteCategories.attention.notes).forEach(key => notesBreakdown.attention[key] = []);
+                Object.keys(noteCategories.negative.notes).forEach(key => notesBreakdown.negative[key] = []);
+
+                // Process notes
+                Object.entries(allNotes).forEach(([studentId, teachersData]) => {
+                    const teacherData = teachersData[currentTeacher.civilId];
+                    if (teacherData && teacherData.notes) {
+                        const student = allStudents.find(s => s.civilId === studentId) ||
+                                        { name: studentId, civilId: studentId };
+                        let hasAnyNote = false;
+
+                        Object.entries(teacherData.notes).forEach(([noteKey, value]) => {
+                            if (value) {
+                                hasAnyNote = true;
+                                totalNotes++;
+
+                                if (noteCategories.positive.notes[noteKey]) {
+                                    notesBreakdown.positive[noteKey].push(student);
+                                } else if (noteCategories.attention.notes[noteKey]) {
+                                    notesBreakdown.attention[noteKey].push(student);
+                                } else if (noteCategories.negative.notes[noteKey]) {
+                                    notesBreakdown.negative[noteKey].push(student);
+                                }
+                            }
+                        });
+
+                        if (hasAnyNote) studentsWithNotes++;
+                    }
+                });
+
+                showLoading(false);
+
+                // Build stats HTML
+                let statsHtml = `
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <div style="display: flex; justify-content: center; gap: 30px; margin-bottom: 20px;">
+                            <div>
+                                <div style="font-size: 32px; font-weight: bold; color: var(--primary);">${studentsWithNotes}</div>
+                                <div style="color: var(--gray); font-size: 14px;">طالب بملاحظات</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 32px; font-weight: bold; color: var(--secondary);">${totalNotes}</div>
+                                <div style="color: var(--gray); font-size: 14px;">إجمالي الملاحظات</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Build breakdown for each category
+                ['positive', 'attention', 'negative'].forEach(catKey => {
+                    const category = noteCategories[catKey];
+                    const catNotes = notesBreakdown[catKey];
+                    const catTotal = Object.values(catNotes).reduce((sum, arr) => sum + arr.length, 0);
+
+                    if (catTotal > 0) {
+                        statsHtml += `
+                            <div style="margin-bottom: 15px; background: rgba(${catKey === 'positive' ? '46,204,113' : catKey === 'attention' ? '243,156,18' : '231,76,60'}, 0.1); padding: 15px; border-radius: 10px; border-right: 4px solid ${category.color};">
+                                <h4 style="color: ${category.color}; margin-bottom: 10px;">${category.title} (${catTotal})</h4>
+                                <div style="display: flex; flex-direction: column; gap: 8px;">
+                        `;
+
+                        Object.entries(catNotes).forEach(([noteKey, students]) => {
+                            if (students.length > 0) {
+                                const noteName = category.notes[noteKey];
+                                const encodedStudents = encodeURIComponent(JSON.stringify(students.map(s => ({ name: s.name, civilId: s.civilId }))));
+                                statsHtml += `
+                                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: var(--card-bg); border-radius: 8px; cursor: pointer;" onclick="showStudentsForNote('${encodedStudents}', '${noteName}')">
+                                        <span>${noteName}</span>
+                                        <span style="background: ${category.color}; color: white; padding: 2px 10px; border-radius: 12px; font-size: 12px;">${students.length}</span>
+                                    </div>
+                                `;
+                            }
+                        });
+
+                        statsHtml += '</div></div>';
+                    }
+                });
+
+                if (totalNotes === 0) {
+                    statsHtml += '<p style="text-align: center; color: var(--gray); padding: 20px;">لم تسجل أي ملاحظات بعد</p>';
+                }
+
+                Swal.fire({
+                    title: '<i class="fas fa-chart-bar"></i> إحصائياتي',
+                    html: statsHtml,
+                    width: 500,
+                    showCloseButton: true,
+                    showConfirmButton: false,
+                    customClass: {
+                        popup: 'stats-modal'
+                    }
+                });
+
+            } catch (error) {
+                showLoading(false);
+                console.error(error);
+                showAlert('خطأ', 'حدث خطأ في تحميل الإحصائيات', 'error');
+            }
+        }
+
+        // Show Students for a specific note
+        function showStudentsForNote(encodedStudents, noteName) {
+            const students = JSON.parse(decodeURIComponent(encodedStudents));
+
+            let listHtml = '<div style="max-height: 300px; overflow-y: auto;">';
+            students.forEach((student, index) => {
+                listHtml += `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; border-bottom: 1px solid #eee;">
+                        <span>${index + 1}. ${student.name}</span>
+                        <button class="action-btn outline" style="font-size: 11px; padding: 4px 10px;" onclick="Swal.close(); openStudentNotes('${student.civilId}', '${student.name.replace(/'/g, "\\'")}')">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                    </div>
+                `;
+            });
+            listHtml += '</div>';
+
+            Swal.fire({
+                title: `<i class="fas fa-users"></i> ${noteName}`,
+                html: listHtml,
+                width: 400,
+                showCloseButton: true,
+                showConfirmButton: false
+            });
+        }
+
         // Logout
         function logout() {
             Swal.fire({
@@ -1086,8 +1296,6 @@
                 title: '⚠️ تحتاج انتباه',
                 color: '#f39c12',
                 notes: {
-                    sleepy: 'كثير النوم',
-                    frequentOut: 'كثير الخروج',
                     lowParticipation: 'قليل المشاركة',
                     isolated: 'منعزل اجتماعياً',
                     seemsTired: 'يبدو مرهقاً/حزيناً'
@@ -1097,6 +1305,8 @@
                 title: '🚫 ملاحظات سلبية',
                 color: '#e74c3c',
                 notes: {
+                    sleepy: 'كثير النوم',
+                    frequentOut: 'كثير الخروج',
                     troublemaker: 'مشاغب',
                     bully: 'يتنمر على الآخرين',
                     disrespectful: 'لا يحترم النظام',

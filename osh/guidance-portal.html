@@ -655,6 +655,32 @@
             color: var(--gray);
         }
 
+        .students-table th.sortable {
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.2s ease;
+        }
+
+        .students-table th.sortable:hover {
+            background: rgba(26, 95, 122, 0.12);
+        }
+
+        .dark .students-table th.sortable:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .students-table th .sort-icon {
+            margin-right: 5px;
+            font-size: 10px;
+            opacity: 0.4;
+            transition: opacity 0.2s ease;
+        }
+
+        .students-table th.sorted .sort-icon {
+            opacity: 1;
+            color: var(--primary);
+        }
+
         .students-table tr:hover {
             background: rgba(26, 95, 122, 0.03);
         }
@@ -981,6 +1007,13 @@
             background: rgba(0, 0, 0, 0.05);
             border-radius: 4px;
             color: var(--gray);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .teacher-name-tag:hover {
+            background: var(--primary);
+            color: white;
         }
 
         .other-notes-box {
@@ -1120,6 +1153,169 @@
             font-size: 48px;
             margin-bottom: 15px;
             opacity: 0.5;
+        }
+
+        /* Notes Stats Accordion */
+        .notes-stats-container {
+            margin-bottom: 20px;
+        }
+
+        .notes-accordion {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            margin-bottom: 10px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .accordion-header {
+            padding: 15px 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .accordion-header:hover {
+            opacity: 0.9;
+        }
+
+        .accordion-header.positive {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: white;
+        }
+
+        .accordion-header.attention {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+        }
+
+        .accordion-header.negative {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+        }
+
+        .accordion-header h4 {
+            margin: 0;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .accordion-header .toggle-icon {
+            transition: transform 0.3s ease;
+        }
+
+        .accordion-header.open .toggle-icon {
+            transform: rotate(180deg);
+        }
+
+        .accordion-body {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            background: var(--card-bg);
+        }
+
+        .accordion-body.open {
+            max-height: 500px;
+        }
+
+        .accordion-content {
+            padding: 15px 20px;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            background: rgba(0, 0, 0, 0.03);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .dark .stat-row {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .stat-row:hover {
+            transform: translateX(-5px);
+            background: rgba(0, 0, 0, 0.06);
+        }
+
+        .dark .stat-row:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .stat-row .note-name {
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .stat-row .student-count {
+            background: var(--primary);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .stat-row.positive .student-count {
+            background: #2ecc71;
+        }
+
+        .stat-row.attention .student-count {
+            background: #f39c12;
+        }
+
+        .stat-row.negative .student-count {
+            background: #e74c3c;
+        }
+
+        /* Teachers Modal */
+        .teachers-list-modal {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .teacher-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            background: rgba(0, 0, 0, 0.03);
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+
+        .dark .teacher-item {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .teacher-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .teacher-item .teacher-name {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .teacher-item .teacher-stats {
+            display: flex;
+            gap: 15px;
+            font-size: 12px;
+            color: var(--gray);
         }
 
         /* Export Section */
@@ -1307,7 +1503,25 @@
             }
 
             .alerts-grid {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+            }
+
+            .alert-card {
+                padding: 10px 5px;
+            }
+
+            .alert-card .icon {
+                font-size: 16px;
+                margin-bottom: 5px;
+            }
+
+            .alert-card .count {
+                font-size: 22px;
+            }
+
+            .alert-card .label {
+                font-size: 10px;
             }
 
             .filter-bar {
@@ -1324,16 +1538,22 @@
             }
 
             .students-table {
-                font-size: 13px;
+                font-size: 12px;
             }
 
             .students-table th,
             .students-table td {
-                padding: 10px 8px;
+                padding: 8px 5px;
             }
 
             .notes-summary {
-                display: none;
+                display: flex;
+                gap: 3px;
+            }
+
+            .note-badge {
+                font-size: 9px;
+                padding: 2px 5px;
             }
         }
     </style>
@@ -1443,13 +1663,101 @@
                     <span class="stat-value" id="studentsWithNotes">0</span>
                     <span class="stat-label">لديهم ملاحظات</span>
                 </div>
-                <div class="stat-box">
+                <div class="stat-box" onclick="showTeachersStats()" style="cursor: pointer;">
                     <span class="stat-value" id="totalTeachers">0</span>
                     <span class="stat-label">المعلمين</span>
                 </div>
                 <div class="stat-box">
                     <span class="stat-value" id="totalActions">0</span>
                     <span class="stat-label">إجراءات مسجلة</span>
+                </div>
+            </div>
+
+            <!-- Notes Stats Accordions -->
+            <div class="notes-stats-container" id="notesStatsContainer">
+                <!-- Positive Notes Accordion -->
+                <div class="notes-accordion">
+                    <div class="accordion-header positive" onclick="toggleAccordion(this)">
+                        <h4><i class="fas fa-check-circle"></i> ملاحظات إيجابية</h4>
+                        <i class="fas fa-chevron-down toggle-icon"></i>
+                    </div>
+                    <div class="accordion-body">
+                        <div class="accordion-content" id="positiveStatsContent">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Attention Notes Accordion -->
+                <div class="notes-accordion">
+                    <div class="accordion-header attention" onclick="toggleAccordion(this)">
+                        <h4><i class="fas fa-exclamation-circle"></i> ملاحظات تحتاج انتباه</h4>
+                        <i class="fas fa-chevron-down toggle-icon"></i>
+                    </div>
+                    <div class="accordion-body">
+                        <div class="accordion-content" id="attentionStatsContent">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Negative Notes Accordion -->
+                <div class="notes-accordion">
+                    <div class="accordion-header negative" onclick="toggleAccordion(this)">
+                        <h4><i class="fas fa-times-circle"></i> ملاحظات سلبية</h4>
+                        <i class="fas fa-chevron-down toggle-icon"></i>
+                    </div>
+                    <div class="accordion-body">
+                        <div class="accordion-content" id="negativeStatsContent">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filter Bar -->
+            <div class="filter-bar">
+                <input type="search" id="searchInput" placeholder="🔍 بحث بالاسم أو الرقم المدني..." oninput="applyFilters()">
+                <select id="gradeFilter" onchange="applyFilters()">
+                    <option value="">جميع الصفوف</option>
+                </select>
+                <select id="sectionFilter" onchange="applyFilters()">
+                    <option value="">جميع الفصول</option>
+                </select>
+                <select id="noteTypeFilter" onchange="applyFilters()">
+                    <option value="">جميع الملاحظات</option>
+                    <option value="hasNotes">لديه ملاحظات</option>
+                    <option value="noNotes">بدون ملاحظات</option>
+                    <option value="hasActions">لديه إجراءات</option>
+                    <option value="noActions">بدون إجراء</option>
+                </select>
+            </div>
+
+            <!-- Students Table -->
+            <div class="table-container">
+                <div class="table-header">
+                    <h3><i class="fas fa-users"></i> قائمة الطلاب</h3>
+                    <span class="table-count" id="tableCount">0 طالب</span>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table class="students-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th class="sortable sorted" data-sort="name" data-order="asc" onclick="sortTable('name')">الطالب <i class="fas fa-sort-up sort-icon"></i></th>
+                                <th class="sortable" data-sort="grade" data-order="" onclick="sortTable('grade')">الصف / الفصل <i class="fas fa-sort sort-icon"></i></th>
+                                <th class="sortable" data-sort="alert" data-order="" onclick="sortTable('alert')">التنبيه <i class="fas fa-sort sort-icon"></i></th>
+                                <th class="sortable" data-sort="notes" data-order="" onclick="sortTable('notes')">الملاحظات <i class="fas fa-sort sort-icon"></i></th>
+                                <th class="sortable" data-sort="actions" data-order="" onclick="sortTable('actions')">الإجراءات <i class="fas fa-sort sort-icon"></i></th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentsTableBody">
+                            <!-- Will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="pagination" id="pagination">
+                    <!-- Pagination will be generated here -->
                 </div>
             </div>
 
@@ -1482,51 +1790,6 @@
                         <input type="checkbox" id="exportWithActions" checked>
                         <label for="exportWithActions">تضمين إجراءات التوجيه</label>
                     </div>
-                </div>
-            </div>
-
-            <!-- Filter Bar -->
-            <div class="filter-bar">
-                <input type="search" id="searchInput" placeholder="🔍 بحث بالاسم أو الرقم المدني..." oninput="applyFilters()">
-                <select id="gradeFilter" onchange="applyFilters()">
-                    <option value="">جميع الصفوف</option>
-                </select>
-                <select id="sectionFilter" onchange="applyFilters()">
-                    <option value="">جميع الفصول</option>
-                </select>
-                <select id="noteTypeFilter" onchange="applyFilters()">
-                    <option value="">جميع الملاحظات</option>
-                    <option value="hasNotes">لديه ملاحظات</option>
-                    <option value="noNotes">بدون ملاحظات</option>
-                    <option value="hasActions">لديه إجراءات</option>
-                </select>
-            </div>
-
-            <!-- Students Table -->
-            <div class="table-container">
-                <div class="table-header">
-                    <h3><i class="fas fa-users"></i> قائمة الطلاب</h3>
-                    <span class="table-count" id="tableCount">0 طالب</span>
-                </div>
-                <div style="overflow-x: auto;">
-                    <table class="students-table">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>الطالب</th>
-                                <th>الصف / الفصل</th>
-                                <th>التنبيه</th>
-                                <th>الملاحظات</th>
-                                <th>الإجراءات</th>
-                            </tr>
-                        </thead>
-                        <tbody id="studentsTableBody">
-                            <!-- Will be populated by JavaScript -->
-                        </tbody>
-                    </table>
-                </div>
-                <div class="pagination" id="pagination">
-                    <!-- Pagination will be generated here -->
                 </div>
             </div>
         </div>
@@ -1614,6 +1877,32 @@
         let isFullAccess = false;
         const DEFAULT_PASSWORD = '9999';
 
+        // Cookie helpers for session persistence
+        function setCookie(name, value, days) {
+            let expires = '';
+            if (days) {
+                const date = new Date();
+                date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+                expires = '; expires=' + date.toUTCString();
+            }
+            document.cookie = name + '=' + (value || '') + expires + '; path=/; SameSite=Strict';
+        }
+
+        function getCookie(name) {
+            const nameEQ = name + '=';
+            const ca = document.cookie.split(';');
+            for (let i = 0; i < ca.length; i++) {
+                let c = ca[i];
+                while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+                if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+            }
+            return null;
+        }
+
+        function deleteCookie(name) {
+            document.cookie = name + '=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+        }
+
         // Dark mode detection
         if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
             document.documentElement.classList.add('dark');
@@ -1679,6 +1968,7 @@
                 }
 
                 isFullAccess = true;
+                setCookie('guidanceAccess', 'full', 7);
                 showLoading(false);
                 showDashboard();
 
@@ -1753,6 +2043,7 @@
                     }
 
                     isFullAccess = true;
+                    setCookie('guidanceAccess', 'full', 7);
                     showLoading(false);
                     updateAccessMode();
                     showAlert('تم', 'تم ترقية الصلاحيات بنجاح', 'success');
@@ -1839,6 +2130,7 @@
             }).then(result => {
                 if (result.isConfirmed) {
                     isFullAccess = false;
+                    deleteCookie('guidanceAccess');
                     document.getElementById('dashboardSection').classList.add('hidden');
                     document.getElementById('loginSection').classList.remove('hidden');
                     document.getElementById('mainContainer').classList.remove('wide');
@@ -1877,8 +2169,6 @@
                 icon: 'fa-exclamation-circle',
                 color: '#f39c12',
                 notes: {
-                    sleepy: 'كثير النوم',
-                    frequentOut: 'كثير الخروج',
                     lowParticipation: 'قليل المشاركة',
                     isolated: 'منعزل اجتماعياً',
                     seemsTired: 'يبدو مرهقاً/حزيناً'
@@ -1889,6 +2179,8 @@
                 icon: 'fa-times-circle',
                 color: '#e74c3c',
                 notes: {
+                    sleepy: 'كثير النوم',
+                    frequentOut: 'كثير الخروج',
                     troublemaker: 'مشاغب',
                     bully: 'يتنمر على الآخرين',
                     disrespectful: 'لا يحترم النظام',
@@ -1909,13 +2201,18 @@
         let currentStudentId = null;
         let editingActionId = null;
         const studentsPerPage = 40;
+        let currentSortField = 'name';
+        let currentSortOrder = 'asc';
 
-        // Load Dashboard Data
+        // Real-time listeners active flag
+        let realtimeListenersActive = false;
+
+        // Load Dashboard Data with Real-time updates
         async function loadDashboardData() {
             showLoading(true);
 
             try {
-                // Load all data in parallel
+                // Initial load - get all data once
                 const [studentsSnap, teachersSnap, notesSnap, actionsSnap] = await Promise.all([
                     rootRef.child('students').once('value'),
                     rootRef.child('teachers').once('value'),
@@ -1947,10 +2244,76 @@
 
                 showLoading(false);
 
+                // Setup real-time listeners after initial load
+                if (!realtimeListenersActive) {
+                    setupRealtimeListeners();
+                    realtimeListenersActive = true;
+                }
+
             } catch (error) {
                 showLoading(false);
                 console.error('Error loading data:', JSON.stringify(error));
                 showAlert('خطأ', 'حدث خطأ في تحميل البيانات', 'error');
+            }
+        }
+
+        // Setup real-time listeners for data changes
+        function setupRealtimeListeners() {
+            // Listen for notes changes
+            rootRef.child('teacherNotes').on('value', snap => {
+                const newNotes = snap.val() || {};
+                if (JSON.stringify(newNotes) !== JSON.stringify(allNotes)) {
+                    allNotes = newNotes;
+                    refreshDashboard();
+                }
+            });
+
+            // Listen for actions changes
+            rootRef.child('studentActions').on('value', snap => {
+                const newActions = snap.val() || {};
+                if (JSON.stringify(newActions) !== JSON.stringify(allActions)) {
+                    allActions = newActions;
+                    refreshDashboard();
+                }
+            });
+
+            // Listen for students changes
+            rootRef.child('students').on('value', snap => {
+                const studentsData = snap.val() || {};
+                const newStudents = [];
+                Object.keys(studentsData).forEach(id => {
+                    newStudents.push({ id, civilId: id, ...studentsData[id] });
+                });
+                if (JSON.stringify(newStudents) !== JSON.stringify(allStudents)) {
+                    allStudents = newStudents;
+                    populateFilters();
+                    refreshDashboard();
+                }
+            });
+
+            // Listen for teachers changes
+            rootRef.child('teachers').on('value', snap => {
+                const newTeachers = snap.val() || {};
+                if (JSON.stringify(newTeachers) !== JSON.stringify(allTeachers)) {
+                    allTeachers = newTeachers;
+                    refreshDashboard();
+                }
+            });
+        }
+
+        // Refresh dashboard without full reload
+        function refreshDashboard() {
+            processStudentAlerts();
+            updateStats();
+            applyFilters();
+
+            // If student modal is open, refresh it
+            if (currentStudentId && !document.getElementById('studentModal').classList.contains('hidden')) {
+                const student = allStudents.find(s => s.id === currentStudentId);
+                if (student) {
+                    renderStudentNotes(currentStudentId);
+                    renderStudentActions(currentStudentId);
+                }
             }
         }
 
@@ -1984,7 +2347,12 @@
                 let positiveCount = 0;
                 let attentionCount = 0;
                 let negativeCount = 0;
-                let troublemakerCount = 0;
+
+                // Track each negative note count from different teachers
+                const negativeNoteCounts = {};
+                Object.keys(noteCategories.negative.notes).forEach(key => {
+                    negativeNoteCounts[key] = 0;
+                });
 
                 // Count notes from all teachers
                 Object.values(studentNotes).forEach(teacherData => {
@@ -2000,20 +2368,22 @@
                         if (notes[key]) attentionCount++;
                     });
 
-                    // Count negative notes
+                    // Count negative notes per type
                     Object.keys(noteCategories.negative.notes).forEach(key => {
                         if (notes[key]) {
                             negativeCount++;
-                            if (key === 'troublemaker') troublemakerCount++;
+                            negativeNoteCounts[key]++;
                         }
                     });
                 });
 
                 // Determine alert level
-                // Red: 3+ teachers marked troublemaker
-                // Yellow: 2+ negative notes
-                // Green: 3+ positive notes (academicExcellent or behaviorExcellent)
-                if (troublemakerCount >= 3) {
+                // Red: 3+ teachers marked any single negative note
+                // Yellow: 2+ negative notes total
+                // Green: 3+ positive notes
+                const hasRedAlert = Object.values(negativeNoteCounts).some(count => count >= 3);
+
+                if (hasRedAlert) {
                     student.alertLevel = 'red';
                 } else if (negativeCount >= 2) {
                     student.alertLevel = 'yellow';
@@ -2027,7 +2397,25 @@
                 student.attentionCount = attentionCount;
                 student.negativeCount = negativeCount;
                 student.hasNotes = Object.keys(studentNotes).length > 0;
-                student.hasActions = !!allActions[student.id];
+
+                // Get last note timestamp
+                let lastNoteTime = 0;
+                Object.values(studentNotes).forEach(teacherData => {
+                    const noteTime = teacherData.updatedAt || teacherData.lastUpdate || 0;
+                    if (noteTime > lastNoteTime) lastNoteTime = noteTime;
+                });
+
+                // Get last action timestamp
+                let lastActionTime = 0;
+                const studentActions = allActions[student.id] || {};
+                Object.values(studentActions).forEach(action => {
+                    const actionTime = action.createdAt || 0;
+                    if (actionTime > lastActionTime) lastActionTime = actionTime;
+                });
+
+                student.hasActions = Object.keys(studentActions).length > 0;
+                // needsAction: has notes AND (no actions OR last note after last action)
+                student.needsAction = student.hasNotes && (!student.hasActions || lastNoteTime > lastActionTime);
             });
         }
 
@@ -2054,10 +2442,97 @@
             document.getElementById('redCount').textContent = redCount;
             document.getElementById('yellowCount').textContent = yellowCount;
             document.getElementById('greenCount').textContent = greenCount;
+
+            // Update notes stats accordions
+            updateNotesStats();
+        }
+
+        // Notes statistics data
+        let notesStatsData = {};
+
+        // Update Notes Stats Accordions
+        function updateNotesStats() {
+            notesStatsData = {
+                positive: {},
+                attention: {},
+                negative: {}
+            };
+
+            // Initialize counts
+            Object.keys(noteCategories.positive.notes).forEach(key => {
+                notesStatsData.positive[key] = new Set();
+            });
+            Object.keys(noteCategories.attention.notes).forEach(key => {
+                notesStatsData.attention[key] = new Set();
+            });
+            Object.keys(noteCategories.negative.notes).forEach(key => {
+                notesStatsData.negative[key] = new Set();
+            });
+
+            // Count students for each note
+            Object.entries(allNotes).forEach(([studentId, studentNotes]) => {
+                Object.values(studentNotes).forEach(teacherData => {
+                    const notes = teacherData.notes || {};
+
+                    Object.keys(noteCategories.positive.notes).forEach(key => {
+                        if (notes[key]) notesStatsData.positive[key].add(studentId);
+                    });
+                    Object.keys(noteCategories.attention.notes).forEach(key => {
+                        if (notes[key]) notesStatsData.attention[key].add(studentId);
+                    });
+                    Object.keys(noteCategories.negative.notes).forEach(key => {
+                        if (notes[key]) notesStatsData.negative[key].add(studentId);
+                    });
+                });
+            });
+
+            // Render positive stats
+            document.getElementById('positiveStatsContent').innerHTML = Object.entries(noteCategories.positive.notes).map(([key, label]) => `
+                <div class="stat-row positive" onclick="filterByNote('positive', '${key}')">
+                    <span class="note-name">${label}</span>
+                    <span class="student-count">${notesStatsData.positive[key].size} طالب</span>
+                </div>
+            `).join('');
+
+            // Render attention stats
+            document.getElementById('attentionStatsContent').innerHTML = Object.entries(noteCategories.attention.notes).map(([key, label]) => `
+                <div class="stat-row attention" onclick="filterByNote('attention', '${key}')">
+                    <span class="note-name">${label}</span>
+                    <span class="student-count">${notesStatsData.attention[key].size} طالب</span>
+                </div>
+            `).join('');
+
+            // Render negative stats
+            document.getElementById('negativeStatsContent').innerHTML = Object.entries(noteCategories.negative.notes).map(([key, label]) => `
+                <div class="stat-row negative" onclick="filterByNote('negative', '${key}')">
+                    <span class="note-name">${label}</span>
+                    <span class="student-count">${notesStatsData.negative[key].size} طالب</span>
+                </div>
+            `).join('');
+        }
+
+        // Toggle Accordion
+        function toggleAccordion(header) {
+            const body = header.nextElementSibling;
+            header.classList.toggle('open');
+            body.classList.toggle('open');
+        }
+
+        // Filter by specific note
+        let currentNoteFilter = null;
+
+        function filterByNote(category, noteKey) {
+            currentNoteFilter = { category, noteKey };
+            currentAlertFilter = null;
+            document.querySelectorAll('.alert-card').forEach(card => card.classList.remove('active'));
+            applyFilters();
+            scrollToFirstStudent();
         }
 
         // Filter by Alert Card
         function filterByAlert(level) {
+            // Clear note filter
+            currentNoteFilter = null;
             // Toggle filter
             if (currentAlertFilter === level) {
                 currentAlertFilter = null;
@@ -2069,6 +2544,18 @@
                 });
             }
             applyFilters();
+            // Scroll to first student in table
+            scrollToFirstStudent();
+        }
+
+        // Scroll to first student in table
+        function scrollToFirstStudent() {
+            setTimeout(() => {
+                const firstRow = document.querySelector('#studentsTableBody tr');
+                if (firstRow) {
+                    firstRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 100);
         }
 
         // Apply All Filters
@@ -2098,19 +2585,100 @@
                 if (noteType === 'hasNotes' && !student.hasNotes) return false;
                 if (noteType === 'noNotes' && student.hasNotes) return false;
                 if (noteType === 'hasActions' && !student.hasActions) return false;
+                if (noteType === 'noActions' && !student.needsAction) return false;
 
                 // Alert filter
                 if (currentAlertFilter && student.alertLevel !== currentAlertFilter) {
                     return false;
                 }
 
+                // Specific note filter
+                if (currentNoteFilter) {
+                    const studentNotes = allNotes[student.id] || {};
+                    let hasNote = false;
+                    Object.values(studentNotes).forEach(teacherData => {
+                        const notes = teacherData.notes || {};
+                        if (notes[currentNoteFilter.noteKey]) hasNote = true;
+                    });
+                    if (!hasNote) return false;
+                }
+
                 return true;
             });
 
-            // Sort: red first, then yellow, then green, then gray
-            const alertOrder = { red: 0, yellow: 1, green: 2, gray: 3 };
-            filteredStudents.sort((a, b) => alertOrder[a.alertLevel] - alertOrder[b.alertLevel]);
+            // Apply current sort
+            applySorting();
 
+            currentPage = 1;
+            renderStudentsTable();
+        }
+
+        // Apply Sorting to filtered students
+        function applySorting() {
+            const alertOrder = { red: 0, yellow: 1, green: 2, gray: 3 };
+            const multiplier = currentSortOrder === 'asc' ? 1 : -1;
+
+            filteredStudents.sort((a, b) => {
+                let comparison = 0;
+                switch (currentSortField) {
+                    case 'name':
+                        const nameA = (a.name || '').trim();
+                        const nameB = (b.name || '').trim();
+                        comparison = nameA.localeCompare(nameB, 'ar');
+                        break;
+                    case 'grade':
+                        const gradeA = `${a.grade || ''}-${a.section || ''}`;
+                        const gradeB = `${b.grade || ''}-${b.section || ''}`;
+                        comparison = gradeA.localeCompare(gradeB, 'ar');
+                        break;
+                    case 'alert':
+                        comparison = alertOrder[a.alertLevel] - alertOrder[b.alertLevel];
+                        break;
+                    case 'notes':
+                        const totalNotesA = (a.positiveCount || 0) + (a.attentionCount || 0) + (a.negativeCount || 0);
+                        const totalNotesB = (b.positiveCount || 0) + (b.attentionCount || 0) + (b.negativeCount || 0);
+                        comparison = totalNotesB - totalNotesA;
+                        break;
+                    case 'actions':
+                        comparison = (b.actionsCount || 0) - (a.actionsCount || 0);
+                        break;
+                    default:
+                        comparison = 0;
+                }
+                return comparison * multiplier;
+            });
+        }
+
+        // Sort Table by column
+        function sortTable(field) {
+            const headers = document.querySelectorAll('.students-table th.sortable');
+
+            if (currentSortField === field) {
+                currentSortOrder = currentSortOrder === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSortField = field;
+                currentSortOrder = 'asc';
+            }
+
+            headers.forEach(th => {
+                th.classList.remove('sorted');
+                const icon = th.querySelector('.sort-icon');
+                if (icon) {
+                    icon.className = 'fas fa-sort sort-icon';
+                }
+            });
+
+            const activeHeader = document.querySelector(`th[data-sort="${field}"]`);
+            if (activeHeader) {
+                activeHeader.classList.add('sorted');
+                activeHeader.dataset.order = currentSortOrder;
+                const icon = activeHeader.querySelector('.sort-icon');
+                if (icon) {
+                    icon.className = `fas fa-sort-${currentSortOrder === 'asc' ? 'up' : 'down'} sort-icon`;
+                }
+            }
+
+            applySorting();
             currentPage = 1;
             renderStudentsTable();
         }
@@ -2360,7 +2928,7 @@
                         ${Object.entries(aggregatedNotes.positive).map(([key, teachers]) => `
                             <li>
                                 ${noteCategories.positive.notes[key]}
-                                <span class="teacher-name-tag">${teachers.length} معلم</span>
+                                <span class="teacher-name-tag" onclick="showTeachersList('${encodeURIComponent(JSON.stringify(teachers))}', '${noteCategories.positive.notes[key]}')">${teachers.length} معلم</span>
                             </li>
                         `).join('') || '<li style="color: var(--gray);">لا يوجد</li>'}
                     </ul>
@@ -2371,7 +2939,7 @@
                         ${Object.entries(aggregatedNotes.attention).map(([key, teachers]) => `
                             <li>
                                 ${noteCategories.attention.notes[key]}
-                                <span class="teacher-name-tag">${teachers.length} معلم</span>
+                                <span class="teacher-name-tag" onclick="showTeachersList('${encodeURIComponent(JSON.stringify(teachers))}', '${noteCategories.attention.notes[key]}')">${teachers.length} معلم</span>
                             </li>
                         `).join('') || '<li style="color: var(--gray);">لا يوجد</li>'}
                     </ul>
@@ -2382,7 +2950,7 @@
                         ${Object.entries(aggregatedNotes.negative).map(([key, teachers]) => `
                             <li>
                                 ${noteCategories.negative.notes[key]}
-                                <span class="teacher-name-tag">${teachers.length} معلم</span>
+                                <span class="teacher-name-tag" onclick="showTeachersList('${encodeURIComponent(JSON.stringify(teachers))}', '${noteCategories.negative.notes[key]}')">${teachers.length} معلم</span>
                             </li>
                         `).join('') || '<li style="color: var(--gray);">لا يوجد</li>'}
                     </ul>
@@ -2570,6 +3138,90 @@
             currentStudentId = null;
         }
 
+        // Show Teachers List Modal
+        function showTeachersList(encodedTeachers, noteName) {
+            const teachers = JSON.parse(decodeURIComponent(encodedTeachers));
+
+            Swal.fire({
+                title: `<i class="fas fa-users"></i> ${noteName}`,
+                html: `
+                    <div class="teachers-list-modal">
+                        ${teachers.map(name => `
+                            <div class="teacher-item">
+                                <span class="teacher-name"><i class="fas fa-user-tie"></i> ${name}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                `,
+                showConfirmButton: false,
+                showCloseButton: true,
+                customClass: {
+                    popup: 'swal-rtl'
+                }
+            });
+        }
+
+        // Show Teachers Stats Modal
+        function showTeachersStats() {
+            // Calculate stats for each teacher
+            const teacherStats = {};
+
+            Object.entries(allNotes).forEach(([studentId, studentNotes]) => {
+                Object.entries(studentNotes).forEach(([teacherId, teacherData]) => {
+                    if (!teacherStats[teacherId]) {
+                        teacherStats[teacherId] = {
+                            name: allTeachers[teacherId]?.name || 'معلم غير معروف',
+                            studentsCount: new Set(),
+                            notesCount: 0
+                        };
+                    }
+                    teacherStats[teacherId].studentsCount.add(studentId);
+
+                    const notes = teacherData.notes || {};
+                    // Count all checked notes
+                    Object.keys(noteCategories.positive.notes).forEach(key => {
+                        if (notes[key]) teacherStats[teacherId].notesCount++;
+                    });
+                    Object.keys(noteCategories.attention.notes).forEach(key => {
+                        if (notes[key]) teacherStats[teacherId].notesCount++;
+                    });
+                    Object.keys(noteCategories.negative.notes).forEach(key => {
+                        if (notes[key]) teacherStats[teacherId].notesCount++;
+                    });
+                    if (notes.other && notes.other.trim()) teacherStats[teacherId].notesCount++;
+                });
+            });
+
+            // Sort by students count
+            const sortedTeachers = Object.values(teacherStats)
+                .map(t => ({ ...t, studentsCount: t.studentsCount.size }))
+                .sort((a, b) => b.studentsCount - a.studentsCount);
+
+            Swal.fire({
+                title: '<i class="fas fa-chalkboard-teacher"></i> إحصائيات المعلمين',
+                html: `
+                    <div class="teachers-list-modal">
+                        ${sortedTeachers.length === 0 ? '<p style="color: var(--gray);">لا يوجد معلمين سجلوا ملاحظات</p>' :
+                        sortedTeachers.map(t => `
+                            <div class="teacher-item">
+                                <span class="teacher-name"><i class="fas fa-user-tie"></i> ${t.name}</span>
+                                <div class="teacher-stats">
+                                    <span><i class="fas fa-users"></i> ${t.studentsCount} طالب</span>
+                                    <span><i class="fas fa-sticky-note"></i> ${t.notesCount} ملاحظة</span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `,
+                showConfirmButton: false,
+                showCloseButton: true,
+                width: '500px',
+                customClass: {
+                    popup: 'swal-rtl'
+                }
+            });
+        }
+
         // Close modal on overlay click
         document.getElementById('studentModal').addEventListener('click', (e) => {
             if (e.target.id === 'studentModal') {
@@ -2583,6 +3235,15 @@
             originalShowDashboard();
             loadDashboardData();
         };
+
+        // Check for saved session on page load
+        (function checkSavedSession() {
+            const savedAccess = getCookie('guidanceAccess');
+            if (savedAccess === 'full') {
+                isFullAccess = true;
+                showDashboard();
+            }
+        })();
 
         // =============================================
         // Export Functionality (Phase 7)
