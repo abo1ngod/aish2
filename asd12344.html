@@ -1,0 +1,2004 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام القطة</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Firebase Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <style>
+        :root {
+            --primary: #1a5f4a;
+            --primary-dark: #0d3d2e;
+            --primary-light: #2d8a6b;
+            --secondary: #f0f7f4;
+            --accent: #c4a747;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --text: #1a1a1a;
+            --text-light: #666;
+            --border: #ddd;
+            --shadow: 0 4px 15px rgba(26, 95, 74, 0.15);
+            --radius: 12px;
+        }
+
+        .dark {
+            --primary: #2d8a6b;
+            --primary-dark: #1a5f4a;
+            --primary-light: #3da87f;
+            --secondary: #1a2a24;
+            --accent: #d4b755;
+            --text: #e8e8e8;
+            --text-light: #aaa;
+            --border: #3a4a44;
+            --shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .dark body {
+            background: linear-gradient(135deg, #0d1f18 0%, #1a2a24 100%);
+        }
+
+        .dark .card, .dark .modal-content {
+            background: #1e2e28;
+        }
+
+        .dark input, .dark select, .dark textarea {
+            background: #2a3a34;
+            border-color: var(--border);
+            color: var(--text);
+        }
+
+        .dark .tab-btn:not(.active) {
+            background: #2a3a34;
+        }
+
+        .dark .table th {
+            background: #2a3a34;
+        }
+
+        .dark .table tr:hover {
+            background: #2a3a34;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #e8f5e9 0%, #f0f7f4 100%);
+            min-height: 100vh;
+            color: var(--text);
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 15px;
+        }
+
+        /* Login Screen */
+        .login-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .login-card {
+            background: white;
+            padding: 40px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .dark .login-card {
+            background: #1e2e28;
+        }
+
+        .login-logo {
+            width: 100px;
+            height: 100px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 3rem;
+            color: white;
+        }
+
+        .login-title {
+            color: var(--primary);
+            font-size: 1.8rem;
+            margin-bottom: 30px;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: none;
+            border-radius: var(--radius);
+            font-family: inherit;
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s;
+        }
+
+        .login-btn.admin {
+            background: var(--primary);
+            color: white;
+        }
+
+        .login-btn.admin:hover {
+            background: var(--primary-dark);
+        }
+
+        .login-btn.member {
+            background: var(--secondary);
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+
+        .login-btn.member:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Header */
+        .header {
+            background: var(--primary);
+            color: white;
+            padding: 15px 20px;
+            border-radius: var(--radius);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow);
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.3rem;
+        }
+
+        .header-user {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+        }
+
+        .logout-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+        }
+
+        .tab-btn {
+            padding: 12px 20px;
+            border: none;
+            background: white;
+            color: var(--text-light);
+            border-radius: var(--radius) var(--radius) 0 0;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.95rem;
+            white-space: nowrap;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .tab-btn:hover:not(.active) {
+            background: var(--secondary);
+            color: var(--primary);
+        }
+
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .card-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.2rem;
+            color: var(--primary);
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--secondary);
+        }
+
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            padding: 20px;
+            border-radius: var(--radius);
+            text-align: center;
+        }
+
+        .stat-card.warning {
+            background: linear-gradient(135deg, #e67e22 0%, #f39c12 100%);
+        }
+
+        .stat-card.danger {
+            background: linear-gradient(135deg, #c0392b 0%, #e74c3c 100%);
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .checkbox-group {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .checkbox-label input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: var(--primary);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 1rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background: var(--secondary);
+            color: var(--primary);
+        }
+
+        .btn-secondary:hover {
+            background: #d0e7df;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: #333;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.85rem;
+        }
+
+        .btn-block {
+            width: 100%;
+            justify-content: center;
+        }
+
+        /* Tables */
+        .table-container {
+            overflow-x: auto;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        .table th, .table td {
+            padding: 12px;
+            text-align: right;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .table th {
+            background: var(--secondary);
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .table tr:hover {
+            background: var(--secondary);
+        }
+
+        /* Badges */
+        .badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-danger {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .badge-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: var(--radius);
+            padding: 25px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-light);
+        }
+
+        .modal-title {
+            color: var(--primary);
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+        }
+
+        /* WhatsApp Message */
+        .whatsapp-box {
+            background: #dcf8c6;
+            border-radius: var(--radius);
+            padding: 15px;
+            margin: 15px 0;
+            font-size: 0.95rem;
+            white-space: pre-wrap;
+            direction: rtl;
+        }
+
+        .dark .whatsapp-box {
+            background: #1e3a2f;
+            color: #dcf8c6;
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        /* Member Status */
+        .member-status {
+            background: var(--secondary);
+            border-radius: var(--radius);
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .member-status h4 {
+            color: var(--primary);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px dashed var(--border);
+        }
+
+        .status-item:last-child {
+            border-bottom: none;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-light);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        /* Month Selector */
+        .month-selector {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .month-selector select {
+            width: auto;
+            min-width: 150px;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .header {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
+
+            .tabs {
+                justify-content: flex-start;
+            }
+
+            .tab-btn {
+                padding: 10px 15px;
+                font-size: 0.85rem;
+            }
+
+            .stat-card {
+                padding: 15px;
+            }
+
+            .stat-value {
+                font-size: 1.5rem;
+            }
+
+            .btn {
+                padding: 10px 20px;
+            }
+
+            .table th, .table td {
+                padding: 8px;
+                font-size: 0.85rem;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card, .stat-card {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        /* Hidden */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Fund Tabs */
+        .fund-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .fund-tab {
+            padding: 10px 20px;
+            border: 2px solid var(--primary);
+            background: white;
+            color: var(--primary);
+            border-radius: 25px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .dark .fund-tab {
+            background: #2a3a34;
+        }
+
+        .fund-tab.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Badge for frozen members */
+        .badge-frozen {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+
+        .dark .badge-frozen {
+            background: #1a3a5c;
+            color: #90caf9;
+        }
+
+        /* End of month alert */
+        .month-alert {
+            background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+            border: 2px solid #ff9800;
+            border-radius: var(--radius);
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .dark .month-alert {
+            background: linear-gradient(135deg, #3d2e1a 0%, #4a3520 100%);
+            border-color: #ff9800;
+        }
+
+        .month-alert i {
+            font-size: 2rem;
+            color: #ff9800;
+        }
+
+        .month-alert-content h4 {
+            color: #e65100;
+            margin-bottom: 5px;
+        }
+
+        /* Reports styles */
+        .report-card {
+            background: var(--secondary);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .report-header h3 {
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .report-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+        }
+
+        .report-stat {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .dark .report-stat {
+            background: #2a3a34;
+        }
+
+        .report-stat-value {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .report-stat-label {
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+
+        .report-stat.positive .report-stat-value {
+            color: var(--success);
+        }
+
+        .report-stat.negative .report-stat-value {
+            color: var(--danger);
+        }
+
+        /* Print styles */
+        @media print {
+            body {
+                background: white !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .header, .tabs, .quick-actions, .btn, .modal-overlay, .admin-only, .fund-tabs {
+                display: none !important;
+            }
+
+            .card {
+                box-shadow: none !important;
+                border: 1px solid #ddd;
+                break-inside: avoid;
+            }
+
+            .container {
+                max-width: 100%;
+                padding: 0;
+            }
+
+            .tab-content {
+                display: block !important;
+            }
+
+            .print-header {
+                display: block !important;
+                text-align: center;
+                margin-bottom: 20px;
+                padding-bottom: 15px;
+                border-bottom: 2px solid var(--primary);
+            }
+
+            .print-header h1 {
+                color: var(--primary);
+                margin-bottom: 5px;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+        }
+
+        .print-header {
+            display: none;
+        }
+
+        /* Enhanced mobile styles */
+        @media (max-width: 480px) {
+            .container {
+                padding: 10px;
+            }
+
+            .header {
+                padding: 12px 15px;
+                border-radius: 8px;
+            }
+
+            .header-title {
+                font-size: 1.1rem;
+            }
+
+            .card {
+                padding: 15px;
+                border-radius: 8px;
+            }
+
+            .card-title {
+                font-size: 1rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+
+            .stat-card {
+                padding: 12px;
+            }
+
+            .stat-value {
+                font-size: 1.3rem;
+            }
+
+            .stat-label {
+                font-size: 0.75rem;
+            }
+
+            .fund-tabs {
+                flex-direction: column;
+            }
+
+            .fund-tab {
+                width: 100%;
+                text-align: center;
+                padding: 12px;
+            }
+
+            .tabs {
+                gap: 3px;
+            }
+
+            .tab-btn {
+                padding: 8px 10px;
+                font-size: 0.75rem;
+                gap: 4px;
+            }
+
+            .tab-btn i {
+                font-size: 0.9rem;
+            }
+
+            .quick-actions {
+                grid-template-columns: 1fr;
+            }
+
+            .btn {
+                padding: 12px 15px;
+                font-size: 0.9rem;
+                width: 100%;
+                justify-content: center;
+            }
+
+            .table th, .table td {
+                padding: 6px 4px;
+                font-size: 0.75rem;
+            }
+
+            .badge {
+                padding: 2px 6px;
+                font-size: 0.7rem;
+            }
+
+            .btn-sm {
+                padding: 4px 8px;
+                font-size: 0.75rem;
+            }
+
+            .modal-content {
+                padding: 20px 15px;
+                margin: 10px;
+            }
+
+            .modal-title {
+                font-size: 1.1rem;
+            }
+
+            .form-group label {
+                font-size: 0.9rem;
+            }
+
+            input, select, textarea {
+                padding: 10px;
+            }
+
+            .member-status {
+                padding: 12px;
+            }
+
+            .status-item {
+                font-size: 0.9rem;
+            }
+
+            .whatsapp-box {
+                font-size: 0.85rem;
+                padding: 12px;
+            }
+
+            .month-alert {
+                flex-direction: column;
+                text-align: center;
+                padding: 12px;
+            }
+
+            .report-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .report-stat {
+                padding: 10px;
+            }
+
+            .report-stat-value {
+                font-size: 1.1rem;
+            }
+        }
+
+        /* Action buttons group */
+        .action-btns {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        .action-btns .btn-sm {
+            padding: 4px 8px;
+        }
+
+        @media (max-width: 480px) {
+            .action-btns {
+                flex-direction: column;
+            }
+
+            .action-btns .btn-sm {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-screen">
+        <div class="login-card">
+            <div class="login-logo">
+                <i class="fas fa-piggy-bank"></i>
+            </div>
+            <h1 class="login-title">نظام القطة</h1>
+            <button class="login-btn admin" onclick="showAdminLogin()">
+                <i class="fas fa-user-shield"></i>
+                دخول كأمين صندوق
+            </button>
+            <button class="login-btn member" onclick="showMemberLogin()">
+                <i class="fas fa-user"></i>
+                دخول كعضو
+            </button>
+        </div>
+    </div>
+
+    <!-- Admin Password Modal -->
+    <div id="adminPasswordModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('adminPasswordModal')">×</button>
+            <h2 class="modal-title"><i class="fas fa-lock"></i> كلمة مرور الأمين</h2>
+            <div class="form-group">
+                <label>أدخل كلمة المرور</label>
+                <input type="password" id="adminPassword" placeholder="كلمة المرور">
+            </div>
+            <button class="btn btn-primary btn-block" onclick="verifyAdminPassword()">
+                <i class="fas fa-sign-in-alt"></i> دخول
+            </button>
+            <p id="passwordError" class="hidden" style="color: var(--danger); margin-top: 10px; text-align: center;"></p>
+        </div>
+    </div>
+
+    <!-- Member Selection Modal -->
+    <div id="memberSelectModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('memberSelectModal')">×</button>
+            <h2 class="modal-title"><i class="fas fa-user"></i> اختر اسمك</h2>
+            <div class="form-group">
+                <select id="memberSelect" onchange="loginAsMember()">
+                    <option value="">-- اختر اسمك --</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="mainApp" class="hidden">
+        <div class="container">
+            <!-- Header -->
+            <div class="header">
+                <div class="header-title">
+                    <i class="fas fa-piggy-bank"></i>
+                    <span>نظام القطة</span>
+                </div>
+                <div class="header-user">
+                    <span id="currentUserName"></span>
+                    <button class="logout-btn" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i> خروج
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tabs" id="mainTabs">
+                <button class="tab-btn active" data-tab="home">
+                    <i class="fas fa-home"></i> الرئيسية
+                </button>
+                <button class="tab-btn admin-only" data-tab="members">
+                    <i class="fas fa-users"></i> الأعضاء
+                </button>
+                <button class="tab-btn admin-only" data-tab="payments">
+                    <i class="fas fa-hand-holding-usd"></i> الدفعات
+                </button>
+                <button class="tab-btn" data-tab="expenses">
+                    <i class="fas fa-receipt"></i> المصروفات
+                </button>
+                <button class="tab-btn" data-tab="late">
+                    <i class="fas fa-exclamation-triangle"></i> المتأخرون
+                </button>
+                <button class="tab-btn admin-only" data-tab="reports">
+                    <i class="fas fa-chart-bar"></i> التقارير
+                </button>
+                <button class="tab-btn admin-only" data-tab="settings">
+                    <i class="fas fa-cog"></i> الإعدادات
+                </button>
+            </div>
+
+            <!-- Home Tab -->
+            <div id="home" class="tab-content active">
+                <div class="fund-tabs">
+                    <button class="fund-tab active" data-fund="coffee" onclick="switchFund('coffee')">
+                        ☕ قطة القهوة والشاي
+                    </button>
+                    <button class="fund-tab" data-fund="breakfast" onclick="switchFund('breakfast')">
+                        🍳 قطة الفطور
+                    </button>
+                </div>
+
+                <!-- End of Month Alert -->
+                <div id="monthEndAlert" class="month-alert hidden admin-only">
+                    <i class="fas fa-bell"></i>
+                    <div class="month-alert-content">
+                        <h4>🔔 تنبيه نهاية الشهر</h4>
+                        <p>اقترب نهاية الشهر! تذكر إغلاق الشهر الحالي وترحيل الأرصدة والديون.</p>
+                    </div>
+                </div>
+
+                <div class="stats-grid" id="homeStats"></div>
+
+                <!-- Member's own status (for member view) -->
+                <div id="memberOwnStatus" class="card hidden">
+                    <div class="card-title">
+                        <i class="fas fa-user-circle"></i>
+                        حالتك الشخصية
+                    </div>
+                    <div id="memberStatusContent"></div>
+                </div>
+
+                <!-- Quick Actions (Admin only) -->
+                <div class="card admin-only">
+                    <div class="card-title">
+                        <i class="fas fa-bolt"></i>
+                        إجراءات سريعة
+                    </div>
+                    <div class="quick-actions">
+                        <button class="btn btn-primary" onclick="openModal('addPaymentModal')">
+                            <i class="fas fa-plus"></i> تسجيل دفع
+                        </button>
+                        <button class="btn btn-secondary" onclick="openModal('addExpenseModal')">
+                            <i class="fas fa-minus"></i> تسجيل مصروف
+                        </button>
+                        <button class="btn btn-warning" onclick="openModal('newMonthModal')">
+                            <i class="fas fa-calendar-plus"></i> شهر جديد
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Recent Transactions -->
+                <div class="card">
+                    <div class="card-title">
+                        <i class="fas fa-history"></i>
+                        آخر العمليات
+                    </div>
+                    <div id="recentTransactions"></div>
+                </div>
+            </div>
+
+            <!-- Members Tab -->
+            <div id="members" class="tab-content">
+                <div class="card">
+                    <div class="card-title">
+                        <i class="fas fa-user-plus"></i>
+                        إضافة عضو جديد
+                    </div>
+                    <div class="form-group">
+                        <label>اسم العضو</label>
+                        <input type="text" id="newMemberName" placeholder="أدخل اسم العضو">
+                    </div>
+                    <div class="form-group">
+                        <label>رقم الجوال (اختياري)</label>
+                        <input type="tel" id="newMemberPhone" placeholder="05xxxxxxxx">
+                    </div>
+                    <div class="form-group">
+                        <label>الاشتراكات</label>
+                        <div class="checkbox-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="newMemberCoffee" checked>
+                                ☕ قطة القهوة والشاي
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="newMemberBreakfast">
+                                🍳 قطة الفطور
+                            </label>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" onclick="addMember()">
+                        <i class="fas fa-plus"></i> إضافة العضو
+                    </button>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">
+                        <i class="fas fa-file-excel"></i>
+                        استيراد/تصدير الأعضاء (Excel)
+                    </div>
+                    <div class="quick-actions">
+                        <button class="btn btn-success" onclick="exportMembersToExcel()">
+                            <i class="fas fa-download"></i> تصدير للإكسل
+                        </button>
+                        <button class="btn btn-secondary" onclick="document.getElementById('importMembersFile').click()">
+                            <i class="fas fa-upload"></i> استيراد من إكسل
+                        </button>
+                        <input type="file" id="importMembersFile" accept=".csv,.xlsx,.xls" style="display:none" onchange="importMembersFromExcel(event)">
+                        <button class="btn btn-secondary" onclick="downloadMembersTemplate()">
+                            <i class="fas fa-file-download"></i> تحميل قالب
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">
+                        <i class="fas fa-users"></i>
+                        قائمة الأعضاء
+                    </div>
+                    <div class="table-container">
+                        <table class="table" id="membersTable">
+                            <thead>
+                                <tr>
+                                    <th>الاسم</th>
+                                    <th>الجوال</th>
+                                    <th>القهوة</th>
+                                    <th>الفطور</th>
+                                    <th>الحالة</th>
+                                    <th>إجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="membersTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payments Tab -->
+            <div id="payments" class="tab-content">
+                <div class="fund-tabs">
+                    <button class="fund-tab active" data-fund="coffee" onclick="switchPaymentFund('coffee')">
+                        ☕ قطة القهوة والشاي
+                    </button>
+                    <button class="fund-tab" data-fund="breakfast" onclick="switchPaymentFund('breakfast')">
+                        🍳 قطة الفطور
+                    </button>
+                </div>
+
+                <div class="month-selector">
+                    <label><strong>الشهر:</strong></label>
+                    <select id="paymentMonthSelect" onchange="renderPayments()"></select>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">
+                        <i class="fas fa-list-check"></i>
+                        حالة الدفع - <span id="paymentFundName">قطة القهوة</span>
+                    </div>
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>العضو</th>
+                                    <th>دين سابق</th>
+                                    <th>المطلوب</th>
+                                    <th>الحالة</th>
+                                    <th>إجراء</th>
+                                </tr>
+                            </thead>
+                            <tbody id="paymentsTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Expenses Tab -->
+            <div id="expenses" class="tab-content">
+                <div class="fund-tabs">
+                    <button class="fund-tab active" data-fund="coffee" onclick="switchExpenseFund('coffee')">
+                        ☕ قطة القهوة والشاي
+                    </button>
+                    <button class="fund-tab" data-fund="breakfast" onclick="switchExpenseFund('breakfast')">
+                        🍳 قطة الفطور
+                    </button>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">
+                        <i class="fas fa-receipt"></i>
+                        سجل المصروفات - <span id="expenseFundName">قطة القهوة</span>
+                    </div>
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>التاريخ</th>
+                                    <th>المبلغ</th>
+                                    <th>الملاحظة</th>
+                                    <th class="admin-only">إجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="expensesTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Late Members Tab -->
+            <div id="late" class="tab-content">
+                <div class="fund-tabs">
+                    <button class="fund-tab active" data-fund="coffee" onclick="switchLateFund('coffee')">
+                        ☕ قطة القهوة والشاي
+                    </button>
+                    <button class="fund-tab" data-fund="breakfast" onclick="switchLateFund('breakfast')">
+                        🍳 قطة الفطور
+                    </button>
+                </div>
+
+                <div class="month-selector">
+                    <label><strong>الشهر:</strong></label>
+                    <select id="lateMonthSelect" onchange="renderLateMembers()"></select>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        المتأخرون - <span id="lateFundName">قطة القهوة</span>
+                    </div>
+                    <div id="lateList"></div>
+                </div>
+
+                <div class="card admin-only">
+                    <div class="card-title">
+                        <i class="fab fa-whatsapp"></i>
+                        رسالة تذكير واتساب
+                    </div>
+                    <div class="whatsapp-box" id="whatsappMessage"></div>
+                    <button class="btn btn-success btn-block" onclick="copyWhatsAppMessage()">
+                        <i class="fas fa-copy"></i> نسخ الرسالة
+                    </button>
+                </div>
+            </div>
+
+            <!-- Reports Tab -->
+            <div id="reports" class="tab-content">
+                <div class="print-header">
+                    <h1>🏦 نظام القطة - تقرير شهري</h1>
+                    <p id="printDate"></p>
+                </div>
+
+                <div class="card no-print">
+                    <div class="card-title">
+                        <i class="fas fa-calendar"></i>
+                        اختر الشهر
+                    </div>
+                    <div class="month-selector">
+                        <select id="reportMonthSelect" onchange="renderReports()"></select>
+                        <button class="btn btn-primary" onclick="printReport()">
+                            <i class="fas fa-print"></i> طباعة التقرير
+                        </button>
+                    </div>
+                </div>
+
+                <div id="reportsContent"></div>
+            </div>
+
+            <!-- Settings Tab -->
+            <div id="settings" class="tab-content">
+                <div class="card">
+                    <div class="card-title">
+                        <i class="fas fa-key"></i>
+                        تغيير كلمة المرور
+                    </div>
+                    <div class="form-group">
+                        <label>كلمة المرور الحالية</label>
+                        <input type="password" id="currentPassword">
+                    </div>
+                    <div class="form-group">
+                        <label>كلمة المرور الجديدة</label>
+                        <input type="password" id="newPassword">
+                    </div>
+                    <div class="form-group">
+                        <label>تأكيد كلمة المرور الجديدة</label>
+                        <input type="password" id="confirmPassword">
+                    </div>
+                    <button class="btn btn-primary" onclick="changePassword()">
+                        <i class="fas fa-save"></i> حفظ كلمة المرور
+                    </button>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">
+                        <i class="fas fa-calendar-alt"></i>
+                        إدارة الأشهر
+                    </div>
+                    <div class="table-container">
+                        <table class="table" id="monthsTable">
+                            <thead>
+                                <tr>
+                                    <th>الشهر</th>
+                                    <th>قطة القهوة</th>
+                                    <th>قطة الفطور</th>
+                                    <th>إجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="monthsTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">
+                        <i class="fas fa-database"></i>
+                        النسخ الاحتياطي
+                    </div>
+                    <div class="quick-actions">
+                        <button class="btn btn-secondary" onclick="exportData()">
+                            <i class="fas fa-download"></i> تصدير البيانات
+                        </button>
+                        <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">
+                            <i class="fas fa-upload"></i> استيراد البيانات
+                        </button>
+                        <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">
+                        <i class="fas fa-trash-alt"></i>
+                        حذف البيانات
+                    </div>
+                    <button class="btn btn-danger" onclick="confirmResetData()">
+                        <i class="fas fa-exclamation-triangle"></i> حذف جميع البيانات
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Payment Modal -->
+    <div id="addPaymentModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('addPaymentModal')">×</button>
+            <h2 class="modal-title"><i class="fas fa-hand-holding-usd"></i> تسجيل دفع</h2>
+            <div class="form-group">
+                <label>القطة</label>
+                <select id="paymentFundSelect">
+                    <option value="coffee">☕ قطة القهوة والشاي</option>
+                    <option value="breakfast">🍳 قطة الفطور</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>العضو</label>
+                <select id="paymentMemberSelect"></select>
+            </div>
+            <div class="form-group">
+                <label>المبلغ</label>
+                <input type="number" id="paymentAmount" placeholder="المبلغ">
+            </div>
+            <button class="btn btn-primary btn-block" onclick="recordPayment()">
+                <i class="fas fa-check"></i> تسجيل الدفع
+            </button>
+        </div>
+    </div>
+
+    <!-- Add Expense Modal -->
+    <div id="addExpenseModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('addExpenseModal')">×</button>
+            <h2 class="modal-title"><i class="fas fa-receipt"></i> تسجيل مصروف</h2>
+            <div class="form-group">
+                <label>القطة</label>
+                <select id="expenseFundSelect">
+                    <option value="coffee">☕ قطة القهوة والشاي</option>
+                    <option value="breakfast">🍳 قطة الفطور</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>المبلغ</label>
+                <input type="number" id="expenseAmount" placeholder="المبلغ">
+            </div>
+            <div class="form-group">
+                <label>ملاحظة</label>
+                <textarea id="expenseNote" rows="3" placeholder="وصف المصروف..."></textarea>
+            </div>
+            <button class="btn btn-primary btn-block" onclick="recordExpense()">
+                <i class="fas fa-check"></i> تسجيل المصروف
+            </button>
+        </div>
+    </div>
+
+    <!-- New Month Modal -->
+    <div id="newMonthModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('newMonthModal')">×</button>
+            <h2 class="modal-title"><i class="fas fa-calendar-plus"></i> بدء شهر جديد</h2>
+            <div class="form-group">
+                <label>الشهر</label>
+                <select id="newMonthSelect"></select>
+            </div>
+            <div class="form-group">
+                <label>مبلغ قطة القهوة والشاي ☕</label>
+                <input type="number" id="newMonthCoffeeAmount" placeholder="50-100">
+            </div>
+            <div class="form-group">
+                <label>مبلغ قطة الفطور 🍳</label>
+                <input type="number" id="newMonthBreakfastAmount" placeholder="100-150">
+            </div>
+            <button class="btn btn-primary btn-block" onclick="startNewMonth()">
+                <i class="fas fa-play"></i> بدء الشهر
+            </button>
+        </div>
+    </div>
+
+    <!-- Confirm Modal -->
+    <div id="confirmModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h2 class="modal-title" id="confirmTitle">تأكيد</h2>
+            <p id="confirmMessage" style="margin-bottom: 20px;"></p>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-secondary" style="flex:1" onclick="closeModal('confirmModal')">إلغاء</button>
+                <button class="btn btn-danger" style="flex:1" id="confirmBtn">تأكيد</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alert Modal -->
+    <div id="alertModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h2 class="modal-title" id="alertTitle">تنبيه</h2>
+            <p id="alertMessage" style="margin-bottom: 20px;"></p>
+            <button class="btn btn-primary btn-block" onclick="closeModal('alertModal')">حسناً</button>
+        </div>
+    </div>
+
+    <!-- Edit Member Modal -->
+    <div id="editMemberModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('editMemberModal')">×</button>
+            <h2 class="modal-title"><i class="fas fa-user-edit"></i> تعديل بيانات العضو</h2>
+            <input type="hidden" id="editMemberId">
+            <div class="form-group">
+                <label>اسم العضو</label>
+                <input type="text" id="editMemberName" placeholder="اسم العضو">
+            </div>
+            <div class="form-group">
+                <label>رقم الجوال</label>
+                <input type="tel" id="editMemberPhone" placeholder="05xxxxxxxx">
+            </div>
+            <div class="form-group">
+                <label>الاشتراكات</label>
+                <div class="checkbox-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="editMemberCoffee">
+                        ☕ قطة القهوة والشاي
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="editMemberBreakfast">
+                        🍳 قطة الفطور
+                    </label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="editMemberFrozen">
+                    ❄️ تجميد العضوية (إجازة/سفر)
+                </label>
+            </div>
+            <button class="btn btn-primary btn-block" onclick="saveEditMember()">
+                <i class="fas fa-save"></i> حفظ التعديلات
+            </button>
+        </div>
+    </div>
+
+    <!-- Edit Expense Modal -->
+    <div id="editExpenseModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('editExpenseModal')">×</button>
+            <h2 class="modal-title"><i class="fas fa-edit"></i> تعديل المصروف</h2>
+            <input type="hidden" id="editExpenseId">
+            <input type="hidden" id="editExpenseFund">
+            <div class="form-group">
+                <label>المبلغ</label>
+                <input type="number" id="editExpenseAmount" placeholder="المبلغ">
+            </div>
+            <div class="form-group">
+                <label>ملاحظة</label>
+                <textarea id="editExpenseNote" rows="3" placeholder="وصف المصروف..."></textarea>
+            </div>
+            <button class="btn btn-primary btn-block" onclick="saveEditExpense()">
+                <i class="fas fa-save"></i> حفظ التعديلات
+            </button>
+        </div>
+    </div>
+
+    <!-- Edit Month Modal -->
+    <div id="editMonthModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('editMonthModal')">×</button>
+            <h2 class="modal-title"><i class="fas fa-calendar-alt"></i> تعديل الشهر</h2>
+            <input type="hidden" id="editMonthKey">
+            <div class="form-group">
+                <label>الشهر</label>
+                <input type="text" id="editMonthName" readonly style="background: var(--secondary);">
+            </div>
+            <div class="form-group">
+                <label>مبلغ قطة القهوة والشاي ☕</label>
+                <input type="number" id="editMonthCoffeeAmount" placeholder="50-100">
+            </div>
+            <div class="form-group">
+                <label>مبلغ قطة الفطور 🍳</label>
+                <input type="number" id="editMonthBreakfastAmount" placeholder="100-150">
+            </div>
+            <button class="btn btn-primary btn-block" onclick="saveEditMonth()">
+                <i class="fas fa-save"></i> حفظ التعديلات
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Firebase Configuration (Literal Transcription)
+        const firebaseConfig = {
+            apiKey: "AIzaSyBxPO6RKsQ1Cq-mqlCpFTrCuIyxnYdB37U",
+            authDomain: "studentsystem-c1ab1.firebaseapp.com",
+            databaseURL: "https://studentsystem-c1ab1-default-rtdb.firebaseio.com",
+            projectId: "studentsystem-c1ab1",
+            storageBucket: "studentsystem-c1ab1.firebasestorage.app",
+            messagingSenderId: "112215023848",
+            appId: "1:112215023848:web:0adba326a527ee7e37e95d"
+        };
+        
+        // Initialize Firebase
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db_firebase = firebase.database();
+        const rootRef = db_firebase.ref('gatta01'); 
+
+        // Global State
+        let currentUser = null;
+        let isAdmin = false;
+        let currentFund = 'coffee';
+        let currentPaymentFund = 'coffee';
+        let currentExpenseFund = 'coffee';
+        let currentLateFund = 'coffee';
+
+        // Default Data Structure
+        const defaultData = {
+            password: 'admin123',
+            members: [],
+            months: {},
+            expenses: {
+                coffee: [],
+                breakfast: []
+            },
+            currentMonth: null
+        };
+
+        let appData = { ...defaultData };
+
+        // Firebase Sync Functions
+        async function saveData() {
+            try {
+                await rootRef.set(appData);
+            } catch (err) {
+                console.error("Error saving data to Firebase:", err);
+            }
+        }
+
+        async function loadData() {
+            return new Promise((resolve, reject) => {
+                rootRef.once('value', (snapshot) => {
+                    if (snapshot.exists()) {
+                        appData = { ...defaultData, ...snapshot.val() };
+                    }
+                    resolve();
+                }, (error) => {
+                    reject(error);
+                });
+            });
+        }
+
+        // Real-time listener for updates from other clients
+        rootRef.on('value', (snapshot) => {
+            if (snapshot.exists()) {
+                appData = { ...defaultData, ...snapshot.val() };
+                if (currentUser) {
+                    renderAll();
+                }
+            }
+        });
+
+        // Dark mode detection
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+
+        // Modal Functions
+        function openModal(id) {
+            document.getElementById(id).classList.remove('hidden');
+            if (id === 'addPaymentModal') populatePaymentMemberSelect();
+            if (id === 'newMonthModal') populateNewMonthSelect();
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+
+        function showAlert(title, message) {
+            document.getElementById('alertTitle').textContent = title;
+            document.getElementById('alertMessage').textContent = message;
+            openModal('alertModal');
+        }
+
+        function showConfirm(title, message, onConfirm) {
+            document.getElementById('confirmTitle').textContent = title;
+            document.getElementById('confirmMessage').textContent = message;
+            document.getElementById('confirmBtn').onclick = () => {
+                closeModal('confirmModal');
+                onConfirm();
+            };
+            openModal('confirmModal');
+        }
+
+        // Login Functions
+        function showAdminLogin() {
+            openModal('adminPasswordModal');
+            document.getElementById('adminPassword').value = '';
+            document.getElementById('passwordError').classList.add('hidden');
+        }
+
+        function verifyAdminPassword() {
+            const password = document.getElementById('adminPassword').value;
+            if (password === appData.password) {
+                isAdmin = true;
+                currentUser = 'أمين الصندوق';
+                closeModal('adminPasswordModal');
+                showMainApp();
+            } else {
+                document.getElementById('passwordError').textContent = 'كلمة المرور غير صحيحة';
+                document.getElementById('passwordError').classList.remove('hidden');
+            }
+        }
+
+        function showMemberLogin() {
+            if (!appData.members || appData.members.length === 0) {
+                showAlert('تنبيه', 'لا يوجد أعضاء حالياً. يرجى التواصل مع أمين الصندوق.');
+                return;
+            }
+            const select = document.getElementById('memberSelect');
+            select.innerHTML = '<option value="">-- اختر اسمك --</option>';
+            appData.members.forEach(member => {
+                select.innerHTML += `<option value="${member.id}">${member.name}</option>`;
+            });
+            openModal('memberSelectModal');
+        }
+
+        function loginAsMember() {
+            const memberId = document.getElementById('memberSelect').value;
+            if (memberId) {
+                const member = appData.members.find(m => m.id === memberId);
+                if (member) {
+                    isAdmin = false;
+                    currentUser = member.name;
+                    closeModal('memberSelectModal');
+                    showMainApp();
+                }
+            }
+        }
+
+        function showMainApp() {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+            document.getElementById('currentUserName').textContent = currentUser;
+            document.querySelectorAll('.admin-only').forEach(el => isAdmin ? el.classList.remove('hidden') : el.classList.add('hidden'));
+            if (!isAdmin) document.getElementById('memberOwnStatus').classList.remove('hidden');
+            renderAll();
+        }
+
+        function logout() {
+            isAdmin = false;
+            currentUser = null;
+            document.getElementById('mainApp').classList.add('hidden');
+            document.getElementById('loginScreen').classList.remove('hidden');
+        }
+
+        // Tab Navigation
+        document.getElementById('mainTabs').addEventListener('click', (e) => {
+            const tabBtn = e.target.closest('.tab-btn');
+            if (!tabBtn) return;
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            tabBtn.classList.add('active');
+            const tabId = tabBtn.dataset.tab;
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            if(tabId === 'reports') renderReports();
+        });
+
+        // Fund Switching
+        function switchFund(f) { currentFund = f; renderHomeStats(); renderRecentTransactions(); document.querySelectorAll('#home .fund-tab').forEach(b => b.classList.toggle('active', b.dataset.fund === f)); }
+        function switchPaymentFund(f) { currentPaymentFund = f; document.getElementById('paymentFundName').textContent = f==='coffee'?'قطة القهوة':'قطة الفطور'; renderPayments(); document.querySelectorAll('#payments .fund-tab').forEach(b => b.classList.toggle('active', b.dataset.fund === f)); }
+        function switchExpenseFund(f) { currentExpenseFund = f; document.getElementById('expenseFundName').textContent = f==='coffee'?'قطة القهوة':'قطة الفطور'; renderExpenses(); document.querySelectorAll('#expenses .fund-tab').forEach(b => b.classList.toggle('active', b.dataset.fund === f)); }
+        function switchLateFund(f) { currentLateFund = f; document.getElementById('lateFundName').textContent = f==='coffee'?'قطة القهوة':'قطة الفطور'; renderLateMembers(); document.querySelectorAll('#late .fund-tab').forEach(b => b.classList.toggle('active', b.dataset.fund === f)); }
+
+        // Member Logic
+        async function addMember() {
+            const name = document.getElementById('newMemberName').value.trim();
+            const phone = document.getElementById('newMemberPhone').value.trim();
+            const coffee = document.getElementById('newMemberCoffee').checked;
+            const breakfast = document.getElementById('newMemberBreakfast').checked;
+            if (!name) return showAlert('خطأ', 'الاسم مطلوب');
+            if (!appData.members) appData.members = [];
+            appData.members.push({ id: Date.now().toString(), name, phone, coffee, breakfast, frozen: false });
+            await saveData();
+            document.getElementById('newMemberName').value = '';
+            renderMembers();
+        }
+
+        function renderMembers() {
+            const tbody = document.getElementById('membersTableBody');
+            if (!appData.members) return tbody.innerHTML = '';
+            tbody.innerHTML = appData.members.map(m => `
+                <tr style="${m.frozen ? 'opacity: 0.6;' : ''}">
+                    <td>${m.name}</td><td>${m.phone || '-'}</td><td>${m.coffee?'✅':'❌'}</td><td>${m.breakfast?'✅':'❌'}</td>
+                    <td><span class="badge ${m.frozen?'badge-frozen':'badge-success'}">${m.frozen?'مجمد':'نشط'}</span></td>
+                    <td><div class="action-btns">
+                        <button class="btn btn-secondary btn-sm" onclick="openEditMember('${m.id}')"><i class="fas fa-edit"></i></button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteMember('${m.id}')"><i class="fas fa-trash"></i></button>
+                    </div></td>
+                </tr>`).join('');
+        }
+
+        function openEditMember(id) {
+            const m = appData.members.find(x => x.id === id);
+            if (!m) return;
+            document.getElementById('editMemberId').value = m.id;
+            document.getElementById('editMemberName').value = m.name;
+            document.getElementById('editMemberPhone').value = m.phone || '';
+            document.getElementById('editMemberCoffee').checked = m.coffee;
+            document.getElementById('editMemberBreakfast').checked = m.breakfast;
+            document.getElementById('editMemberFrozen').checked = m.frozen || false;
+            openModal('editMemberModal');
+        }
+
+        async function saveEditMember() {
+            const id = document.getElementById('editMemberId').value;
+            const m = appData.members.find(x => x.id === id);
+            if (m) {
+                m.name = document.getElementById('editMemberName').value;
+                m.phone = document.getElementById('editMemberPhone').value;
+                m.coffee = document.getElementById('editMemberCoffee').checked;
+                m.breakfast = document.getElementById('editMemberBreakfast').checked;
+                m.frozen = document.getElementById('editMemberFrozen').checked;
+                await saveData();
+                closeModal('editMemberModal');
+                renderAll();
+            }
+        }
+
+        async function deleteMember(id) {
+            showConfirm('حذف عضو', 'هل أنت متأكد؟', async () => {
+                appData.members = appData.members.filter(m => m.id !== id);
+                await saveData();
+                renderMembers();
+            });
+        }
+
+        // Settings Logic
+        async function changePassword() {
+            const current = document.getElementById('currentPassword').value;
+            const newPass = document.getElementById('newPassword').value;
+            const confirm = document.getElementById('confirmPassword').value;
+            if (current !== appData.password) return showAlert('خطأ', 'كلمة المرور الحالية غير صحيحة');
+            if (newPass !== confirm) return showAlert('خطأ', 'كلمة المرور الجديدة غير متطابقة');
+            appData.password = newPass;
+            await saveData();
+            showAlert('نجاح', 'تم تغيير كلمة المرور');
+        }
+
+        async function confirmResetData() {
+            showConfirm('حذف البيانات', 'سيتم مسح كل شيء!', async () => {
+                appData = { ...defaultData };
+                await saveData();
+                location.reload();
+            });
+        }
+
+        function exportData() {
+            const blob = new Blob([JSON.stringify(appData)], {type: 'application/json'});
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'kitta_backup.json'; a.click();
+        }
+
+        function importData(e) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onload = async (event) => {
+                appData = JSON.parse(event.target.result);
+                await saveData();
+                renderAll();
+            };
+            reader.readAsText(file);
+        }
+
+        // Transactions Logic
+        async function startNewMonth() {
+            const key = document.getElementById('newMonthSelect').value;
+            const coffee = parseFloat(document.getElementById('newMonthCoffeeAmount').value) || 0;
+            const breakfast = parseFloat(document.getElementById('newMonthBreakfastAmount').value) || 0;
+            if (!appData.months) appData.months = {};
+            appData.months[key] = { coffee: { amount: coffee, payments: {}, debts: {} }, breakfast: { amount: breakfast, payments: {}, debts: {} } };
+            appData.currentMonth = key;
+            await saveData();
+            closeModal('newMonthModal');
+            renderAll();
+        }
+
+        function renderPayments() {
+            const mKey = document.getElementById('paymentMonthSelect').value;
+            if (!mKey || !appData.months?.[mKey]) return;
+            const fund = currentPaymentFund;
+            const mData = appData.months[mKey][fund];
+            const tbody = document.getElementById('paymentsTableBody');
+            const members = appData.members.filter(m => m[fund]);
+            tbody.innerHTML = members.map(m => {
+                const paid = mData.payments?.[m.id]?.amount || 0;
+                const req = (mData.amount || 0);
+                const isPaid = paid >= req;
+                return `<tr><td>${m.name}</td><td>0</td><td>${req}</td><td>${isPaid?'دفع':'لم يدفع'}</td><td><button class="btn btn-sm" onclick="togglePayment('${m.id}', '${fund}', '${mKey}')">تغيير</button></td></tr>`;
+            }).join('');
+        }
+
+        async function togglePayment(id, fund, mKey) {
+            const mData = appData.months[mKey][fund];
+            if (!mData.payments) mData.payments = {};
+            if (mData.payments[id]) delete mData.payments[id];
+            else mData.payments[id] = { amount: mData.amount, date: new Date().toISOString() };
+            await saveData();
+            renderPayments();
+        }
+
+        async function recordExpense() {
+            const fund = document.getElementById('expenseFundSelect').value;
+            const amount = parseFloat(document.getElementById('expenseAmount').value);
+            const note = document.getElementById('expenseNote').value;
+            if (!appData.expenses) appData.expenses = { coffee: [], breakfast: [] };
+            appData.expenses[fund].push({ id: Date.now().toString(), amount, note, date: new Date().toISOString(), month: appData.currentMonth });
+            await saveData();
+            closeModal('addExpenseModal');
+            renderExpenses();
+        }
+
+        function renderExpenses() {
+            const tbody = document.getElementById('expensesTableBody');
+            const list = appData.expenses?.[currentExpenseFund] || [];
+            tbody.innerHTML = list.map(ex => `<tr><td>${new Date(ex.date).toLocaleDateString()}</td><td>${ex.amount}</td><td>${ex.note}</td><td class="admin-only"><button class="btn btn-danger btn-sm" onclick="deleteExpense('${currentExpenseFund}', '${ex.id}')">حذف</button></td></tr>`).join('');
+        }
+
+        async function deleteExpense(f, id) {
+            appData.expenses[f] = appData.expenses[f].filter(e => e.id !== id);
+            await saveData();
+            renderExpenses();
+        }
+
+        // Stats & Reports
+        function calculateFundStats(f) {
+            let col = 0, exp = 0;
+            if (appData.months) Object.values(appData.months).forEach(m => { if(m[f]?.payments) Object.values(m[f].payments).forEach(p => col += p.amount); });
+            if (appData.expenses?.[f]) appData.expenses[f].forEach(e => exp += e.amount);
+            return { balance: col - exp, collected: col, expenses: exp };
+        }
+
+        function renderHomeStats() {
+            const s = calculateFundStats(currentFund);
+            document.getElementById('homeStats').innerHTML = `<div class="stat-card"><h3>${s.balance} ر.س</h3><p>الرصيد</p></div><div class="stat-card"><h3>${s.collected} ر.س</h3><p>التحصيل</p></div><div class="stat-card warning"><h3>${s.expenses} ر.س</h3><p>المصروفات</p></div>`;
+            if (!isAdmin) renderMemberOwnStatus();
+        }
+
+        function renderMemberOwnStatus() {
+            const m = appData.members.find(x => x.name === currentUser);
+            if (!m) return;
+            let h = '';
+            ['coffee', 'breakfast'].forEach(f => {
+                if (m[f]) h += `<div class="member-status"><h4>${f==='coffee'?'القهوة':'الفطور'}</h4><p>المطلوب: ${appData.months?.[appData.currentMonth]?.[f]?.amount || 0}</p></div>`;
+            });
+            document.getElementById('memberStatusContent').innerHTML = h;
+        }
+
+        function renderRecentTransactions() {
+            const list = appData.expenses?.[currentFund] || [];
+            document.getElementById('recentTransactions').innerHTML = list.slice(-5).map(t => `<div>${t.note}: ${t.amount}</div>`).join('');
+        }
+
+        function renderReports() {
+            const mKey = document.getElementById('reportMonthSelect').value;
+            if (!mKey) return;
+            document.getElementById('reportsContent').innerHTML = `<h3>تقرير ${mKey}</h3><p>إجمالي المصاريف: ${appData.expenses?.coffee?.filter(e => e.month === mKey).reduce((a,b)=>a+b.amount,0)}</p>`;
+        }
+
+        function printReport() { window.print(); }
+
+        // Helper functions
+        function populateMonthSelects() {
+            const keys = Object.keys(appData.months || {}).sort().reverse();
+            const h = keys.map(k => `<option value="${k}">${k}</option>`).join('');
+            ['paymentMonthSelect', 'reportMonthSelect', 'lateMonthSelect'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) { el.innerHTML = h; el.value = appData.currentMonth; }
+            });
+        }
+
+        function renderMonthsTable() {
+            const keys = Object.keys(appData.months || {}).sort().reverse();
+            document.getElementById('monthsTableBody').innerHTML = keys.map(k => `<tr><td>${k}</td><td>${appData.months[k].coffee.amount}</td><td>${appData.months[k].breakfast.amount}</td><td><button class="btn btn-danger btn-sm" onclick="deleteMonth('${k}')">حذف</button></td></tr>`).join('');
+        }
+
+        async function deleteMonth(k) { delete appData.months[k]; await saveData(); renderMonthsTable(); }
+
+        function getMonthName(k) { return k; }
+        function populateNewMonthSelect() {
+            const s = document.getElementById('newMonthSelect');
+            s.innerHTML = `<option value="${new Date().getFullYear()}-${new Date().getMonth()+1}">${new Date().getFullYear()}-${new Date().getMonth()+1}</option>`;
+        }
+        function renderLateMembers() { document.getElementById('lateList').innerHTML = 'لا يوجد متأخرون حالياً'; }
+        function checkEndOfMonthAlert() {}
+
+        function renderAll() {
+            renderMembers();
+            renderHomeStats();
+            renderRecentTransactions();
+            populateMonthSelects();
+            renderMonthsTable();
+        }
+
+        loadData().then(renderAll);
+    </script>
+</body>
+</html>
