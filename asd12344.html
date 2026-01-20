@@ -6,11 +6,6 @@
     <title>نظام القطة</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Firebase Scripts -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-
     <style>
         :root {
             --primary: #1a5f4a;
@@ -1577,8 +1572,12 @@
         </div>
     </div>
 
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
     <script>
-        // Firebase Configuration (Literal Transcription)
+        // Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyBxPO6RKsQ1Cq-mqlCpFTrCuIyxnYdB37U",
             authDomain: "studentsystem-c1ab1.firebaseapp.com",
@@ -1588,13 +1587,23 @@
             messagingSenderId: "112215023848",
             appId: "1:112215023848:web:0adba326a527ee7e37e95d"
         };
-        
-        // Initialize Firebase
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
         }
-        const db_firebase = firebase.database();
-        const rootRef = db_firebase.ref('gatta01'); 
+        const firebaseDb = firebase.database();
+        const rootRef = firebaseDb.ref('gatta01');
+
+        // Dark mode detection
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
 
         // Global State
         let currentUser = null;
@@ -1618,55 +1627,43 @@
 
         let appData = { ...defaultData };
 
-        // Firebase Sync Functions
+        // Firebase Database Functions
         async function saveData() {
             try {
                 await rootRef.set(appData);
             } catch (err) {
-                console.error("Error saving data to Firebase:", err);
+                console.log('Error saving data:', JSON.stringify(err));
             }
         }
 
         async function loadData() {
-            return new Promise((resolve, reject) => {
-                rootRef.once('value', (snapshot) => {
-                    if (snapshot.exists()) {
-                        appData = { ...defaultData, ...snapshot.val() };
-                    }
-                    resolve();
-                }, (error) => {
-                    reject(error);
-                });
-            });
+            try {
+                const snapshot = await rootRef.once('value');
+                if (snapshot.exists()) {
+                    appData = { ...defaultData, ...snapshot.val() };
+                }
+            } catch (err) {
+                console.log('Error loading data:', JSON.stringify(err));
+            }
         }
 
-        // Real-time listener for updates from other clients
+        // Listen for realtime updates
         rootRef.on('value', (snapshot) => {
             if (snapshot.exists()) {
                 appData = { ...defaultData, ...snapshot.val() };
-                if (currentUser) {
-                    renderAll();
-                }
-            }
-        });
-
-        // Dark mode detection
-        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            document.documentElement.classList.add('dark');
-        }
-        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
-            if (event.matches) {
-                document.documentElement.classList.add('dark');
-            } else {
-                document.documentElement.classList.remove('dark');
+                renderAll();
             }
         });
 
         // Modal Functions
         function openModal(id) {
             document.getElementById(id).classList.remove('hidden');
-            if (id === 'addPaymentModal') populatePaymentMemberSelect();
-            if (id === 'newMonthModal') populateNewMonthSelect();
+            if (id === 'addPaymentModal') {
+                populatePaymentMemberSelect();
+            }
+            if (id === 'newMonthModal') {
+                populateNewMonthSelect();
+            }
         }
 
         function closeModal(id) {
@@ -1710,7 +1707,7 @@
         }
 
         function showMemberLogin() {
-            if (!appData.members || appData.members.length === 0) {
+            if (appData.members.length === 0) {
                 showAlert('تنبيه', 'لا يوجد أعضاء حالياً. يرجى التواصل مع أمين الصندوق.');
                 return;
             }
@@ -1739,8 +1736,21 @@
             document.getElementById('loginScreen').classList.add('hidden');
             document.getElementById('mainApp').classList.remove('hidden');
             document.getElementById('currentUserName').textContent = currentUser;
-            document.querySelectorAll('.admin-only').forEach(el => isAdmin ? el.classList.remove('hidden') : el.classList.add('hidden'));
-            if (!isAdmin) document.getElementById('memberOwnStatus').classList.remove('hidden');
+
+            // Show/hide admin-only elements
+            document.querySelectorAll('.admin-only').forEach(el => {
+                if (isAdmin) {
+                    el.classList.remove('hidden');
+                } else {
+                    el.classList.add('hidden');
+                }
+            });
+
+            // Show member's own status if not admin
+            if (!isAdmin) {
+                document.getElementById('memberOwnStatus').classList.remove('hidden');
+            }
+
             renderAll();
         }
 
@@ -1755,250 +1765,1446 @@
         document.getElementById('mainTabs').addEventListener('click', (e) => {
             const tabBtn = e.target.closest('.tab-btn');
             if (!tabBtn) return;
+
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             tabBtn.classList.add('active');
+
             const tabId = tabBtn.dataset.tab;
             document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
-            if(tabId === 'reports') renderReports();
         });
 
         // Fund Switching
-        function switchFund(f) { currentFund = f; renderHomeStats(); renderRecentTransactions(); document.querySelectorAll('#home .fund-tab').forEach(b => b.classList.toggle('active', b.dataset.fund === f)); }
-        function switchPaymentFund(f) { currentPaymentFund = f; document.getElementById('paymentFundName').textContent = f==='coffee'?'قطة القهوة':'قطة الفطور'; renderPayments(); document.querySelectorAll('#payments .fund-tab').forEach(b => b.classList.toggle('active', b.dataset.fund === f)); }
-        function switchExpenseFund(f) { currentExpenseFund = f; document.getElementById('expenseFundName').textContent = f==='coffee'?'قطة القهوة':'قطة الفطور'; renderExpenses(); document.querySelectorAll('#expenses .fund-tab').forEach(b => b.classList.toggle('active', b.dataset.fund === f)); }
-        function switchLateFund(f) { currentLateFund = f; document.getElementById('lateFundName').textContent = f==='coffee'?'قطة القهوة':'قطة الفطور'; renderLateMembers(); document.querySelectorAll('#late .fund-tab').forEach(b => b.classList.toggle('active', b.dataset.fund === f)); }
+        function switchFund(fund) {
+            currentFund = fund;
+            document.querySelectorAll('#home .fund-tab').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.fund === fund);
+            });
+            renderHomeStats();
+            renderRecentTransactions();
+        }
 
-        // Member Logic
+        function switchPaymentFund(fund) {
+            currentPaymentFund = fund;
+            document.querySelectorAll('#payments .fund-tab').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.fund === fund);
+            });
+            document.getElementById('paymentFundName').textContent = fund === 'coffee' ? 'قطة القهوة' : 'قطة الفطور';
+            renderPayments();
+        }
+
+        function switchExpenseFund(fund) {
+            currentExpenseFund = fund;
+            document.querySelectorAll('#expenses .fund-tab').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.fund === fund);
+            });
+            document.getElementById('expenseFundName').textContent = fund === 'coffee' ? 'قطة القهوة' : 'قطة الفطور';
+            renderExpenses();
+        }
+
+        function switchLateFund(fund) {
+            currentLateFund = fund;
+            document.querySelectorAll('#late .fund-tab').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.fund === fund);
+            });
+            document.getElementById('lateFundName').textContent = fund === 'coffee' ? 'قطة القهوة' : 'قطة الفطور';
+            renderLateMembers();
+        }
+
+        // Member Management
         async function addMember() {
             const name = document.getElementById('newMemberName').value.trim();
             const phone = document.getElementById('newMemberPhone').value.trim();
             const coffee = document.getElementById('newMemberCoffee').checked;
             const breakfast = document.getElementById('newMemberBreakfast').checked;
-            if (!name) return showAlert('خطأ', 'الاسم مطلوب');
-            if (!appData.members) appData.members = [];
-            appData.members.push({ id: Date.now().toString(), name, phone, coffee, breakfast, frozen: false });
-            await saveData();
-            document.getElementById('newMemberName').value = '';
-            renderMembers();
-        }
 
-        function renderMembers() {
-            const tbody = document.getElementById('membersTableBody');
-            if (!appData.members) return tbody.innerHTML = '';
-            tbody.innerHTML = appData.members.map(m => `
-                <tr style="${m.frozen ? 'opacity: 0.6;' : ''}">
-                    <td>${m.name}</td><td>${m.phone || '-'}</td><td>${m.coffee?'✅':'❌'}</td><td>${m.breakfast?'✅':'❌'}</td>
-                    <td><span class="badge ${m.frozen?'badge-frozen':'badge-success'}">${m.frozen?'مجمد':'نشط'}</span></td>
-                    <td><div class="action-btns">
-                        <button class="btn btn-secondary btn-sm" onclick="openEditMember('${m.id}')"><i class="fas fa-edit"></i></button>
-                        <button class="btn btn-danger btn-sm" onclick="deleteMember('${m.id}')"><i class="fas fa-trash"></i></button>
-                    </div></td>
-                </tr>`).join('');
+            if (!name) {
+                showAlert('خطأ', 'يرجى إدخال اسم العضو');
+                return;
+            }
+
+            if (!coffee && !breakfast) {
+                showAlert('خطأ', 'يرجى اختيار قطة واحدة على الأقل');
+                return;
+            }
+
+            const member = {
+                id: Date.now().toString(),
+                name,
+                phone,
+                coffee,
+                breakfast,
+                frozen: false
+            };
+
+            appData.members.push(member);
+            await saveData();
+
+            document.getElementById('newMemberName').value = '';
+            document.getElementById('newMemberPhone').value = '';
+            document.getElementById('newMemberCoffee').checked = true;
+            document.getElementById('newMemberBreakfast').checked = false;
+
+            renderMembers();
+            showAlert('نجاح', `تم إضافة ${name} بنجاح`);
         }
 
         function openEditMember(id) {
-            const m = appData.members.find(x => x.id === id);
-            if (!m) return;
-            document.getElementById('editMemberId').value = m.id;
-            document.getElementById('editMemberName').value = m.name;
-            document.getElementById('editMemberPhone').value = m.phone || '';
-            document.getElementById('editMemberCoffee').checked = m.coffee;
-            document.getElementById('editMemberBreakfast').checked = m.breakfast;
-            document.getElementById('editMemberFrozen').checked = m.frozen || false;
+            const member = appData.members.find(m => m.id === id);
+            if (!member) return;
+
+            document.getElementById('editMemberId').value = member.id;
+            document.getElementById('editMemberName').value = member.name;
+            document.getElementById('editMemberPhone').value = member.phone || '';
+            document.getElementById('editMemberCoffee').checked = member.coffee;
+            document.getElementById('editMemberBreakfast').checked = member.breakfast;
+            document.getElementById('editMemberFrozen').checked = member.frozen || false;
+
             openModal('editMemberModal');
         }
 
         async function saveEditMember() {
             const id = document.getElementById('editMemberId').value;
-            const m = appData.members.find(x => x.id === id);
-            if (m) {
-                m.name = document.getElementById('editMemberName').value;
-                m.phone = document.getElementById('editMemberPhone').value;
-                m.coffee = document.getElementById('editMemberCoffee').checked;
-                m.breakfast = document.getElementById('editMemberBreakfast').checked;
-                m.frozen = document.getElementById('editMemberFrozen').checked;
+            const name = document.getElementById('editMemberName').value.trim();
+            const phone = document.getElementById('editMemberPhone').value.trim();
+            const coffee = document.getElementById('editMemberCoffee').checked;
+            const breakfast = document.getElementById('editMemberBreakfast').checked;
+            const frozen = document.getElementById('editMemberFrozen').checked;
+
+            if (!name) {
+                showAlert('خطأ', 'يرجى إدخال اسم العضو');
+                return;
+            }
+
+            if (!coffee && !breakfast) {
+                showAlert('خطأ', 'يرجى اختيار قطة واحدة على الأقل');
+                return;
+            }
+
+            const member = appData.members.find(m => m.id === id);
+            if (member) {
+                member.name = name;
+                member.phone = phone;
+                member.coffee = coffee;
+                member.breakfast = breakfast;
+                member.frozen = frozen;
+
                 await saveData();
                 closeModal('editMemberModal');
+                renderMembers();
+                renderAll();
+                showAlert('نجاح', `تم تعديل بيانات ${name} بنجاح`);
+            }
+        }
+
+        async function toggleFreeze(id) {
+            const member = appData.members.find(m => m.id === id);
+            if (member) {
+                member.frozen = !member.frozen;
+                await saveData();
+                renderMembers();
                 renderAll();
             }
         }
 
         async function deleteMember(id) {
-            showConfirm('حذف عضو', 'هل أنت متأكد؟', async () => {
+            const member = appData.members.find(m => m.id === id);
+            showConfirm('حذف عضو', `هل تريد حذف ${member.name}؟`, async () => {
                 appData.members = appData.members.filter(m => m.id !== id);
                 await saveData();
                 renderMembers();
             });
         }
 
-        // Settings Logic
+        function renderMembers() {
+            const tbody = document.getElementById('membersTableBody');
+            if (appData.members.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">لا يوجد أعضاء</td></tr>';
+                return;
+            }
+            tbody.innerHTML = appData.members.map(member => `
+                <tr style="${member.frozen ? 'opacity: 0.6;' : ''}">
+                    <td>${member.name}</td>
+                    <td>${member.phone || '-'}</td>
+                    <td>${member.coffee ? '✅' : '❌'}</td>
+                    <td>${member.breakfast ? '✅' : '❌'}</td>
+                    <td>
+                        ${member.frozen
+                            ? '<span class="badge badge-frozen">❄️ مجمد</span>'
+                            : '<span class="badge badge-success">نشط</span>'}
+                    </td>
+                    <td>
+                        <div class="action-btns">
+                            <button class="btn btn-secondary btn-sm" onclick="openEditMember('${member.id}')" title="تعديل">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn ${member.frozen ? 'btn-success' : 'btn-warning'} btn-sm" onclick="toggleFreeze('${member.id}')" title="${member.frozen ? 'تفعيل' : 'تجميد'}">
+                                <i class="fas fa-${member.frozen ? 'play' : 'pause'}"></i>
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteMember('${member.id}')" title="حذف">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Month Management
+        function getMonthName(monthKey) {
+            const [year, month] = monthKey.split('-');
+            const months = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
+                          'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+            return `${months[parseInt(month) - 1]} ${year}`;
+        }
+
+        function getCurrentMonthKey() {
+            const now = new Date();
+            return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+        }
+
+        function populateNewMonthSelect() {
+            const select = document.getElementById('newMonthSelect');
+            const now = new Date();
+            select.innerHTML = '';
+
+            for (let i = 0; i < 12; i++) {
+                const date = new Date(now.getFullYear(), now.getMonth() + i, 1);
+                const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                const name = getMonthName(key);
+                const exists = appData.months[key];
+                select.innerHTML += `<option value="${key}" ${exists ? 'disabled' : ''}>${name} ${exists ? '(موجود)' : ''}</option>`;
+            }
+        }
+
+        function populateMonthSelects() {
+            const monthKeys = Object.keys(appData.months).sort().reverse();
+            const paymentSelect = document.getElementById('paymentMonthSelect');
+
+            if (monthKeys.length === 0) {
+                paymentSelect.innerHTML = '<option value="">لا توجد شهور</option>';
+                return;
+            }
+
+            paymentSelect.innerHTML = monthKeys.map(key =>
+                `<option value="${key}">${getMonthName(key)}</option>`
+            ).join('');
+
+            if (appData.currentMonth) {
+                paymentSelect.value = appData.currentMonth;
+            }
+        }
+
+        async function startNewMonth() {
+            const monthKey = document.getElementById('newMonthSelect').value;
+            const coffeeAmount = parseFloat(document.getElementById('newMonthCoffeeAmount').value) || 0;
+            const breakfastAmount = parseFloat(document.getElementById('newMonthBreakfastAmount').value) || 0;
+
+            if (!coffeeAmount && !breakfastAmount) {
+                showAlert('خطأ', 'يرجى إدخال مبلغ واحد على الأقل');
+                return;
+            }
+
+            // Calculate previous debts
+            const previousMonth = appData.currentMonth;
+            const previousDebts = { coffee: {}, breakfast: {} };
+
+            if (previousMonth && appData.months[previousMonth]) {
+                const prevData = appData.months[previousMonth];
+
+                // Coffee debts
+                appData.members.filter(m => m.coffee).forEach(member => {
+                    const payment = prevData.coffee?.payments?.[member.id];
+                    const required = prevData.coffee?.amount || 0;
+                    const prevDebt = prevData.coffee?.debts?.[member.id] || 0;
+                    const totalRequired = required + prevDebt;
+                    const paid = payment?.amount || 0;
+                    if (paid < totalRequired) {
+                        previousDebts.coffee[member.id] = totalRequired - paid;
+                    }
+                });
+
+                // Breakfast debts
+                appData.members.filter(m => m.breakfast).forEach(member => {
+                    const payment = prevData.breakfast?.payments?.[member.id];
+                    const required = prevData.breakfast?.amount || 0;
+                    const prevDebt = prevData.breakfast?.debts?.[member.id] || 0;
+                    const totalRequired = required + prevDebt;
+                    const paid = payment?.amount || 0;
+                    if (paid < totalRequired) {
+                        previousDebts.breakfast[member.id] = totalRequired - paid;
+                    }
+                });
+            }
+
+            appData.months[monthKey] = {
+                coffee: {
+                    amount: coffeeAmount,
+                    payments: {},
+                    debts: previousDebts.coffee
+                },
+                breakfast: {
+                    amount: breakfastAmount,
+                    payments: {},
+                    debts: previousDebts.breakfast
+                }
+            };
+
+            appData.currentMonth = monthKey;
+            await saveData();
+
+            closeModal('newMonthModal');
+            document.getElementById('newMonthCoffeeAmount').value = '';
+            document.getElementById('newMonthBreakfastAmount').value = '';
+
+            renderAll();
+            showAlert('نجاح', `تم بدء ${getMonthName(monthKey)} بنجاح`);
+        }
+
+        // Payment Management
+        function populatePaymentMemberSelect() {
+            const fund = document.getElementById('paymentFundSelect').value;
+            const select = document.getElementById('paymentMemberSelect');
+            const members = appData.members.filter(m => m[fund]);
+
+            select.innerHTML = members.map(m =>
+                `<option value="${m.id}">${m.name}</option>`
+            ).join('');
+        }
+
+        document.getElementById('paymentFundSelect')?.addEventListener('change', populatePaymentMemberSelect);
+
+        async function recordPayment() {
+            const fund = document.getElementById('paymentFundSelect').value;
+            const memberId = document.getElementById('paymentMemberSelect').value;
+            const amount = parseFloat(document.getElementById('paymentAmount').value) || 0;
+
+            if (!memberId) {
+                showAlert('خطأ', 'يرجى اختيار العضو');
+                return;
+            }
+
+            if (!amount) {
+                showAlert('خطأ', 'يرجى إدخال المبلغ');
+                return;
+            }
+
+            if (!appData.currentMonth) {
+                showAlert('خطأ', 'يرجى بدء شهر جديد أولاً');
+                return;
+            }
+
+            const month = appData.months[appData.currentMonth];
+            if (!month[fund].payments) {
+                month[fund].payments = {};
+            }
+
+            month[fund].payments[memberId] = {
+                amount,
+                date: new Date().toISOString()
+            };
+
+            await saveData();
+            closeModal('addPaymentModal');
+            document.getElementById('paymentAmount').value = '';
+
+            renderAll();
+
+            const member = appData.members.find(m => m.id === memberId);
+            showAlert('نجاح', `تم تسجيل دفع ${member.name} بمبلغ ${amount} ريال`);
+        }
+
+        async function togglePayment(memberId, fund, monthKey) {
+            const month = appData.months[monthKey];
+            if (!month) return;
+
+            const fundData = month[fund];
+            const required = fundData.amount || 0;
+            const debt = fundData.debts?.[memberId] || 0;
+            const totalRequired = required + debt;
+
+            if (fundData.payments?.[memberId]) {
+                delete fundData.payments[memberId];
+            } else {
+                if (!fundData.payments) fundData.payments = {};
+                fundData.payments[memberId] = {
+                    amount: totalRequired,
+                    date: new Date().toISOString()
+                };
+            }
+
+            await saveData();
+            renderPayments();
+            renderHomeStats();
+        }
+
+        function renderPayments() {
+            const monthKey = document.getElementById('paymentMonthSelect').value;
+            const tbody = document.getElementById('paymentsTableBody');
+
+            if (!monthKey || !appData.months[monthKey]) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">لا توجد بيانات</td></tr>';
+                return;
+            }
+
+            const month = appData.months[monthKey];
+            const fund = currentPaymentFund;
+            const fundData = month[fund];
+            const members = appData.members.filter(m => m[fund]);
+
+            if (members.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">لا يوجد أعضاء في هذه القطة</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = members.map(member => {
+                const payment = fundData.payments?.[member.id];
+                const required = fundData.amount || 0;
+                const debt = fundData.debts?.[member.id] || 0;
+                const paid = payment?.amount || 0;
+                const isPaid = paid >= (required + debt);
+
+                return `
+                    <tr>
+                        <td>${member.name}</td>
+                        <td>${debt > 0 ? `<span class="badge badge-warning">${debt} ر.س</span>` : '-'}</td>
+                        <td>${required} ر.س</td>
+                        <td>
+                            ${isPaid
+                                ? '<span class="badge badge-success">دفع ✅</span>'
+                                : '<span class="badge badge-danger">لم يدفع ❌</span>'}
+                        </td>
+                        <td>
+                            <button class="btn btn-sm ${isPaid ? 'btn-danger' : 'btn-success'}"
+                                    onclick="togglePayment('${member.id}', '${fund}', '${monthKey}')">
+                                ${isPaid ? 'إلغاء' : 'تسجيل دفع'}
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Expense Management
+        async function recordExpense() {
+            const fund = document.getElementById('expenseFundSelect').value;
+            const amount = parseFloat(document.getElementById('expenseAmount').value) || 0;
+            const note = document.getElementById('expenseNote').value.trim();
+
+            if (!amount) {
+                showAlert('خطأ', 'يرجى إدخال المبلغ');
+                return;
+            }
+
+            appData.expenses[fund].push({
+                id: Date.now().toString(),
+                amount,
+                note,
+                date: new Date().toISOString(),
+                month: appData.currentMonth
+            });
+
+            await saveData();
+            closeModal('addExpenseModal');
+            document.getElementById('expenseAmount').value = '';
+            document.getElementById('expenseNote').value = '';
+
+            renderExpenses();
+            renderHomeStats();
+            showAlert('نجاح', `تم تسجيل مصروف ${amount} ريال`);
+        }
+
+        async function deleteExpense(fund, id) {
+            showConfirm('حذف مصروف', 'هل تريد حذف هذا المصروف؟', async () => {
+                appData.expenses[fund] = appData.expenses[fund].filter(e => e.id !== id);
+                await saveData();
+                renderExpenses();
+                renderHomeStats();
+            });
+        }
+
+        function openEditExpense(fund, id) {
+            const expense = appData.expenses[fund].find(e => e.id === id);
+            if (!expense) return;
+
+            document.getElementById('editExpenseId').value = expense.id;
+            document.getElementById('editExpenseFund').value = fund;
+            document.getElementById('editExpenseAmount').value = expense.amount;
+            document.getElementById('editExpenseNote').value = expense.note || '';
+
+            openModal('editExpenseModal');
+        }
+
+        async function saveEditExpense() {
+            const id = document.getElementById('editExpenseId').value;
+            const fund = document.getElementById('editExpenseFund').value;
+            const amount = parseFloat(document.getElementById('editExpenseAmount').value) || 0;
+            const note = document.getElementById('editExpenseNote').value.trim();
+
+            if (!amount) {
+                showAlert('خطأ', 'يرجى إدخال المبلغ');
+                return;
+            }
+
+            const expense = appData.expenses[fund].find(e => e.id === id);
+            if (expense) {
+                expense.amount = amount;
+                expense.note = note;
+
+                await saveData();
+                closeModal('editExpenseModal');
+                renderExpenses();
+                renderHomeStats();
+                showAlert('نجاح', 'تم تعديل المصروف بنجاح');
+            }
+        }
+
+        function renderExpenses() {
+            const fund = currentExpenseFund;
+            const tbody = document.getElementById('expensesTableBody');
+            const expenses = appData.expenses[fund] || [];
+
+            if (expenses.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">لا توجد مصروفات</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = expenses.sort((a, b) => new Date(b.date) - new Date(a.date)).map(expense => `
+                <tr>
+                    <td>${new Date(expense.date).toLocaleDateString('ar-SA')}</td>
+                    <td>${expense.amount} ر.س</td>
+                    <td>${expense.note || '-'}</td>
+                    <td class="admin-only">
+                        <div class="action-btns">
+                            <button class="btn btn-secondary btn-sm" onclick="openEditExpense('${fund}', '${expense.id}')" title="تعديل">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteExpense('${fund}', '${expense.id}')" title="حذف">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+
+            // Update admin-only visibility
+            document.querySelectorAll('#expenses .admin-only').forEach(el => {
+                el.style.display = isAdmin ? '' : 'none';
+            });
+        }
+
+        // Statistics
+        function calculateFundStats(fund) {
+            let totalCollected = 0;
+            let totalExpenses = 0;
+            let lateCount = 0;
+            let totalDebt = 0;
+
+            // Calculate collections from all months
+            Object.keys(appData.months).forEach(monthKey => {
+                const month = appData.months[monthKey];
+                const fundData = month[fund];
+                if (fundData?.payments) {
+                    Object.values(fundData.payments).forEach(p => {
+                        totalCollected += p.amount || 0;
+                    });
+                }
+            });
+
+            // Calculate expenses
+            (appData.expenses[fund] || []).forEach(e => {
+                totalExpenses += e.amount || 0;
+            });
+
+            // Calculate late members and debts for current month (excluding frozen members)
+            if (appData.currentMonth && appData.months[appData.currentMonth]) {
+                const currentMonthData = appData.months[appData.currentMonth][fund];
+                const members = appData.members.filter(m => m[fund] && !m.frozen);
+
+                members.forEach(member => {
+                    const required = currentMonthData.amount || 0;
+                    const debt = currentMonthData.debts?.[member.id] || 0;
+                    const paid = currentMonthData.payments?.[member.id]?.amount || 0;
+                    const totalRequired = required + debt;
+
+                    if (paid < totalRequired) {
+                        lateCount++;
+                        totalDebt += (totalRequired - paid);
+                    }
+                });
+            }
+
+            return {
+                balance: totalCollected - totalExpenses,
+                totalCollected,
+                totalExpenses,
+                lateCount,
+                totalDebt
+            };
+        }
+
+        function checkEndOfMonthAlert() {
+            const now = new Date();
+            const dayOfMonth = now.getDate();
+            const alertEl = document.getElementById('monthEndAlert');
+
+            // Show alert if we're in the last 5 days of the month
+            if (dayOfMonth >= 26 && isAdmin) {
+                alertEl.classList.remove('hidden');
+            } else {
+                alertEl.classList.add('hidden');
+            }
+        }
+
+        function renderHomeStats() {
+            const stats = calculateFundStats(currentFund);
+            const container = document.getElementById('homeStats');
+
+            container.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-value">${stats.balance} ر.س</div>
+                    <div class="stat-label">الرصيد الحالي</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${stats.totalCollected} ر.س</div>
+                    <div class="stat-label">إجمالي التحصيل</div>
+                </div>
+                <div class="stat-card warning">
+                    <div class="stat-value">${stats.totalExpenses} ر.س</div>
+                    <div class="stat-label">إجمالي المصروفات</div>
+                </div>
+                <div class="stat-card ${stats.lateCount > 0 ? 'danger' : ''}">
+                    <div class="stat-value">${stats.lateCount}</div>
+                    <div class="stat-label">المتأخرون</div>
+                </div>
+            `;
+
+            // Render member's own status if not admin
+            if (!isAdmin) {
+                renderMemberOwnStatus();
+            }
+        }
+
+        function renderMemberOwnStatus() {
+            const member = appData.members.find(m => m.name === currentUser);
+            if (!member) return;
+
+            const container = document.getElementById('memberStatusContent');
+            let html = '';
+
+            ['coffee', 'breakfast'].forEach(fund => {
+                if (!member[fund]) return;
+
+                const fundName = fund === 'coffee' ? '☕ قطة القهوة' : '🍳 قطة الفطور';
+
+                if (appData.currentMonth && appData.months[appData.currentMonth]) {
+                    const monthData = appData.months[appData.currentMonth][fund];
+                    const required = monthData.amount || 0;
+                    const debt = monthData.debts?.[member.id] || 0;
+                    const paid = monthData.payments?.[member.id]?.amount || 0;
+                    const isPaid = paid >= (required + debt);
+
+                    html += `
+                        <div class="member-status">
+                            <h4>${fundName}</h4>
+                            <div class="status-item">
+                                <span>دين سابق:</span>
+                                <span>${debt > 0 ? `${debt} ر.س ⚠️` : '0 ر.س ✅'}</span>
+                            </div>
+                            <div class="status-item">
+                                <span>مطلوب الشهر:</span>
+                                <span>${required} ر.س</span>
+                            </div>
+                            <div class="status-item">
+                                <span>الحالة:</span>
+                                <span>${isPaid ? 'دفعت ✅' : 'لم تدفع ❌'}</span>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    html += `
+                        <div class="member-status">
+                            <h4>${fundName}</h4>
+                            <p style="color: var(--text-light);">لم يبدأ شهر جديد بعد</p>
+                        </div>
+                    `;
+                }
+            });
+
+            container.innerHTML = html || '<p>لست مشتركاً في أي قطة</p>';
+        }
+
+        // Recent Transactions
+        function renderRecentTransactions() {
+            const container = document.getElementById('recentTransactions');
+            const transactions = [];
+
+            // Get payments from current month
+            if (appData.currentMonth && appData.months[appData.currentMonth]) {
+                const monthData = appData.months[appData.currentMonth][currentFund];
+                if (monthData?.payments) {
+                    Object.entries(monthData.payments).forEach(([memberId, payment]) => {
+                        const member = appData.members.find(m => m.id === memberId);
+                        if (member) {
+                            transactions.push({
+                                type: 'payment',
+                                name: member.name,
+                                amount: payment.amount,
+                                date: new Date(payment.date)
+                            });
+                        }
+                    });
+                }
+            }
+
+            // Get expenses
+            (appData.expenses[currentFund] || []).forEach(expense => {
+                transactions.push({
+                    type: 'expense',
+                    note: expense.note || 'مصروف',
+                    amount: expense.amount,
+                    date: new Date(expense.date)
+                });
+            });
+
+            // Sort by date and take last 10
+            transactions.sort((a, b) => b.date - a.date);
+            const recent = transactions.slice(0, 10);
+
+            if (recent.length === 0) {
+                container.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>لا توجد عمليات</p></div>';
+                return;
+            }
+
+            container.innerHTML = recent.map(t => `
+                <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border);">
+                    <div>
+                        ${t.type === 'payment'
+                            ? `<i class="fas fa-plus-circle" style="color: var(--success);"></i> ${t.name} دفع`
+                            : `<i class="fas fa-minus-circle" style="color: var(--danger);"></i> ${t.note}`}
+                    </div>
+                    <div style="font-weight: 600; color: ${t.type === 'payment' ? 'var(--success)' : 'var(--danger)'};">
+                        ${t.type === 'payment' ? '+' : '-'}${t.amount} ر.س
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Late Members
+        function populateLateMonthSelect() {
+            const monthKeys = Object.keys(appData.months).sort().reverse();
+            const select = document.getElementById('lateMonthSelect');
+
+            if (monthKeys.length === 0) {
+                select.innerHTML = '<option value="">لا توجد شهور</option>';
+                return;
+            }
+
+            select.innerHTML = monthKeys.map(key =>
+                `<option value="${key}">${getMonthName(key)}</option>`
+            ).join('');
+
+            if (appData.currentMonth) {
+                select.value = appData.currentMonth;
+            }
+        }
+
+        function renderLateMembers() {
+            const fund = currentLateFund;
+            const container = document.getElementById('lateList');
+            const lateMembers = [];
+            const selectedMonth = document.getElementById('lateMonthSelect')?.value || appData.currentMonth;
+
+            if (selectedMonth && appData.months[selectedMonth]) {
+                const monthData = appData.months[selectedMonth][fund];
+                // Exclude frozen members from late list
+                const members = appData.members.filter(m => m[fund] && !m.frozen);
+
+                members.forEach(member => {
+                    const required = monthData.amount || 0;
+                    const debt = monthData.debts?.[member.id] || 0;
+                    const paid = monthData.payments?.[member.id]?.amount || 0;
+                    const totalRequired = required + debt;
+
+                    if (paid < totalRequired) {
+                        lateMembers.push({
+                            id: member.id,
+                            name: member.name,
+                            phone: member.phone,
+                            debt,
+                            required,
+                            totalDue: totalRequired - paid
+                        });
+                    }
+                });
+            }
+
+            if (lateMembers.length === 0) {
+                container.innerHTML = '<div class="empty-state"><i class="fas fa-check-circle" style="color: var(--success);"></i><p>لا يوجد متأخرون 🎉</p></div>';
+                document.getElementById('whatsappMessage').textContent = 'لا يوجد متأخرون!';
+                return;
+            }
+
+            container.innerHTML = lateMembers.map(m => `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #fff5f5; border-radius: 8px; margin-bottom: 8px; flex-wrap: wrap; gap: 10px;">
+                    <div style="flex: 1;">
+                        <strong>${m.name}</strong>
+                        ${m.phone ? `<span style="color: var(--text-light); font-size: 0.85rem; margin-right: 8px;">📞 ${m.phone}</span>` : ''}
+                        ${m.debt > 0 ? `<span class="badge badge-warning" style="margin-right: 8px;">دين: ${m.debt} ر.س</span>` : ''}
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="color: var(--danger); font-weight: 600;">${m.totalDue} ر.س</span>
+                        ${m.phone && isAdmin ? `
+                            <button class="btn btn-success btn-sm" onclick="sendIndividualReminder('${m.id}', '${fund}')" title="تذكير فردي">
+                                <i class="fab fa-whatsapp"></i>
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+            `).join('');
+
+            // Generate WhatsApp message
+            generateWhatsAppMessage(lateMembers, fund);
+        }
+
+        function sendIndividualReminder(memberId, fund) {
+            const member = appData.members.find(m => m.id === memberId);
+            if (!member || !member.phone) {
+                showAlert('خطأ', 'لا يوجد رقم جوال لهذا العضو');
+                return;
+            }
+
+            const selectedMonth = document.getElementById('lateMonthSelect')?.value || appData.currentMonth;
+            const monthData = appData.months[selectedMonth]?.[fund];
+            if (!monthData) return;
+
+            const fundName = fund === 'coffee' ? 'القهوة والشاي ☕' : 'الفطور 🍳';
+            const monthName = getMonthName(selectedMonth);
+            const required = monthData.amount || 0;
+            const debt = monthData.debts?.[memberId] || 0;
+            const paid = monthData.payments?.[memberId]?.amount || 0;
+            const totalDue = (required + debt) - paid;
+
+            let message = `السلام عليكم ${member.name} 👋\n\n`;
+            message += `تذكير ودي بدفع اشتراك قطة ${fundName}\n`;
+            message += `شهر ${monthName}\n\n`;
+
+            if (debt > 0) {
+                message += `دين سابق: ${debt} ريال\n`;
+                message += `مطلوب الشهر: ${required} ريال\n`;
+                message += `الإجمالي: ${totalDue} ريال\n\n`;
+            } else {
+                message += `المبلغ المطلوب: ${totalDue} ريال\n\n`;
+            }
+
+            message += `شكراً لتعاونك 🙏`;
+
+            // Copy message to clipboard
+            navigator.clipboard.writeText(message).then(() => {
+                // Format phone number for WhatsApp
+                let phone = member.phone.replace(/\s+/g, '').replace(/-/g, '');
+                if (phone.startsWith('0')) {
+                    phone = '966' + phone.substring(1);
+                } else if (!phone.startsWith('966') && !phone.startsWith('+966')) {
+                    phone = '966' + phone;
+                }
+                phone = phone.replace('+', '');
+
+                // Open WhatsApp
+                const whatsappUrl = `https://wa.me/${phone}`;
+                window.open(whatsappUrl, '_blank');
+
+                showAlert('تم النسخ', 'تم نسخ الرسالة وفتح واتساب');
+            });
+        }
+
+        function generateWhatsAppMessage(lateMembers, fund) {
+            const fundName = fund === 'coffee' ? 'القهوة والشاي ☕' : 'الفطور 🍳';
+            const monthName = appData.currentMonth ? getMonthName(appData.currentMonth) : '';
+            const monthData = appData.currentMonth ? appData.months[appData.currentMonth][fund] : null;
+            const amount = monthData?.amount || 0;
+
+            let message = `السلام عليكم 👋\n\n`;
+            message += `تذكير ودي بدفع اشتراك قطة ${fundName}\n`;
+            message += `شهر ${monthName}\n`;
+            message += `المبلغ المطلوب: ${amount} ريال\n\n`;
+            message += `المتأخرون:\n`;
+
+            lateMembers.forEach(m => {
+                message += `• ${m.name}`;
+                if (m.debt > 0) {
+                    message += ` (دين سابق: ${m.debt} + الشهر: ${m.required})`;
+                }
+                message += `\n`;
+            });
+
+            message += `\nشكراً لتعاونكم 🙏`;
+
+            document.getElementById('whatsappMessage').textContent = message;
+        }
+
+        function copyWhatsAppMessage() {
+            const message = document.getElementById('whatsappMessage').textContent;
+            navigator.clipboard.writeText(message).then(() => {
+                showAlert('تم النسخ', 'تم نسخ الرسالة بنجاح');
+            });
+        }
+
+        // Settings
         async function changePassword() {
             const current = document.getElementById('currentPassword').value;
             const newPass = document.getElementById('newPassword').value;
             const confirm = document.getElementById('confirmPassword').value;
-            if (current !== appData.password) return showAlert('خطأ', 'كلمة المرور الحالية غير صحيحة');
-            if (newPass !== confirm) return showAlert('خطأ', 'كلمة المرور الجديدة غير متطابقة');
+
+            if (current !== appData.password) {
+                showAlert('خطأ', 'كلمة المرور الحالية غير صحيحة');
+                return;
+            }
+
+            if (newPass.length < 4) {
+                showAlert('خطأ', 'كلمة المرور الجديدة قصيرة جداً');
+                return;
+            }
+
+            if (newPass !== confirm) {
+                showAlert('خطأ', 'كلمة المرور الجديدة غير متطابقة');
+                return;
+            }
+
             appData.password = newPass;
             await saveData();
-            showAlert('نجاح', 'تم تغيير كلمة المرور');
-        }
 
-        async function confirmResetData() {
-            showConfirm('حذف البيانات', 'سيتم مسح كل شيء!', async () => {
-                appData = { ...defaultData };
-                await saveData();
-                location.reload();
-            });
+            document.getElementById('currentPassword').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmPassword').value = '';
+
+            showAlert('نجاح', 'تم تغيير كلمة المرور بنجاح');
         }
 
         function exportData() {
-            const blob = new Blob([JSON.stringify(appData)], {type: 'application/json'});
-            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'kitta_backup.json'; a.click();
+            const dataStr = JSON.stringify(appData, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `kitta-backup-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
         }
 
-        function importData(e) {
-            const file = e.target.files[0];
+        async function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
             const reader = new FileReader();
-            reader.onload = async (event) => {
-                appData = JSON.parse(event.target.result);
-                await saveData();
-                renderAll();
+            reader.onload = async (e) => {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    appData = { ...defaultData, ...imported };
+                    await saveData();
+                    renderAll();
+                    showAlert('نجاح', 'تم استيراد البيانات بنجاح');
+                } catch (err) {
+                    showAlert('خطأ', 'فشل في قراءة الملف');
+                }
             };
             reader.readAsText(file);
+            event.target.value = '';
         }
 
-        // Transactions Logic
-        async function startNewMonth() {
-            const key = document.getElementById('newMonthSelect').value;
-            const coffee = parseFloat(document.getElementById('newMonthCoffeeAmount').value) || 0;
-            const breakfast = parseFloat(document.getElementById('newMonthBreakfastAmount').value) || 0;
-            if (!appData.months) appData.months = {};
-            appData.months[key] = { coffee: { amount: coffee, payments: {}, debts: {} }, breakfast: { amount: breakfast, payments: {}, debts: {} } };
-            appData.currentMonth = key;
-            await saveData();
-            closeModal('newMonthModal');
-            renderAll();
+        function confirmResetData() {
+            showConfirm('حذف البيانات', 'هل أنت متأكد من حذف جميع البيانات؟ هذا الإجراء لا يمكن التراجع عنه!', async () => {
+                appData = { ...defaultData };
+                await saveData();
+                logout();
+                showAlert('تم', 'تم حذف جميع البيانات');
+            });
         }
 
-        function renderPayments() {
-            const mKey = document.getElementById('paymentMonthSelect').value;
-            if (!mKey || !appData.months?.[mKey]) return;
-            const fund = currentPaymentFund;
-            const mData = appData.months[mKey][fund];
-            const tbody = document.getElementById('paymentsTableBody');
-            const members = appData.members.filter(m => m[fund]);
-            tbody.innerHTML = members.map(m => {
-                const paid = mData.payments?.[m.id]?.amount || 0;
-                const req = (mData.amount || 0);
-                const isPaid = paid >= req;
-                return `<tr><td>${m.name}</td><td>0</td><td>${req}</td><td>${isPaid?'دفع':'لم يدفع'}</td><td><button class="btn btn-sm" onclick="togglePayment('${m.id}', '${fund}', '${mKey}')">تغيير</button></td></tr>`;
+        // Month Management
+        function renderMonthsTable() {
+            const tbody = document.getElementById('monthsTableBody');
+            const monthKeys = Object.keys(appData.months).sort().reverse();
+
+            if (monthKeys.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">لا توجد شهور</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = monthKeys.map(key => {
+                const month = appData.months[key];
+                const isCurrent = key === appData.currentMonth;
+                return `
+                    <tr style="${isCurrent ? 'background: var(--secondary);' : ''}">
+                        <td>
+                            ${getMonthName(key)}
+                            ${isCurrent ? '<span class="badge badge-success" style="margin-right: 8px;">الحالي</span>' : ''}
+                        </td>
+                        <td>${month.coffee?.amount || 0} ر.س</td>
+                        <td>${month.breakfast?.amount || 0} ر.س</td>
+                        <td>
+                            <div class="action-btns">
+                                <button class="btn btn-secondary btn-sm" onclick="openEditMonth('${key}')" title="تعديل">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn ${isCurrent ? 'btn-warning' : 'btn-primary'} btn-sm" onclick="setCurrentMonth('${key}')" title="${isCurrent ? 'الشهر الحالي' : 'تعيين كحالي'}">
+                                    <i class="fas fa-${isCurrent ? 'star' : 'check'}"></i>
+                                </button>
+                                <button class="btn btn-danger btn-sm" onclick="deleteMonth('${key}')" title="حذف">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
             }).join('');
         }
 
-        async function togglePayment(id, fund, mKey) {
-            const mData = appData.months[mKey][fund];
-            if (!mData.payments) mData.payments = {};
-            if (mData.payments[id]) delete mData.payments[id];
-            else mData.payments[id] = { amount: mData.amount, date: new Date().toISOString() };
+        function openEditMonth(monthKey) {
+            const month = appData.months[monthKey];
+            if (!month) return;
+
+            document.getElementById('editMonthKey').value = monthKey;
+            document.getElementById('editMonthName').value = getMonthName(monthKey);
+            document.getElementById('editMonthCoffeeAmount').value = month.coffee?.amount || 0;
+            document.getElementById('editMonthBreakfastAmount').value = month.breakfast?.amount || 0;
+
+            openModal('editMonthModal');
+        }
+
+        async function saveEditMonth() {
+            const monthKey = document.getElementById('editMonthKey').value;
+            const coffeeAmount = parseFloat(document.getElementById('editMonthCoffeeAmount').value) || 0;
+            const breakfastAmount = parseFloat(document.getElementById('editMonthBreakfastAmount').value) || 0;
+
+            if (!appData.months[monthKey]) return;
+
+            appData.months[monthKey].coffee.amount = coffeeAmount;
+            appData.months[monthKey].breakfast.amount = breakfastAmount;
+
             await saveData();
-            renderPayments();
+            closeModal('editMonthModal');
+            renderMonthsTable();
+            renderAll();
+            showAlert('نجاح', 'تم تعديل الشهر بنجاح');
         }
 
-        async function recordExpense() {
-            const fund = document.getElementById('expenseFundSelect').value;
-            const amount = parseFloat(document.getElementById('expenseAmount').value);
-            const note = document.getElementById('expenseNote').value;
-            if (!appData.expenses) appData.expenses = { coffee: [], breakfast: [] };
-            appData.expenses[fund].push({ id: Date.now().toString(), amount, note, date: new Date().toISOString(), month: appData.currentMonth });
+        async function setCurrentMonth(monthKey) {
+            appData.currentMonth = monthKey;
             await saveData();
-            closeModal('addExpenseModal');
-            renderExpenses();
+            renderMonthsTable();
+            renderAll();
+            showAlert('نجاح', `تم تعيين ${getMonthName(monthKey)} كالشهر الحالي`);
         }
 
-        function renderExpenses() {
-            const tbody = document.getElementById('expensesTableBody');
-            const list = appData.expenses?.[currentExpenseFund] || [];
-            tbody.innerHTML = list.map(ex => `<tr><td>${new Date(ex.date).toLocaleDateString()}</td><td>${ex.amount}</td><td>${ex.note}</td><td class="admin-only"><button class="btn btn-danger btn-sm" onclick="deleteExpense('${currentExpenseFund}', '${ex.id}')">حذف</button></td></tr>`).join('');
-        }
+        function deleteMonth(monthKey) {
+            const monthName = getMonthName(monthKey);
+            showConfirm('حذف شهر', `هل تريد حذف شهر ${monthName}؟\n\nسيتم حذف جميع بيانات الدفعات والديون لهذا الشهر.`, async () => {
+                delete appData.months[monthKey];
 
-        async function deleteExpense(f, id) {
-            appData.expenses[f] = appData.expenses[f].filter(e => e.id !== id);
-            await saveData();
-            renderExpenses();
-        }
+                // If deleted month was current, set to latest month
+                if (appData.currentMonth === monthKey) {
+                    const remainingMonths = Object.keys(appData.months).sort().reverse();
+                    appData.currentMonth = remainingMonths[0] || null;
+                }
 
-        // Stats & Reports
-        function calculateFundStats(f) {
-            let col = 0, exp = 0;
-            if (appData.months) Object.values(appData.months).forEach(m => { if(m[f]?.payments) Object.values(m[f].payments).forEach(p => col += p.amount); });
-            if (appData.expenses?.[f]) appData.expenses[f].forEach(e => exp += e.amount);
-            return { balance: col - exp, collected: col, expenses: exp };
-        }
-
-        function renderHomeStats() {
-            const s = calculateFundStats(currentFund);
-            document.getElementById('homeStats').innerHTML = `<div class="stat-card"><h3>${s.balance} ر.س</h3><p>الرصيد</p></div><div class="stat-card"><h3>${s.collected} ر.س</h3><p>التحصيل</p></div><div class="stat-card warning"><h3>${s.expenses} ر.س</h3><p>المصروفات</p></div>`;
-            if (!isAdmin) renderMemberOwnStatus();
-        }
-
-        function renderMemberOwnStatus() {
-            const m = appData.members.find(x => x.name === currentUser);
-            if (!m) return;
-            let h = '';
-            ['coffee', 'breakfast'].forEach(f => {
-                if (m[f]) h += `<div class="member-status"><h4>${f==='coffee'?'القهوة':'الفطور'}</h4><p>المطلوب: ${appData.months?.[appData.currentMonth]?.[f]?.amount || 0}</p></div>`;
+                await saveData();
+                renderMonthsTable();
+                renderAll();
+                showAlert('تم', `تم حذف شهر ${monthName}`);
             });
-            document.getElementById('memberStatusContent').innerHTML = h;
         }
 
-        function renderRecentTransactions() {
-            const list = appData.expenses?.[currentFund] || [];
-            document.getElementById('recentTransactions').innerHTML = list.slice(-5).map(t => `<div>${t.note}: ${t.amount}</div>`).join('');
+        // Excel Import/Export for Members
+        function exportMembersToExcel() {
+            if (appData.members.length === 0) {
+                showAlert('تنبيه', 'لا يوجد أعضاء للتصدير');
+                return;
+            }
+
+            // Create CSV content
+            const headers = ['الاسم', 'رقم الجوال', 'قطة القهوة', 'قطة الفطور', 'الحالة'];
+            const rows = appData.members.map(m => [
+                m.name,
+                m.phone || '',
+                m.coffee ? 'نعم' : 'لا',
+                m.breakfast ? 'نعم' : 'لا',
+                m.frozen ? 'مجمد' : 'نشط'
+            ]);
+
+            // Add BOM for Arabic support in Excel
+            let csvContent = '\uFEFF';
+            csvContent += headers.join(',') + '\n';
+            rows.forEach(row => {
+                csvContent += row.map(cell => `"${cell}"`).join(',') + '\n';
+            });
+
+            // Download file
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `اعضاء-القطة-${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+
+            showAlert('نجاح', 'تم تصدير الأعضاء بنجاح');
+        }
+
+        function downloadMembersTemplate() {
+            // Create template CSV
+            const headers = ['الاسم', 'رقم الجوال', 'قطة القهوة', 'قطة الفطور'];
+            const exampleRows = [
+                ['أحمد محمد', '0512345678', 'نعم', 'نعم'],
+                ['خالد علي', '0598765432', 'نعم', 'لا'],
+                ['سعيد عبدالله', '0551234567', 'نعم', 'نعم']
+            ];
+
+            let csvContent = '\uFEFF';
+            csvContent += headers.join(',') + '\n';
+            exampleRows.forEach(row => {
+                csvContent += row.map(cell => `"${cell}"`).join(',') + '\n';
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'قالب-الاعضاء.csv';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        async function importMembersFromExcel(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const text = e.target.result;
+                    const lines = text.split('\n').filter(line => line.trim());
+
+                    if (lines.length < 2) {
+                        showAlert('خطأ', 'الملف فارغ أو لا يحتوي على بيانات');
+                        return;
+                    }
+
+                    // Skip header row
+                    const dataRows = lines.slice(1);
+                    let addedCount = 0;
+                    let skippedCount = 0;
+
+                    dataRows.forEach(line => {
+                        // Parse CSV line
+                        const cells = line.match(/(".*?"|[^,]+)/g);
+                        if (!cells || cells.length < 1) return;
+
+                        const name = cells[0]?.replace(/"/g, '').trim();
+                        const phone = cells[1]?.replace(/"/g, '').trim() || '';
+                        const coffeeStr = cells[2]?.replace(/"/g, '').trim().toLowerCase() || '';
+                        const breakfastStr = cells[3]?.replace(/"/g, '').trim().toLowerCase() || '';
+
+                        if (!name) {
+                            skippedCount++;
+                            return;
+                        }
+
+                        // Check if member already exists
+                        const exists = appData.members.some(m => m.name === name);
+                        if (exists) {
+                            skippedCount++;
+                            return;
+                        }
+
+                        const coffee = coffeeStr === 'نعم' || coffeeStr === 'yes' || coffeeStr === '1' || coffeeStr === 'true';
+                        const breakfast = breakfastStr === 'نعم' || breakfastStr === 'yes' || breakfastStr === '1' || breakfastStr === 'true';
+
+                        if (!coffee && !breakfast) {
+                            // Default to coffee if nothing specified
+                            appData.members.push({
+                                id: Date.now().toString() + Math.random().toString(36).substr(2, 5),
+                                name,
+                                phone,
+                                coffee: true,
+                                breakfast: false,
+                                frozen: false
+                            });
+                        } else {
+                            appData.members.push({
+                                id: Date.now().toString() + Math.random().toString(36).substr(2, 5),
+                                name,
+                                phone,
+                                coffee,
+                                breakfast,
+                                frozen: false
+                            });
+                        }
+                        addedCount++;
+                    });
+
+                    await saveData();
+                    renderMembers();
+                    showAlert('نجاح', `تم استيراد ${addedCount} عضو جديد${skippedCount > 0 ? `\n(تم تخطي ${skippedCount} لوجودهم مسبقاً أو بيانات غير صالحة)` : ''}`);
+                } catch (err) {
+                    showAlert('خطأ', 'فشل في قراءة الملف. تأكد من صيغة الملف');
+                }
+            };
+            reader.readAsText(file, 'UTF-8');
+            event.target.value = '';
+        }
+
+        // Reports
+        function populateReportMonthSelect() {
+            const monthKeys = Object.keys(appData.months).sort().reverse();
+            const select = document.getElementById('reportMonthSelect');
+
+            if (monthKeys.length === 0) {
+                select.innerHTML = '<option value="">لا توجد شهور</option>';
+                return;
+            }
+
+            select.innerHTML = monthKeys.map(key =>
+                `<option value="${key}">${getMonthName(key)}</option>`
+            ).join('');
+
+            if (appData.currentMonth) {
+                select.value = appData.currentMonth;
+            }
+        }
+
+        function calculateMonthReport(monthKey, fund) {
+            if (!appData.months[monthKey]) return null;
+
+            const monthData = appData.months[monthKey][fund];
+            const members = appData.members.filter(m => m[fund] && !m.frozen);
+
+            let totalExpected = 0;
+            let totalCollected = 0;
+            let totalDebt = 0;
+            let paidCount = 0;
+            let unpaidCount = 0;
+
+            members.forEach(member => {
+                const required = monthData.amount || 0;
+                const debt = monthData.debts?.[member.id] || 0;
+                const paid = monthData.payments?.[member.id]?.amount || 0;
+                const totalRequired = required + debt;
+
+                totalExpected += totalRequired;
+                totalCollected += paid;
+
+                if (paid >= totalRequired) {
+                    paidCount++;
+                } else {
+                    unpaidCount++;
+                    totalDebt += (totalRequired - paid);
+                }
+            });
+
+            // Calculate expenses for this month
+            let monthExpenses = 0;
+            (appData.expenses[fund] || []).forEach(e => {
+                if (e.month === monthKey) {
+                    monthExpenses += e.amount || 0;
+                }
+            });
+
+            return {
+                monthKey,
+                fundName: fund === 'coffee' ? 'قطة القهوة والشاي ☕' : 'قطة الفطور 🍳',
+                requiredAmount: monthData.amount || 0,
+                totalMembers: members.length,
+                paidCount,
+                unpaidCount,
+                totalExpected,
+                totalCollected,
+                totalDebt,
+                monthExpenses,
+                balance: totalCollected - monthExpenses,
+                collectionRate: members.length > 0 ? Math.round((paidCount / members.length) * 100) : 0
+            };
         }
 
         function renderReports() {
-            const mKey = document.getElementById('reportMonthSelect').value;
-            if (!mKey) return;
-            document.getElementById('reportsContent').innerHTML = `<h3>تقرير ${mKey}</h3><p>إجمالي المصاريف: ${appData.expenses?.coffee?.filter(e => e.month === mKey).reduce((a,b)=>a+b.amount,0)}</p>`;
-        }
+            const monthKey = document.getElementById('reportMonthSelect').value;
+            const container = document.getElementById('reportsContent');
 
-        function printReport() { window.print(); }
+            if (!monthKey) {
+                container.innerHTML = '<div class="empty-state"><i class="fas fa-chart-bar"></i><p>لا توجد بيانات للعرض</p></div>';
+                return;
+            }
 
-        // Helper functions
-        function populateMonthSelects() {
-            const keys = Object.keys(appData.months || {}).sort().reverse();
-            const h = keys.map(k => `<option value="${k}">${k}</option>`).join('');
-            ['paymentMonthSelect', 'reportMonthSelect', 'lateMonthSelect'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) { el.innerHTML = h; el.value = appData.currentMonth; }
+            const coffeeReport = calculateMonthReport(monthKey, 'coffee');
+            const breakfastReport = calculateMonthReport(monthKey, 'breakfast');
+
+            let html = `<h2 style="color: var(--primary); margin-bottom: 20px;">📊 تقرير ${getMonthName(monthKey)}</h2>`;
+
+            [coffeeReport, breakfastReport].forEach(report => {
+                if (!report) return;
+
+                html += `
+                    <div class="report-card">
+                        <div class="report-header">
+                            <h3><i class="fas fa-piggy-bank"></i> ${report.fundName}</h3>
+                            <span class="badge ${report.balance >= 0 ? 'badge-success' : 'badge-danger'}">
+                                ${report.balance >= 0 ? 'فائض' : 'عجز'}: ${Math.abs(report.balance)} ر.س
+                            </span>
+                        </div>
+                        <div class="report-stats">
+                            <div class="report-stat">
+                                <div class="report-stat-value">${report.requiredAmount} ر.س</div>
+                                <div class="report-stat-label">المبلغ المطلوب</div>
+                            </div>
+                            <div class="report-stat">
+                                <div class="report-stat-value">${report.totalMembers}</div>
+                                <div class="report-stat-label">إجمالي الأعضاء</div>
+                            </div>
+                            <div class="report-stat positive">
+                                <div class="report-stat-value">${report.paidCount}</div>
+                                <div class="report-stat-label">دفعوا ✅</div>
+                            </div>
+                            <div class="report-stat negative">
+                                <div class="report-stat-value">${report.unpaidCount}</div>
+                                <div class="report-stat-label">لم يدفعوا ❌</div>
+                            </div>
+                            <div class="report-stat positive">
+                                <div class="report-stat-value">${report.totalCollected} ر.س</div>
+                                <div class="report-stat-label">إجمالي التحصيل</div>
+                            </div>
+                            <div class="report-stat negative">
+                                <div class="report-stat-value">${report.monthExpenses} ر.س</div>
+                                <div class="report-stat-label">مصروفات الشهر</div>
+                            </div>
+                            <div class="report-stat">
+                                <div class="report-stat-value">${report.collectionRate}%</div>
+                                <div class="report-stat-label">نسبة التحصيل</div>
+                            </div>
+                            <div class="report-stat ${report.totalDebt > 0 ? 'negative' : ''}">
+                                <div class="report-stat-value">${report.totalDebt} ر.س</div>
+                                <div class="report-stat-label">ديون مرحلة</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
             });
+
+            // Add detailed lists
+            html += `
+                <div class="card">
+                    <div class="card-title">
+                        <i class="fas fa-users"></i>
+                        تفاصيل الدفعات - ${getMonthName(monthKey)}
+                    </div>
+                    ${renderMonthPaymentDetails(monthKey)}
+                </div>
+
+                <div class="card">
+                    <div class="card-title">
+                        <i class="fas fa-receipt"></i>
+                        تفاصيل المصروفات - ${getMonthName(monthKey)}
+                    </div>
+                    ${renderMonthExpenseDetails(monthKey)}
+                </div>
+            `;
+
+            container.innerHTML = html;
+            document.getElementById('printDate').textContent = `تاريخ الطباعة: ${new Date().toLocaleDateString('ar-SA')}`;
         }
 
-        function renderMonthsTable() {
-            const keys = Object.keys(appData.months || {}).sort().reverse();
-            document.getElementById('monthsTableBody').innerHTML = keys.map(k => `<tr><td>${k}</td><td>${appData.months[k].coffee.amount}</td><td>${appData.months[k].breakfast.amount}</td><td><button class="btn btn-danger btn-sm" onclick="deleteMonth('${k}')">حذف</button></td></tr>`).join('');
+        function renderMonthPaymentDetails(monthKey) {
+            let html = '';
+
+            ['coffee', 'breakfast'].forEach(fund => {
+                const fundName = fund === 'coffee' ? '☕ القهوة' : '🍳 الفطور';
+                const monthData = appData.months[monthKey]?.[fund];
+                if (!monthData) return;
+
+                const members = appData.members.filter(m => m[fund]);
+                if (members.length === 0) return;
+
+                html += `<h4 style="color: var(--primary); margin: 15px 0 10px;">${fundName}</h4>`;
+                html += '<div class="table-container"><table class="table"><thead><tr><th>العضو</th><th>الحالة</th><th>المدفوع</th></tr></thead><tbody>';
+
+                members.forEach(member => {
+                    const required = monthData.amount || 0;
+                    const debt = monthData.debts?.[member.id] || 0;
+                    const paid = monthData.payments?.[member.id]?.amount || 0;
+                    const isPaid = paid >= (required + debt);
+
+                    html += `
+                        <tr style="${member.frozen ? 'opacity: 0.5;' : ''}">
+                            <td>${member.name} ${member.frozen ? '❄️' : ''}</td>
+                            <td>${isPaid ? '<span class="badge badge-success">دفع ✅</span>' : '<span class="badge badge-danger">لم يدفع ❌</span>'}</td>
+                            <td>${paid} ر.س</td>
+                        </tr>
+                    `;
+                });
+
+                html += '</tbody></table></div>';
+            });
+
+            return html || '<p style="color: var(--text-light);">لا توجد بيانات</p>';
         }
 
-        async function deleteMonth(k) { delete appData.months[k]; await saveData(); renderMonthsTable(); }
+        function renderMonthExpenseDetails(monthKey) {
+            let html = '';
 
-        function getMonthName(k) { return k; }
-        function populateNewMonthSelect() {
-            const s = document.getElementById('newMonthSelect');
-            s.innerHTML = `<option value="${new Date().getFullYear()}-${new Date().getMonth()+1}">${new Date().getFullYear()}-${new Date().getMonth()+1}</option>`;
+            ['coffee', 'breakfast'].forEach(fund => {
+                const fundName = fund === 'coffee' ? '☕ القهوة' : '🍳 الفطور';
+                const expenses = (appData.expenses[fund] || []).filter(e => e.month === monthKey);
+
+                if (expenses.length === 0) return;
+
+                html += `<h4 style="color: var(--primary); margin: 15px 0 10px;">${fundName}</h4>`;
+                html += '<div class="table-container"><table class="table"><thead><tr><th>التاريخ</th><th>المبلغ</th><th>الملاحظة</th></tr></thead><tbody>';
+
+                expenses.forEach(expense => {
+                    html += `
+                        <tr>
+                            <td>${new Date(expense.date).toLocaleDateString('ar-SA')}</td>
+                            <td>${expense.amount} ر.س</td>
+                            <td>${expense.note || '-'}</td>
+                        </tr>
+                    `;
+                });
+
+                html += '</tbody></table></div>';
+            });
+
+            return html || '<p style="color: var(--text-light);">لا توجد مصروفات لهذا الشهر</p>';
         }
-        function renderLateMembers() { document.getElementById('lateList').innerHTML = 'لا يوجد متأخرون حالياً'; }
-        function checkEndOfMonthAlert() {}
 
+        function printReport() {
+            window.print();
+        }
+
+        // Render All
         function renderAll() {
             renderMembers();
             renderHomeStats();
             renderRecentTransactions();
             populateMonthSelects();
+            populateReportMonthSelect();
+            populateLateMonthSelect();
+            renderPayments();
+            renderExpenses();
+            renderLateMembers();
+            renderReports();
             renderMonthsTable();
+            checkEndOfMonthAlert();
         }
 
-        loadData().then(renderAll);
+        // Initialize
+        async function init() {
+            try {
+                await loadData();
+            } catch (err) {
+                console.log('Firebase not available, using in-memory storage');
+            }
+        }
+
+        init();
     </script>
 </body>
 </html>
