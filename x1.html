@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مدير المصاريف والمهام</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <style>
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: #f8fafc;
+        }
+        .tab-active {
+            border-bottom: 3px solid #2563eb;
+            color: #2563eb;
+        }
+        .modal-overlay {
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 50;
+            align-items: center;
+            justify-content: center;
+        }
+        #mainTitle {
+            cursor: pointer;
+            user-select: none;
+        }
+        .task-done {
+            text-decoration: line-through;
+            color: #94a3b8;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-2xl mx-auto">
+        <!-- Header -->
+        <header class="text-center mb-6">
+            <h1 id="mainTitle" class="text-3xl font-bold text-slate-800">مدير المصاريف والمهام</h1>
+            <p id="adminStatus" class="text-slate-400 text-xs mt-1 h-4"></p>
+        </header>
+
+        <!-- Dynamic Form Card (Admin Only) -->
+        <div id="formContainer" class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mb-6 hidden">
+            <!-- Expense Form -->
+            <form id="expenseForm" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="flex flex-col">
+                        <label class="text-sm font-medium text-slate-700 mb-1">اسم الصنف</label>
+                        <input type="text" id="itemName" placeholder="مثلاً: مشتريات البقالة" 
+                            class="p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all">
+                    </div>
+                    <div class="flex flex-col">
+                        <label class="text-sm font-medium text-slate-700 mb-1">السعر</label>
+                        <input type="number" id="itemPrice" step="0.01" placeholder="0.00" 
+                            class="p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all">
+                    </div>
+                </div>
+                <button type="submit" id="submitBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition-colors flex items-center justify-center gap-2">
+                    <span id="submitText">إضافة إلى المصاريف</span>
+                </button>
+            </form>
+
+            <!-- Task Form (Hidden by default, shown when task tab is active) -->
+            <form id="taskForm" class="space-y-4 hidden">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="flex flex-col">
+                        <label class="text-sm font-medium text-slate-700 mb-1">المهمة</label>
+                        <input type="text" id="taskText" placeholder="مثلاً: شراء الخضار" 
+                            class="p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all">
+                    </div>
+                    <div class="flex flex-col">
+                        <label class="text-sm font-medium text-slate-700 mb-1">المسؤول</label>
+                        <input type="text" id="taskAssignee" placeholder="مثلاً: محمد" 
+                            class="p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all">
+                    </div>
+                </div>
+                <button type="submit" id="taskSubmitBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-lg transition-colors flex items-center justify-center gap-2">
+                    <span id="taskSubmitText">إضافة المهمة</span>
+                </button>
+            </form>
+            
+            <button type="button" id="cancelEditBtn" class="hidden w-full text-slate-500 text-sm hover:underline mt-2">إلغاء التعديل</button>
+            <div id="errorMessage" class="hidden mt-3 p-3 bg-red-50 text-red-600 text-sm rounded-lg text-center"></div>
+        </div>
+
+        <!-- Summary Card -->
+        <div id="summaryCard" class="bg-blue-600 rounded-2xl p-6 mb-6 text-white flex justify-between items-center shadow-lg shadow-blue-200">
+            <div>
+                <p id="summaryLabel" class="text-blue-100 text-sm">إجمالي المصروفات</p>
+                <h2 id="totalDisplay" class="text-4xl font-bold mt-1">0.00</h2>
+            </div>
+            <div class="bg-blue-500/30 p-4 rounded-xl">
+                <svg id="summaryIcon" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+            </div>
+        </div>
+
+        <!-- Tabs Navigation -->
+        <div class="flex border-b border-slate-200 mb-4">
+            <button id="tabExpenses" class="flex-1 py-3 font-bold text-center tab-active transition-all">المشتريات</button>
+            <button id="tabTasks" class="flex-1 py-3 font-bold text-center text-slate-400 hover:text-slate-600 transition-all">المهام</button>
+            <button id="tabControl" class="flex-1 py-3 font-bold text-center text-slate-400 hover:text-slate-600 transition-all">سيطرة</button>
+        </div>
+
+        <!-- List Section -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div class="p-4 border-b border-slate-50 flex justify-between items-center">
+                <h3 id="listTitle" class="font-bold text-slate-800">قائمة المشتريات</h3>
+                <button id="clearAll" class="text-xs text-red-500 hover:underline hidden text-nowrap">مسح الكل</button>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full text-right">
+                    <thead id="tableHeader" class="bg-slate-50 text-slate-500 text-sm">
+                        <!-- Dynamic Header -->
+                    </thead>
+                    <tbody id="mainList">
+                        <!-- Content Injected Here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="p-12 text-center text-slate-400">
+                <svg class="mx-auto mb-3" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+                <p>لا توجد بيانات حالياً</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="deleteModal" class="modal-overlay">
+        <div class="bg-white p-6 rounded-2xl max-w-sm w-full mx-4 shadow-xl">
+            <h3 class="text-lg font-bold text-slate-800 mb-2">تأكيد الحذف</h3>
+            <p class="text-slate-600 mb-6 text-sm">هل أنت متأكد من رغبتك في حذف هذا العنصر؟</p>
+            <div class="flex gap-3">
+                <button id="confirmDeleteBtn" class="flex-1 bg-red-600 text-white py-2 rounded-lg font-bold">حذف</button>
+                <button id="cancelDeleteBtn" class="flex-1 bg-slate-100 text-slate-600 py-2 rounded-lg font-bold">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- إعدادات Firebase ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyBxPO6RKsQ1Cq-mqlCpFTrCuIyxnYdB37U",
+            authDomain: "studentsystem-c1ab1.firebaseapp.com",
+            databaseURL: "https://studentsystem-c1ab1-default-rtdb.firebaseio.com",
+            projectId: "studentsystem-c1ab1",
+            storageBucket: "studentsystem-c1ab1.firebasestorage.app",
+            messagingSenderId: "112215023848",
+            appId: "1:112215023848:web:0adba326a527ee7e37e95d"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const expenseRef = db.ref('msaref');
+        const taskRef = db.ref('tasks');
+        const controlRef = db.ref('control');
+
+        // قائمة الأشخاص للسيطرة
+        const controlPersons = [
+            'عائش فراج',
+            'بدرية هليل',
+            'نجود عائش',
+            'أمجاد عائش',
+            'أنس عائش',
+            'ياسر عائش',
+            'وجدان عائش',
+            'ماجد عائش',
+            'حور عائش'
+        ];
+
+        // --- الحالة (State) ---
+        let expenses = [];
+        let tasks = [];
+        let controlData = {};
+        let activeTab = 'expenses'; // 'expenses' or 'tasks' or 'control'
+        let isAdminMode = false;
+        let editId = null;
+        let itemToDeleteId = null;
+
+        // --- DOM Elements ---
+        const mainTitle = document.getElementById('mainTitle');
+        const adminStatus = document.getElementById('adminStatus');
+        const formContainer = document.getElementById('formContainer');
+        const expenseForm = document.getElementById('expenseForm');
+        const taskForm = document.getElementById('taskForm');
+        const mainList = document.getElementById('mainList');
+        const totalDisplay = document.getElementById('totalDisplay');
+        const emptyState = document.getElementById('emptyState');
+        const listTitle = document.getElementById('listTitle');
+        const clearAllBtn = document.getElementById('clearAll');
+        const cancelEditBtn = document.getElementById('cancelEditBtn');
+
+        // --- Tabs Logic ---
+        document.getElementById('tabExpenses').onclick = () => switchTab('expenses');
+        document.getElementById('tabTasks').onclick = () => switchTab('tasks');
+        document.getElementById('tabControl').onclick = () => switchTab('control');
+
+        function switchTab(tab) {
+            activeTab = tab;
+            editId = null;
+            document.getElementById('tabExpenses').className = `flex-1 py-3 font-bold text-center transition-all ${tab === 'expenses' ? 'tab-active' : 'text-slate-400'}`;
+            document.getElementById('tabTasks').className = `flex-1 py-3 font-bold text-center transition-all ${tab === 'tasks' ? 'tab-active' : 'text-slate-400'}`;
+            document.getElementById('tabControl').className = `flex-1 py-3 font-bold text-center transition-all ${tab === 'control' ? 'tab-active' : 'text-slate-400'}`;
+
+            if (isAdminMode) {
+                expenseForm.classList.toggle('hidden', tab !== 'expenses');
+                taskForm.classList.toggle('hidden', tab !== 'tasks');
+                cancelEditBtn.classList.add('hidden');
+            }
+
+            render();
+        }
+
+        // --- Data Fetching ---
+        function syncData() {
+            expenseRef.on('value', snap => {
+                expenses = [];
+                const data = snap.val();
+                if (data) Object.keys(data).forEach(k => expenses.push({id: k, ...data[k]}));
+                render();
+            });
+
+            taskRef.on('value', snap => {
+                tasks = [];
+                const data = snap.val();
+                if (data) Object.keys(data).forEach(k => tasks.push({id: k, ...data[k]}));
+                render();
+            });
+
+            controlRef.on('value', snap => {
+                controlData = snap.val() || {};
+                render();
+            });
+        }
+
+        // --- UI Rendering ---
+        function render() {
+            const tableHeader = document.getElementById('tableHeader');
+            mainList.innerHTML = '';
+
+            if (activeTab === 'expenses') {
+                renderExpenses(tableHeader);
+            } else if (activeTab === 'tasks') {
+                renderTasks(tableHeader);
+            } else if (activeTab === 'control') {
+                renderControl(tableHeader);
+            }
+
+            // Admin Visuals
+            formContainer.classList.toggle('hidden', !isAdminMode || activeTab === 'control');
+            clearAllBtn.classList.toggle('hidden', !isAdminMode || activeTab === 'control' || (activeTab === 'expenses' ? expenses.length === 0 : tasks.length === 0));
+            adminStatus.innerText = isAdminMode ? "وضع الإدارة مفعل" : "";
+        }
+
+        function renderExpenses(header) {
+            header.innerHTML = `<tr><th class="p-4 font-medium text-right">الصنف</th><th class="p-4 font-medium text-right">السعر</th>${isAdminMode ? '<th class="p-4 font-medium text-center">إجراء</th>' : ''}</tr>`;
+            listTitle.innerText = "قائمة المشتريات";
+            
+            const total = expenses.reduce((s, i) => s + parseFloat(i.price), 0);
+            totalDisplay.innerText = total.toLocaleString('ar-SA', { minimumFractionDigits: 2 });
+            document.getElementById('summaryLabel').innerText = "إجمالي المصروفات";
+            document.getElementById('summaryCard').className = "bg-blue-600 rounded-2xl p-6 mb-6 text-white flex justify-between items-center shadow-lg shadow-blue-200";
+
+            if (expenses.length === 0) {
+                emptyState.classList.remove('hidden');
+                return;
+            }
+            emptyState.classList.add('hidden');
+
+            expenses.forEach(item => {
+                const row = document.createElement('tr');
+                row.className = 'border-b border-slate-50 hover:bg-slate-50/50';
+                row.innerHTML = `
+                    <td class="p-4 text-slate-700 font-medium">${item.name}</td>
+                    <td class="p-4 text-slate-600">${parseFloat(item.price).toFixed(2)}</td>
+                    ${isAdminMode ? `
+                    <td class="p-4 text-center flex justify-center gap-2">
+                        <button onclick="editItem('${item.id}')" class="text-blue-400"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>
+                        <button onclick="confirmDelete('${item.id}')" class="text-red-400"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
+                    </td>` : ''}
+                `;
+                mainList.appendChild(row);
+            });
+        }
+
+        function renderTasks(header) {
+            header.innerHTML = `<tr><th class="p-4 font-medium text-right">المهمة</th><th class="p-4 font-medium text-right">المسؤول</th><th class="p-4 font-medium text-center">الحالة</th>${isAdminMode ? '<th class="p-4 font-medium text-center">إجراء</th>' : ''}</tr>`;
+            listTitle.innerText = "قائمة المهام";
+            
+            const doneCount = tasks.filter(t => t.done).length;
+            totalDisplay.innerText = `${doneCount} / ${tasks.length}`;
+            document.getElementById('summaryLabel').innerText = "المهام المنجزة";
+            document.getElementById('summaryCard').className = "bg-indigo-600 rounded-2xl p-6 mb-6 text-white flex justify-between items-center shadow-lg shadow-indigo-200";
+
+            if (tasks.length === 0) {
+                emptyState.classList.remove('hidden');
+                return;
+            }
+            emptyState.classList.add('hidden');
+
+            tasks.forEach(task => {
+                const row = document.createElement('tr');
+                row.className = 'border-b border-slate-50 hover:bg-slate-50/50';
+                row.innerHTML = `
+                    <td class="p-4 font-medium ${task.done ? 'task-done' : 'text-slate-700'}">${task.text}</td>
+                    <td class="p-4 text-slate-500 text-sm">${task.assignee}</td>
+                    <td class="p-4 text-center">
+                        <button ${isAdminMode ? `onclick="toggleTask('${task.id}', ${task.done})"` : 'style="cursor: default;"'} class="p-1 rounded-full ${task.done ? 'text-green-500' : 'text-slate-300'}">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        </button>
+                    </td>
+                    ${isAdminMode ? `
+                    <td class="p-4 text-center flex justify-center gap-2">
+                        <button onclick="editItem('${task.id}')" class="text-blue-400"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>
+                        <button onclick="confirmDelete('${task.id}')" class="text-red-400"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
+                    </td>` : ''}
+                `;
+                mainList.appendChild(row);
+            });
+        }
+
+        function renderControl(header) {
+            header.innerHTML = `<tr><th class="p-4 font-medium text-right">الاسم</th><th class="p-4 font-medium text-center">مشاركة</th><th class="p-4 font-medium text-center">مخالفة</th><th class="p-4 font-medium text-center">المجموع</th></tr>`;
+            listTitle.innerText = "سيطرة";
+
+            // حساب إجمالي النقاط
+            let totalPoints = 0;
+            controlPersons.forEach(person => {
+                const personData = controlData[person] || { shares: [], violations: [] };
+                const sharesTotal = (personData.shares || []).reduce((sum, s) => sum + (s.points || 0), 0);
+                const violationsTotal = (personData.violations || []).reduce((sum, v) => sum + Math.abs(v.points || 0), 0);
+                totalPoints += (sharesTotal - violationsTotal);
+            });
+
+            totalDisplay.innerText = totalPoints;
+            document.getElementById('summaryLabel').innerText = "إجمالي النقاط";
+            const totalColor = totalPoints > 0 ? 'bg-green-600 shadow-green-200' : 'bg-red-600 shadow-red-200';
+            document.getElementById('summaryCard').className = `${totalColor} rounded-2xl p-6 mb-6 text-white flex justify-between items-center shadow-lg`;
+
+            emptyState.classList.add('hidden');
+
+            controlPersons.forEach(person => {
+                const personData = controlData[person] || { shares: [], violations: [] };
+                const sharesCount = (personData.shares || []).length;
+                const sharesTotal = (personData.shares || []).reduce((sum, s) => sum + (s.points || 0), 0);
+                const violationsCount = (personData.violations || []).length;
+                const violationsTotal = (personData.violations || []).reduce((sum, v) => sum + Math.abs(v.points || 0), 0);
+                const netTotal = sharesTotal - violationsTotal;
+                const netColor = netTotal > 0 ? 'text-green-600' : 'text-red-600';
+
+                const row = document.createElement('tr');
+                row.className = 'border-b border-slate-50 hover:bg-slate-50/50';
+                row.innerHTML = `
+                    <td class="p-4 text-slate-700 font-medium cursor-pointer hover:text-blue-600" data-person="${person}">${person}</td>
+                    <td class="p-4 text-center">
+                        <button class="share-btn flex flex-col items-center justify-center mx-auto bg-green-100 hover:bg-green-200 text-green-600 p-2 rounded-lg transition-all" data-person="${person}">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                            <span class="text-xs mt-1">${sharesCount} | ${sharesTotal}</span>
+                        </button>
+                    </td>
+                    <td class="p-4 text-center">
+                        <button class="violation-btn flex flex-col items-center justify-center mx-auto bg-red-100 hover:bg-red-200 text-red-600 p-2 rounded-lg transition-all" data-person="${person}">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/></svg>
+                            <span class="text-xs mt-1">${violationsCount} | -${violationsTotal}</span>
+                        </button>
+                    </td>
+                    <td class="p-4 text-center">
+                        <span class="font-bold text-lg ${netColor}">${netTotal}</span>
+                    </td>
+                `;
+                mainList.appendChild(row);
+            });
+        }
+
+        // --- Actions ---
+        expenseForm.onsubmit = (e) => {
+            e.preventDefault();
+            const name = document.getElementById('itemName').value.trim();
+            const price = document.getElementById('itemPrice').value;
+            if (!name || price <= 0) return;
+            
+            if (editId) {
+                expenseRef.child(editId).update({name, price});
+                editId = null;
+            } else {
+                expenseRef.push({name, price: parseFloat(price)});
+            }
+            expenseForm.reset();
+            cancelEditBtn.classList.add('hidden');
+            document.getElementById('submitText').innerText = "إضافة إلى المصاريف";
+        };
+
+        taskForm.onsubmit = (e) => {
+            e.preventDefault();
+            const text = document.getElementById('taskText').value.trim();
+            const assignee = document.getElementById('taskAssignee').value.trim();
+            if (!text || !assignee) return;
+
+            if (editId) {
+                taskRef.child(editId).update({text, assignee});
+                editId = null;
+            } else {
+                taskRef.push({text, assignee, done: false});
+            }
+            taskForm.reset();
+            cancelEditBtn.classList.add('hidden');
+            document.getElementById('taskSubmitText').innerText = "إضافة المهمة";
+        };
+
+        window.toggleTask = (id, currentStatus) => {
+            if (!isAdminMode) return; // منع التغيير في وضع العرض
+            taskRef.child(id).update({done: !currentStatus});
+        };
+
+        window.editItem = (id) => {
+            editId = id;
+            cancelEditBtn.classList.remove('hidden');
+            if (activeTab === 'expenses') {
+                const item = expenses.find(i => i.id === id);
+                document.getElementById('itemName').value = item.name;
+                document.getElementById('itemPrice').value = item.price;
+                document.getElementById('submitText').innerText = "تحديث الصنف";
+            } else {
+                const task = tasks.find(t => t.id === id);
+                document.getElementById('taskText').value = task.text;
+                document.getElementById('taskAssignee').value = task.assignee;
+                document.getElementById('taskSubmitText').innerText = "تحديث المهمة";
+            }
+        };
+
+        cancelEditBtn.onclick = () => {
+            editId = null;
+            expenseForm.reset();
+            taskForm.reset();
+            cancelEditBtn.classList.add('hidden');
+            document.getElementById('submitText').innerText = "إضافة إلى المصاريف";
+            document.getElementById('taskSubmitText').innerText = "إضافة المهمة";
+        };
+
+        window.confirmDelete = (id) => {
+            itemToDeleteId = id;
+            document.getElementById('deleteModal').style.display = 'flex';
+        };
+
+        document.getElementById('confirmDeleteBtn').onclick = () => {
+            if (activeTab === 'expenses') expenseRef.child(itemToDeleteId).remove();
+            else taskRef.child(itemToDeleteId).remove();
+            document.getElementById('deleteModal').style.display = 'none';
+        };
+
+        document.getElementById('cancelDeleteBtn').onclick = () => {
+            document.getElementById('deleteModal').style.display = 'none';
+        };
+
+        clearAllBtn.onclick = () => {
+            showClearAllModal();
+        };
+
+        function showClearAllModal() {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            modal.id = 'clearAllModal';
+            modal.innerHTML = `
+                <div class="bg-white p-6 rounded-2xl max-w-sm w-full mx-4 shadow-xl">
+                    <h3 class="text-lg font-bold text-slate-800 mb-2">تأكيد المسح</h3>
+                    <p class="text-slate-600 mb-6 text-sm">هل أنت متأكد من مسح كافة بيانات هذا القسم؟</p>
+                    <div class="flex gap-3">
+                        <button id="confirmClearAllBtn" class="flex-1 bg-red-600 text-white py-2 rounded-lg font-bold">مسح الكل</button>
+                        <button id="cancelClearAllBtn" class="flex-1 bg-slate-100 text-slate-600 py-2 rounded-lg font-bold">إلغاء</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            document.getElementById('confirmClearAllBtn').onclick = () => {
+                if (activeTab === 'expenses') expenseRef.remove();
+                else if (activeTab === 'tasks') taskRef.remove();
+                modal.remove();
+            };
+
+            document.getElementById('cancelClearAllBtn').onclick = () => {
+                modal.remove();
+            };
+        }
+
+        // --- Admin Mode Toggles ---
+        mainTitle.ondblclick = () => { isAdminMode = true; render(); switchTab(activeTab); };
+        mainTitle.onclick = () => { if(isAdminMode) { isAdminMode = false; render(); switchTab(activeTab); } };
+
+        // --- Control Long Press Logic ---
+        const CONTROL_CODE = 'A@1379';
+        let longPressTimer = null;
+        let currentControlPerson = null;
+        let currentControlType = null; // 'share' or 'violation'
+
+        // صوت الخطأ
+        function playErrorSound() {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            oscillator.frequency.value = 200;
+            oscillator.type = 'square';
+            gainNode.gain.value = 0.3;
+            oscillator.start();
+            setTimeout(() => { oscillator.stop(); audioCtx.close(); }, 300);
+        }
+
+        // نافذة إدخال الكود
+        function showCodeModal(person, type) {
+            currentControlPerson = person;
+            currentControlType = type;
+
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            modal.id = 'codeModal';
+            modal.innerHTML = `
+                <div class="bg-white p-6 rounded-2xl max-w-sm w-full mx-4 shadow-xl">
+                    <h3 class="text-lg font-bold text-slate-800 mb-4 text-center">أدخل الكود</h3>
+                    <input type="password" id="codeInput" placeholder="الكود"
+                        class="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-center text-lg mb-4" style="font-size: 18px;">
+                    <button id="verifyCodeBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition-colors">تحقق</button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            const codeInput = document.getElementById('codeInput');
+            codeInput.focus();
+
+            document.getElementById('verifyCodeBtn').onclick = () => {
+                const enteredCode = codeInput.value.trim();
+                if (enteredCode === CONTROL_CODE) {
+                    modal.remove();
+                    showEntryModal(currentControlPerson, currentControlType);
+                } else {
+                    modal.remove();
+                    showErrorModal();
+                }
+            };
+
+            codeInput.onkeypress = (e) => {
+                if (e.key === 'Enter') {
+                    document.getElementById('verifyCodeBtn').click();
+                }
+            };
+        }
+
+        // نافذة الخطأ
+        function showErrorModal() {
+            playErrorSound();
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            modal.id = 'errorModal';
+            modal.innerHTML = `
+                <div class="bg-red-50 border-2 border-red-400 p-6 rounded-2xl max-w-sm w-full mx-4 shadow-xl text-center">
+                    <div class="text-5xl mb-4">❌</div>
+                    <h3 class="text-xl font-bold text-red-600 mb-6">اترك اللقافة</h3>
+                    <button id="closeErrorBtn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-lg transition-colors">خلاص</button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            document.getElementById('closeErrorBtn').onclick = () => {
+                modal.remove();
+            };
+        }
+
+        // نافذة إدخال المشاركة أو المخالفة
+        function showEntryModal(person, type) {
+            const isShare = type === 'share';
+            const bgColor = isShare ? 'bg-green-50 border-green-400' : 'bg-red-50 border-red-400';
+            const titleColor = isShare ? 'text-green-700' : 'text-red-700';
+            const btnColor = isShare ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700';
+            const title = isShare ? 'تسجيل مشاركة' : 'تسجيل مخالفة';
+            const label = isShare ? 'اسم المشاركة' : 'اسم المخالفة';
+            const icon = isShare ? '🎉' : '⚠️';
+
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            modal.id = 'entryModal';
+            modal.innerHTML = `
+                <div class="${bgColor} border-2 p-6 rounded-2xl max-w-sm w-full mx-4 shadow-xl">
+                    <h3 class="text-lg font-bold ${titleColor} mb-2 text-center">${title}</h3>
+                    <p class="text-slate-600 text-center mb-4">لـ: <span class="font-bold">${person}</span></p>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-sm font-medium text-slate-700 mb-1 block">${label}</label>
+                            <input type="text" id="entryName" placeholder="${label}"
+                                class="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" style="font-size: 16px;">
+                        </div>
+                        <div>
+                            <label class="text-sm font-medium text-slate-700 mb-1 block">النقاط</label>
+                            <input type="number" id="entryPoints" placeholder="أدخل النقاط" min="1"
+                                class="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" style="font-size: 16px;">
+                        </div>
+                        <button id="submitEntryBtn" class="w-full ${btnColor} text-white font-bold py-3 rounded-lg transition-colors">${icon} يستاهل</button>
+                        <button id="cancelEntryBtn" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2 rounded-lg transition-colors text-sm">إلغاء</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            document.getElementById('entryName').focus();
+
+            document.getElementById('submitEntryBtn').onclick = () => {
+                const name = document.getElementById('entryName').value.trim();
+                const points = parseInt(document.getElementById('entryPoints').value);
+
+                if (!name || !points || points <= 0) {
+                    return;
+                }
+
+                const now = new Date();
+                const entry = {
+                    name: name,
+                    points: isShare ? points : -Math.abs(points),
+                    timestamp: now.getTime(),
+                    date: now.toLocaleDateString('ar-SA'),
+                    time: now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })
+                };
+
+                const arrayKey = isShare ? 'shares' : 'violations';
+                const personData = controlData[person] || {};
+                const currentArray = personData[arrayKey] || [];
+                currentArray.push(entry);
+
+                controlRef.child(person).child(arrayKey).set(currentArray);
+                modal.remove();
+            };
+
+            document.getElementById('cancelEntryBtn').onclick = () => {
+                modal.remove();
+            };
+        }
+
+        // Event delegation للنقر المطول
+        document.addEventListener('mousedown', handleLongPressStart);
+        document.addEventListener('mouseup', handleLongPressEnd);
+        document.addEventListener('mouseleave', handleLongPressEnd);
+        document.addEventListener('touchstart', handleLongPressStart, { passive: true });
+        document.addEventListener('touchend', handleLongPressEnd);
+        document.addEventListener('touchcancel', handleLongPressEnd);
+
+        function handleLongPressStart(e) {
+            const target = e.target.closest('.share-btn, .violation-btn');
+            if (!target) return;
+
+            const person = target.dataset.person;
+            const type = target.classList.contains('share-btn') ? 'share' : 'violation';
+
+            longPressTimer = setTimeout(() => {
+                showCodeModal(person, type);
+            }, 2000);
+        }
+
+        function handleLongPressEnd() {
+            if (longPressTimer) {
+                clearTimeout(longPressTimer);
+                longPressTimer = null;
+            }
+        }
+
+        // نافذة تقرير الشخص
+        function showPersonReport(person) {
+            const personData = controlData[person] || {};
+            const shares = (personData.shares || []).map(s => ({ ...s, type: 'share' }));
+            const violations = (personData.violations || []).map(v => ({ ...v, type: 'violation' }));
+
+            // دمج وترتيب حسب الوقت (من الأحدث للأقدم)
+            const allEntries = [...shares, ...violations].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+            // حساب المجاميع
+            const sharesTotal = shares.reduce((sum, s) => sum + (s.points || 0), 0);
+            const violationsTotal = violations.reduce((sum, v) => sum + Math.abs(v.points || 0), 0);
+            const netTotal = sharesTotal - violationsTotal;
+            const netColor = netTotal > 0 ? 'text-green-600' : 'text-red-600';
+
+            let entriesHTML = '';
+            if (allEntries.length === 0) {
+                entriesHTML = '<p class="text-center text-slate-400 py-8">لا توجد سجلات</p>';
+            } else {
+                allEntries.forEach(entry => {
+                    const isShare = entry.type === 'share';
+                    const bgColor = isShare ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200';
+                    const textColor = isShare ? 'text-green-700' : 'text-red-700';
+                    const icon = isShare ? '✅' : '❌';
+                    const pointsDisplay = isShare ? `+${entry.points}` : `${entry.points}`;
+
+                    // تنسيق التاريخ والوقت
+                    const dateObj = new Date(entry.timestamp);
+                    const day = dateObj.getDate();
+                    const month = dateObj.getMonth() + 1;
+                    const hours = dateObj.getHours().toString().padStart(2, '0');
+                    const minutes = dateObj.getMinutes().toString().padStart(2, '0');
+                    const formattedDateTime = `${day}/${month} ${hours}:${minutes}`;
+
+                    entriesHTML += `
+                        <div class="${bgColor} border rounded-lg p-3 mb-2">
+                            <div class="flex justify-between items-start">
+                                <div class="flex items-center gap-2">
+                                    <span>${icon}</span>
+                                    <span class="font-medium text-slate-700">${entry.name}</span>
+                                </div>
+                                <span class="font-bold ${textColor}">${pointsDisplay}</span>
+                            </div>
+                            <div class="text-xs text-slate-400 mt-1">${formattedDateTime}</div>
+                        </div>
+                    `;
+                });
+            }
+
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            modal.id = 'reportModal';
+            modal.innerHTML = `
+                <div class="bg-white p-6 rounded-2xl max-w-md w-full mx-4 shadow-xl max-h-[80vh] flex flex-col">
+                    <h3 class="text-xl font-bold text-slate-800 mb-2 text-center">${person}</h3>
+                    <div class="flex justify-center gap-4 mb-4 text-sm">
+                        <span class="text-green-600">مشاركات: <b>${shares.length}</b> (${sharesTotal}+)</span>
+                        <span class="text-red-600">مخالفات: <b>${violations.length}</b> (${violationsTotal}-)</span>
+                    </div>
+                    <div class="text-center mb-4">
+                        <span class="text-lg">المجموع: <b class="${netColor}">${netTotal}</b></span>
+                    </div>
+                    <div class="overflow-y-auto flex-1 border-t border-slate-100 pt-4">
+                        ${entriesHTML}
+                    </div>
+                    <button id="closeReportBtn" class="w-full bg-slate-600 hover:bg-slate-700 text-white font-bold py-3 rounded-lg transition-colors mt-4">إغلاق</button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            document.getElementById('closeReportBtn').onclick = () => {
+                modal.remove();
+            };
+        }
+
+        // Event delegation للنقر على اسم الشخص
+        document.addEventListener('click', (e) => {
+            const nameCell = e.target.closest('td[data-person]');
+            if (nameCell && activeTab === 'control') {
+                const person = nameCell.dataset.person;
+                showPersonReport(person);
+            }
+        });
+
+        window.onload = syncData;
+    </script>
+</body>
+</html>
