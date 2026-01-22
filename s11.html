@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>عداد النقرات البسيط</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f4f8;
+        }
+        .counter-card {
+            background: white;
+            padding: 3rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+        }
+        #counter-display {
+            font-size: 5rem;
+            font-weight: bold;
+            color: #1e293b;
+            margin-bottom: 1.5rem;
+            transition: transform 0.1s ease;
+        }
+        #increment-btn {
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            padding: 1.5rem 3rem;
+            font-size: 1.5rem;
+            font-weight: 600;
+            border-radius: 1rem;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.5);
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        #increment-btn:active {
+            transform: scale(0.95);
+            background-color: #2563eb;
+        }
+        #reset-link {
+            display: inline-block;
+            margin-top: 1.5rem;
+            color: #64748b;
+            text-decoration: none;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+        #reset-link:hover {
+            color: #ef4444;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="counter-card">
+        <h1 class="text-xl text-gray-500 mb-4">عداد النقرات</h1>
+        <div id="counter-display">0</div>
+        
+        <button id="increment-btn">اضغط هنا!</button>
+        
+        <div id="reset-link" onclick="resetCounter()">إعادة ضبط العداد</div>
+    </div>
+
+    <script>
+        let count = 0;
+        const display = document.getElementById('counter-display');
+        const btn = document.getElementById('increment-btn');
+
+        // وظيفة زيادة العداد
+        function increment() {
+            count++;
+            display.innerText = count;
+            
+            // إضافة حركة بسيطة للرقم عند التغيير
+            display.style.transform = 'scale(1.1)';
+            setTimeout(() => {
+                display.style.transform = 'scale(1)';
+            }, 100);
+        }
+
+        // وظيفة إعادة الضبط
+        function resetCounter() {
+            count = 0;
+            display.innerText = count;
+        }
+
+        // الاستماع لحدث الضغط (يعمل مع اللمس والنقر)
+        btn.addEventListener('click', increment);
+
+        // دعم الضغط على مفتاح المسافة لزيادة العداد أيضاً
+        document.addEventListener('keydown', (event) => {
+            if (event.code === 'Space') {
+                increment();
+                // منع التمرير لأسفل عند ضغط المسافة
+                event.preventDefault();
+            }
+        });
+    </script>
+</body>
+</html>
+
