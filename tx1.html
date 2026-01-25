@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام بطاقات التعريف الذكي - نسخة التخزين السحابي</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts (Tajawal) -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+
+    <style>
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: #f8fafc;
+        }
+        .fade-in {
+            animation: fadeIn 0.4s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .zoom-in {
+            animation: zoomIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes zoomIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen text-slate-800">
+
+    <div class="container mx-auto px-4 py-8 max-w-5xl">
+        
+        <!-- Header -->
+        <div class="text-center mb-10">
+            <h1 class="text-4xl font-extrabold text-slate-800 mb-2 tracking-tight">
+                منصة البطاقات <span class="text-emerald-500">الرقمية</span>
+            </h1>
+            <p class="text-slate-500 font-medium">استعراض وإدارة البيانات عبر Firebase Storage</p>
+        </div>
+
+        <!-- Tabs Navigation -->
+        <div class="bg-white rounded-2xl shadow-sm p-1.5 mb-8 flex border border-slate-200">
+            <button onclick="switchTab('display')" id="tab-display" class="flex-1 py-3 rounded-xl text-center font-bold transition-all duration-300 bg-emerald-500 text-white shadow-md text-lg">
+                <i class="fa-regular fa-address-card ml-2"></i> عرض البطاقات
+            </button>
+            <button onclick="switchTab('register')" id="tab-register" class="flex-1 py-3 rounded-xl text-center font-bold text-slate-500 hover:bg-slate-50 transition-all duration-300 text-lg">
+                <i class="fa-solid fa-gear ml-2"></i> لوحة التحكم
+            </button>
+        </div>
+
+        <!-- Tab 1: Public Display -->
+        <div id="content-display" class="fade-in block">
+            <div class="flex justify-between items-end mb-6 px-1">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-700">دليل الأعضاء</h2>
+                    <p class="text-sm text-slate-400 mt-1">قائمة عامة (صور سحابية)</p>
+                </div>
+                <span id="public-count-badge" class="bg-emerald-50 text-emerald-700 text-sm font-bold px-4 py-1.5 rounded-full border border-emerald-100">تحميل...</span>
+            </div>
+
+            <div id="public-cards-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="col-span-full text-center py-10 text-slate-400">
+                    <i class="fa-solid fa-circle-notch fa-spin text-2xl text-emerald-500 mb-2"></i>
+                    <p>جاري الاتصال بقاعدة البيانات...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 2: Admin Panel -->
+        <div id="content-register" class="fade-in hidden relative">
+            
+            <!-- Login Overlay -->
+            <div id="login-overlay" class="absolute inset-0 bg-slate-50 z-20 flex flex-col items-center justify-start pt-20 rounded-2xl h-full min-h-[500px]">
+                <div class="bg-white p-8 rounded-2xl shadow-xl border border-slate-100 max-w-sm w-full text-center">
+                    <div class="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4 text-emerald-600">
+                        <i class="fa-solid fa-lock text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">منطقة محمية</h3>
+                    <input type="password" id="admin-password" placeholder="كلمة المرور (1234)" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-emerald-500 outline-none mb-4 text-center text-lg">
+                    <button onclick="checkPassword()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition shadow-lg">دخول</button>
+                    <p id="login-error" class="text-red-500 text-sm mt-3 hidden">كلمة المرور غير صحيحة</p>
+                </div>
+            </div>
+
+            <div id="admin-panel" class="hidden">
+                <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8 border border-slate-100 mb-8 relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 to-teal-500"></div>
+                    
+                    <div class="flex justify-between items-center mb-8">
+                        <h2 class="text-2xl font-bold text-slate-800">تسجيل بيانات جديدة</h2>
+                        <button type="button" onclick="resetForm()" class="text-sm text-slate-400 hover:text-emerald-600 bg-slate-50 px-3 py-1.5 rounded-lg">إعادة تعيين</button>
+                    </div>
+
+                    <form id="dataForm" onsubmit="handleSubmit(event)" class="space-y-6">
+                        <input type="hidden" id="edit-id" value="">
+                        
+                        <div class="flex justify-center mb-8">
+                            <div class="relative group cursor-pointer">
+                                <div class="w-28 h-28 rounded-2xl overflow-hidden border-2 border-dashed border-emerald-200 bg-emerald-50/50 flex items-center justify-center">
+                                    <img id="preview-image" src="" alt="Profile" class="w-full h-full object-cover hidden">
+                                    <div id="placeholder-icon" class="text-center">
+                                        <i class="fa-solid fa-camera text-2xl text-emerald-300 mb-1 block"></i>
+                                        <span class="text-xs text-emerald-400">اختر صورة</span>
+                                    </div>
+                                </div>
+                                <input type="file" id="profile-pic" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="handleImageUpload(this)">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 mb-2">الاسم بالعربي</label>
+                                <input type="text" id="name-ar" required class="w-full px-4 py-3 rounded-xl bg-slate-50 border-none focus:ring-2 focus:ring-emerald-100 text-slate-800" placeholder="الاسم الثلاثي">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 mb-2">الاسم بالإنجليزي</label>
+                                <input type="text" id="name-en" required class="w-full px-4 py-3 rounded-xl bg-slate-50 border-none focus:ring-2 focus:ring-emerald-100 text-left" dir="ltr" placeholder="Full Name">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 mb-2">تاريخ الميلاد</label>
+                                <input type="date" id="dob" required class="w-full px-4 py-3 rounded-xl bg-slate-50 border-none text-left" dir="ltr">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 mb-2">رقم الجوال</label>
+                                <input type="tel" id="mobile" required class="w-full px-4 py-3 rounded-xl bg-slate-50 border-none text-left" dir="ltr" placeholder="05xxxxxxxx">
+                            </div>
+                        </div>
+
+                        <div class="pt-2">
+                            <button type="submit" id="submit-btn" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-4 px-6 rounded-xl shadow-lg transition flex justify-center items-center gap-2 text-lg">
+                                <i class="fa-solid fa-plus-circle"></i> <span>إضافة للبطاقات</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="mb-12">
+                    <h3 class="text-xl font-bold text-slate-700 mb-4">إدارة السجلات</h3>
+                    <div id="admin-cards-list" class="space-y-3"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-6 left-6 bg-slate-800 text-white px-6 py-4 rounded-xl shadow-2xl transform translate-y-32 transition-transform duration-300 z-50 flex items-center gap-3 border border-slate-700">
+        <span id="toast-message" class="font-medium">تمت العملية بنجاح</span>
+    </div>
+
+    <!-- Image Modal -->
+    <div id="image-modal" onclick="closeImageModal(event)" class="fixed inset-0 z-[100] bg-black/90 hidden flex items-center justify-center p-4 backdrop-blur-sm transition-opacity duration-300 opacity-0">
+        <div class="relative max-w-4xl w-full max-h-screen flex flex-col items-center justify-center zoom-in" onclick="event.stopPropagation()">
+            <button onclick="closeImageModal(event, true)" class="absolute -top-12 right-0 text-white text-3xl transition bg-black/50 rounded-full w-10 h-10 flex items-center justify-center border border-white/20">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <img id="modal-img" src="" class="rounded-lg shadow-2xl object-contain max-h-[85vh] w-auto">
+        </div>
+    </div>
+
+    <script>
+        // --- Firebase Config ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyBxPO6RKsQ1Cq-mqlCpFTrCuIyxnYdB37U",
+            authDomain: "studentsystem-c1ab1.firebaseapp.com",
+            databaseURL: "https://studentsystem-c1ab1-default-rtdb.firebaseio.com",
+            projectId: "studentsystem-c1ab1",
+            storageBucket: "studentsystem-c1ab1.firebasestorage.app", // تأكد من صحة هذا الرابط
+            messagingSenderId: "112215023848",
+            appId: "1:112215023848:web:0adba326a527ee7e37e95d"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const storage = firebase.storage();
+        const rootRef = db.ref('aish_3');
+
+        // --- State ---
+        let profiles = [];
+        let selectedFile = null; // سيتم حفظ ملف الصورة هنا بدلاً من Base64
+        let isAdminUnlocked = false;
+
+        // --- Data Listener ---
+        rootRef.on('value', (snapshot) => {
+            const data = snapshot.val();
+            profiles = [];
+            if (data) {
+                Object.keys(data).forEach(key => profiles.push({ id: key, ...data[key] }));
+                profiles.reverse();
+            }
+            renderPublicCards();
+            if (isAdminUnlocked) renderAdminList();
+        });
+
+        // --- Functions ---
+        function handleImageUpload(input) {
+            if (input.files && input.files[0]) {
+                selectedFile = input.files[0];
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const preview = document.getElementById('preview-image');
+                    const placeholder = document.getElementById('placeholder-icon');
+                    preview.src = e.target.result;
+                    preview.classList.remove('hidden');
+                    placeholder.classList.add('hidden');
+                };
+                reader.readAsDataURL(selectedFile);
+            }
+        }
+
+        async function handleSubmit(e) {
+            e.preventDefault();
+            const submitBtn = document.getElementById('submit-btn');
+            const editId = document.getElementById('edit-id').value;
+            
+            // بيانات النموذج
+            const nameAr = document.getElementById('name-ar').value;
+            const nameEn = document.getElementById('name-en').value;
+            const dob = document.getElementById('dob').value;
+            const mobile = document.getElementById('mobile').value;
+
+            if (!selectedFile && !editId) {
+                alert('يرجى اختيار صورة');
+                return;
+            }
+
+            // تعطيل الزر أثناء الرفع
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري الرفع...';
+
+            try {
+                let imageUrl = "";
+
+                // إذا اختار المستخدم صورة جديدة، نرفعها لـ Storage
+                if (selectedFile) {
+                    const fileRef = storage.ref().child(`member_photos/${Date.now()}_${selectedFile.name}`);
+                    const uploadTask = await fileRef.put(selectedFile);
+                    imageUrl = await uploadTask.ref.getDownloadURL();
+                } else if (editId) {
+                    // إذا كان تعديل ولم يختر صورة جديدة، نأخذ الرابط القديم
+                    const oldProfile = profiles.find(p => p.id === editId);
+                    imageUrl = oldProfile.image;
+                }
+
+                const data = { nameAr, nameEn, dob, mobile, image: imageUrl };
+
+                if (!editId) {
+                    await rootRef.push(data);
+                    showToast('تمت الإضافة بنجاح');
+                } else {
+                    await rootRef.child(editId).update(data);
+                    showToast('تم التعديل بنجاح');
+                }
+
+                resetForm();
+            } catch (error) {
+                console.error(error);
+                alert('حدث خطأ أثناء الرفع: ' + error.message);
+            } finally {
+                submitBtn.disabled = false;
+            }
+        }
+
+        function renderPublicCards() {
+            const container = document.getElementById('public-cards-container');
+            document.getElementById('public-count-badge').innerText = `${profiles.length} بطاقات`;
+
+            if (profiles.length === 0) {
+                container.innerHTML = `<div class="col-span-full text-center py-10 text-slate-400">لا توجد بطاقات</div>`;
+                return;
+            }
+
+            container.innerHTML = profiles.map(p => `
+                <div class="bg-white rounded-[2rem] shadow-lg hover:shadow-2xl transition-all relative overflow-hidden group flex flex-col items-center pt-8 pb-6 px-4">
+                    <div class="absolute top-0 left-0 w-full h-3 bg-emerald-500"></div>
+                    <div class="w-32 h-32 rounded-full p-1 border border-emerald-100 mb-5 shadow-sm">
+                        <img src="${p.image}" onclick="openImageModal('${p.image}')" class="w-full h-full rounded-full object-cover cursor-pointer">
+                    </div>
+                    <h3 class="text-2xl font-extrabold text-slate-800 mb-2">${p.nameAr}</h3>
+                    <div class="bg-emerald-50 text-emerald-600 px-5 py-1.5 rounded-full text-sm font-bold mb-6 border border-emerald-100">${p.nameEn}</div>
+                    <div class="w-full pt-4 border-t border-slate-50 text-center flex flex-col gap-2">
+                        <span class="text-slate-400 text-sm"><i class="fa-regular fa-calendar ml-1"></i> ${p.dob}</span>
+                        <span class="text-slate-400 text-sm" dir="ltr"><i class="fa-solid fa-mobile-screen ml-1"></i> ${p.mobile}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // --- باقي وظائف النظام (Password, Reset, Modal) ---
+        function checkPassword() {
+            if (document.getElementById('admin-password').value === '1234') {
+                isAdminUnlocked = true;
+                document.getElementById('login-overlay').classList.add('hidden');
+                document.getElementById('admin-panel').classList.remove('hidden');
+                renderAdminList();
+            } else {
+                document.getElementById('login-error').classList.remove('hidden');
+            }
+        }
+
+        function switchTab(tab) {
+            const isDisplay = tab === 'display';
+            document.getElementById('tab-display').className = isDisplay ? 'flex-1 py-3 rounded-xl text-center font-bold bg-emerald-500 text-white shadow-md text-lg' : 'flex-1 py-3 rounded-xl text-center font-bold text-slate-500 hover:bg-slate-50 transition-all text-lg';
+            document.getElementById('tab-register').className = !isDisplay ? 'flex-1 py-3 rounded-xl text-center font-bold bg-emerald-500 text-white shadow-md text-lg' : 'flex-1 py-3 rounded-xl text-center font-bold text-slate-500 hover:bg-slate-50 transition-all text-lg';
+            document.getElementById('content-display').classList.toggle('hidden', !isDisplay);
+            document.getElementById('content-register').classList.toggle('hidden', isDisplay);
+        }
+
+        function renderAdminList() {
+            const list = document.getElementById('admin-cards-list');
+            list.innerHTML = profiles.map(p => `
+                <div class="bg-white rounded-xl p-3 border border-slate-200 flex items-center justify-between group">
+                    <div class="flex items-center gap-3">
+                        <img src="${p.image}" class="w-12 h-12 rounded-full object-cover">
+                        <div>
+                            <div class="font-bold text-slate-700 text-sm">${p.nameAr}</div>
+                            <div class="text-xs text-slate-400 font-sans">${p.nameEn}</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="editCard('${p.id}')" class="w-8 h-8 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition"><i class="fa-solid fa-pen text-sm"></i></button>
+                        <button onclick="deleteCard('${p.id}')" class="w-8 h-8 rounded-lg hover:bg-red-50 hover:text-red-600 transition"><i class="fa-regular fa-trash-can text-sm"></i></button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function editCard(id) {
+            const p = profiles.find(x => x.id === id);
+            if(!p) return;
+            document.getElementById('name-ar').value = p.nameAr;
+            document.getElementById('name-en').value = p.nameEn;
+            document.getElementById('dob').value = p.dob;
+            document.getElementById('mobile').value = p.mobile;
+            document.getElementById('edit-id').value = id;
+            document.getElementById('preview-image').src = p.image;
+            document.getElementById('preview-image').classList.remove('hidden');
+            document.getElementById('placeholder-icon').classList.add('hidden');
+            document.getElementById('submit-btn').innerHTML = '<i class="fa-solid fa-check"></i> حفظ التعديلات';
+            document.getElementById('admin-panel').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function deleteCard(id) {
+            if(confirm('حذف هذا السجل؟')) rootRef.child(id).remove().then(() => showToast('تم الحذف'));
+        }
+
+        function resetForm() {
+            document.getElementById('dataForm').reset();
+            document.getElementById('edit-id').value = "";
+            selectedFile = null;
+            document.getElementById('preview-image').classList.add('hidden');
+            document.getElementById('placeholder-icon').classList.remove('hidden');
+            document.getElementById('submit-btn').innerHTML = '<i class="fa-solid fa-plus-circle"></i> إضافة للبطاقات';
+        }
+
+        function openImageModal(src) {
+            document.getElementById('modal-img').src = src;
+            document.getElementById('image-modal').classList.remove('hidden');
+            setTimeout(() => document.getElementById('image-modal').classList.remove('opacity-0'), 10);
+        }
+
+        function closeImageModal(e, force) {
+            if(force || e.target.id === 'image-modal') {
+                document.getElementById('image-modal').classList.add('opacity-0');
+                setTimeout(() => document.getElementById('image-modal').classList.add('hidden'), 300);
+            }
+        }
+
+        function showToast(msg) {
+            document.getElementById('toast-message').innerText = msg;
+            document.getElementById('toast').classList.remove('translate-y-32');
+            setTimeout(() => document.getElementById('toast').classList.add('translate-y-32'), 3000);
+        }
+    </script>
+</body>
+</html>
