@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+<!-- كلمة المرور A@1379 -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مدير المصاريف والمهام</title>
+    <title> جدة 2026 </title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
     <!-- Firebase SDKs -->
@@ -38,6 +39,12 @@
             text-decoration: line-through;
             color: #94a3b8;
         }
+        .no-select {
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -45,7 +52,7 @@
     <div class="max-w-2xl mx-auto">
         <!-- Header -->
         <header class="text-center mb-6">
-            <h1 id="mainTitle" class="text-3xl font-bold text-slate-800">مدير المصاريف والمهام</h1>
+            <h1 id="mainTitle" class="text-3xl font-bold text-slate-800"> جدة 2026 </h1>
             <p id="adminStatus" class="text-slate-400 text-xs mt-1 h-4"></p>
         </header>
 
@@ -53,7 +60,7 @@
         <div id="formContainer" class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mb-6 hidden">
             <!-- Expense Form -->
             <form id="expenseForm" class="space-y-4">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div classrid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="flex flex-col">
                         <label class="text-sm font-medium text-slate-700 mb-1">اسم الصنف</label>
                         <input type="text" id="itemName" placeholder="مثلاً: مشتريات البقالة" 
@@ -66,7 +73,7 @@
                     </div>
                 </div>
                 <button type="submit" id="submitBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition-colors flex items-center justify-center gap-2">
-                    <span id="submitText">إضافة إلى المصاريف</span>
+                    <span id="submitText"> جدة 2026 </span>
                 </button>
             </form>
 
@@ -365,13 +372,13 @@
                 row.innerHTML = `
                     <td class="p-4 text-slate-700 font-medium cursor-pointer hover:text-blue-600" data-person="${person}">${person}</td>
                     <td class="p-4 text-center">
-                        <button class="share-btn flex flex-col items-center justify-center mx-auto bg-green-100 hover:bg-green-200 text-green-600 p-2 rounded-lg transition-all" data-person="${person}">
+                        <button class="share-btn no-select flex flex-col items-center justify-center mx-auto bg-green-100 hover:bg-green-200 text-green-600 p-2 rounded-lg transition-all" data-person="${person}">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
                             <span class="text-xs mt-1">${sharesCount} | ${sharesTotal}</span>
                         </button>
                     </td>
                     <td class="p-4 text-center">
-                        <button class="violation-btn flex flex-col items-center justify-center mx-auto bg-red-100 hover:bg-red-200 text-red-600 p-2 rounded-lg transition-all" data-person="${person}">
+                        <button class="violation-btn no-select flex flex-col items-center justify-center mx-auto bg-red-100 hover:bg-red-200 text-red-600 p-2 rounded-lg transition-all" data-person="${person}">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/></svg>
                             <span class="text-xs mt-1">${violationsCount} | -${violationsTotal}</span>
                         </button>
@@ -473,7 +480,7 @@
             modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
             modal.id = 'clearAllModal';
             modal.innerHTML = `
-                <div class="bg-white p-6 rounded-2xl max-w-sm w-full mx-4 shadow-xl">
+                <div class="bg-white p-6 rounded-2xl max-w-sm w-full mx-4 shadow-xl" id="clearAllModalContent">
                     <h3 class="text-lg font-bold text-slate-800 mb-2">تأكيد المسح</h3>
                     <p class="text-slate-600 mb-6 text-sm">هل أنت متأكد من مسح كافة بيانات هذا القسم؟</p>
                     <div class="flex gap-3">
@@ -483,6 +490,13 @@
                 </div>
             `;
             document.body.appendChild(modal);
+
+            // إغلاق بالنقر خارج النافذة
+            modal.onclick = (e) => {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            };
 
             document.getElementById('confirmClearAllBtn').onclick = () => {
                 if (activeTab === 'expenses') expenseRef.remove();
@@ -528,7 +542,7 @@
             modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
             modal.id = 'codeModal';
             modal.innerHTML = `
-                <div class="bg-white p-6 rounded-2xl max-w-sm w-full mx-4 shadow-xl">
+                <div class="bg-white p-6 rounded-2xl max-w-sm w-full mx-4 shadow-xl" id="codeModalContent">
                     <h3 class="text-lg font-bold text-slate-800 mb-4 text-center">أدخل الكود</h3>
                     <input type="password" id="codeInput" placeholder="الكود"
                         class="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-center text-lg mb-4" style="font-size: 18px;">
@@ -540,6 +554,13 @@
             const codeInput = document.getElementById('codeInput');
             codeInput.focus();
 
+            // إغلاق بالنقر خارج النافذة
+            modal.onclick = (e) => {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            };
+
             document.getElementById('verifyCodeBtn').onclick = () => {
                 const enteredCode = codeInput.value.trim();
                 if (enteredCode === CONTROL_CODE) {
@@ -547,7 +568,7 @@
                     showEntryModal(currentControlPerson, currentControlType);
                 } else {
                     modal.remove();
-                    showErrorModal();
+                    showErrorModal(currentControlPerson, currentControlType);
                 }
             };
 
@@ -559,13 +580,13 @@
         }
 
         // نافذة الخطأ
-        function showErrorModal() {
+        function showErrorModal(person, type) {
             playErrorSound();
             const modal = document.createElement('div');
             modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
             modal.id = 'errorModal';
             modal.innerHTML = `
-                <div class="bg-red-50 border-2 border-red-400 p-6 rounded-2xl max-w-sm w-full mx-4 shadow-xl text-center">
+                <div class="bg-red-50 border-2 border-red-400 p-6 rounded-2xl max-w-sm w-full mx-4 shadow-xl text-center" id="errorModalContent">
                     <div class="text-5xl mb-4">❌</div>
                     <h3 class="text-xl font-bold text-red-600 mb-6">اترك اللقافة</h3>
                     <button id="closeErrorBtn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-lg transition-colors">خلاص</button>
@@ -573,8 +594,16 @@
             `;
             document.body.appendChild(modal);
 
+            // إغلاق بالنقر خارج النافذة
+            modal.onclick = (e) => {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            };
+
             document.getElementById('closeErrorBtn').onclick = () => {
                 modal.remove();
+                showCodeModal(person, type);
             };
         }
 
@@ -592,7 +621,7 @@
             modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
             modal.id = 'entryModal';
             modal.innerHTML = `
-                <div class="${bgColor} border-2 p-6 rounded-2xl max-w-sm w-full mx-4 shadow-xl">
+                <div class="${bgColor} border-2 p-6 rounded-2xl max-w-sm w-full mx-4 shadow-xl" id="entryModalContent">
                     <h3 class="text-lg font-bold ${titleColor} mb-2 text-center">${title}</h3>
                     <p class="text-slate-600 text-center mb-4">لـ: <span class="font-bold">${person}</span></p>
                     <div class="space-y-4">
@@ -612,6 +641,13 @@
                 </div>
             `;
             document.body.appendChild(modal);
+
+            // إغلاق بالنقر خارج النافذة
+            modal.onclick = (e) => {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            };
 
             document.getElementById('entryName').focus();
 
@@ -676,8 +712,8 @@
         // نافذة تقرير الشخص
         function showPersonReport(person) {
             const personData = controlData[person] || {};
-            const shares = (personData.shares || []).map(s => ({ ...s, type: 'share' }));
-            const violations = (personData.violations || []).map(v => ({ ...v, type: 'violation' }));
+            const shares = (personData.shares || []).map((s, idx) => ({ ...s, type: 'share', index: idx }));
+            const violations = (personData.violations || []).map((v, idx) => ({ ...v, type: 'violation', index: idx }));
 
             // دمج وترتيب حسب الوقت (من الأحدث للأقدم)
             const allEntries = [...shares, ...violations].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
@@ -708,7 +744,7 @@
                     const formattedDateTime = `${day}/${month} ${hours}:${minutes}`;
 
                     entriesHTML += `
-                        <div class="${bgColor} border rounded-lg p-3 mb-2">
+                        <div class="report-entry no-select ${bgColor} border rounded-lg p-3 mb-2 cursor-pointer" data-person="${person}" data-type="${entry.type}" data-index="${entry.index}">
                             <div class="flex justify-between items-start">
                                 <div class="flex items-center gap-2">
                                     <span>${icon}</span>
@@ -726,7 +762,7 @@
             modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
             modal.id = 'reportModal';
             modal.innerHTML = `
-                <div class="bg-white p-6 rounded-2xl max-w-md w-full mx-4 shadow-xl max-h-[80vh] flex flex-col">
+                <div class="bg-white p-6 rounded-2xl max-w-md w-full mx-4 shadow-xl max-h-[80vh] flex flex-col" id="reportModalContent">
                     <h3 class="text-xl font-bold text-slate-800 mb-2 text-center">${person}</h3>
                     <div class="flex justify-center gap-4 mb-4 text-sm">
                         <span class="text-green-600">مشاركات: <b>${shares.length}</b> (${sharesTotal}+)</span>
@@ -735,7 +771,7 @@
                     <div class="text-center mb-4">
                         <span class="text-lg">المجموع: <b class="${netColor}">${netTotal}</b></span>
                     </div>
-                    <div class="overflow-y-auto flex-1 border-t border-slate-100 pt-4">
+                    <div class="overflow-y-auto flex-1 border-t border-slate-100 pt-4" id="reportEntriesContainer">
                         ${entriesHTML}
                     </div>
                     <button id="closeReportBtn" class="w-full bg-slate-600 hover:bg-slate-700 text-white font-bold py-3 rounded-lg transition-colors mt-4">إغلاق</button>
@@ -743,7 +779,160 @@
             `;
             document.body.appendChild(modal);
 
+            // إغلاق بالنقر خارج النافذة
+            modal.onclick = (e) => {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            };
+
             document.getElementById('closeReportBtn').onclick = () => {
+                modal.remove();
+            };
+
+            // النقر المطول للحذف
+            let reportLongPressTimer = null;
+            const entriesContainer = document.getElementById('reportEntriesContainer');
+
+            entriesContainer.addEventListener('mousedown', (e) => {
+                const entry = e.target.closest('.report-entry');
+                if (!entry) return;
+                reportLongPressTimer = setTimeout(() => {
+                    showDeleteCodeModal(entry.dataset.person, entry.dataset.type, parseInt(entry.dataset.index));
+                }, 2000);
+            });
+
+            entriesContainer.addEventListener('mouseup', () => {
+                if (reportLongPressTimer) { clearTimeout(reportLongPressTimer); reportLongPressTimer = null; }
+            });
+
+            entriesContainer.addEventListener('mouseleave', () => {
+                if (reportLongPressTimer) { clearTimeout(reportLongPressTimer); reportLongPressTimer = null; }
+            });
+
+            entriesContainer.addEventListener('touchstart', (e) => {
+                const entry = e.target.closest('.report-entry');
+                if (!entry) return;
+                reportLongPressTimer = setTimeout(() => {
+                    showDeleteCodeModal(entry.dataset.person, entry.dataset.type, parseInt(entry.dataset.index));
+                }, 2000);
+            }, { passive: true });
+
+            entriesContainer.addEventListener('touchend', () => {
+                if (reportLongPressTimer) { clearTimeout(reportLongPressTimer); reportLongPressTimer = null; }
+            });
+
+            entriesContainer.addEventListener('touchcancel', () => {
+                if (reportLongPressTimer) { clearTimeout(reportLongPressTimer); reportLongPressTimer = null; }
+            });
+        }
+
+        // نافذة إدخال كود الحذف
+        function showDeleteCodeModal(person, type, index) {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            modal.id = 'deleteCodeModal';
+            modal.innerHTML = `
+                <div class="bg-white p-6 rounded-2xl max-w-sm w-full mx-4 shadow-xl" id="deleteCodeModalContent">
+                    <h3 class="text-lg font-bold text-slate-800 mb-4 text-center">أدخل الكود</h3>
+                    <input type="password" id="deleteCodeInput" placeholder="الكود"
+                        class="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-center text-lg mb-4" style="font-size: 18px;">
+                    <button id="verifyDeleteCodeBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition-colors">تحقق</button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            const codeInput = document.getElementById('deleteCodeInput');
+            codeInput.focus();
+
+            modal.onclick = (e) => {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            };
+
+            document.getElementById('verifyDeleteCodeBtn').onclick = () => {
+                const enteredCode = codeInput.value.trim();
+                if (enteredCode === CONTROL_CODE) {
+                    modal.remove();
+                    showConfirmDeleteEntryModal(person, type, index);
+                } else {
+                    modal.remove();
+                    showDeleteErrorModal(person, type, index);
+                }
+            };
+
+            codeInput.onkeypress = (e) => {
+                if (e.key === 'Enter') {
+                    document.getElementById('verifyDeleteCodeBtn').click();
+                }
+            };
+        }
+
+        // نافذة خطأ الحذف
+        function showDeleteErrorModal(person, type, index) {
+            playErrorSound();
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            modal.id = 'deleteErrorModal';
+            modal.innerHTML = `
+                <div class="bg-red-50 border-2 border-red-400 p-6 rounded-2xl max-w-sm w-full mx-4 shadow-xl text-center" id="deleteErrorModalContent">
+                    <div class="text-5xl mb-4">❌</div>
+                    <h3 class="text-xl font-bold text-red-600 mb-6">اترك اللقافة</h3>
+                    <button id="closeDeleteErrorBtn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-lg transition-colors">خلاص</button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            modal.onclick = (e) => {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            };
+
+            document.getElementById('closeDeleteErrorBtn').onclick = () => {
+                modal.remove();
+                showDeleteCodeModal(person, type, index);
+            };
+        }
+
+        // نافذة تأكيد الحذف
+        function showConfirmDeleteEntryModal(person, type, index) {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            modal.id = 'confirmDeleteEntryModal';
+            modal.innerHTML = `
+                <div class="bg-white p-6 rounded-2xl max-w-sm w-full mx-4 shadow-xl" id="confirmDeleteEntryModalContent">
+                    <h3 class="text-lg font-bold text-slate-800 mb-2 text-center">تأكيد الحذف</h3>
+                    <p class="text-slate-600 mb-6 text-sm text-center">هل تريد حذف هذا السجل؟</p>
+                    <div class="flex gap-3">
+                        <button id="confirmDeleteEntryBtn" class="flex-1 bg-red-600 text-white py-2 rounded-lg font-bold">نعم</button>
+                        <button id="cancelDeleteEntryBtn" class="flex-1 bg-slate-100 text-slate-600 py-2 rounded-lg font-bold">إلغاء</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            modal.onclick = (e) => {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            };
+
+            document.getElementById('confirmDeleteEntryBtn').onclick = () => {
+                const arrayKey = type === 'share' ? 'shares' : 'violations';
+                const personData = controlData[person] || {};
+                const currentArray = personData[arrayKey] || [];
+                currentArray.splice(index, 1);
+                controlRef.child(person).child(arrayKey).set(currentArray);
+                modal.remove();
+                // إغلاق نافذة التقرير وإعادة فتحها
+                const reportModal = document.getElementById('reportModal');
+                if (reportModal) reportModal.remove();
+                showPersonReport(person);
+            };
+
+            document.getElementById('cancelDeleteEntryBtn').onclick = () => {
                 modal.remove();
             };
         }

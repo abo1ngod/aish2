@@ -1101,7 +1101,8 @@
                 state: 'active', 
                 phase: 'main', 
                 turn_start_time: firebase.database.ServerValue.TIMESTAMP,
-                turn_data: {} 
+                turn_data: {},
+                consecutive_timeouts: 0 
             };
             
             await newBattleRef.set(battleInitData);
@@ -1122,7 +1123,6 @@
         function enterBattle(bId) {
             battleId = bId;
             
-            // إلغاء أي طلبات معلقة قمت بإرسالها للآخرين
             visitorsRef.once('value', snap => {
                 snap.forEach(v => {
                     if (v.val().request_from === myId) {
@@ -1165,16 +1165,18 @@
                 return;
             }
 
-            if (battleData.questions && battleData.questions[battleData.current_q_index]) {
-                const q = battleData.questions[battleData.current_q_index];
+            const questionsList = battleData.questions || [];
+            
+            if (questionsList.length > 0) {
+                const qIndex = (battleData.current_q_index || 0) % questionsList.length;
+                const q = questionsList[qIndex];
                 renderBattleQuestion(q, battleData.phase);
                 
-                // الانتقال التلقائي إذا تم الإجابة
                 if (battleData.trigger_next) {
-                    if (myId === battleData.p1 && !processingTriggerNext) {
+                    if (!processingTriggerNext) {
                          processingTriggerNext = true;
                          setTimeout(() => {
-                             nextBattleQuestion(battleId, false); // Not a timeout, it's a trigger
+                             nextBattleQuestion(battleId, false); 
                              processingTriggerNext = false;
                          }, 1000);
                     }
@@ -1294,27 +1296,31 @@
         }
         
         function handleBattleTimeout() {
-            nextBattleQuestion(battleId, true); // true = isTimeout
+            nextBattleQuestion(battleId, true); 
         }
 
         function nextBattleQuestion(bId, isTimeout = false) {
             battlesRef.child(bId).transaction(data => {
                 if(!data) return;
                 
-                // Only advance if explicitly triggered (answered) OR if it's a timeout
-                // This prevents the "phase === 'main'" condition from auto-firing on stray updates
                 const shouldAdvance = (data.trigger_next === true) || isTimeout === true;
                 
                 if (shouldAdvance) {
-                    data.current_q_index = (data.current_q_index || 0) + 1;
-                    data.phase = 'main';
-                    data.turn_data = {}; 
-                    data.turn_start_time = firebase.database.ServerValue.TIMESTAMP;
-                    data.trigger_next = null;
-                    data.trigger_phase_change = null;
-                    
-                    if(data.questions && data.current_q_index >= data.questions.length) {
+                    if (isTimeout) {
+                        data.consecutive_timeouts = (data.consecutive_timeouts || 0) + 1;
+                    } else {
+                        data.consecutive_timeouts = 0; 
+                    }
+
+                    if (data.consecutive_timeouts >= 3) {
                         data.state = 'ended';
+                    } else {
+                        data.current_q_index = (data.current_q_index || 0) + 1;
+                        data.phase = 'main';
+                        data.turn_data = {}; 
+                        data.turn_start_time = firebase.database.ServerValue.TIMESTAMP;
+                        data.trigger_next = null;
+                        data.trigger_phase_change = null;
                     }
                 }
                 return data;
