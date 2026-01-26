@@ -50,6 +50,13 @@
         /* Cropper Modal Fixes */
         .cropper-view-box, .cropper-face { border-radius: 0; }
         #cropper-container { max-height: 400px; }
+        
+        /* Aspect Ratio Buttons */
+        .ratio-btn.active {
+            background-color: #059669;
+            color: white;
+            border-color: #059669;
+        }
     </style>
 </head>
 <body class="bg-slate-100 min-h-screen text-slate-800">
@@ -171,9 +178,17 @@
     <div id="crop-modal" class="fixed inset-0 z-[110] bg-black/80 hidden flex items-center justify-center p-4 backdrop-blur-sm">
         <div class="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl zoom-in">
             <div class="p-4 border-b border-slate-100 flex justify-between items-center">
-                <h3 class="font-bold text-slate-800">اقتصاص الصورة (مربع)</h3>
+                <h3 class="font-bold text-slate-800">اقتصاص الصورة</h3>
                 <button onclick="closeCropModal()" class="text-slate-400 hover:text-red-500"><i class="fa-solid fa-xmark text-xl"></i></button>
             </div>
+            
+            <!-- Aspect Ratio Selection -->
+            <div class="flex justify-center gap-2 p-3 bg-slate-50 border-b border-slate-100">
+                <button onclick="setCropRatio(1, this)" class="ratio-btn px-4 py-1.5 rounded-lg border border-slate-300 text-sm font-bold transition active">1:1 مربع</button>
+                <button onclick="setCropRatio(3/4, this)" class="ratio-btn px-4 py-1.5 rounded-lg border border-slate-300 text-sm font-bold transition">3:4 طولي</button>
+                <button onclick="setCropRatio(NaN, this)" class="ratio-btn px-4 py-1.5 rounded-lg border border-slate-300 text-sm font-bold transition">حر</button>
+            </div>
+
             <div id="cropper-container" class="bg-slate-50">
                 <img id="image-to-crop" class="max-w-full block">
             </div>
@@ -244,14 +259,18 @@
                     img.src = e.target.result;
                     modal.classList.remove('hidden');
                     
+                    // Reset Active Button
+                    document.querySelectorAll('.ratio-btn').forEach(btn => btn.classList.remove('active'));
+                    document.querySelectorAll('.ratio-btn')[0].classList.add('active');
+
                     if(cropper) cropper.destroy();
                     cropper = new Cropper(img, {
-                        aspectRatio: 1,
+                        aspectRatio: 1, // Default Square
                         viewMode: 1,
                         dragMode: 'move',
                         autoCropArea: 1,
                         restore: false,
-                        guides: false,
+                        guides: true,
                         center: true,
                         highlight: false,
                         cropBoxMovable: true,
@@ -263,6 +282,15 @@
             }
         }
 
+        function setCropRatio(ratio, btn) {
+            if (!cropper) return;
+            cropper.setAspectRatio(ratio);
+            
+            // UI Toggle
+            document.querySelectorAll('.ratio-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
         function closeCropModal() {
             document.getElementById('crop-modal').classList.add('hidden');
             if(cropper) cropper.destroy();
@@ -272,13 +300,12 @@
         function applyCrop() {
             if(!cropper) return;
             
-            // تحجيم الصورة لـ 500x500 لضمان الجودة والحجم الصغير
+            // Getting canvas based on dynamic size
             const canvas = cropper.getCroppedCanvas({
-                width: 500,
-                height: 500
+                maxWidth: 1000,
+                maxHeight: 1000
             });
 
-            // تحويل الكانفاس إلى Blob بضغط جودة لضمان الحجم أقل من 250KB
             canvas.toBlob((blob) => {
                 selectedFile = blob;
                 const preview = document.getElementById('preview-image');
@@ -286,7 +313,7 @@
                 preview.classList.remove('hidden');
                 document.getElementById('placeholder-icon').classList.add('hidden');
                 closeCropModal();
-            }, 'image/jpeg', 0.85); // 0.85 جودة كافية جداً لصور شخصية تحت 100KB عادة
+            }, 'image/jpeg', 0.85); 
         }
 
         // --- Core Functions ---
@@ -411,7 +438,6 @@
 
         // --- UI Logic ---
         function checkPassword() {
-            // تم تغيير كلمة المرور لتصبح (1)
             if (document.getElementById('admin-password').value === '1') {
                 isAdminUnlocked = true;
                 document.getElementById('login-overlay').classList.add('hidden');
