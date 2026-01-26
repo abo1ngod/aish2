@@ -14,6 +14,10 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+    <!-- Cropper.js (For Image Cropping) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -42,6 +46,10 @@
         ::-webkit-scrollbar-track { background: #f1f1f1; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        /* Cropper Modal Fixes */
+        .cropper-view-box, .cropper-face { border-radius: 0; }
+        #cropper-container { max-height: 400px; }
     </style>
 </head>
 <body class="bg-slate-100 min-h-screen text-slate-800">
@@ -93,7 +101,7 @@
                         <i class="fa-solid fa-lock text-2xl"></i>
                     </div>
                     <h3 class="text-xl font-bold mb-2">منطقة محمية</h3>
-                    <input type="password" id="admin-password" placeholder="كلمة المرور (1234)" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-emerald-500 outline-none mb-4 text-center text-lg">
+                    <input type="password" id="admin-password" placeholder="كلمة المرور (1)" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-emerald-500 outline-none mb-4 text-center text-lg">
                     <button onclick="checkPassword()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition shadow-lg">دخول</button>
                     <p id="login-error" class="text-red-500 text-sm mt-3 hidden">كلمة المرور غير صحيحة</p>
                 </div>
@@ -159,6 +167,23 @@
         </div>
     </div>
 
+    <!-- Cropping Modal -->
+    <div id="crop-modal" class="fixed inset-0 z-[110] bg-black/80 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl zoom-in">
+            <div class="p-4 border-b border-slate-100 flex justify-between items-center">
+                <h3 class="font-bold text-slate-800">اقتصاص الصورة (مربع)</h3>
+                <button onclick="closeCropModal()" class="text-slate-400 hover:text-red-500"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div id="cropper-container" class="bg-slate-50">
+                <img id="image-to-crop" class="max-w-full block">
+            </div>
+            <div class="p-4 bg-slate-50 flex gap-3">
+                <button onclick="applyCrop()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition">تأكيد الاقتصاص</button>
+                <button onclick="closeCropModal()" class="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-3 rounded-xl transition">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Notification Toast -->
     <div id="toast" class="fixed bottom-6 left-6 bg-slate-800 text-white px-6 py-4 rounded-xl shadow-2xl transform translate-y-32 transition-transform duration-300 z-50 flex items-center gap-3 border border-slate-700">
         <span id="toast-message" class="font-medium">تمت العملية بنجاح</span>
@@ -195,6 +220,7 @@
         let profiles = [];
         let selectedFile = null;
         let isAdminUnlocked = false;
+        let cropper = null;
 
         // --- Data Listener ---
         rootRef.on('value', (snapshot) => {
@@ -208,22 +234,62 @@
             if (isAdminUnlocked) renderAdminList();
         });
 
-        // --- Core Functions ---
+        // --- Image Handling & Cropping ---
         function handleImageUpload(input) {
             if (input.files && input.files[0]) {
-                selectedFile = input.files[0];
                 const reader = new FileReader();
                 reader.onload = (e) => {
-                    const preview = document.getElementById('preview-image');
-                    const placeholder = document.getElementById('placeholder-icon');
-                    preview.src = e.target.result;
-                    preview.classList.remove('hidden');
-                    placeholder.classList.add('hidden');
+                    const modal = document.getElementById('crop-modal');
+                    const img = document.getElementById('image-to-crop');
+                    img.src = e.target.result;
+                    modal.classList.remove('hidden');
+                    
+                    if(cropper) cropper.destroy();
+                    cropper = new Cropper(img, {
+                        aspectRatio: 1,
+                        viewMode: 1,
+                        dragMode: 'move',
+                        autoCropArea: 1,
+                        restore: false,
+                        guides: false,
+                        center: true,
+                        highlight: false,
+                        cropBoxMovable: true,
+                        cropBoxResizable: true,
+                        toggleDragModeOnDblclick: false,
+                    });
                 };
-                reader.readAsDataURL(selectedFile);
+                reader.readAsDataURL(input.files[0]);
             }
         }
 
+        function closeCropModal() {
+            document.getElementById('crop-modal').classList.add('hidden');
+            if(cropper) cropper.destroy();
+            document.getElementById('profile-pic').value = "";
+        }
+
+        function applyCrop() {
+            if(!cropper) return;
+            
+            // تحجيم الصورة لـ 500x500 لضمان الجودة والحجم الصغير
+            const canvas = cropper.getCroppedCanvas({
+                width: 500,
+                height: 500
+            });
+
+            // تحويل الكانفاس إلى Blob بضغط جودة لضمان الحجم أقل من 250KB
+            canvas.toBlob((blob) => {
+                selectedFile = blob;
+                const preview = document.getElementById('preview-image');
+                preview.src = URL.createObjectURL(blob);
+                preview.classList.remove('hidden');
+                document.getElementById('placeholder-icon').classList.add('hidden');
+                closeCropModal();
+            }, 'image/jpeg', 0.85); // 0.85 جودة كافية جداً لصور شخصية تحت 100KB عادة
+        }
+
+        // --- Core Functions ---
         async function handleSubmit(e) {
             e.preventDefault();
             const submitBtn = document.getElementById('submit-btn');
@@ -240,24 +306,22 @@
             }
 
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري المعالجة...';
+            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري الحفظ...';
 
             try {
                 let imageUrl = "";
 
                 if (selectedFile) {
-                    // إذا كان تعديل، نحذف الصورة القديمة من Storage أولاً
                     if (editId) {
                         const oldProfile = profiles.find(p => p.id === editId);
                         if (oldProfile && oldProfile.image && oldProfile.image.includes('firebasestorage')) {
                             try {
                                 await storage.refFromURL(oldProfile.image).delete();
-                            } catch (e) { console.warn("Old image not found in storage during update."); }
+                            } catch (e) { console.warn("Old image not found."); }
                         }
                     }
 
-                    // رفع الصورة الجديدة
-                    const fileRef = storage.ref().child(`member_photos/${Date.now()}_${selectedFile.name}`);
+                    const fileRef = storage.ref().child(`member_photos/${Date.now()}.jpg`);
                     const uploadTask = await fileRef.put(selectedFile);
                     imageUrl = await uploadTask.ref.getDownloadURL();
                 } else if (editId) {
@@ -269,36 +333,32 @@
 
                 if (!editId) {
                     await rootRef.push(data);
-                    showToast('تمت الإضافة ورفع الصورة');
+                    showToast('تمت الإضافة بنجاح');
                 } else {
                     await rootRef.child(editId).update(data);
-                    showToast('تم تحديث البيانات والملف');
+                    showToast('تم التحديث بنجاح');
                 }
 
                 resetForm();
             } catch (error) {
                 console.error(error);
-                alert('خطأ في العملية: ' + error.message);
+                alert('خطأ: ' + error.message);
             } finally {
                 submitBtn.disabled = false;
             }
         }
 
         async function deleteCard(id) {
-            if(confirm('هل تريد حذف البطاقة نهائياً مع صورتها من التخزين السحابي؟')) {
+            if(confirm('هل تريد الحذف النهائي؟')) {
                 const p = profiles.find(item => item.id === id);
-                
                 try {
-                    // حذف الصورة من Storage أولاً إذا كانت موجودة
                     if (p && p.image && p.image.includes('firebasestorage')) {
                         try {
                             await storage.refFromURL(p.image).delete();
-                        } catch (e) { console.warn("Image file not found in storage, skipping deletion."); }
+                        } catch (e) { }
                     }
-                    
-                    // حذف السجل من Database
                     await rootRef.child(id).remove();
-                    showToast('تم حذف السجل والملف بنجاح');
+                    showToast('تم الحذف بنجاح');
                 } catch (error) {
                     alert('خطأ أثناء الحذف: ' + error.message);
                 }
@@ -317,8 +377,8 @@
             container.innerHTML = profiles.map(p => `
                 <div class="bg-white rounded-[2rem] shadow-lg hover:shadow-2xl transition-all relative overflow-hidden group flex flex-col items-center pt-8 pb-6 px-4">
                     <div class="absolute top-0 left-0 w-full h-3 bg-emerald-500"></div>
-                    <div class="w-32 h-32 rounded-full p-1 border border-emerald-100 mb-5 shadow-sm">
-                        <img src="${p.image}" onclick="openImageModal('${p.image}')" class="w-full h-full rounded-full object-cover cursor-pointer hover:opacity-90">
+                    <div class="w-32 h-32 rounded-full p-1 border border-emerald-100 mb-5 shadow-sm overflow-hidden">
+                        <img src="${p.image}" onclick="openImageModal('${p.image}')" class="w-full h-full rounded-full object-cover cursor-pointer hover:scale-105 transition duration-300">
                     </div>
                     <h3 class="text-2xl font-extrabold text-slate-800 mb-2">${p.nameAr}</h3>
                     <div class="bg-emerald-50 text-emerald-600 px-5 py-1.5 rounded-full text-sm font-bold mb-6 border border-emerald-100">${p.nameEn}</div>
@@ -342,8 +402,8 @@
                         </div>
                     </div>
                     <div class="flex items-center gap-2">
-                        <button onclick="editCard('${p.id}')" class="w-8 h-8 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition" title="تعديل"><i class="fa-solid fa-pen text-sm"></i></button>
-                        <button onclick="deleteCard('${p.id}')" class="w-8 h-8 rounded-lg hover:bg-red-50 hover:text-red-600 transition" title="حذف نهائي"><i class="fa-regular fa-trash-can text-sm"></i></button>
+                        <button onclick="editCard('${p.id}')" class="w-8 h-8 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition"><i class="fa-solid fa-pen text-sm"></i></button>
+                        <button onclick="deleteCard('${p.id}')" class="w-8 h-8 rounded-lg hover:bg-red-50 hover:text-red-600 transition"><i class="fa-regular fa-trash-can text-sm"></i></button>
                     </div>
                 </div>
             `).join('');
@@ -351,7 +411,8 @@
 
         // --- UI Logic ---
         function checkPassword() {
-            if (document.getElementById('admin-password').value === '1234') {
+            // تم تغيير كلمة المرور لتصبح (1)
+            if (document.getElementById('admin-password').value === '1') {
                 isAdminUnlocked = true;
                 document.getElementById('login-overlay').classList.add('hidden');
                 document.getElementById('admin-panel').classList.remove('hidden');
@@ -384,7 +445,7 @@
             preview.classList.remove('hidden');
             document.getElementById('placeholder-icon').classList.add('hidden');
             
-            document.getElementById('form-title').innerText = "تعديل البيانات والصورة";
+            document.getElementById('form-title').innerText = "تعديل البيانات";
             const btn = document.getElementById('submit-btn');
             btn.innerHTML = '<i class="fa-solid fa-check"></i> حفظ التعديلات';
             btn.classList.replace('bg-slate-800', 'bg-emerald-600');
