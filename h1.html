@@ -1,0 +1,3050 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>عيد ذوي حديد</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #0d7c5f;
+            --primary-dark: #095c46;
+            --primary-light: #e8f5f0;
+            --gold: #d4a853;
+            --gold-light: #f5e6c8;
+            --cream: #faf8f3;
+            --text-dark: #2c3e50;
+            --text-muted: #6b7c8a;
+            --white: #ffffff;
+            --danger: #dc3545;
+            --danger-light: #f8d7da;
+            --success: #28a745;
+            --warning: #ffc107;
+            --shadow: 0 4px 15px rgba(0,0,0,0.1);
+            --shadow-lg: 0 10px 30px rgba(0,0,0,0.15);
+            --radius: 12px;
+            --radius-lg: 20px;
+        }
+
+        .dark {
+            --primary: #10a37f;
+            --primary-dark: #0d8a6a;
+            --primary-light: #1a3a32;
+            --gold: #e4b863;
+            --gold-light: #3d3525;
+            --cream: #1a1d21;
+            --text-dark: #e8e8e8;
+            --text-muted: #9ca3af;
+            --white: #242830;
+            --danger: #ef5350;
+            --danger-light: #3d2a2a;
+            --shadow: 0 4px 15px rgba(0,0,0,0.3);
+            --shadow-lg: 0 10px 30px rgba(0,0,0,0.4);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Kufi Arabic', sans-serif;
+            background: var(--cream);
+            color: var(--text-dark);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Islamic Pattern Background */
+        .pattern-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            opacity: 0.03;
+            pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0L35 15L50 15L38 24L43 39L30 30L17 39L22 24L10 15L25 15Z' fill='%230d7c5f'/%3E%3C/svg%3E");
+            background-size: 60px 60px;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: var(--white);
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(212,168,83,0.1) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .header-content {
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-icon {
+            font-size: 2rem;
+            color: var(--gold);
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .header h1 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header-subtitle {
+            font-size: 0.85rem;
+            opacity: 0.9;
+            margin-top: 4px;
+            color: var(--gold-light);
+        }
+
+        .settings-btn {
+            background: rgba(255,255,255,0.15);
+            border: none;
+            color: var(--white);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .settings-btn:hover {
+            background: rgba(255,255,255,0.25);
+            transform: rotate(90deg);
+        }
+
+        /* Summary Card */
+        .summary-card {
+            max-width: 800px;
+            margin: -20px auto 20px;
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            box-shadow: var(--shadow-lg);
+            position: relative;
+            z-index: 10;
+        }
+
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 12px;
+            background: var(--primary-light);
+            border-radius: var(--radius);
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .progress-container {
+            background: var(--primary-light);
+            border-radius: 20px;
+            height: 24px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--gold) 100%);
+            border-radius: 20px;
+            transition: width 0.5s ease;
+            position: relative;
+        }
+
+        .progress-text {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        /* Navigation Tabs */
+        .nav-tabs {
+            max-width: 800px;
+            margin: 0 auto 20px;
+            display: flex;
+            gap: 8px;
+            padding: 0 16px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .nav-tab {
+            flex: 1;
+            min-width: fit-content;
+            padding: 12px 16px;
+            background: var(--white);
+            border: 2px solid transparent;
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .nav-tab:hover {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .nav-tab.active {
+            background: var(--primary);
+            color: var(--white);
+            border-color: var(--primary);
+        }
+
+        .nav-tab i {
+            font-size: 1rem;
+        }
+
+        /* Main Content */
+        .main-content {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 16px 100px;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .content-card {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            box-shadow: var(--shadow);
+            margin-bottom: 16px;
+        }
+
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid var(--primary-light);
+        }
+
+        .content-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 48px 24px;
+            color: var(--text-muted);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-state p {
+            font-size: 0.95rem;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.6);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 16px;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            width: 100%;
+            max-width: 450px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-lg);
+            animation: modalSlide 0.3s ease;
+        }
+
+        @keyframes modalSlide {
+            from { opacity: 0; transform: scale(0.95) translateY(-20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--primary-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 4px;
+            line-height: 1;
+            transition: color 0.3s ease;
+        }
+
+        .modal-close:hover {
+            color: var(--danger);
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid var(--primary-light);
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: var(--text-dark);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--primary-light);
+            border-radius: var(--radius);
+            font-family: inherit;
+            font-size: 1rem;
+            color: var(--text-dark);
+            background: var(--white);
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(13,124,95,0.1);
+        }
+
+        .form-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: var(--radius);
+            font-family: inherit;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--gold-light);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: var(--white);
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .btn-gold {
+            background: linear-gradient(135deg, var(--gold) 0%, #c49a47 100%);
+            color: #fff;
+        }
+
+        .btn-gold:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(212,168,83,0.4);
+        }
+
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 0.85rem;
+        }
+
+        .btn-icon {
+            width: 36px;
+            height: 36px;
+            padding: 0;
+            border-radius: 50%;
+        }
+
+        /* Admin Panel */
+        .admin-section {
+            margin-bottom: 24px;
+        }
+
+        .admin-section-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .admin-section-title i {
+            color: var(--gold);
+        }
+
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--primary-light);
+        }
+
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+
+        .setting-label {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .setting-value {
+            font-weight: 500;
+            color: var(--text-dark);
+        }
+
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .toast {
+            background: var(--text-dark);
+            color: var(--white);
+            padding: 12px 24px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            animation: toastIn 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .toast.success {
+            background: var(--success);
+        }
+
+        .toast.error {
+            background: var(--danger);
+        }
+
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Loading Spinner */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 48px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--primary-light);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .header h1 {
+                font-size: 1.1rem;
+            }
+
+            .header-subtitle {
+                font-size: 0.75rem;
+            }
+
+            .summary-stats {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+            }
+
+            .stat-value {
+                font-size: 1.1rem;
+            }
+
+            .stat-label {
+                font-size: 0.65rem;
+            }
+
+            .nav-tab span {
+                display: none;
+            }
+
+            .nav-tab i {
+                font-size: 1.2rem;
+            }
+
+            .content-card {
+                padding: 16px;
+            }
+        }
+
+        /* Decorative Elements */
+        .crescent-star {
+            position: absolute;
+            top: 10px;
+            left: 20px;
+            font-size: 1.5rem;
+            color: var(--gold);
+            opacity: 0.3;
+        }
+
+        .lantern {
+            position: absolute;
+            bottom: -10px;
+            right: 30px;
+            font-size: 2rem;
+            color: var(--gold);
+            opacity: 0.2;
+        }
+
+        /* Admin Panel Specific */
+        .admin-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--primary-light);
+            padding-bottom: 12px;
+        }
+
+        .admin-tab {
+            padding: 8px 16px;
+            background: transparent;
+            border: none;
+            font-family: inherit;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-radius: var(--radius);
+            transition: all 0.3s ease;
+        }
+
+        .admin-tab.active {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        .admin-tab:hover:not(.active) {
+            background: var(--primary-light);
+        }
+
+        .admin-content {
+            display: none;
+        }
+
+        .admin-content.active {
+            display: block;
+        }
+
+        /* Connection Status */
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 8px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--text-muted);
+        }
+
+        .status-dot.connected {
+            background: var(--success);
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.error {
+            background: var(--danger);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Member List Styles */
+        .member-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            background: var(--cream);
+            border-radius: var(--radius);
+            margin-bottom: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .member-item:hover {
+            box-shadow: var(--shadow);
+        }
+
+        .member-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .member-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .member-details {
+            flex: 1;
+        }
+
+        .member-name {
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 4px;
+        }
+
+        .member-status {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .member-amount {
+            text-align: left;
+            margin-left: 12px;
+        }
+
+        .amount-paid {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--primary);
+        }
+
+        .amount-required {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .member-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            margin-right: 8px;
+        }
+
+        .badge-paid {
+            background: var(--success);
+            color: white;
+        }
+
+        .badge-partial {
+            background: var(--warning);
+            color: #333;
+        }
+
+        .badge-unpaid {
+            background: var(--danger-light);
+            color: var(--danger);
+        }
+
+        .badge-extra {
+            background: var(--gold);
+            color: white;
+        }
+
+        .member-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-edit {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .btn-delete {
+            background: var(--danger-light);
+            color: var(--danger);
+        }
+
+        .members-summary {
+            display: flex;
+            justify-content: space-around;
+            padding: 12px;
+            background: var(--gold-light);
+            border-radius: var(--radius);
+            margin-bottom: 16px;
+        }
+
+        .members-summary-item {
+            text-align: center;
+        }
+
+        .members-summary-value {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .members-summary-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        /* Confirm Dialog */
+        .confirm-dialog {
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .confirm-dialog i {
+            font-size: 3rem;
+            color: var(--danger);
+            margin-bottom: 16px;
+        }
+
+        .confirm-dialog p {
+            font-size: 1rem;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+        }
+
+        .confirm-dialog .confirm-name {
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        /* Expense & Task List Styles */
+        .list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            background: var(--cream);
+            border-radius: var(--radius);
+            margin-bottom: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .list-item:hover {
+            box-shadow: var(--shadow);
+        }
+
+        .list-item-info {
+            flex: 1;
+        }
+
+        .list-item-title {
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 4px;
+        }
+
+        .list-item-meta {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .list-item-amount {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--danger);
+            margin-left: 16px;
+        }
+
+        .list-item-actions {
+            display: flex;
+            gap: 8px;
+            margin-right: 12px;
+        }
+
+        .expenses-total {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            background: var(--danger-light);
+            border-radius: var(--radius);
+            margin-bottom: 16px;
+        }
+
+        .expenses-total-label {
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .expenses-total-value {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--danger);
+        }
+
+        /* Task Status Styles */
+        .task-status {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-right: 8px;
+        }
+
+        .status-pending {
+            background: var(--warning);
+            color: #333;
+        }
+
+        .status-inprogress {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .status-completed {
+            background: var(--success);
+            color: white;
+        }
+
+        .task-assignee {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.8rem;
+            color: var(--primary);
+        }
+
+        .task-due {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .task-due.overdue {
+            color: var(--danger);
+            font-weight: 500;
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--primary-light);
+            border-radius: var(--radius);
+            font-family: inherit;
+            font-size: 1rem;
+            color: var(--text-dark);
+            background: var(--white);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .form-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(13,124,95,0.1);
+        }
+
+        /* Event/Countdown Styles */
+        .countdown-card {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            margin-bottom: 16px;
+            color: white;
+            text-align: center;
+        }
+
+        .countdown-title {
+            font-size: 1rem;
+            margin-bottom: 16px;
+            opacity: 0.9;
+        }
+
+        .countdown-timer {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .countdown-item {
+            background: rgba(255,255,255,0.15);
+            border-radius: var(--radius);
+            padding: 12px 16px;
+            min-width: 70px;
+        }
+
+        .countdown-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--gold);
+        }
+
+        .countdown-label {
+            font-size: 0.7rem;
+            opacity: 0.8;
+            margin-top: 4px;
+        }
+
+        .countdown-passed {
+            background: var(--gold-light);
+            color: var(--text-dark);
+            padding: 16px;
+            border-radius: var(--radius);
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .countdown-passed i {
+            color: var(--gold);
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+
+        .event-item {
+            display: flex;
+            gap: 16px;
+            padding: 16px;
+            background: var(--cream);
+            border-radius: var(--radius);
+            margin-bottom: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .event-item:hover {
+            box-shadow: var(--shadow);
+        }
+
+        .event-date-box {
+            background: var(--primary);
+            color: white;
+            border-radius: var(--radius);
+            padding: 12px;
+            text-align: center;
+            min-width: 60px;
+        }
+
+        .event-date-day {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .event-date-month {
+            font-size: 0.7rem;
+            opacity: 0.9;
+        }
+
+        .event-info {
+            flex: 1;
+        }
+
+        .event-title {
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 4px;
+        }
+
+        .event-time {
+            font-size: 0.85rem;
+            color: var(--primary);
+            margin-bottom: 4px;
+        }
+
+        .event-location {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .event-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .event-upcoming {
+            border-right: 3px solid var(--gold);
+        }
+
+        .event-past {
+            opacity: 0.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="pattern-bg"></div>
+
+    <!-- Header -->
+    <header class="header">
+        <span class="crescent-star">☪</span>
+        <span class="lantern">🏮</span>
+        <div class="header-content">
+            <div class="header-title">
+                <span class="header-icon">🌙</span>
+                <div>
+                    <h1 id="eventTitle">ملتقى عيد الفطر 1447هـ</h1>
+                    <p class="header-subtitle">صندوق العائلة المشترك</p>
+                </div>
+            </div>
+            <button class="settings-btn" onclick="openPasswordModal()" title="الإدارة">
+                <i class="fas fa-cog"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Summary Card -->
+    <div class="summary-card">
+        <div class="summary-stats">
+            <div class="stat-item">
+                <div class="stat-value" id="totalCollected">0</div>
+                <div class="stat-label">المحصّل (ريال)</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="totalExpenses">0</div>
+                <div class="stat-label">المصروفات (ريال)</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="totalRemaining">0</div>
+                <div class="stat-label">المتبقي (ريال)</div>
+            </div>
+        </div>
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+            <span class="progress-text" id="progressText">0%</span>
+        </div>
+        <div class="connection-status">
+            <span class="status-dot" id="connectionDot"></span>
+            <span id="connectionText">جاري الاتصال...</span>
+        </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs">
+        <button class="nav-tab active" data-tab="members" onclick="switchTab('members')">
+            <i class="fas fa-users"></i>
+            <span>المساهمين</span>
+        </button>
+        <button class="nav-tab" data-tab="expenses" onclick="switchTab('expenses')">
+            <i class="fas fa-receipt"></i>
+            <span>المصروفات</span>
+        </button>
+        <button class="nav-tab" data-tab="tasks" onclick="switchTab('tasks')">
+            <i class="fas fa-tasks"></i>
+            <span>المهام</span>
+        </button>
+        <button class="nav-tab" data-tab="events" onclick="switchTab('events')">
+            <i class="fas fa-calendar-alt"></i>
+            <span>المواعيد</span>
+        </button>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Members Tab -->
+        <div class="tab-content active" id="members-tab">
+            <div class="content-card">
+                <div class="content-header">
+                    <h2 class="content-title">
+                        <i class="fas fa-users"></i>
+                        قائمة المساهمين
+                    </h2>
+                    <button class="btn btn-primary btn-sm admin-only" onclick="openMemberModal()" style="display:none;">
+                        <i class="fas fa-plus"></i>
+                        إضافة
+                    </button>
+                </div>
+                <div id="membersList">
+                    <div class="empty-state">
+                        <i class="fas fa-users"></i>
+                        <p>لا يوجد مساهمين حتى الآن</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Expenses Tab -->
+        <div class="tab-content" id="expenses-tab">
+            <div class="content-card">
+                <div class="content-header">
+                    <h2 class="content-title">
+                        <i class="fas fa-receipt"></i>
+                        سجل المصروفات
+                    </h2>
+                    <button class="btn btn-primary btn-sm admin-only" onclick="openExpenseModal()" style="display:none;">
+                        <i class="fas fa-plus"></i>
+                        إضافة
+                    </button>
+                </div>
+                <div id="expensesList">
+                    <div class="empty-state">
+                        <i class="fas fa-receipt"></i>
+                        <p>لا توجد مصروفات مسجلة</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tasks Tab -->
+        <div class="tab-content" id="tasks-tab">
+            <div class="content-card">
+                <div class="content-header">
+                    <h2 class="content-title">
+                        <i class="fas fa-tasks"></i>
+                        المهام
+                    </h2>
+                    <button class="btn btn-primary btn-sm admin-only" onclick="openTaskModal()" style="display:none;">
+                        <i class="fas fa-plus"></i>
+                        إضافة
+                    </button>
+                </div>
+                <div id="tasksList">
+                    <div class="empty-state">
+                        <i class="fas fa-tasks"></i>
+                        <p>لا توجد مهام مسجلة</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Events Tab -->
+        <div class="tab-content" id="events-tab">
+            <div class="content-card">
+                <div class="content-header">
+                    <h2 class="content-title">
+                        <i class="fas fa-calendar-alt"></i>
+                        المواعيد والأحداث
+                    </h2>
+                    <button class="btn btn-primary btn-sm admin-only" onclick="openEventModal()" style="display:none;">
+                        <i class="fas fa-plus"></i>
+                        إضافة
+                    </button>
+                </div>
+                <div id="eventsList">
+                    <div class="empty-state">
+                        <i class="fas fa-calendar-alt"></i>
+                        <p>لا توجد مواعيد مسجلة</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Password Modal -->
+    <div class="modal-overlay" id="passwordModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">
+                    <i class="fas fa-lock"></i>
+                    دخول الإدارة
+                </h3>
+                <button class="modal-close" onclick="closeModal('passwordModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">كلمة المرور</label>
+                    <input type="password" class="form-input" id="passwordInput" placeholder="أدخل كلمة المرور" onkeypress="handlePasswordEnter(event)">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('passwordModal')">إلغاء</button>
+                <button class="btn btn-primary" onclick="verifyPassword()">
+                    <i class="fas fa-sign-in-alt"></i>
+                    دخول
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Panel Modal -->
+    <div class="modal-overlay" id="adminModal">
+        <div class="modal" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3 class="modal-title">
+                    <i class="fas fa-cog"></i>
+                    لوحة الإدارة
+                </h3>
+                <button class="modal-close" onclick="closeModal('adminModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="admin-tabs">
+                    <button class="admin-tab active" onclick="switchAdminTab('settings')">الإعدادات</button>
+                    <button class="admin-tab" onclick="switchAdminTab('password')">كلمة المرور</button>
+                    <button class="admin-tab" onclick="switchAdminTab('reports')">التقارير</button>
+                </div>
+
+                <!-- Settings Tab -->
+                <div class="admin-content active" id="admin-settings">
+                    <div class="admin-section">
+                        <h4 class="admin-section-title">
+                            <i class="fas fa-info-circle"></i>
+                            معلومات الملتقى
+                        </h4>
+                        <div class="form-group">
+                            <label class="form-label">اسم الحدث</label>
+                            <input type="text" class="form-input" id="settingEventName" value="ملتقى عيد الفطر 1447هـ">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">المبلغ المطلوب من كل شخص (ريال)</label>
+                            <input type="number" class="form-input" id="settingRequiredAmount" value="100" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">تاريخ الحدث</label>
+                            <input type="date" class="form-input" id="settingEventDate">
+                        </div>
+                        <button class="btn btn-gold" onclick="saveSettings()" style="width: 100%;">
+                            <i class="fas fa-save"></i>
+                            حفظ الإعدادات
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Password Tab -->
+                <div class="admin-content" id="admin-password">
+                    <div class="admin-section">
+                        <h4 class="admin-section-title">
+                            <i class="fas fa-key"></i>
+                            تغيير كلمة المرور
+                        </h4>
+                        <div class="form-group">
+                            <label class="form-label">كلمة المرور الحالية</label>
+                            <input type="password" class="form-input" id="currentPassword">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">كلمة المرور الجديدة</label>
+                            <input type="password" class="form-input" id="newPassword">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">تأكيد كلمة المرور الجديدة</label>
+                            <input type="password" class="form-input" id="confirmPassword">
+                        </div>
+                        <button class="btn btn-primary" onclick="changePassword()" style="width: 100%;">
+                            <i class="fas fa-key"></i>
+                            تغيير كلمة المرور
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Reports Tab -->
+                <div class="admin-content" id="admin-reports">
+                    <div class="admin-section">
+                        <h4 class="admin-section-title">
+                            <i class="fas fa-file-pdf"></i>
+                            تصدير التقارير
+                        </h4>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px;">
+                            اختر التقرير الذي تريد تصديره كملف PDF
+                        </p>
+                        <div style="display: flex; flex-direction: column; gap: 12px;">
+                            <button class="btn btn-primary" onclick="exportMembersPDF()" style="width: 100%;">
+                                <i class="fas fa-users"></i>
+                                تقرير المساهمين
+                            </button>
+                            <button class="btn btn-primary" onclick="exportExpensesPDF()" style="width: 100%;">
+                                <i class="fas fa-receipt"></i>
+                                تقرير المصروفات
+                            </button>
+                            <button class="btn btn-gold" onclick="exportSummaryPDF()" style="width: 100%;">
+                                <i class="fas fa-file-alt"></i>
+                                تقرير شامل
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" onclick="closeAdminAndLogout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    خروج من الإدارة
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Member Modal -->
+    <div class="modal-overlay" id="memberModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">
+                    <i class="fas fa-user-plus"></i>
+                    <span id="memberModalTitle">إضافة مساهم</span>
+                </h3>
+                <button class="modal-close" onclick="closeModal('memberModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editMemberId">
+                <div class="form-group">
+                    <label class="form-label">اسم المساهم *</label>
+                    <input type="text" class="form-input" id="memberName" placeholder="أدخل اسم المساهم">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">المبلغ المدفوع (ريال)</label>
+                    <input type="number" class="form-input" id="memberPaidAmount" placeholder="0" min="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">تاريخ الدفع</label>
+                    <input type="date" class="form-input" id="memberPaidDate">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">ملاحظات</label>
+                    <input type="text" class="form-input" id="memberNotes" placeholder="ملاحظات اختيارية">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('memberModal')">إلغاء</button>
+                <button class="btn btn-primary" onclick="saveMember()">
+                    <i class="fas fa-save"></i>
+                    حفظ
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Expense Modal -->
+    <div class="modal-overlay" id="expenseModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">
+                    <i class="fas fa-receipt"></i>
+                    <span id="expenseModalTitle">إضافة مصروف</span>
+                </h3>
+                <button class="modal-close" onclick="closeModal('expenseModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editExpenseId">
+                <div class="form-group">
+                    <label class="form-label">وصف المصروف *</label>
+                    <input type="text" class="form-input" id="expenseDescription" placeholder="مثال: شراء مستلزمات">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">المبلغ (ريال) *</label>
+                    <input type="number" class="form-input" id="expenseAmount" placeholder="0" min="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">تاريخ الصرف</label>
+                    <input type="date" class="form-input" id="expenseDate">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('expenseModal')">إلغاء</button>
+                <button class="btn btn-primary" onclick="saveExpense()">
+                    <i class="fas fa-save"></i>
+                    حفظ
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Task Modal -->
+    <div class="modal-overlay" id="taskModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">
+                    <i class="fas fa-tasks"></i>
+                    <span id="taskModalTitle">إضافة مهمة</span>
+                </h3>
+                <button class="modal-close" onclick="closeModal('taskModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editTaskId">
+                <div class="form-group">
+                    <label class="form-label">عنوان المهمة *</label>
+                    <input type="text" class="form-input" id="taskTitle" placeholder="مثال: تجهيز المكان">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">المسؤول عن التنفيذ</label>
+                    <input type="text" class="form-input" id="taskAssignee" placeholder="اسم الشخص المسؤول">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">تاريخ الإنجاز المطلوب</label>
+                    <input type="date" class="form-input" id="taskDueDate">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">حالة المهمة</label>
+                    <select class="form-select" id="taskStatus">
+                        <option value="pending">معلقة</option>
+                        <option value="inprogress">قيد التنفيذ</option>
+                        <option value="completed">منجزة</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('taskModal')">إلغاء</button>
+                <button class="btn btn-primary" onclick="saveTask()">
+                    <i class="fas fa-save"></i>
+                    حفظ
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Event Modal -->
+    <div class="modal-overlay" id="eventModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">
+                    <i class="fas fa-calendar-plus"></i>
+                    <span id="eventModalTitle">إضافة موعد</span>
+                </h3>
+                <button class="modal-close" onclick="closeModal('eventModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editEventId">
+                <div class="form-group">
+                    <label class="form-label">عنوان الموعد *</label>
+                    <input type="text" class="form-input" id="eventTitle2" placeholder="مثال: اجتماع التحضير">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">التاريخ *</label>
+                    <input type="date" class="form-input" id="eventDate">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">الوقت</label>
+                    <input type="time" class="form-input" id="eventTime">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">المكان</label>
+                    <input type="text" class="form-input" id="eventLocation" placeholder="مثال: منزل العائلة">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">ملاحظات</label>
+                    <input type="text" class="form-input" id="eventNotes" placeholder="ملاحظات اختيارية">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('eventModal')">إلغاء</button>
+                <button class="btn btn-primary" onclick="saveEvent()">
+                    <i class="fas fa-save"></i>
+                    حفظ
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm Delete Modal -->
+    <div class="modal-overlay" id="confirmModal">
+        <div class="modal" style="max-width: 380px;">
+            <div class="modal-header">
+                <h3 class="modal-title">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    تأكيد الحذف
+                </h3>
+                <button class="modal-close" onclick="closeModal('confirmModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="confirm-dialog">
+                    <i class="fas fa-trash-alt"></i>
+                    <p>هل أنت متأكد من حذف</p>
+                    <p class="confirm-name" id="confirmItemName"></p>
+                </div>
+                <input type="hidden" id="confirmItemId">
+                <input type="hidden" id="confirmItemType">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('confirmModal')">إلغاء</button>
+                <button class="btn btn-danger" onclick="confirmDelete()">
+                    <i class="fas fa-trash"></i>
+                    حذف
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <!-- PDF Export Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBxPO6RKsQ1Cq-mqlCpFTrCuIyxnYdB37U",
+            authDomain: "studentsystem-c1ab1.firebaseapp.com",
+            databaseURL: "https://studentsystem-c1ab1-default-rtdb.firebaseio.com",
+            projectId: "studentsystem-c1ab1",
+            storageBucket: "studentsystem-c1ab1.firebasestorage.app",
+            messagingSenderId: "112215023848",
+            appId: "1:112215023848:web:0adba326a527ee7e37e95d"
+        };
+
+        // Initialize Firebase
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.database();
+        const rootRef = db.ref('a1447');
+
+        // App State
+        let isAdmin = false;
+        let appSettings = {
+            password: '1111',
+            eventName: 'ملتقى عيد الفطر 1447هـ',
+            requiredAmount: 100,
+            eventDate: ''
+        };
+
+        // Dark Mode Detection
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+
+        // Initialize App
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
+        });
+
+        async function initializeApp() {
+            updateConnectionStatus('connecting');
+
+            try {
+                // Load settings from Firebase
+                await loadSettings();
+                updateConnectionStatus('connected');
+
+                // Listen for real-time updates
+                setupRealtimeListeners();
+            } catch (error) {
+                console.error('Firebase connection error:', JSON.stringify(error));
+                updateConnectionStatus('error');
+            }
+        }
+
+        async function loadSettings() {
+            return new Promise((resolve, reject) => {
+                rootRef.child('settings').once('value')
+                    .then(snapshot => {
+                        if (snapshot.exists()) {
+                            const data = snapshot.val();
+                            appSettings = { ...appSettings, ...data };
+                        } else {
+                            // Initialize default settings in Firebase
+                            rootRef.child('settings').set(appSettings);
+                        }
+                        applySettings();
+                        resolve();
+                    })
+                    .catch(reject);
+            });
+        }
+
+        function applySettings() {
+            document.getElementById('eventTitle').textContent = appSettings.eventName;
+            document.getElementById('settingEventName').value = appSettings.eventName;
+            document.getElementById('settingRequiredAmount').value = appSettings.requiredAmount;
+            document.getElementById('settingEventDate').value = appSettings.eventDate || '';
+        }
+
+        function setupRealtimeListeners() {
+            // Listen for settings changes
+            rootRef.child('settings').on('value', snapshot => {
+                if (snapshot.exists()) {
+                    appSettings = { ...appSettings, ...snapshot.val() };
+                    applySettings();
+                }
+            });
+
+            // Listen for members changes
+            rootRef.child('members').on('value', snapshot => {
+                renderMembers(snapshot);
+                updateSummary();
+            });
+
+            // Listen for expenses changes
+            rootRef.child('expenses').on('value', snapshot => {
+                renderExpenses(snapshot);
+                updateSummary();
+            });
+
+            // Listen for tasks changes
+            rootRef.child('tasks').on('value', snapshot => {
+                renderTasks(snapshot);
+            });
+
+            // Listen for events changes
+            rootRef.child('events').on('value', snapshot => {
+                renderEvents(snapshot);
+            });
+        }
+
+        function updateSummary() {
+            rootRef.child('members').once('value', membersSnap => {
+                rootRef.child('expenses').once('value', expensesSnap => {
+                    let totalCollected = 0;
+                    let totalExpenses = 0;
+
+                    if (membersSnap.exists()) {
+                        membersSnap.forEach(child => {
+                            totalCollected += Number(child.val().paidAmount) || 0;
+                        });
+                    }
+
+                    if (expensesSnap.exists()) {
+                        expensesSnap.forEach(child => {
+                            totalExpenses += Number(child.val().amount) || 0;
+                        });
+                    }
+
+                    const remaining = totalCollected - totalExpenses;
+                    const membersCount = membersSnap.numChildren() || 0;
+                    const targetAmount = membersCount * appSettings.requiredAmount;
+                    const progress = targetAmount > 0 ? Math.round((totalCollected / targetAmount) * 100) : 0;
+
+                    document.getElementById('totalCollected').textContent = totalCollected.toLocaleString('ar-SA');
+                    document.getElementById('totalExpenses').textContent = totalExpenses.toLocaleString('ar-SA');
+                    document.getElementById('totalRemaining').textContent = remaining.toLocaleString('ar-SA');
+                    document.getElementById('progressBar').style.width = Math.min(progress, 100) + '%';
+                    document.getElementById('progressText').textContent = progress + '%';
+                });
+            });
+        }
+
+        function updateConnectionStatus(status) {
+            const dot = document.getElementById('connectionDot');
+            const text = document.getElementById('connectionText');
+
+            dot.className = 'status-dot';
+
+            switch (status) {
+                case 'connecting':
+                    text.textContent = 'جاري الاتصال...';
+                    break;
+                case 'connected':
+                    dot.classList.add('connected');
+                    text.textContent = 'متصل';
+                    break;
+                case 'error':
+                    dot.classList.add('error');
+                    text.textContent = 'خطأ في الاتصال';
+                    break;
+            }
+        }
+
+        // Tab Switching
+        function switchTab(tabName) {
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+        }
+
+        function switchAdminTab(tabName) {
+            document.querySelectorAll('.admin-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            document.querySelectorAll('.admin-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(`admin-${tabName}`).classList.add('active');
+        }
+
+        // Modal Functions
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        function openPasswordModal() {
+            if (isAdmin) {
+                openModal('adminModal');
+            } else {
+                document.getElementById('passwordInput').value = '';
+                openModal('passwordModal');
+            }
+        }
+
+        function handlePasswordEnter(event) {
+            if (event.key === 'Enter') {
+                verifyPassword();
+            }
+        }
+
+        function verifyPassword() {
+            const input = document.getElementById('passwordInput').value;
+
+            if (input === appSettings.password) {
+                isAdmin = true;
+                closeModal('passwordModal');
+                showAdminControls();
+                openModal('adminModal');
+                showToast('تم تسجيل الدخول بنجاح', 'success');
+            } else {
+                showToast('كلمة المرور غير صحيحة', 'error');
+            }
+        }
+
+        function showAdminControls() {
+            document.querySelectorAll('.admin-only').forEach(el => {
+                el.style.display = 'inline-flex';
+            });
+            // Re-render lists to show edit/delete buttons
+            refreshAllLists();
+        }
+
+        function refreshAllLists() {
+            rootRef.child('members').once('value', snapshot => renderMembers(snapshot));
+            rootRef.child('expenses').once('value', snapshot => renderExpenses(snapshot));
+            rootRef.child('tasks').once('value', snapshot => renderTasks(snapshot));
+            rootRef.child('events').once('value', snapshot => renderEvents(snapshot));
+        }
+
+        function hideAdminControls() {
+            document.querySelectorAll('.admin-only').forEach(el => {
+                el.style.display = 'none';
+            });
+            // Re-render lists to hide edit/delete buttons
+            refreshAllLists();
+        }
+
+        function closeAdminAndLogout() {
+            isAdmin = false;
+            hideAdminControls();
+            closeModal('adminModal');
+            showToast('تم تسجيل الخروج', 'success');
+        }
+
+        // Settings Functions
+        function saveSettings() {
+            const newSettings = {
+                ...appSettings,
+                eventName: document.getElementById('settingEventName').value,
+                requiredAmount: Number(document.getElementById('settingRequiredAmount').value) || 100,
+                eventDate: document.getElementById('settingEventDate').value
+            };
+
+            rootRef.child('settings').update(newSettings)
+                .then(() => {
+                    appSettings = newSettings;
+                    applySettings();
+                    showToast('تم حفظ الإعدادات بنجاح', 'success');
+                })
+                .catch(error => {
+                    console.error('Error saving settings:', JSON.stringify(error));
+                    showToast('حدث خطأ أثناء الحفظ', 'error');
+                });
+        }
+
+        function changePassword() {
+            const current = document.getElementById('currentPassword').value;
+            const newPass = document.getElementById('newPassword').value;
+            const confirm = document.getElementById('confirmPassword').value;
+
+            if (current !== appSettings.password) {
+                showToast('كلمة المرور الحالية غير صحيحة', 'error');
+                return;
+            }
+
+            if (newPass.length < 4) {
+                showToast('كلمة المرور يجب أن تكون 4 أحرف على الأقل', 'error');
+                return;
+            }
+
+            if (newPass !== confirm) {
+                showToast('كلمة المرور الجديدة غير متطابقة', 'error');
+                return;
+            }
+
+            rootRef.child('settings/password').set(newPass)
+                .then(() => {
+                    appSettings.password = newPass;
+                    document.getElementById('currentPassword').value = '';
+                    document.getElementById('newPassword').value = '';
+                    document.getElementById('confirmPassword').value = '';
+                    showToast('تم تغيير كلمة المرور بنجاح', 'success');
+                })
+                .catch(error => {
+                    console.error('Error changing password:', JSON.stringify(error));
+                    showToast('حدث خطأ أثناء تغيير كلمة المرور', 'error');
+                });
+        }
+
+        // Escape HTML to prevent XSS
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML.replace(/'/g, '&#39;').replace(/"/g, '&quot;');
+        }
+
+        // Toast Notifications
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                ${message}
+            `;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(20px)';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // ==================== MEMBERS FUNCTIONS ====================
+
+        function openMemberModal(memberId = null) {
+            document.getElementById('editMemberId').value = memberId || '';
+            document.getElementById('memberName').value = '';
+            document.getElementById('memberPaidAmount').value = '';
+            document.getElementById('memberPaidDate').value = '';
+            document.getElementById('memberNotes').value = '';
+
+            if (memberId) {
+                document.getElementById('memberModalTitle').textContent = 'تعديل مساهم';
+                rootRef.child('members/' + memberId).once('value', snapshot => {
+                    if (snapshot.exists()) {
+                        const data = snapshot.val();
+                        document.getElementById('memberName').value = data.name || '';
+                        document.getElementById('memberPaidAmount').value = data.paidAmount || '';
+                        document.getElementById('memberPaidDate').value = data.paidDate || '';
+                        document.getElementById('memberNotes').value = data.notes || '';
+                    }
+                });
+            } else {
+                document.getElementById('memberModalTitle').textContent = 'إضافة مساهم';
+            }
+
+            openModal('memberModal');
+        }
+
+        function saveMember() {
+            const memberId = document.getElementById('editMemberId').value;
+            const name = document.getElementById('memberName').value.trim();
+            const paidAmount = Number(document.getElementById('memberPaidAmount').value) || 0;
+            const paidDate = document.getElementById('memberPaidDate').value;
+            const notes = document.getElementById('memberNotes').value.trim();
+
+            if (!name) {
+                showToast('يرجى إدخال اسم المساهم', 'error');
+                return;
+            }
+
+            const memberData = {
+                name: name,
+                paidAmount: paidAmount,
+                paidDate: paidDate,
+                notes: notes,
+                requiredAmount: appSettings.requiredAmount,
+                updatedAt: Date.now()
+            };
+
+            if (memberId) {
+                rootRef.child('members/' + memberId).update(memberData)
+                    .then(() => {
+                        closeModal('memberModal');
+                        showToast('تم تحديث بيانات المساهم', 'success');
+                    })
+                    .catch(error => {
+                        console.error('Error updating member:', JSON.stringify(error));
+                        showToast('حدث خطأ أثناء التحديث', 'error');
+                    });
+            } else {
+                memberData.createdAt = Date.now();
+                rootRef.child('members').push(memberData)
+                    .then(() => {
+                        closeModal('memberModal');
+                        showToast('تم إضافة المساهم بنجاح', 'success');
+                    })
+                    .catch(error => {
+                        console.error('Error adding member:', JSON.stringify(error));
+                        showToast('حدث خطأ أثناء الإضافة', 'error');
+                    });
+            }
+        }
+
+        function renderMembers(snapshot) {
+            const container = document.getElementById('membersList');
+
+            if (!snapshot.exists()) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-users"></i>
+                        <p>لا يوجد مساهمين حتى الآن</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const members = [];
+            snapshot.forEach(child => {
+                members.push({ id: child.key, ...child.val() });
+            });
+
+            // Sort by name
+            members.sort((a, b) => a.name.localeCompare(b.name, 'ar'));
+
+            // Calculate stats
+            let paidCount = 0;
+            let partialCount = 0;
+            let unpaidCount = 0;
+
+            members.forEach(m => {
+                const required = appSettings.requiredAmount;
+                if (m.paidAmount >= required) paidCount++;
+                else if (m.paidAmount > 0) partialCount++;
+                else unpaidCount++;
+            });
+
+            let html = `
+                <div class="members-summary">
+                    <div class="members-summary-item">
+                        <div class="members-summary-value">${members.length}</div>
+                        <div class="members-summary-label">إجمالي المساهمين</div>
+                    </div>
+                    <div class="members-summary-item">
+                        <div class="members-summary-value" style="color: var(--success)">${paidCount}</div>
+                        <div class="members-summary-label">سدد بالكامل</div>
+                    </div>
+                    <div class="members-summary-item">
+                        <div class="members-summary-value" style="color: var(--warning)">${partialCount}</div>
+                        <div class="members-summary-label">سدد جزئياً</div>
+                    </div>
+                    <div class="members-summary-item">
+                        <div class="members-summary-value" style="color: var(--danger)">${unpaidCount}</div>
+                        <div class="members-summary-label">لم يسدد</div>
+                    </div>
+                </div>
+            `;
+
+            members.forEach(member => {
+                const required = appSettings.requiredAmount;
+                const paid = member.paidAmount || 0;
+                let badgeClass = 'badge-unpaid';
+                let badgeText = 'لم يسدد';
+
+                if (paid > required) {
+                    badgeClass = 'badge-extra';
+                    badgeText = 'متبرع';
+                } else if (paid >= required) {
+                    badgeClass = 'badge-paid';
+                    badgeText = 'مسدد';
+                } else if (paid > 0) {
+                    badgeClass = 'badge-partial';
+                    badgeText = 'جزئي';
+                }
+
+                const initial = member.name.charAt(0);
+                const safeName = escapeHtml(member.name);
+                const adminActions = isAdmin ? `
+                    <div class="member-actions admin-only">
+                        <button class="btn btn-icon btn-edit" onclick="openMemberModal('${member.id}')" title="تعديل">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-icon btn-delete" onclick="showDeleteConfirm('${member.id}', '${safeName}', 'member')" title="حذف">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                ` : '';
+
+                html += `
+                    <div class="member-item">
+                        <div class="member-info">
+                            <div class="member-avatar">${initial}</div>
+                            <div class="member-details">
+                                <div class="member-name">
+                                    ${safeName}
+                                    <span class="member-badge ${badgeClass}">${badgeText}</span>
+                                </div>
+                                <div class="member-status">
+                                    ${member.paidDate ? 'تاريخ الدفع: ' + member.paidDate : ''}
+                                    ${member.notes ? ' | ' + escapeHtml(member.notes) : ''}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="member-amount">
+                            <div class="amount-paid">${paid.toLocaleString('ar-SA')} ريال</div>
+                            <div class="amount-required">من ${required.toLocaleString('ar-SA')}</div>
+                        </div>
+                        ${adminActions}
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function showDeleteConfirm(id, name, type) {
+            document.getElementById('confirmItemId').value = id;
+            document.getElementById('confirmItemName').textContent = name;
+            document.getElementById('confirmItemType').value = type;
+            openModal('confirmModal');
+        }
+
+        function confirmDelete() {
+            const id = document.getElementById('confirmItemId').value;
+            const type = document.getElementById('confirmItemType').value;
+
+            let ref;
+            if (type === 'member') {
+                ref = rootRef.child('members/' + id);
+            } else if (type === 'expense') {
+                ref = rootRef.child('expenses/' + id);
+            } else if (type === 'task') {
+                ref = rootRef.child('tasks/' + id);
+            } else if (type === 'event') {
+                ref = rootRef.child('events/' + id);
+            }
+
+            if (ref) {
+                ref.remove()
+                    .then(() => {
+                        closeModal('confirmModal');
+                        showToast('تم الحذف بنجاح', 'success');
+                    })
+                    .catch(error => {
+                        console.error('Error deleting:', JSON.stringify(error));
+                        showToast('حدث خطأ أثناء الحذف', 'error');
+                    });
+            }
+        }
+
+        // ==================== EXPENSES FUNCTIONS ====================
+
+        function openExpenseModal(expenseId = null) {
+            document.getElementById('editExpenseId').value = expenseId || '';
+            document.getElementById('expenseDescription').value = '';
+            document.getElementById('expenseAmount').value = '';
+            document.getElementById('expenseDate').value = '';
+
+            if (expenseId) {
+                document.getElementById('expenseModalTitle').textContent = 'تعديل مصروف';
+                rootRef.child('expenses/' + expenseId).once('value', snapshot => {
+                    if (snapshot.exists()) {
+                        const data = snapshot.val();
+                        document.getElementById('expenseDescription').value = data.description || '';
+                        document.getElementById('expenseAmount').value = data.amount || '';
+                        document.getElementById('expenseDate').value = data.date || '';
+                    }
+                });
+            } else {
+                document.getElementById('expenseModalTitle').textContent = 'إضافة مصروف';
+            }
+
+            openModal('expenseModal');
+        }
+
+        function saveExpense() {
+            const expenseId = document.getElementById('editExpenseId').value;
+            const description = document.getElementById('expenseDescription').value.trim();
+            const amount = Number(document.getElementById('expenseAmount').value) || 0;
+            const date = document.getElementById('expenseDate').value;
+
+            if (!description) {
+                showToast('يرجى إدخال وصف المصروف', 'error');
+                return;
+            }
+
+            if (amount <= 0) {
+                showToast('يرجى إدخال مبلغ صحيح', 'error');
+                return;
+            }
+
+            const expenseData = {
+                description: description,
+                amount: amount,
+                date: date,
+                updatedAt: Date.now()
+            };
+
+            if (expenseId) {
+                rootRef.child('expenses/' + expenseId).update(expenseData)
+                    .then(() => {
+                        closeModal('expenseModal');
+                        showToast('تم تحديث المصروف', 'success');
+                    })
+                    .catch(error => {
+                        console.error('Error updating expense:', JSON.stringify(error));
+                        showToast('حدث خطأ أثناء التحديث', 'error');
+                    });
+            } else {
+                expenseData.createdAt = Date.now();
+                rootRef.child('expenses').push(expenseData)
+                    .then(() => {
+                        closeModal('expenseModal');
+                        showToast('تم إضافة المصروف بنجاح', 'success');
+                    })
+                    .catch(error => {
+                        console.error('Error adding expense:', JSON.stringify(error));
+                        showToast('حدث خطأ أثناء الإضافة', 'error');
+                    });
+            }
+        }
+
+        function renderExpenses(snapshot) {
+            const container = document.getElementById('expensesList');
+
+            if (!snapshot.exists()) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-receipt"></i>
+                        <p>لا توجد مصروفات مسجلة</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const expenses = [];
+            let totalAmount = 0;
+            snapshot.forEach(child => {
+                const expense = { id: child.key, ...child.val() };
+                expenses.push(expense);
+                totalAmount += Number(expense.amount) || 0;
+            });
+
+            // Sort by date (newest first)
+            expenses.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+            let html = `
+                <div class="expenses-total">
+                    <span class="expenses-total-label">إجمالي المصروفات</span>
+                    <span class="expenses-total-value">${totalAmount.toLocaleString('ar-SA')} ريال</span>
+                </div>
+            `;
+
+            expenses.forEach(expense => {
+                const safeDesc = escapeHtml(expense.description);
+                const adminActions = isAdmin ? `
+                    <div class="list-item-actions admin-only">
+                        <button class="btn btn-icon btn-edit" onclick="openExpenseModal('${expense.id}')" title="تعديل">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-icon btn-delete" onclick="showDeleteConfirm('${expense.id}', '${safeDesc}', 'expense')" title="حذف">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                ` : '';
+
+                html += `
+                    <div class="list-item">
+                        <div class="list-item-info">
+                            <div class="list-item-title">${safeDesc}</div>
+                            <div class="list-item-meta">
+                                ${expense.date ? '<i class="fas fa-calendar"></i> ' + expense.date : ''}
+                            </div>
+                        </div>
+                        <div class="list-item-amount">${Number(expense.amount).toLocaleString('ar-SA')} ريال</div>
+                        ${adminActions}
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // ==================== TASKS FUNCTIONS ====================
+
+        function openTaskModal(taskId = null) {
+            document.getElementById('editTaskId').value = taskId || '';
+            document.getElementById('taskTitle').value = '';
+            document.getElementById('taskAssignee').value = '';
+            document.getElementById('taskDueDate').value = '';
+            document.getElementById('taskStatus').value = 'pending';
+
+            if (taskId) {
+                document.getElementById('taskModalTitle').textContent = 'تعديل مهمة';
+                rootRef.child('tasks/' + taskId).once('value', snapshot => {
+                    if (snapshot.exists()) {
+                        const data = snapshot.val();
+                        document.getElementById('taskTitle').value = data.title || '';
+                        document.getElementById('taskAssignee').value = data.assignee || '';
+                        document.getElementById('taskDueDate').value = data.dueDate || '';
+                        document.getElementById('taskStatus').value = data.status || 'pending';
+                    }
+                });
+            } else {
+                document.getElementById('taskModalTitle').textContent = 'إضافة مهمة';
+            }
+
+            openModal('taskModal');
+        }
+
+        function saveTask() {
+            const taskId = document.getElementById('editTaskId').value;
+            const title = document.getElementById('taskTitle').value.trim();
+            const assignee = document.getElementById('taskAssignee').value.trim();
+            const dueDate = document.getElementById('taskDueDate').value;
+            const status = document.getElementById('taskStatus').value;
+
+            if (!title) {
+                showToast('يرجى إدخال عنوان المهمة', 'error');
+                return;
+            }
+
+            const taskData = {
+                title: title,
+                assignee: assignee,
+                dueDate: dueDate,
+                status: status,
+                updatedAt: Date.now()
+            };
+
+            if (taskId) {
+                rootRef.child('tasks/' + taskId).update(taskData)
+                    .then(() => {
+                        closeModal('taskModal');
+                        showToast('تم تحديث المهمة', 'success');
+                    })
+                    .catch(error => {
+                        console.error('Error updating task:', JSON.stringify(error));
+                        showToast('حدث خطأ أثناء التحديث', 'error');
+                    });
+            } else {
+                taskData.createdAt = Date.now();
+                rootRef.child('tasks').push(taskData)
+                    .then(() => {
+                        closeModal('taskModal');
+                        showToast('تم إضافة المهمة بنجاح', 'success');
+                    })
+                    .catch(error => {
+                        console.error('Error adding task:', JSON.stringify(error));
+                        showToast('حدث خطأ أثناء الإضافة', 'error');
+                    });
+            }
+        }
+
+        function renderTasks(snapshot) {
+            const container = document.getElementById('tasksList');
+
+            if (!snapshot.exists()) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-tasks"></i>
+                        <p>لا توجد مهام مسجلة</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const tasks = [];
+            snapshot.forEach(child => {
+                tasks.push({ id: child.key, ...child.val() });
+            });
+
+            // Sort: pending first, then inprogress, then completed
+            const statusOrder = { pending: 0, inprogress: 1, completed: 2 };
+            tasks.sort((a, b) => (statusOrder[a.status] || 0) - (statusOrder[b.status] || 0));
+
+            let html = '';
+
+            tasks.forEach(task => {
+                const statusLabels = {
+                    pending: 'معلقة',
+                    inprogress: 'قيد التنفيذ',
+                    completed: 'منجزة'
+                };
+
+                const today = new Date().toISOString().split('T')[0];
+                const isOverdue = task.dueDate && task.dueDate < today && task.status !== 'completed';
+                const safeTitle = escapeHtml(task.title);
+
+                const adminActions = isAdmin ? `
+                    <div class="list-item-actions admin-only">
+                        <button class="btn btn-icon btn-edit" onclick="openTaskModal('${task.id}')" title="تعديل">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-icon btn-delete" onclick="showDeleteConfirm('${task.id}', '${safeTitle}', 'task')" title="حذف">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                ` : '';
+
+                const safeAssignee = task.assignee ? escapeHtml(task.assignee) : '';
+                html += `
+                    <div class="list-item">
+                        <div class="list-item-info">
+                            <div class="list-item-title">
+                                ${safeTitle}
+                                <span class="task-status status-${task.status}">${statusLabels[task.status] || 'معلقة'}</span>
+                            </div>
+                            <div class="list-item-meta">
+                                ${safeAssignee ? '<span class="task-assignee"><i class="fas fa-user"></i> ' + safeAssignee + '</span>' : ''}
+                                ${task.dueDate ? '<span class="task-due ' + (isOverdue ? 'overdue' : '') + '"><i class="fas fa-clock"></i> ' + task.dueDate + (isOverdue ? ' (متأخر)' : '') + '</span>' : ''}
+                            </div>
+                        </div>
+                        ${adminActions}
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // ==================== EVENTS FUNCTIONS ====================
+
+        let countdownInterval = null;
+
+        function openEventModal(eventId = null) {
+            document.getElementById('editEventId').value = eventId || '';
+            document.getElementById('eventTitle2').value = '';
+            document.getElementById('eventDate').value = '';
+            document.getElementById('eventTime').value = '';
+            document.getElementById('eventLocation').value = '';
+            document.getElementById('eventNotes').value = '';
+
+            if (eventId) {
+                document.getElementById('eventModalTitle').textContent = 'تعديل موعد';
+                rootRef.child('events/' + eventId).once('value', snapshot => {
+                    if (snapshot.exists()) {
+                        const data = snapshot.val();
+                        document.getElementById('eventTitle2').value = data.title || '';
+                        document.getElementById('eventDate').value = data.date || '';
+                        document.getElementById('eventTime').value = data.time || '';
+                        document.getElementById('eventLocation').value = data.location || '';
+                        document.getElementById('eventNotes').value = data.notes || '';
+                    }
+                });
+            } else {
+                document.getElementById('eventModalTitle').textContent = 'إضافة موعد';
+            }
+
+            openModal('eventModal');
+        }
+
+        function saveEvent() {
+            const eventId = document.getElementById('editEventId').value;
+            const title = document.getElementById('eventTitle2').value.trim();
+            const date = document.getElementById('eventDate').value;
+            const time = document.getElementById('eventTime').value;
+            const location = document.getElementById('eventLocation').value.trim();
+            const notes = document.getElementById('eventNotes').value.trim();
+
+            if (!title) {
+                showToast('يرجى إدخال عنوان الموعد', 'error');
+                return;
+            }
+
+            if (!date) {
+                showToast('يرجى إدخال تاريخ الموعد', 'error');
+                return;
+            }
+
+            const eventData = {
+                title: title,
+                date: date,
+                time: time,
+                location: location,
+                notes: notes,
+                updatedAt: Date.now()
+            };
+
+            if (eventId) {
+                rootRef.child('events/' + eventId).update(eventData)
+                    .then(() => {
+                        closeModal('eventModal');
+                        showToast('تم تحديث الموعد', 'success');
+                    })
+                    .catch(error => {
+                        console.error('Error updating event:', JSON.stringify(error));
+                        showToast('حدث خطأ أثناء التحديث', 'error');
+                    });
+            } else {
+                eventData.createdAt = Date.now();
+                rootRef.child('events').push(eventData)
+                    .then(() => {
+                        closeModal('eventModal');
+                        showToast('تم إضافة الموعد بنجاح', 'success');
+                    })
+                    .catch(error => {
+                        console.error('Error adding event:', JSON.stringify(error));
+                        showToast('حدث خطأ أثناء الإضافة', 'error');
+                    });
+            }
+        }
+
+        function renderEvents(snapshot) {
+            const container = document.getElementById('eventsList');
+            const today = new Date().toISOString().split('T')[0];
+
+            if (!snapshot.exists()) {
+                // Show countdown for main event if set
+                let html = renderMainEventCountdown();
+                html += `
+                    <div class="empty-state">
+                        <i class="fas fa-calendar-alt"></i>
+                        <p>لا توجد مواعيد مسجلة</p>
+                    </div>
+                `;
+                container.innerHTML = html;
+                startCountdown();
+                return;
+            }
+
+            const events = [];
+            snapshot.forEach(child => {
+                events.push({ id: child.key, ...child.val() });
+            });
+
+            // Sort by date (upcoming first)
+            events.sort((a, b) => {
+                if (a.date === b.date) {
+                    return (a.time || '').localeCompare(b.time || '');
+                }
+                return a.date.localeCompare(b.date);
+            });
+
+            // Separate upcoming and past events
+            const upcomingEvents = events.filter(e => e.date >= today);
+            const pastEvents = events.filter(e => e.date < today);
+
+            let html = renderMainEventCountdown();
+
+            // Upcoming Events
+            if (upcomingEvents.length > 0) {
+                html += '<h3 style="font-size: 0.95rem; color: var(--primary); margin-bottom: 12px;"><i class="fas fa-calendar-check"></i> المواعيد القادمة</h3>';
+                upcomingEvents.forEach(event => {
+                    html += renderEventItem(event, false);
+                });
+            }
+
+            // Past Events
+            if (pastEvents.length > 0) {
+                html += '<h3 style="font-size: 0.95rem; color: var(--text-muted); margin: 20px 0 12px;"><i class="fas fa-history"></i> المواعيد السابقة</h3>';
+                pastEvents.forEach(event => {
+                    html += renderEventItem(event, true);
+                });
+            }
+
+            container.innerHTML = html;
+            startCountdown();
+        }
+
+        function renderMainEventCountdown() {
+            if (!appSettings.eventDate) {
+                return '';
+            }
+
+            const eventDate = new Date(appSettings.eventDate + 'T00:00:00');
+            const now = new Date();
+            const diff = eventDate - now;
+
+            if (diff <= 0) {
+                return `
+                    <div class="countdown-passed">
+                        <i class="fas fa-star"></i>
+                        <p style="font-weight: 600; color: var(--primary);">🎉 ${appSettings.eventName} 🎉</p>
+                        <p style="font-size: 0.85rem; color: var(--text-muted);">نتمنى لكم أوقاتاً سعيدة</p>
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="countdown-card">
+                    <div class="countdown-title">⏳ الوقت المتبقي حتى ${appSettings.eventName}</div>
+                    <div class="countdown-timer" id="countdownTimer">
+                        <div class="countdown-item">
+                            <div class="countdown-value" id="countdown-days">--</div>
+                            <div class="countdown-label">يوم</div>
+                        </div>
+                        <div class="countdown-item">
+                            <div class="countdown-value" id="countdown-hours">--</div>
+                            <div class="countdown-label">ساعة</div>
+                        </div>
+                        <div class="countdown-item">
+                            <div class="countdown-value" id="countdown-minutes">--</div>
+                            <div class="countdown-label">دقيقة</div>
+                        </div>
+                        <div class="countdown-item">
+                            <div class="countdown-value" id="countdown-seconds">--</div>
+                            <div class="countdown-label">ثانية</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function startCountdown() {
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+            }
+
+            if (!appSettings.eventDate) return;
+
+            function updateCountdown() {
+                const eventDate = new Date(appSettings.eventDate + 'T00:00:00');
+                const now = new Date();
+                const diff = eventDate - now;
+
+                if (diff <= 0) {
+                    if (countdownInterval) {
+                        clearInterval(countdownInterval);
+                    }
+                    return;
+                }
+
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+                const daysEl = document.getElementById('countdown-days');
+                const hoursEl = document.getElementById('countdown-hours');
+                const minutesEl = document.getElementById('countdown-minutes');
+                const secondsEl = document.getElementById('countdown-seconds');
+
+                if (daysEl) daysEl.textContent = days;
+                if (hoursEl) hoursEl.textContent = hours;
+                if (minutesEl) minutesEl.textContent = minutes;
+                if (secondsEl) secondsEl.textContent = seconds;
+            }
+
+            updateCountdown();
+            countdownInterval = setInterval(updateCountdown, 1000);
+        }
+
+        function renderEventItem(event, isPast) {
+            const dateObj = new Date(event.date);
+            const day = dateObj.getDate();
+            const monthNames = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+            const month = monthNames[dateObj.getMonth()];
+
+            let timeDisplay = '';
+            if (event.time) {
+                const [hours, minutes] = event.time.split(':');
+                const hour = parseInt(hours);
+                const ampm = hour >= 12 ? 'م' : 'ص';
+                const hour12 = hour % 12 || 12;
+                timeDisplay = `${hour12}:${minutes} ${ampm}`;
+            }
+
+            const safeEventTitle = escapeHtml(event.title);
+            const adminActions = isAdmin ? `
+                <div class="event-actions admin-only">
+                    <button class="btn btn-icon btn-edit" onclick="openEventModal('${event.id}')" title="تعديل">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-icon btn-delete" onclick="showDeleteConfirm('${event.id}', '${safeEventTitle}', 'event')" title="حذف">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            ` : '';
+
+            const safeLocation = event.location ? escapeHtml(event.location) : '';
+            const safeNotes = event.notes ? escapeHtml(event.notes) : '';
+            return `
+                <div class="event-item ${isPast ? 'event-past' : 'event-upcoming'}">
+                    <div class="event-date-box">
+                        <div class="event-date-day">${day}</div>
+                        <div class="event-date-month">${month}</div>
+                    </div>
+                    <div class="event-info">
+                        <div class="event-title">${safeEventTitle}</div>
+                        ${timeDisplay ? '<div class="event-time"><i class="fas fa-clock"></i> ' + timeDisplay + '</div>' : ''}
+                        ${safeLocation ? '<div class="event-location"><i class="fas fa-map-marker-alt"></i> ' + safeLocation + '</div>' : ''}
+                        ${safeNotes ? '<div class="event-location"><i class="fas fa-sticky-note"></i> ' + safeNotes + '</div>' : ''}
+                    </div>
+                    ${adminActions}
+                </div>
+            `;
+        }
+
+        // ==================== PDF EXPORT FUNCTIONS (Arabic Support) ====================
+
+        function createPDFContainer() {
+            let container = document.getElementById('pdfContainer');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'pdfContainer';
+                container.style.cssText = 'position:fixed;left:-9999px;top:0;width:800px;background:#fff;font-family:"Noto Kufi Arabic",sans-serif;direction:rtl;padding:20px;';
+                document.body.appendChild(container);
+            }
+            return container;
+        }
+
+        async function generatePDFFromHTML(htmlContent, filename) {
+            const container = createPDFContainer();
+            container.innerHTML = htmlContent;
+
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            try {
+                const canvas = await html2canvas(container, {
+                    scale: 2,
+                    useCORS: true,
+                    logging: false,
+                    backgroundColor: '#ffffff'
+                });
+
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const pageWidth = pdf.internal.pageSize.getWidth();
+                const pageHeight = pdf.internal.pageSize.getHeight();
+
+                const imgWidth = pageWidth - 20;
+                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+                let heightLeft = imgHeight;
+                let position = 10;
+                const imgData = canvas.toDataURL('image/png');
+
+                pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+                heightLeft -= (pageHeight - 20);
+
+                while (heightLeft > 0) {
+                    position = heightLeft - imgHeight + 10;
+                    pdf.addPage();
+                    pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+                    heightLeft -= (pageHeight - 20);
+                }
+
+                pdf.save(filename);
+                container.innerHTML = '';
+                return true;
+            } catch (error) {
+                console.error('PDF Error:', JSON.stringify(error));
+                throw error;
+            }
+        }
+
+        async function exportMembersPDF() {
+            showToast('جاري إنشاء التقرير...', 'info');
+
+            try {
+                const snapshot = await rootRef.child('members').once('value');
+                const today = new Date().toLocaleDateString('ar-SA');
+
+                let members = [];
+                let totalPaid = 0;
+                let paidCount = 0, partialCount = 0, unpaidCount = 0;
+
+                if (snapshot.exists()) {
+                    snapshot.forEach(child => {
+                        const m = child.val();
+                        members.push(m);
+                        totalPaid += Number(m.paidAmount) || 0;
+                        if ((m.paidAmount || 0) >= appSettings.requiredAmount) paidCount++;
+                        else if ((m.paidAmount || 0) > 0) partialCount++;
+                        else unpaidCount++;
+                    });
+                    members.sort((a, b) => a.name.localeCompare(b.name, 'ar'));
+                }
+
+                let tableRows = '';
+                members.forEach((member, index) => {
+                    const paid = member.paidAmount || 0;
+                    let status = 'لم يسدد';
+                    let statusColor = '#dc3545';
+                    if (paid > appSettings.requiredAmount) { status = 'متبرع'; statusColor = '#28a745'; }
+                    else if (paid >= appSettings.requiredAmount) { status = 'مسدد'; statusColor = '#28a745'; }
+                    else if (paid > 0) { status = 'جزئي'; statusColor = '#ffc107'; }
+
+                    tableRows += `
+                        <tr style="background:${index % 2 === 0 ? '#f8f9fa' : '#fff'}">
+                            <td style="padding:10px;border-bottom:1px solid #eee;text-align:center">${index + 1}</td>
+                            <td style="padding:10px;border-bottom:1px solid #eee">${escapeHtml(member.name)}</td>
+                            <td style="padding:10px;border-bottom:1px solid #eee;text-align:center">${paid.toLocaleString('ar-SA')} ريال</td>
+                            <td style="padding:10px;border-bottom:1px solid #eee;text-align:center;color:${statusColor};font-weight:bold">${status}</td>
+                            <td style="padding:10px;border-bottom:1px solid #eee;text-align:center;color:#666">${member.paidDate || '-'}</td>
+                        </tr>
+                    `;
+                });
+
+                const html = `
+                    <div style="background:linear-gradient(135deg,#0d7c5f,#095c46);color:#fff;padding:25px;text-align:center;border-radius:10px 10px 0 0">
+                        <h1 style="margin:0;font-size:24px">تقرير المساهمين</h1>
+                        <p style="margin:8px 0 0;opacity:0.9">${appSettings.eventName}</p>
+                        <p style="margin:5px 0 0;font-size:12px;opacity:0.8">${today}</p>
+                    </div>
+                    <div style="background:#e8f5f0;padding:20px;text-align:center;display:flex;justify-content:space-around;flex-wrap:wrap;gap:10px">
+                        <div><strong style="font-size:24px;color:#0d7c5f">${members.length}</strong><br><span style="color:#666;font-size:14px">إجمالي المساهمين</span></div>
+                        <div><strong style="font-size:24px;color:#28a745">${paidCount}</strong><br><span style="color:#666;font-size:14px">مسدد بالكامل</span></div>
+                        <div><strong style="font-size:24px;color:#ffc107">${partialCount}</strong><br><span style="color:#666;font-size:14px">سداد جزئي</span></div>
+                        <div><strong style="font-size:24px;color:#dc3545">${unpaidCount}</strong><br><span style="color:#666;font-size:14px">لم يسدد</span></div>
+                        <div><strong style="font-size:24px;color:#0d7c5f">${totalPaid.toLocaleString('ar-SA')}</strong><br><span style="color:#666;font-size:14px">إجمالي المحصّل (ريال)</span></div>
+                    </div>
+                    <table style="width:100%;border-collapse:collapse;margin-top:20px">
+                        <thead>
+                            <tr style="background:#0d7c5f;color:#fff">
+                                <th style="padding:12px;text-align:center">#</th>
+                                <th style="padding:12px;text-align:right">الاسم</th>
+                                <th style="padding:12px;text-align:center">المبلغ المدفوع</th>
+                                <th style="padding:12px;text-align:center">الحالة</th>
+                                <th style="padding:12px;text-align:center">تاريخ الدفع</th>
+                            </tr>
+                        </thead>
+                        <tbody>${tableRows || '<tr><td colspan="5" style="padding:30px;text-align:center;color:#666">لا يوجد مساهمين</td></tr>'}</tbody>
+                    </table>
+                `;
+
+                await generatePDFFromHTML(html, 'تقرير-المساهمين.pdf');
+                showToast('تم تصدير تقرير المساهمين', 'success');
+            } catch (error) {
+                console.error('Error:', JSON.stringify(error));
+                showToast('حدث خطأ أثناء التصدير', 'error');
+            }
+        }
+
+        async function exportExpensesPDF() {
+            showToast('جاري إنشاء التقرير...', 'info');
+
+            try {
+                const snapshot = await rootRef.child('expenses').once('value');
+                const today = new Date().toLocaleDateString('ar-SA');
+
+                let expenses = [];
+                let totalExpenses = 0;
+
+                if (snapshot.exists()) {
+                    snapshot.forEach(child => {
+                        const e = child.val();
+                        expenses.push(e);
+                        totalExpenses += Number(e.amount) || 0;
+                    });
+                    expenses.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+                }
+
+                let tableRows = '';
+                expenses.forEach((expense, index) => {
+                    tableRows += `
+                        <tr style="background:${index % 2 === 0 ? '#f8f9fa' : '#fff'}">
+                            <td style="padding:10px;border-bottom:1px solid #eee;text-align:center">${index + 1}</td>
+                            <td style="padding:10px;border-bottom:1px solid #eee">${escapeHtml(expense.description)}</td>
+                            <td style="padding:10px;border-bottom:1px solid #eee;text-align:center;color:#dc3545;font-weight:bold">${Number(expense.amount).toLocaleString('ar-SA')} ريال</td>
+                            <td style="padding:10px;border-bottom:1px solid #eee;text-align:center;color:#666">${expense.date || '-'}</td>
+                        </tr>
+                    `;
+                });
+
+                const html = `
+                    <div style="background:linear-gradient(135deg,#0d7c5f,#095c46);color:#fff;padding:25px;text-align:center;border-radius:10px 10px 0 0">
+                        <h1 style="margin:0;font-size:24px">تقرير المصروفات</h1>
+                        <p style="margin:8px 0 0;opacity:0.9">${appSettings.eventName}</p>
+                        <p style="margin:5px 0 0;font-size:12px;opacity:0.8">${today}</p>
+                    </div>
+                    <div style="background:#f8d7da;padding:20px;text-align:center">
+                        <strong style="font-size:28px;color:#dc3545">${totalExpenses.toLocaleString('ar-SA')} ريال</strong>
+                        <br><span style="color:#666;font-size:14px">إجمالي المصروفات</span>
+                    </div>
+                    <table style="width:100%;border-collapse:collapse;margin-top:20px">
+                        <thead>
+                            <tr style="background:#0d7c5f;color:#fff">
+                                <th style="padding:12px;text-align:center">#</th>
+                                <th style="padding:12px;text-align:right">الوصف</th>
+                                <th style="padding:12px;text-align:center">المبلغ</th>
+                                <th style="padding:12px;text-align:center">التاريخ</th>
+                            </tr>
+                        </thead>
+                        <tbody>${tableRows || '<tr><td colspan="4" style="padding:30px;text-align:center;color:#666">لا توجد مصروفات</td></tr>'}</tbody>
+                    </table>
+                `;
+
+                await generatePDFFromHTML(html, 'تقرير-المصروفات.pdf');
+                showToast('تم تصدير تقرير المصروفات', 'success');
+            } catch (error) {
+                console.error('Error:', JSON.stringify(error));
+                showToast('حدث خطأ أثناء التصدير', 'error');
+            }
+        }
+
+        async function exportSummaryPDF() {
+            showToast('جاري إنشاء التقرير الشامل...', 'info');
+
+            try {
+                const [membersSnap, expensesSnap, tasksSnap, eventsSnap] = await Promise.all([
+                    rootRef.child('members').once('value'),
+                    rootRef.child('expenses').once('value'),
+                    rootRef.child('tasks').once('value'),
+                    rootRef.child('events').once('value')
+                ]);
+
+                const today = new Date().toLocaleDateString('ar-SA');
+                const todayISO = new Date().toISOString().split('T')[0];
+
+                let totalCollected = 0, totalExpenses = 0;
+                let paidCount = 0, partialCount = 0, unpaidCount = 0;
+                let pendingTasks = 0, completedTasks = 0;
+                let upcomingEvents = 0;
+
+                if (membersSnap.exists()) {
+                    membersSnap.forEach(child => {
+                        const m = child.val();
+                        totalCollected += Number(m.paidAmount) || 0;
+                        if ((m.paidAmount || 0) >= appSettings.requiredAmount) paidCount++;
+                        else if ((m.paidAmount || 0) > 0) partialCount++;
+                        else unpaidCount++;
+                    });
+                }
+
+                if (expensesSnap.exists()) {
+                    expensesSnap.forEach(child => {
+                        totalExpenses += Number(child.val().amount) || 0;
+                    });
+                }
+
+                if (tasksSnap.exists()) {
+                    tasksSnap.forEach(child => {
+                        if (child.val().status === 'completed') completedTasks++;
+                        else pendingTasks++;
+                    });
+                }
+
+                if (eventsSnap.exists()) {
+                    eventsSnap.forEach(child => {
+                        if (child.val().date >= todayISO) upcomingEvents++;
+                    });
+                }
+
+                const remaining = totalCollected - totalExpenses;
+                const membersCount = membersSnap.numChildren() || 0;
+                const progress = membersCount > 0 ? Math.round((paidCount / membersCount) * 100) : 0;
+
+                const html = `
+                    <div style="background:linear-gradient(135deg,#0d7c5f,#095c46);color:#fff;padding:30px;text-align:center;border-radius:10px 10px 0 0">
+                        <h1 style="margin:0;font-size:28px">التقرير الشامل</h1>
+                        <p style="margin:10px 0 0;font-size:18px;opacity:0.95">${appSettings.eventName}</p>
+                        <p style="margin:8px 0 0;font-size:14px;opacity:0.8">${today}</p>
+                    </div>
+
+                    <div style="background:#e8f5f0;padding:25px;margin-top:20px;border-radius:10px">
+                        <h2 style="margin:0 0 20px;color:#0d7c5f;font-size:18px;text-align:center">💰 الملخص المالي</h2>
+                        <div style="display:flex;justify-content:space-around;flex-wrap:wrap;gap:15px;text-align:center">
+                            <div style="background:#fff;padding:15px 25px;border-radius:8px;min-width:120px">
+                                <strong style="font-size:24px;color:#0d7c5f">${totalCollected.toLocaleString('ar-SA')}</strong>
+                                <br><span style="color:#666;font-size:13px">المحصّل (ريال)</span>
+                            </div>
+                            <div style="background:#fff;padding:15px 25px;border-radius:8px;min-width:120px">
+                                <strong style="font-size:24px;color:#dc3545">${totalExpenses.toLocaleString('ar-SA')}</strong>
+                                <br><span style="color:#666;font-size:13px">المصروفات (ريال)</span>
+                            </div>
+                            <div style="background:#fff;padding:15px 25px;border-radius:8px;min-width:120px">
+                                <strong style="font-size:24px;color:${remaining >= 0 ? '#28a745' : '#dc3545'}">${remaining.toLocaleString('ar-SA')}</strong>
+                                <br><span style="color:#666;font-size:13px">المتبقي (ريال)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="background:#f8f9fa;padding:25px;margin-top:20px;border-radius:10px">
+                        <h2 style="margin:0 0 20px;color:#0d7c5f;font-size:18px;text-align:center">👥 ملخص المساهمين</h2>
+                        <div style="display:flex;justify-content:space-around;flex-wrap:wrap;gap:15px;text-align:center">
+                            <div><strong style="font-size:28px;color:#0d7c5f">${membersCount}</strong><br><span style="color:#666">إجمالي</span></div>
+                            <div><strong style="font-size:28px;color:#28a745">${paidCount}</strong><br><span style="color:#666">مسدد</span></div>
+                            <div><strong style="font-size:28px;color:#ffc107">${partialCount}</strong><br><span style="color:#666">جزئي</span></div>
+                            <div><strong style="font-size:28px;color:#dc3545">${unpaidCount}</strong><br><span style="color:#666">لم يسدد</span></div>
+                        </div>
+                        <div style="margin-top:20px;text-align:center">
+                            <div style="background:#ddd;border-radius:20px;height:25px;overflow:hidden;max-width:400px;margin:0 auto">
+                                <div style="background:linear-gradient(90deg,#0d7c5f,#d4a853);height:100%;width:${progress}%;border-radius:20px"></div>
+                            </div>
+                            <p style="margin:10px 0 0;color:#0d7c5f;font-weight:bold">نسبة الإنجاز: ${progress}%</p>
+                        </div>
+                    </div>
+
+                    <div style="background:#f8f9fa;padding:25px;margin-top:20px;border-radius:10px">
+                        <h2 style="margin:0 0 20px;color:#0d7c5f;font-size:18px;text-align:center">📋 المهام والمواعيد</h2>
+                        <div style="display:flex;justify-content:space-around;flex-wrap:wrap;gap:15px;text-align:center">
+                            <div><strong style="font-size:28px;color:#ffc107">${pendingTasks}</strong><br><span style="color:#666">مهام معلقة</span></div>
+                            <div><strong style="font-size:28px;color:#28a745">${completedTasks}</strong><br><span style="color:#666">مهام منجزة</span></div>
+                            <div><strong style="font-size:28px;color:#0d7c5f">${upcomingEvents}</strong><br><span style="color:#666">مواعيد قادمة</span></div>
+                        </div>
+                    </div>
+
+                    ${appSettings.eventDate ? `
+                        <div style="background:linear-gradient(135deg,#d4a853,#c49a47);padding:20px;margin-top:20px;border-radius:10px;text-align:center;color:#fff">
+                            <p style="margin:0;font-size:16px">📅 تاريخ الحدث</p>
+                            <strong style="font-size:22px">${appSettings.eventDate}</strong>
+                        </div>
+                    ` : ''}
+                `;
+
+                await generatePDFFromHTML(html, 'التقرير-الشامل.pdf');
+                showToast('تم تصدير التقرير الشامل', 'success');
+            } catch (error) {
+                console.error('Error:', JSON.stringify(error));
+                showToast('حدث خطأ أثناء التصدير', 'error');
+            }
+        }
+    </script>
+</body>
+</html>
