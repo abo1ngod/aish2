@@ -1143,7 +1143,6 @@
 <body>
     <div class="pattern-bg"></div>
 
-    <!-- Header -->
     <header class="header">
         <span class="crescent-star">☪</span>
         <span class="lantern">🏮</span>
@@ -1161,7 +1160,6 @@
         </div>
     </header>
 
-    <!-- Summary Card -->
     <div class="summary-card">
         <div class="summary-stats">
             <div class="stat-item">
@@ -1187,7 +1185,6 @@
         </div>
     </div>
 
-    <!-- Navigation Tabs -->
     <nav class="nav-tabs">
         <button class="nav-tab active" data-tab="members" onclick="switchTab('members')">
             <i class="fas fa-users"></i>
@@ -1207,9 +1204,7 @@
         </button>
     </nav>
 
-    <!-- Main Content -->
     <main class="main-content">
-        <!-- Members Tab -->
         <div class="tab-content active" id="members-tab">
             <div class="content-card">
                 <div class="content-header">
@@ -1231,7 +1226,6 @@
             </div>
         </div>
 
-        <!-- Expenses Tab -->
         <div class="tab-content" id="expenses-tab">
             <div class="content-card">
                 <div class="content-header">
@@ -1253,7 +1247,6 @@
             </div>
         </div>
 
-        <!-- Tasks Tab -->
         <div class="tab-content" id="tasks-tab">
             <div class="content-card">
                 <div class="content-header">
@@ -1275,7 +1268,6 @@
             </div>
         </div>
 
-        <!-- Events Tab -->
         <div class="tab-content" id="events-tab">
             <div class="content-card">
                 <div class="content-header">
@@ -1298,7 +1290,6 @@
         </div>
     </main>
 
-    <!-- Password Modal -->
     <div class="modal-overlay" id="passwordModal">
         <div class="modal">
             <div class="modal-header">
@@ -1324,7 +1315,6 @@
         </div>
     </div>
 
-    <!-- Admin Panel Modal -->
     <div class="modal-overlay" id="adminModal">
         <div class="modal" style="max-width: 500px;">
             <div class="modal-header">
@@ -1341,7 +1331,6 @@
                     <button class="admin-tab" onclick="switchAdminTab('reports')">التقارير</button>
                 </div>
 
-                <!-- Settings Tab -->
                 <div class="admin-content active" id="admin-settings">
                     <div class="admin-section">
                         <h4 class="admin-section-title">
@@ -1367,7 +1356,6 @@
                     </div>
                 </div>
 
-                <!-- Password Tab -->
                 <div class="admin-content" id="admin-password">
                     <div class="admin-section">
                         <h4 class="admin-section-title">
@@ -1393,7 +1381,6 @@
                     </div>
                 </div>
 
-                <!-- Reports Tab -->
                 <div class="admin-content" id="admin-reports">
                     <div class="admin-section">
                         <h4 class="admin-section-title">
@@ -1429,7 +1416,6 @@
         </div>
     </div>
 
-    <!-- Member Modal -->
     <div class="modal-overlay" id="memberModal">
         <div class="modal">
             <div class="modal-header">
@@ -1468,7 +1454,6 @@
         </div>
     </div>
 
-    <!-- Expense Modal -->
     <div class="modal-overlay" id="expenseModal">
         <div class="modal">
             <div class="modal-header">
@@ -1503,7 +1488,6 @@
         </div>
     </div>
 
-    <!-- Task Modal -->
     <div class="modal-overlay" id="taskModal">
         <div class="modal">
             <div class="modal-header">
@@ -1546,7 +1530,6 @@
         </div>
     </div>
 
-    <!-- Event Modal -->
     <div class="modal-overlay" id="eventModal">
         <div class="modal">
             <div class="modal-header">
@@ -1589,7 +1572,6 @@
         </div>
     </div>
 
-    <!-- Confirm Delete Modal -->
     <div class="modal-overlay" id="confirmModal">
         <div class="modal" style="max-width: 380px;">
             <div class="modal-header">
@@ -1618,14 +1600,11 @@
         </div>
     </div>
 
-    <!-- Toast Container -->
     <div class="toast-container" id="toastContainer"></div>
 
-    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
-    <!-- PDF Export Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
@@ -2768,15 +2747,15 @@
 
                 let heightLeft = imgHeight;
                 let position = 10;
-                const imgData = canvas.toDataURL('image/png');
+                const imgData = canvas.toDataURL('image/jpeg', 0.8);
 
-                pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+                pdf.addImage(imgData, 'JPEG', 10, position, imgWidth, imgHeight);
                 heightLeft -= (pageHeight - 20);
 
                 while (heightLeft > 0) {
                     position = heightLeft - imgHeight + 10;
                     pdf.addPage();
-                    pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+                    pdf.addImage(imgData, 'JPEG', 10, position, imgWidth, imgHeight);
                     heightLeft -= (pageHeight - 20);
                 }
 
