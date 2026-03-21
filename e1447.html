@@ -1253,6 +1253,296 @@
                 padding: 10px 8px;
             }
         }
+
+        /* ======= SURVEY MODAL ======= */
+        .survey-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(5px);
+            z-index: 7000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .survey-overlay.active {
+            display: flex;
+        }
+
+        .survey-box {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 480px;
+            width: 100%;
+            box-shadow: 0 10px 50px rgba(212, 175, 55, 0.3);
+            border: 2px solid var(--accent-gold);
+            animation: fadeInUp 0.4s ease;
+            position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .survey-close {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: none;
+            border: none;
+            font-size: 1.4rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.3s, transform 0.3s;
+            border-radius: 50%;
+        }
+
+        .survey-close:hover {
+            color: var(--accent-red);
+            transform: rotate(90deg);
+        }
+
+        .survey-greeting {
+            font-family: 'Aref Ruqaa', serif;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--accent-gold);
+            text-align: center;
+            margin-bottom: 25px;
+            line-height: 1.8;
+            padding: 15px;
+            background: rgba(212, 175, 55, 0.08);
+            border-radius: 12px;
+            border: 1px solid rgba(212, 175, 55, 0.2);
+        }
+
+        .survey-title {
+            font-family: 'Aref Ruqaa', serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent-gold);
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .survey-question {
+            margin-bottom: 18px;
+        }
+
+        .survey-question-label {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+
+        .star-rating {
+            display: flex;
+            direction: ltr;
+            gap: 4px;
+        }
+
+        .star-rating .star-btn {
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+            opacity: 0.4;
+            transition: transform 0.15s, color 0.15s, opacity 0.15s;
+            padding: 2px;
+        }
+
+        .star-rating .star-btn:hover {
+            transform: scale(1.2);
+        }
+
+        .star-rating .star-btn.filled {
+            color: var(--accent-gold);
+            opacity: 1;
+        }
+
+        .survey-textarea {
+            width: 100%;
+            min-height: 80px;
+            padding: 12px 15px;
+            border: 2px solid rgba(212, 175, 55, 0.3);
+            border-radius: 10px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-family: 'Cairo', sans-serif;
+            font-size: 16px;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+
+        .survey-textarea:focus {
+            outline: none;
+            border-color: var(--accent-gold);
+        }
+
+        .survey-submit {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--accent-gold) 0%, var(--accent-gold-light) 100%);
+            color: var(--bg-primary);
+            font-family: 'Cairo', sans-serif;
+            font-size: 17px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .survey-submit:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(212, 175, 55, 0.5);
+        }
+
+        .survey-submit:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .survey-thanks {
+            text-align: center;
+            padding: 30px 10px;
+            animation: fadeInUp 0.4s ease;
+        }
+
+        .survey-thanks-emoji {
+            font-size: 4rem;
+            margin-bottom: 15px;
+        }
+
+        .survey-thanks-text {
+            font-family: 'Aref Ruqaa', serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--accent-gold);
+            line-height: 1.8;
+        }
+
+        /* Admin Survey Results */
+        .survey-results-section {
+            margin-top: 30px;
+        }
+
+        .survey-results-title {
+            font-family: 'Aref Ruqaa', serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent-gold);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(212, 175, 55, 0.3);
+        }
+
+        .survey-result-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 15px;
+            box-shadow: 0 3px 10px var(--shadow);
+            border: 1px solid rgba(212, 175, 55, 0.15);
+        }
+
+        .survey-result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            font-weight: 700;
+            color: var(--accent-gold);
+        }
+
+        .survey-result-stars {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .survey-result-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.08);
+            font-size: 0.95rem;
+        }
+
+        .survey-result-row:last-child {
+            border-bottom: none;
+        }
+
+        .survey-result-label {
+            color: var(--text-secondary);
+        }
+
+        .survey-result-value {
+            color: var(--accent-gold);
+            font-weight: 700;
+            direction: ltr;
+        }
+
+        .survey-suggestion-item {
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            line-height: 1.5;
+            border-right: 3px solid var(--accent-gold);
+        }
+
+        .survey-avg-section {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 3px 10px var(--shadow);
+            border: 2px solid rgba(212, 175, 55, 0.3);
+        }
+
+        .survey-avg-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+        }
+
+        .survey-avg-item {
+            text-align: center;
+            padding: 10px;
+        }
+
+        .survey-avg-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 5px;
+        }
+
+        .survey-avg-value {
+            font-family: 'Aref Ruqaa', serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent-gold);
+        }
+
+        .survey-avg-stars-display {
+            color: var(--accent-gold);
+            font-size: 1rem;
+            margin-top: 3px;
+        }
     </style>
 </head>
 <body>
@@ -1349,6 +1639,18 @@
                         </tr>
                     </tbody>
                 </table>
+            </div>
+
+            <!-- Survey Results Section -->
+            <div class="survey-results-section" id="surveyResultsSection">
+                <h3 class="survey-results-title"><i class="fas fa-poll"></i> نتائج الاستفتاء</h3>
+                <div class="survey-avg-section" id="surveyAvgSection">
+                    <div class="survey-avg-grid" id="surveyAvgGrid">
+                        <div style="text-align:center; color:var(--text-secondary); padding:20px; grid-column:1/-1;">لا توجد ردود بعد</div>
+                    </div>
+                </div>
+                <div id="surveySuggestionsContainer"></div>
+                <div id="surveyDetailCards"></div>
             </div>
         </div>
     </div>
@@ -1508,6 +1810,72 @@
     <div class="photo-lightbox" id="photoLightbox">
         <button class="photo-lightbox-close" id="lightboxClose"><i class="fas fa-times"></i></button>
         <img id="lightboxImage" src="" alt="صورة مكبرة">
+    </div>
+
+    <!-- Survey Modal -->
+    <div class="survey-overlay" id="surveyModal">
+        <div class="survey-box">
+            <button class="survey-close" id="surveyCloseBtn"><i class="fas fa-times"></i></button>
+            <div id="surveyFormContent">
+                <div class="survey-greeting">
+                    عادت أعيادكم وأفراحكم<br>
+                    تستاهلون ما جاكم<br>
+                    ونلتقيكم في الأفراح القادمة إن شاء الله
+                </div>
+                <h3 class="survey-title">📋 استفتاء سريع</h3>
+
+                <div class="survey-question">
+                    <div class="survey-question-label">وش رايك في الفكرة؟</div>
+                    <div class="star-rating" data-question="idea">
+                        <button type="button" class="star-btn" data-value="1">★</button>
+                        <button type="button" class="star-btn" data-value="2">★</button>
+                        <button type="button" class="star-btn" data-value="3">★</button>
+                        <button type="button" class="star-btn" data-value="4">★</button>
+                        <button type="button" class="star-btn" data-value="5">★</button>
+                    </div>
+                </div>
+
+                <div class="survey-question">
+                    <div class="survey-question-label">وش رايك في طريقة التنفيذ؟</div>
+                    <div class="star-rating" data-question="execution">
+                        <button type="button" class="star-btn" data-value="1">★</button>
+                        <button type="button" class="star-btn" data-value="2">★</button>
+                        <button type="button" class="star-btn" data-value="3">★</button>
+                        <button type="button" class="star-btn" data-value="4">★</button>
+                        <button type="button" class="star-btn" data-value="5">★</button>
+                    </div>
+                </div>
+
+                <div class="survey-question">
+                    <div class="survey-question-label">وش رايك في التصميم؟</div>
+                    <div class="star-rating" data-question="design">
+                        <button type="button" class="star-btn" data-value="1">★</button>
+                        <button type="button" class="star-btn" data-value="2">★</button>
+                        <button type="button" class="star-btn" data-value="3">★</button>
+                        <button type="button" class="star-btn" data-value="4">★</button>
+                        <button type="button" class="star-btn" data-value="5">★</button>
+                    </div>
+                </div>
+
+                <div class="survey-question">
+                    <div class="survey-question-label">هل نعيدها في العيد القادم؟</div>
+                    <div class="star-rating" data-question="repeat">
+                        <button type="button" class="star-btn" data-value="1">★</button>
+                        <button type="button" class="star-btn" data-value="2">★</button>
+                        <button type="button" class="star-btn" data-value="3">★</button>
+                        <button type="button" class="star-btn" data-value="4">★</button>
+                        <button type="button" class="star-btn" data-value="5">★</button>
+                    </div>
+                </div>
+
+                <div class="survey-question">
+                    <div class="survey-question-label">أكتب لي اقتراحك</div>
+                    <textarea class="survey-textarea" id="surveySuggestion" placeholder="اكتب اقتراحك هنا..."></textarea>
+                </div>
+
+                <button class="survey-submit" id="surveySubmitBtn">إرسال التقييم ⭐</button>
+            </div>
+        </div>
     </div>
 
     <div id="confettiContainer"></div>
@@ -2510,6 +2878,7 @@
                 // Close button
                 document.getElementById('revealCloseBtn').addEventListener('click', function() {
                     overlay.remove();
+                    openSurveyModal();
                 });
             }, 5300);
         }
@@ -2799,8 +3168,229 @@
             }
         });
 
-        console.log('Phase 5 loaded: Winner cards + likes + celebrity');
+        // ======= PHASE 6: SURVEY SYSTEM =======
+        var surveysRef = rootRef.child('surveys');
+
+        var surveyRatings = { idea: 0, execution: 0, design: 0, repeat: 0 };
+
+        function openSurveyModal() {
+            // Reset form
+            surveyRatings = { idea: 0, execution: 0, design: 0, repeat: 0 };
+            var allStars = document.querySelectorAll('#surveyModal .star-btn');
+            for (var i = 0; i < allStars.length; i++) {
+                allStars[i].classList.remove('filled');
+            }
+            document.getElementById('surveySuggestion').value = '';
+            var formContent = document.getElementById('surveyFormContent');
+            // Remove thanks message if exists
+            var thanks = document.getElementById('surveyThanksMsg');
+            if (thanks) thanks.remove();
+            formContent.style.display = 'block';
+
+            document.getElementById('surveySubmitBtn').disabled = false;
+            document.getElementById('surveySubmitBtn').textContent = 'إرسال التقييم ⭐';
+
+            document.getElementById('surveyModal').classList.add('active');
+        }
+
+        function closeSurveyModal() {
+            document.getElementById('surveyModal').classList.remove('active');
+        }
+
+        // Close button
+        document.getElementById('surveyCloseBtn').addEventListener('click', closeSurveyModal);
+
+        // Close on clicking outside the box
+        document.getElementById('surveyModal').addEventListener('click', function(e) {
+            if (e.target === this) closeSurveyModal();
+        });
+
+        // Star rating interaction
+        document.getElementById('surveyModal').addEventListener('click', function(e) {
+            var starBtn = e.target.closest('.star-btn');
+            if (!starBtn) return;
+
+            var ratingContainer = starBtn.closest('.star-rating');
+            if (!ratingContainer) return;
+
+            var question = ratingContainer.getAttribute('data-question');
+            var value = parseInt(starBtn.getAttribute('data-value'));
+
+            surveyRatings[question] = value;
+
+            // Update stars visually
+            var stars = ratingContainer.querySelectorAll('.star-btn');
+            for (var i = 0; i < stars.length; i++) {
+                var starValue = parseInt(stars[i].getAttribute('data-value'));
+                if (starValue <= value) {
+                    stars[i].classList.add('filled');
+                } else {
+                    stars[i].classList.remove('filled');
+                }
+            }
+        });
+
+        // Submit survey
+        document.getElementById('surveySubmitBtn').addEventListener('click', function() {
+            var btn = this;
+
+            // Check that at least one rating is given
+            var hasRating = surveyRatings.idea > 0 || surveyRatings.execution > 0 || surveyRatings.design > 0 || surveyRatings.repeat > 0;
+            var suggestion = document.getElementById('surveySuggestion').value.trim();
+
+            if (!hasRating && !suggestion) {
+                showAlertDialog('تنبيه', 'الرجاء تقييم سؤال واحد على الأقل أو كتابة اقتراح');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading-spinner"></span> جاري الإرسال...';
+
+            var surveyData = {
+                idea: surveyRatings.idea,
+                execution: surveyRatings.execution,
+                design: surveyRatings.design,
+                repeat: surveyRatings.repeat,
+                suggestion: suggestion,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            };
+
+            surveysRef.push(surveyData).then(function() {
+                // Show thanks message
+                var formContent = document.getElementById('surveyFormContent');
+                formContent.style.display = 'none';
+
+                var thanksDiv = document.createElement('div');
+                thanksDiv.id = 'surveyThanksMsg';
+                thanksDiv.className = 'survey-thanks';
+                thanksDiv.innerHTML =
+                    '<div class="survey-thanks-emoji">🤩</div>' +
+                    '<div class="survey-thanks-text">شكراً لك على تقييمك!<br>كل عام وأنتم بخير</div>';
+
+                formContent.parentNode.appendChild(thanksDiv);
+
+                // Auto close after 3s
+                setTimeout(closeSurveyModal, 3000);
+            }).catch(function(error) {
+                console.log('Error saving survey:', error);
+                btn.disabled = false;
+                btn.textContent = 'إرسال التقييم ⭐';
+                showAlertDialog('خطأ', 'حدث خطأ أثناء الإرسال. حاول مرة أخرى.');
+            });
+        });
+
+        // ======= SURVEY RESULTS IN ADMIN PANEL =======
+        var surveyListenerActive = false;
+
+        function startSurveyListener() {
+            if (surveyListenerActive) return;
+            surveyListenerActive = true;
+
+            surveysRef.on('value', function(snapshot) {
+                var surveys = snapshot.val();
+                renderSurveyResults(surveys);
+            });
+        }
+
+        function renderSurveyResults(surveys) {
+            var avgGrid = document.getElementById('surveyAvgGrid');
+            var suggestionsContainer = document.getElementById('surveySuggestionsContainer');
+            var detailCards = document.getElementById('surveyDetailCards');
+
+            if (!surveys) {
+                avgGrid.innerHTML = '<div style="text-align:center; color:var(--text-secondary); padding:20px; grid-column:1/-1;">لا توجد ردود بعد</div>';
+                suggestionsContainer.innerHTML = '';
+                detailCards.innerHTML = '';
+                return;
+            }
+
+            var entries = [];
+            var keys = Object.keys(surveys);
+            for (var i = 0; i < keys.length; i++) {
+                entries.push(surveys[keys[i]]);
+            }
+
+            var totalCount = entries.length;
+            var sums = { idea: 0, execution: 0, design: 0, repeat: 0 };
+            var counts = { idea: 0, execution: 0, design: 0, repeat: 0 };
+            var suggestions = [];
+
+            for (var j = 0; j < entries.length; j++) {
+                var entry = entries[j];
+                if (entry.idea > 0) { sums.idea += entry.idea; counts.idea++; }
+                if (entry.execution > 0) { sums.execution += entry.execution; counts.execution++; }
+                if (entry.design > 0) { sums.design += entry.design; counts.design++; }
+                if (entry.repeat > 0) { sums.repeat += entry.repeat; counts.repeat++; }
+                if (entry.suggestion) {
+                    suggestions.push(entry.suggestion);
+                }
+            }
+
+            var questionLabels = {
+                idea: 'الفكرة',
+                execution: 'التنفيذ',
+                design: 'التصميم',
+                repeat: 'نعيدها؟'
+            };
+
+            // Render averages
+            var avgHTML = '';
+            var fields = ['idea', 'execution', 'design', 'repeat'];
+            for (var k = 0; k < fields.length; k++) {
+                var field = fields[k];
+                var avg = counts[field] > 0 ? (sums[field] / counts[field]).toFixed(1) : '—';
+                var starsHTML = '';
+                if (counts[field] > 0) {
+                    var avgNum = sums[field] / counts[field];
+                    for (var s = 1; s <= 5; s++) {
+                        if (s <= Math.round(avgNum)) {
+                            starsHTML += '<span style="color:var(--accent-gold);">★</span>';
+                        } else {
+                            starsHTML += '<span style="opacity:0.3;">★</span>';
+                        }
+                    }
+                }
+                avgHTML += '<div class="survey-avg-item">' +
+                    '<div class="survey-avg-label">' + questionLabels[field] + ' (' + counts[field] + ' رد)</div>' +
+                    '<div class="survey-avg-value">' + avg + ' / 5</div>' +
+                    '<div class="survey-avg-stars-display">' + starsHTML + '</div>' +
+                    '</div>';
+            }
+            avgHTML += '<div class="survey-avg-item">' +
+                '<div class="survey-avg-label">إجمالي الردود</div>' +
+                '<div class="survey-avg-value">' + totalCount + '</div>' +
+                '</div>';
+            avgGrid.innerHTML = avgHTML;
+
+            // Render suggestions
+            if (suggestions.length > 0) {
+                var sugHTML = '<div class="survey-result-card"><div class="survey-result-header">الاقتراحات (' + suggestions.length + ')</div>';
+                for (var m = 0; m < suggestions.length; m++) {
+                    var safeSuggestion = document.createElement('div');
+                    safeSuggestion.textContent = suggestions[m];
+                    sugHTML += '<div class="survey-suggestion-item">' + safeSuggestion.innerHTML + '</div>';
+                }
+                sugHTML += '</div>';
+                suggestionsContainer.innerHTML = sugHTML;
+            } else {
+                suggestionsContainer.innerHTML = '';
+            }
+
+            // Clear detail cards (optional: show individual responses)
+            detailCards.innerHTML = '';
+        }
+
+        // Hook into admin panel show to start survey listener
+        var originalShowAdminPanel = showAdminPanel;
+        showAdminPanel = function() {
+            originalShowAdminPanel();
+            startSurveyListener();
+        };
+
+        // Open survey automatically on page load
+        openSurveyModal();
+
+        console.log('Phase 6 loaded: Survey system');
     </script>
 </body>
 </html>
-
