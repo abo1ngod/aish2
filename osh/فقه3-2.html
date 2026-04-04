@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منهج الفقه - المرحلة الثانوية</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700&family=Tajawal:wght@400;700&family=Amiri:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #f4f7f9;
+            scroll-behavior: smooth;
+            line-height: 1.8;
+        }
+        h1, h2, h3, h4 {
+            font-family: 'Tajawal', sans-serif;
+        }
+        .quran-text {
+            font-family: 'Amiri', serif;
+            color: #1e40af;
+            font-size: 1.35rem;
+            line-height: 2.2;
+            text-align: center;
+            display: block;
+            padding: 1.25rem;
+            background: #eff6ff;
+            border-radius: 1rem;
+            margin: 1.5rem 0;
+            border: 1px solid #dbeafe;
+        }
+        .hadith-text {
+            font-family: 'Amiri', serif;
+            color: #92400e;
+            font-size: 1.2rem;
+            line-height: 1.8;
+            display: block;
+            border-right: 5px solid #d97706;
+            padding-right: 1.25rem;
+            margin: 1.5rem 0;
+            background: #fffbeb;
+            padding-top: 0.75rem;
+            padding-bottom: 0.75rem;
+        }
+        .lesson-container {
+            max-width: 850px;
+            margin: 0 auto;
+        }
+        .unit-header {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            color: white;
+            padding: 2rem 1.5rem;
+            border-radius: 1.5rem;
+            margin-bottom: 2.5rem;
+            text-align: center;
+            box-shadow: 0 10px 20px -5px rgba(30, 58, 138, 0.3);
+        }
+        .content-card {
+            background: white;
+            border-radius: 2rem;
+            padding: 2.5rem;
+            margin-bottom: 3rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+            border: 1px solid #e2e8f0;
+        }
+        .highlight-box {
+            background-color: #f8fafc;
+            border-radius: 1rem;
+            padding: 1.25rem;
+            margin: 1rem 0;
+            border-right: 4px solid #3b82f6;
+        }
+        /* Pulse Animation for Test Button */
+        @keyframes pulse-custom {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        .animate-pulse-slow {
+            animation: pulse-custom 2s infinite ease-in-out;
+        }
+        /* Mobile Specific */
+        @media (max-width: 640px) {
+            .content-card {
+                padding: 1.5rem;
+                border-radius: 1.25rem;
+            }
+            .quran-text {
+                font-size: 1.15rem;
+            }
+            header h1 {
+                font-size: 1.75rem !important;
+            }
+        }
+    </style>
+</head>
+<body class="text-gray-800 pb-16 px-4">
+
+    <!-- Header -->
+    <header class="max-w-4xl mx-auto pt-12 pb-8 text-center">
+        <h1 class="text-4xl md:text-5xl font-bold text-indigo-950 mb-8">كتاب الفقه الدراسي</h1>
+        
+        <div class="mb-8">
+            <h2 class="text-2xl md:text-3xl font-bold text-red-600 mb-6 bg-red-50 py-4 px-6 rounded-2xl inline-block border-2 border-red-100 shadow-sm">
+                بعد قراءة الدروس انقر هنا للاختبار
+            </h2>
+            <div class="flex justify-center">
+                <a href="https://ushayrah.com/osh" target="_blank" class="group flex flex-col items-center transition-all duration-300 transform hover:scale-110">
+                    <div class="bg-indigo-600 text-white p-6 rounded-full shadow-xl hover:bg-indigo-700 animate-pulse-slow">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                        </svg>
+                    </div>
+                    <span class="mt-3 text-indigo-800 font-bold text-lg">بدء الاختبار التفاعلي</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="h-1 w-24 bg-indigo-600 mx-auto mt-6 rounded-full"></div>
+    </header>
+
+    <div class="lesson-container">
+
+        <!-- الوحدة الأولى -->
+        <div class="unit-header">
+            <h2 class="text-2xl md:text-3xl font-bold">الوحدة الأولى: مقدمة في الفقه</h2>
+        </div>
+
+        <!-- الدرس 1 -->
+        <article class="content-card">
+            <h3 class="text-2xl font-bold text-indigo-900 mb-6 flex items-center">
+                <span class="bg-indigo-100 text-indigo-700 w-10 h-10 rounded-full flex items-center justify-center ml-3 text-lg italic">1</span>
+                الدرس 1: تعريف الفقه ونشأته ومدارسه
+            </h3>
+            
+            <div class="quran-text">
+                قال الله تعالى: ﴿فَمَالِ هَؤُلَاءِ الْقَوْمِ لَا يَكَادُونَ يَفْقَهُونَ حَدِيثًا﴾.
+            </div>
+
+            <p class="mb-4">والفقه في اللغة يعني: <strong>الفهم</strong>.</p>
+            <p class="mb-6">أما في الاصطلاح: فهو <strong>معرفة الأحكام الشرعية العملية من أدلتها التفصيلية</strong>.</p>
+
+            <h4 class="text-xl font-bold text-indigo-800 mb-4 mt-8">معنى التعريف ومحترزاته:</h4>
+            <div class="space-y-4">
+                <div class="highlight-box">
+                    <strong>- الأحكام الشرعية:</strong> المستفادة من الشرع، ويخرج بها الأحكام العقلية أو التجريبية (كعلم اللغة والطب والهندسة).
+                </div>
+                <div class="highlight-box">
+                    <strong>- العملية:</strong> المتعلقة بأفعال الجوارح (كالصلاة والحج)، ويخرج بها الأحكام الاعتقادية (كأسماء الله وصفاته).
+                </div>
+                <div class="highlight-box">
+                    <strong>- أدلتها التفصيلية:</strong> كآية الوضوء الدالة على فروضه. ويخرج بها: علم المقلد (لأنه ليس بفقيه)، والأدلة الإجمالية كحجية الإجماع والقياس (فهي تُدرس في علم أصول الفقه).
+                </div>
+            </div>
+
+            <h4 class="text-xl font-bold text-indigo-800 mb-4 mt-10">نشأة علم الفقه:</h4>
+            <p class="text-gray-700 mb-6">تلقى الصحابة الفقه مباشرة من النبي ﷺ عبر القرآن والسنة، وسألوه عما يشكل عليهم. وبعد وفاته ﷺ اعتمدوا على القرآن والسنة، فإن لم يجدوا تشاوروا واجتهدوا وقاسوا على النصوص. وقد يجمعون على حكم (كقتال مانعي الزكاة) أو يختلفون (كميراث الجد مع الإخوة).</p>
+
+            <h4 class="text-xl font-bold text-indigo-800 mb-4 mt-10">الشريعة والفقه:</h4>
+            <p class="mb-4"><strong>الشريعة:</strong> دين الله الشامل للعقائد والأحكام والأخلاق. <strong>والفقه:</strong> الأحكام العملية المستفادة من اجتهاد الفقهاء.</p>
+            
+            <div class="bg-indigo-50 p-6 rounded-2xl my-6">
+                <p class="font-bold text-indigo-900 mb-4">مر التشريع الإسلامي والفقه بخمسة أدوار:</p>
+                <ol class="space-y-3 list-decimal list-inside pr-2 text-indigo-950">
+                    <li>التشريع في عهد الرسول والصحابة.</li>
+                    <li>دور تأسيس الفقه (41هـ - 132هـ).</li>
+                    <li>دور نهضة الفقه وتدوينه وتأسيس المذاهب (وفيه ظهر الأئمة الأربعة).</li>
+                    <li>دور التقليد والتقليل من الاجتهاد واستقرار المذاهب.</li>
+                    <li>دور فتح باب الاجتهاد للمؤهلين وإثبات صلاحية الشريعة لكل زمان ومكان.</li>
+                </ol>
+            </div>
+
+            <h4 class="text-xl font-bold text-indigo-800 mb-4 mt-10">مدارس الفقه وأسباب ظهورها:</h4>
+            <p class="mb-6">انتشر الصحابة لتعليم الناس، فظهرت حواضر علمية أهمها: المدينة (الخلفاء الأربعة)، مكة (ابن عباس)، الكوفة (ابن مسعود وعلي)، البصرة (أنس وجابر)، الشام (معاذ وأبو الدرداء)، ومصر (عمرو بن العاص).</p>
+            
+            <div class="grid md:grid-cols-2 gap-4">
+                <div class="border border-indigo-100 p-5 rounded-xl bg-white shadow-sm">
+                    <p class="font-bold text-indigo-700 mb-2">1. مدرسة الأثر (المدينة):</p>
+                    <p class="text-sm">اعتمدت على الأحاديث والآثار لكثرتها لديهم وقلة النوازل. أشهر علمائها: "فقهاء المدينة السبعة" (كسعيد بن المسيب وعروة بن الزبير).</p>
+                </div>
+                <div class="border border-indigo-100 p-5 rounded-xl bg-white shadow-sm">
+                    <p class="font-bold text-indigo-700 mb-2">2. مدرسة الرأي (الكوفة/العراق):</p>
+                    <p class="text-sm">كثر عندهم الأخذ بالرأي لكثرة الحوادث وقلة الأحاديث، فاستنبطوا بالتأمل. أشهر علمائها: علقمة وإبراهيم النخعي.</p>
+                </div>
+            </div>
+
+            <h4 class="text-xl font-bold text-indigo-800 mb-6 mt-10">ظهور المذاهب المتبوعة (المذاهب الأربعة):</h4>
+            <p class="mb-4 text-gray-600 italic">برز علماء التف حولهم الطلاب ودونوا مذاهبهم، وهم متفقون في أصول الدين وإن اختلفوا في الفروع:</p>
+            <div class="space-y-4">
+                <div class="bg-slate-50 p-4 rounded-xl border-r-4 border-indigo-600"><strong>1. الحنفية:</strong> الإمام أبو حنيفة النعمان. اهتم بتفريع المسائل والفقه الافتراضي، ونشر مذهبه تلميذه أبو يوسف.</div>
+                <div class="bg-slate-50 p-4 rounded-xl border-r-4 border-indigo-600"><strong>2. المالكية:</strong> الإمام مالك بن أنس. صار مرجعاً بالمدينة، ونشر طلابه علمه بمصر والمغرب.</div>
+                <div class="bg-slate-50 p-4 rounded-xl border-r-4 border-indigo-600"><strong>3. الشافعية:</strong> الإمام محمد بن إدريس الشافعي. جمع بين فقه المدرستين، وله مذهب قديم بالعراق وجديد بمصر.</div>
+                <div class="bg-slate-50 p-4 rounded-xl border-r-4 border-indigo-600"><strong>4. الحنابلة:</strong> الإمام أحمد بن حنبل. اهتم بجمع الحديث، وانتشر مذهبه في العراق.</div>
+            </div>
+        </article>
+
+        <!-- الدرس 2 -->
+        <article class="content-card">
+            <h3 class="text-2xl font-bold text-indigo-900 mb-6 flex items-center">
+                <span class="bg-indigo-100 text-indigo-700 w-10 h-10 rounded-full flex items-center justify-center ml-3 text-lg italic">2</span>
+                الدرس 2: أسباب خلاف العلماء
+            </h3>
+            
+            <div class="quran-text">
+                قال تعالى: ﴿وَدَاوُدَ وَسُلَيْمَنَ إِذْ يَحْكُمَانِ فِي الْحَرْثِ... فَفَهَمْنَاهَا سُلَيْمَنَ وَكُلًّا ءَاتَيْنَا حُكْمًا وَعِلْمًا﴾.
+            </div>
+
+            <p class="mb-4">العلماء يجتهدون لبيان الحق، فالمصيب له أجران والمخطئ له أجر،</p>
+            <div class="hadith-text">لقولهﷺ: «إذا حكم الحاكم فاجتهد ثم أصاب فله أجران، وإذا حكم فاجتهد ثم أخطأ فله أجر».</div>
+
+            <h4 class="text-xl font-bold text-indigo-800 mb-6 mt-10">أهم أسباب الخلاف:</h4>
+            <ul class="space-y-6">
+                <li class="border-b border-gray-100 pb-4"><strong>1. عدم سماع العالم بالدليل:</strong> كإنكار عائشة على ابن عمرو أمره للنساء بنقض رؤوسهن بالغسل، مستدلة باغتسالها مع النبي ﷺ دون نقض.</li>
+                <li class="border-b border-gray-100 pb-4"><strong>2. الاختلاف في صحة الحديث:</strong> كحديث "العينة"، ضعّفه الشافعي وصححه الجمهور.</li>
+                <li class="border-b border-gray-100 pb-4"><strong>3. دعوى النسخ:</strong> كاختلافهم في الفطر بالحجامة؛ المانع استدل باحتجامه ﷺ صائماً، والمثبت استدل بـ«أفطر الحاجم والمحجوم» ورأى أن الأول منسوخ.</li>
+                <li class="border-b border-gray-100 pb-4"><strong>4. تعارض الأدلة:</strong> كالنهي عن استقبال القبلة واستدبارها بالغائط، مع حديث ابن عمر برؤيته للنبي ﷺ مستدبر القبلة ومستقبل الشام لحاجته.</li>
+                <li class="border-b border-gray-100 pb-4"><strong>5. اختلاف تفسير اللفظ:</strong> كلفظ ﴿أَوْ لَمَسْتُمُ النِّسَاءَ﴾، هل ينقض الوضوء بمجرد اللمس أم يُقصد به الجماع؟</li>
+                <li class="border-b border-gray-100 pb-4"><strong>6. الخلاف في قاعدة أصولية:</strong> كالاحتجاج بفعل الصحابي، مثل رفع ابن عمر يديه بتكبيرات الجنازة.</li>
+                <li class="border-b border-gray-100 pb-4"><strong>7. اختلاف فهم الحديث:</strong> كحديث "ذي اليدين"؛ هل سجود السهو يكون بعد السلام فقط عند النقص أم عند أي زيادة؟</li>
+                <li class="border-b border-gray-100 pb-4"><strong>8. عدم وجود نص صريح:</strong> فيجتهدون بناءً على القواعد الشرعية، كحكم الإجارة المنتهية بالتمليك.</li>
+            </ul>
+
+            <h4 class="text-xl font-bold text-indigo-800 mb-4 mt-10">الموقف من خلاف العلماء:</h4>
+            <div class="grid gap-3">
+                <div class="bg-gray-50 p-4 rounded-xl">1. احترامهم وإجلالهم، فالمخطئ معذور ومأجور.</div>
+                <div class="bg-gray-50 p-4 rounded-xl">2. اتفاقهم في أصول الشريعة، وخلافهم محصور في الفروع.</div>
+                <div class="bg-gray-50 p-4 rounded-xl">3. التعظيم يجب أن يكون للنصوص الشرعية لا للأشخاص.</div>
+                <div class="bg-gray-50 p-4 rounded-xl">4. تحريم التعصب لقول عالم إذا تبين أن الحق مع غيره.</div>
+            </div>
+        </article>
+
+        <!-- الدرس 3 -->
+        <article class="content-card">
+            <h3 class="text-2xl font-bold text-indigo-900 mb-6 flex items-center">
+                <span class="bg-indigo-100 text-indigo-700 w-10 h-10 rounded-full flex items-center justify-center ml-3 text-lg italic">3</span>
+                الدرس 3: الفتوى والاستفتاء
+            </h3>
+            <p class="mb-6">يجب على الجاهل سؤال العلماء:</p>
+            <div class="quran-text">
+                ﴿فَسْتَلُوا أَهْلَ الذِّكْرِ إِن كُنتُمْ لَا تَعْلَمُونَ﴾.
+            </div>
+            <p class="mb-8">وإذا اختلفوا، اجتهد القادر في الترجيح، والمقلد يتبع الأوثق في علمه ودينه بلا اتباع للهوى: ﴿وَلَا تَتَّبِعِ الْهَوَى فَيُضِلَّكَ عَن سَبِيلِ اللهِ﴾.</p>
+
+            <h4 class="text-xl font-bold text-red-800 mb-6">تعظيم شأن الفتيا:</h4>
+            <p class="mb-4">كان السلف يتحاشون الفتيا لخشيتهم من الله،</p>
+            <div class="hadith-text">قال ﷺ: «...حتى إذا لم يبق عالما اتخذ الناس رؤوسا جهالا، فسئلوا فأفتوا بغير علم، فضلوا وأضلوا».</div>
+            <p class="mt-6 text-gray-700">وكان الإمام مالك وأحمد يكثران من قول: <strong>"لا أدري"</strong>، وغضب مالك حين قيل عن مسألة إنها خفيفة، فقال: <strong>"ليس في العلم شيء خفيف"</strong>.</p>
+        </article>
+
+        <!-- الوحدة الثانية -->
+        <div class="unit-header" style="background: linear-gradient(135deg, #065f46 0%, #10b981 100%);">
+            <h2 class="text-2xl md:text-3xl font-bold">الوحدة الثانية: فقه الأسرة (1)</h2>
+        </div>
+
+        <!-- الدرس 4 -->
+        <article class="content-card">
+            <h3 class="text-2xl font-bold text-emerald-900 mb-6 border-b-4 border-emerald-100 pb-2">الدرس 4: المراد بفقه الأسرة</h3>
+            <p class="mb-6">هي الأحكام المتعلقة ببناء الأسرة بالزواج، والتعامل بين الزوجين، وانتهاء العقد بالطلاق أو الفسخ، وأحكام النفقة والعدة.</p>
+            
+            <h4 class="font-bold text-emerald-700 text-lg mb-2">عناية الإسلام بالأسرة:</h4>
+            <p class="mb-8 text-gray-700">اهتم بها كنواة للمجتمع، تساهم في الاستقرار النفسي والبناء الفكري السليم للإنسان.</p>
+
+            <h4 class="font-bold text-emerald-700 text-xl mb-4 border-r-4 border-emerald-500 pr-3">الزواج:</h4>
+            <p class="mb-6">عقد بأركان وشروط، يوجب حقوقاً وواجبات، غايته الإحصان وبناء أسرة مستقرة.</p>
+            
+            <p class="font-bold text-gray-900 mb-2">حكمه: سنة مؤكدة؛</p>
+            <div class="quran-text" style="background: #ecfdf5; color: #065f46; border-color: #d1fae5;">
+                ﴿فَانكِحُوا مَا طَابَ لَكُم مِّنَ النِّسَاءِ﴾
+            </div>
+            <div class="hadith-text" style="border-color: #10b981; background: #f0fdf4; color: #064e3b;">
+                وقوله ﷺ: «يا معشر الشباب من استطاع منكم الباءة فليتزوج...».
+            </div>
+            <p class="mb-8 font-medium">وهو سنة المرسلين: ﴿وَجَعَلْنَا لَهُمْ أَزْواجاً وَذُرِّيَّةً﴾.</p>
+
+            <h4 class="font-bold text-emerald-700 text-lg mb-3">حكمته:</h4>
+            <ul class="list-disc list-inside space-y-2 text-gray-700 mb-8">
+                <li>سكن ومودة: ﴿لِتَسْكُنُوا إِلَيْهَا وَجَعَلَ بَيْنَكُم مَّوَدَّةً وَرَحْمَةً﴾</li>
+                <li>تكثير النسل.</li>
+                <li>حفظ الأنساب.</li>
+                <li>غض البصر.</li>
+            </ul>
+
+            <h4 class="font-bold text-emerald-700 text-lg mb-4">معايير الاختيار:</h4>
+            <p class="mb-4">ركز الشرع على الدين والخلق.</p>
+            <div class="hadith-text" style="border-color: #10b981; background: #f0fdf4; color: #064e3b;">
+                قال ﷺ: «فاظفر بذات الدين تربت يداك»، و«إذا خطب إليكم من ترضون دينه وخلقه فزوجوه».
+            </div>
+            <p class="mt-4 text-gray-700">كإشارة النبي ﷺ لفاطمة بنت قيس بالزواج من أسامة بن زيد فكان فيه الخير لها.</p>
+        </article>
+
+        <!-- الدرس 5 -->
+        <article class="content-card">
+            <h3 class="text-2xl font-bold text-emerald-900 mb-6 border-b-4 border-emerald-100 pb-2">الدرس 5: الخطبة</h3>
+            <p class="mb-6 text-lg"><strong>تعريفها:</strong> طلب الزواج والوعد به.</p>
+
+            <h4 class="font-bold text-emerald-700 text-xl mb-6 mt-8">أحكامها:</h4>
+            <div class="space-y-4">
+                <div class="bg-gray-50 p-4 rounded-xl">1. المخطوبة أجنبية، ولا تجوز الخلوة بها.</div>
+                <div class="bg-gray-50 p-4 rounded-xl">
+                    2. يستحب النظر للمخطوبة لمعرفة ما يدعو لنكاحها (في حدود ما تكشفه لمحارمها كالشعر). 
+                    <span class="block mt-2 font-bold text-emerald-800 italic">قال ﷺ: «انظر إليها، فإنه أحرى أن يؤدم بينكما».</span>
+                    ويجب الستر عليها إن لم تعجبه.
+                </div>
+                <div class="bg-red-50 p-5 rounded-xl border-r-4 border-red-500">
+                    <p class="font-bold text-red-800 mb-2">3. تحرم الخطبة في حالتين:</p>
+                    <ul class="list-disc list-inside space-y-2 text-red-950 text-sm md:text-base">
+                        <li>الخطبة على خطبة أخيه المسلم، لقوله ﷺ: «ولا يخطب الرجل على خطبة أخيه» (بشرط علم الخاطب الثاني وميلهم للأول).</li>
+                        <li>خطبة المعتدة تصريحاً: ﴿وَلَا تَعْزِمُوا عُقْدَةَ النِّكَاحِ حَتَّى يَبْلُغَ الْكِتَابُ أَجَلَهُ﴾، ويجوز التعريض (التلميح) لوفاة زوجها.</li>
+                    </ul>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-xl">4. عرض الزواج على الرجل الصالح: مشروع كقصة صاحب مدين مع موسى، وعرض عمر ابنته حفصة على عثمان وأبي بكر ثم تزويجها للنبي ﷺ.</div>
+                <div class="bg-gray-50 p-4 rounded-xl">5. الاستشارة: مشروعة للخاطب والمخطوبة، كاستشارة فاطمة بنت قيس للنبيﷺ، وذكر المساوئ للتقييم لا يُعد غيبة.</div>
+                <div class="bg-gray-50 p-4 rounded-xl">6. صلاة الاستخارة: مشروعة بركعتين والدعاء الوارد.</div>
+            </div>
+        </article>
+
+        <!-- الدرس 6 -->
+        <article class="content-card">
+            <h3 class="text-2xl font-bold text-emerald-900 mb-8 border-b-4 border-emerald-100 pb-2">الدرس 6: أركان الزواج وشروطه</h3>
+            
+            <h4 class="font-bold text-emerald-700 text-xl mb-6">أركانه ثلاثة:</h4>
+            <ol class="space-y-4 mb-10 pr-4 text-gray-700 list-decimal list-inside">
+                <li class="bg-emerald-50 p-3 rounded-lg">الزوجان الخاليان من الموانع الشرعية.</li>
+                <li class="bg-emerald-50 p-3 rounded-lg">الإيجاب: لفظ التزويج من الولي (كـ زوجتك).</li>
+                <li class="bg-emerald-50 p-3 rounded-lg">القبول: لفظ الموافقة من الزوج (كـ قبلت).</li>
+            </ol>
+
+            <h4 class="font-bold text-emerald-700 text-xl mb-6">شروطه خمسة:</h4>
+            <div class="space-y-4 mb-10 text-gray-800">
+                <div class="p-4 border-b border-gray-100">1. تعيين الزوجين بما ينفي الجهالة.</div>
+                <div class="p-4 border-b border-gray-100">2. رضا الزوجين: لا يجوز الإجبار. ورضا البكر سكوتها، لقوله ﷺ: «وإذنها أن تسكت».</div>
+                <div class="p-4 border-b border-gray-100">3. الإيجاب من الولي: لقوله ﷺ: «لا نكاح إلا بولي». وترتيبهم: الأب، ثم وصيه، ثم الجد، فالابن، فالأخ، فالعم، ثم القاضي. ويجب أن يراعي الولي مصلحة موليته.</div>
+                <div class="p-4 border-b border-gray-100">4. شهادة شاهدين: لقوله ﷺ: «لا نكاح إلا بولي وشاهدي عدل».</div>
+                <div class="p-4 border-b border-gray-100">5. خلو المرأة من الموانع (ألا تكون محرمة تحريماً مؤبداً أو مؤقتاً).</div>
+            </div>
+            <p class="font-bold text-indigo-900 bg-indigo-50 p-4 rounded-xl text-center">الكفاءة: تُعتبر حين العقد بصلاح الدين والعرف.</p>
+        </article>
+
+        <!-- الدرس 7 -->
+        <article class="content-card">
+            <h3 class="text-2xl font-bold text-emerald-900 mb-6 border-b-4 border-emerald-100 pb-2">الدرس 7: المحرمات من النساء</h3>
+            <p class="mb-6">المحرمات من النساء هن اللاتي لا يجوز للرجل أن يتزوج بهن.</p>
+            <div class="quran-text" style="background: #ecfdf5; color: #065f46; border-color: #d1fae5;">
+                ﴿حُرِّمَتْ عَلَيْكُمْ أُمَّهَاتُكُمْ وَبَنَاتُكُمْ وَأَخَواتُكُمْ...﴾ الآيتين.
+            </div>
+            <p class="mb-8">وبين النبي ﷺ الباقي بقوله: «لا يجمع بين المرأة وعمتها ولا بين المرأة وخالتها»، وقوله: «يحرم من الرضاعة ما يحرم من النسب».</p>
+
+            <h4 class="text-xl font-bold text-red-900 mb-6 border-r-4 border-red-600 pr-3">القسم الأول: المُحَرَّمات حرمة مؤبدة</h4>
+            <div class="space-y-4 mb-10">
+                <div class="bg-red-50 p-5 rounded-2xl">
+                    <p class="font-bold text-red-950 mb-2">أولاً: المُحرمات بسبب النسب:</p>
+                    <p class="text-sm md:text-base">(1. أمهات الرجل وجداته. 2. بناته وحفيداته. 3. الأخوات. 4. العمات والخالات. 5. بنات الإخوة وبنات الأخوات).</p>
+                </div>
+                <div class="bg-red-50 p-5 rounded-2xl">
+                    <p class="font-bold text-red-950 mb-2">ثانياً: المُحرمات بسبب المصاهرة:</p>
+                    <ul class="list-disc list-inside space-y-2 text-sm md:text-base">
+                        <li>1. زوجات الأبناء والأحفاد. 2. زوجات الآباء والأجداد. 3. أم الزوجة وجداتها (يحرمن بمجرد العقد على الزوجة، فلا يجوز زواجهن حتى لو طلق الزوجة قبل الدخول).</li>
+                        <li>4. بنات الزوجة "الربائب": ويشترط في تحريمهن أن يكون الزوج قد دخل بأمهن، فإن لم يدخل بها فلا تحرم عليه ابنتها.</li>
+                    </ul>
+                </div>
+                <div class="bg-red-50 p-5 rounded-2xl">
+                    <p class="font-bold text-red-950 mb-2">ثالثاً: المُحَرَّمات بالرضاعة:</p>
+                    <p class="text-sm md:text-base">كل من تحرم من النسب تحرم من الرضاعة (كالأم والأخت والعمة والخالة من الرضاعة). والتحريم يقتصر على الرضيع وأولاده فقط، ولا ينتشر لإخوانه من النسب؛ فيجوز لأخيه أن يتزوج أخته أو أمه من الرضاعة.</p>
+                </div>
+            </div>
+
+            <h4 class="text-xl font-bold text-orange-800 mb-6 border-r-4 border-orange-500 pr-3">القسم الثاني: المُحَرَّمات حُرمة مؤقتة</h4>
+            <div class="space-y-4 text-orange-950">
+                <div class="bg-orange-50 p-5 rounded-2xl">
+                    <p class="font-bold mb-2">أولاً: ما يحرم بسبب الجمع:</p>
+                    <p>1. أخت الزوجة: يحرم الجمع بين الأختين، وتجوز أختها لو ماتت الزوجة أو طلقها وانتهت عدتها. 2. عمة الزوجة وخالتها. 3. الزوجة الخامسة لمن كان متزوجاً بأربع نسوة.</p>
+                </div>
+                <div class="bg-orange-50 p-5 rounded-2xl">
+                    <p class="font-bold mb-2">ثانياً: المُحَرَّمات لأجل أمر قابل للزوال:</p>
+                    <ol class="list-decimal list-inside space-y-3 mt-2">
+                        <li>النساء المتزوجات.</li>
+                        <li>المعتدة من زوج آخر: لقوله تعالى: ﴿وَلَا تَعْزِمُوا عُقْدَةَ النِّكَاحِ حَتَّى يَبْلُغَ الْكِتَابُ أَجَلَهُ﴾.</li>
+                        <li>مطلقته ثلاثاً: لا تحل له حتى تتزوج زوجاً غيره نكاح رغبة (لا تحليل)، فإذا دخل بها الثاني وطلقها جاز للأول زواجها، لقوله تعالى: ﴿فَإِن طَلَّقَهَا فَلَا تَحِلُّ لَهُ مِنْ بَعْدُ حَتَّى تَنكِحَ زَوْجًا غَيْرَهُ...﴾.</li>
+                        <li>المُحرمة بحج أو عمرة: لقوله ﷺ: «لا يَنكِح المحرم ولا يُنكِح ولا يخطب».</li>
+                        <li>المشركة حتى تسلم: ﴿وَلَا تَنكِحُوا الْمُشْرِكَاتِ حَتَّى يُؤْمِنَّ...﴾، ويُستثنى الكتابيات العفيفات (اليهود والنصارى) لقوله تعالى: ﴿وَالْمُحْصَنَاتُ مِنَ الَّذِينَ أُوتُوا الْكِتَابَ...﴾، ورغم جوازه فإنه مكروه إذا تيسرت المسلمة لقولهﷺ: «فاظفر بذات الدين تربت يداك».</li>
+                        <li>الزانية حتى تتوب: لقوله تعالى: ﴿وَالزَّانِيَةُ لَا يَنكِحُهَا إِلَّا زَانٍ أَوْ مُشْرِكٌ...﴾.</li>
+                    </ol>
+                </div>
+            </div>
+        </article>
+
+        <!-- الدرس 8 -->
+        <article class="content-card">
+            <h3 class="text-2xl font-bold text-emerald-900 mb-6 border-b-4 border-emerald-100 pb-2">الدرس 8: الشروط في الزواج</h3>
+            <p class="mb-6 text-gray-700 italic">هي ما يشترطه أحد الزوجين في عقد الزواج.</p>
+            
+            <h4 class="font-bold text-emerald-800 text-lg mb-4">أنواع الشروط:</h4>
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="p-5 border-2 border-emerald-50 bg-white rounded-2xl shadow-sm">
+                    <p class="font-bold text-emerald-900 mb-3">القسم الأول: الشروط الصحيحة الجائزة:</p>
+                    <p class="text-sm leading-relaxed mb-4">أن يشترط أحدهما ما له فيه مصلحة ولا يخالف الشرع أو مقتضى العقد. مثل: اشتراط الزوجة إكمال دراستها، أو الاستمرار بوظيفتها، أو سكنها بمدينة معينة.</p>
+                    <p class="text-xs bg-emerald-100 p-2 rounded"><strong>حكمها:</strong> الوفاء بها واجب؛ لقوله ﷺ: «أحق الشروط أن توفوا به ما استحللتم به الفروج»، وقول عمر: «مقاطع الحقوق عند الشروط».</p>
+                </div>
+                <div class="p-5 border-2 border-red-50 bg-white rounded-2xl shadow-sm">
+                    <p class="font-bold text-red-800 mb-3">القسم الثاني: الشروط الفاسدة المحرمة:</p>
+                    <p class="text-sm leading-relaxed">وهي المخالفة للشرع أو لمقتضى العقد. مثل: اشتراط طلاق الزوجة الأولى؛ لقوله ﷺ: «لا يحل لامرأة أن تسأل طلاق أختها لتستفرغ صحفتها...»، أو اشتراط أن يكون النكاح مؤقتاً بشهر أو نحوه.</p>
+                </div>
+            </div>
+        </article>
+
+        <!-- الدرس 9 -->
+        <article class="content-card">
+            <h3 class="text-2xl font-bold text-emerald-900 mb-6 border-b-4 border-emerald-100 pb-2">الدرس 9: صور محرمة في الزواج</h3>
+            <p class="mb-8 text-gray-700">أكرم الإسلام المرأة وحفظ كرامتها، وحرم صور الظلم والتقاليد التي تسلبها حقها في اختيار الزوج، ومنها:</p>
+            
+            <div class="space-y-4 mb-10">
+                <div class="bg-slate-50 p-4 rounded-xl border-r-4 border-slate-400"><strong>الزواج لأجل (المتعة):</strong> الاتفاق على الزواج لمدة محددة. دليله: حديث علي أن رسول الله ﷺ نهى عن متعة النساء يوم خيبر.</div>
+                <div class="bg-slate-50 p-4 rounded-xl border-r-4 border-slate-400"><strong>زواج الشغار:</strong> أن يزوج الرجل موليته للآخر على أن يزوجه الآخر موليته. دليله: حديث ابن عمر أن النبي ﷺ نهى عن الشغار.</div>
+                <div class="bg-slate-50 p-4 rounded-xl border-r-4 border-slate-400"><strong>زواج التحليل:</strong> الزواج بمطلقة ثلاثاً بنية طلاقها ليحللها لزوجها السابق (سواء باتفاق أو بدون). دليله: حديث ابن مسعود أن رسول الله ﷺ لعن المُحَلِّل والمحلل له.</div>
+            </div>
+
+            <h4 class="font-bold text-red-800 text-xl mb-6 border-b border-red-100 pb-2">عادات محرمة في الزواج:</h4>
+            <div class="grid md:grid-cols-3 gap-4">
+                <div class="bg-red-50 p-4 rounded-xl">
+                    <p class="font-bold mb-1">1. العَضْل:</p>
+                    <p class="text-xs">منع النساء أو تأخير زواجهن من الأكفاء؛ ﴿فَلَا تَعْضُلُوهُنَّ أَن يَنكِحْنَ أَزْوَاجَهُنَّ﴾.</p>
+                </div>
+                <div class="bg-red-50 p-4 rounded-xl">
+                    <p class="font-bold mb-1">2. الإجبار:</p>
+                    <p class="text-xs">إجبار الولي للمرأة على من لا ترضاه، فالشرع كفل لها حرية الاختيار.</p>
+                </div>
+                <div class="bg-red-50 p-4 rounded-xl">
+                    <p class="font-bold mb-1">3. التحجير:</p>
+                    <p class="text-xs">حجر البنت لابن عمها بحيث لا تتزوج غيره إلا برضاه، وهي عادة جاهلية محرمة.</p>
+                </div>
+            </div>
+        </article>
+
+        <!-- الدرس 10 -->
+        <article class="content-card">
+            <h3 class="text-2xl font-bold text-emerald-900 mb-6 border-b-4 border-emerald-100 pb-2">الدرس 10: المهر (الصداق)</h3>
+            <p class="mb-6 text-lg"><strong>تعريفه:</strong> المال الذي يدفعه الرجل للمرأة بسبب عقد الزواج.</p>
+            
+            <p class="font-bold text-gray-900 mb-2">حكمه: واجب؛</p>
+            <div class="quran-text" style="background: #ecfdf5; color: #065f46; border-color: #d1fae5;">
+                ﴿وَءَاتُوا النِّسَاءَ صَدُقَاتِهِنَّ نِحْلَةً...﴾.
+            </div>
+            <p class="mb-8">ويجوز لها التنازل عنه بطيب نفس: ﴿فَإِن طِبْنَ لَكُمْ عَن شَيْءٍ مِّنْهُ نَفْسًا فَكُلُوهُ هَنِيئًا مَرِيئًا﴾.</p>
+
+            <div class="grid md:grid-cols-2 gap-6 mb-10">
+                <div class="highlight-box" style="border-color: #10b981;">
+                    <p class="font-bold text-emerald-900 mb-2">تخفيفه:</p>
+                    <p class="text-sm">سنة ويختلف باختلاف الأزمنة والبلدان. واستفتى أبو حدرد النبيﷺ في مهر مائتي درهم فقال: «لو كنتم تَغْرِفُون من بطحان ما زدتم».</p>
+                </div>
+                <div class="highlight-box" style="border-color: #10b981;">
+                    <p class="font-bold text-emerald-900 mb-2">ما يصح مهراً:</p>
+                    <p class="text-sm">كل ما صح اعتباره مالاً (نقود، أرض، إلخ).</p>
+                </div>
+            </div>
+
+            <h4 class="font-bold text-emerald-800 text-xl mb-6">أحكام المهر:</h4>
+            <ol class="space-y-4 text-sm md:text-base pr-4 list-decimal list-inside text-gray-700">
+                <li>يجوز تعجيله أو تأجيله (كله أو بعضه).</li>
+                <li>هو حق خالص للزوجة ولا نصيب لغيرها فيه إلا برضاها.</li>
+                <li>الأفضل كتابته في العقد منعاً للخصومة.</li>
+                <li>إن لم يُحدد، تتراضى مع زوجها، فإن لم يتراضيا فلها "مهر مثلها" (بنات عمها وأخواتها).</li>
+                <li>إن طلقها قبل الدخول أو الخلوة (والمهر محدد) فلها نصفه: ﴿فَنِصْفُ مَا فَرَضْتُمْ﴾، وإن طلقها بعده فلها المهر كاملاً.</li>
+                <li>إن طلقها قبل الدخول ولم يُحدد المهر: فلها "المتعة" (كثياب وحلي جبراً لخاطرها، حسب قدرة الزوج): ﴿وَمَتِّعُوهُنَّ عَلَى الْمُوسِعِ قَدَرُهُ وَعَلَى الْمُقْتَرِ قَدَرُهُ...﴾.</li>
+            </ol>
+        </article>
+
+        <!-- الدرس 11 -->
+        <article class="content-card">
+            <h3 class="text-2xl font-bold text-emerald-900 mb-6 border-b-4 border-emerald-100 pb-2">الدرس 11: وليمة العرس</h3>
+            <p class="mb-4"><strong>حكمها:</strong> سنة مؤكدة؛ أمر بها النبي ﷺ لعبد الرحمن بن عوف: «أولم ولو بشاة»، وأولم ﷺ على نسائه.</p>
+            <p class="mb-10 text-emerald-900 font-bold"><strong>حكم الإجابة:</strong> واجبة إن عُيَّن المدعو شخصياً: «إذا دعي أحدكم إلى وليمة فليأتها»، أما الدعوة العامة فغير واجبة، ومن لم يحضر يعتذر.</p>
+
+            <h4 class="font-bold text-red-800 text-xl mb-6">مخالفات في الولائم:</h4>
+            <div class="space-y-3">
+                <div class="p-4 bg-red-50 rounded-xl">1. الإسراف ورمي الأطعمة: ﴿وَالَّذِينَ إِذَا أَنفَقُوا لَمْ يُسْرِفُوا...﴾.</div>
+                <div class="p-4 bg-red-50 rounded-xl">2. الاقتصار على دعوة الأغنياء وترك الفقراء: قال ﷺ: «شر الطعام طعام الوليمة يمنعها من يأتيها ويدعى إليها من يأباها...».</div>
+                <div class="p-4 bg-red-50 rounded-xl">3. استخدام الأسلحة وإزعاج الناس بالسيارات لخطورته ومخالفته للأنظمة.</div>
+            </div>
+        </article>
+
+        <!-- الدرس 12 -->
+        <article class="content-card border-b-8 border-emerald-600">
+            <h3 class="text-2xl font-bold text-emerald-900 mb-8 border-b-4 border-emerald-100 pb-2">الدرس 12: تحديد النسل وتنظيمه</h3>
+            
+            <div class="space-y-8">
+                <div class="border-r-4 border-red-500 pr-4">
+                    <p class="font-bold text-red-800 text-lg mb-2">تحديد النسل:</p>
+                    <p class="text-gray-700">يحرم وضع قوانين عامة تحدد عدد الأولاد، ويحرم استئصال القدرة على الإنجاب (التعقيم) إلا لضرورة؛ لمخالفته مقصد الشريعة بتكثير النسل.</p>
+                </div>
+
+                <div class="border-r-4 border-emerald-500 pr-4">
+                    <p class="font-bold text-emerald-800 text-lg mb-2">تنظيم الحمل:</p>
+                    <p class="text-gray-700">يجوز التباعد بين الحملين لحاجة الزوجين بشروط: 1. تشاور وتراضٍ. 2. عدم وجود ضرر. 3. استخدام وسيلة مشروعة. 4. ألا يكون عدواناً على حمل قائم (قرار مجمع الفقه الإسلامي).</p>
+                </div>
+
+                <div class="border-r-4 border-red-700 pr-4">
+                    <p class="font-bold text-red-900 text-lg mb-2">إسقاط الجنين (الإجهاض):</p>
+                    <p class="text-gray-700">لا يجوز إسقاطه في مراحله كافة إلا لمبرر شرعي طبي يُقرره أطباء متخصصون موثوقون وفي حدود ضيقة جداً.</p>
+                </div>
+            </div>
+        </article>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="max-w-4xl mx-auto text-center text-gray-400 text-sm mt-12 mb-20">
+	<div class="flex justify-center">
+                <a href="https://ushayrah.com/osh" target="_blank" class="group flex flex-col items-center transition-all duration-300 transform hover:scale-110">
+                    <div class="bg-indigo-600 text-white p-6 rounded-full shadow-xl hover:bg-indigo-700 animate-pulse-slow">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                        </svg>
+                    </div>
+                    <span class="mt-3 text-indigo-800 font-bold text-lg">بدء الاختبار التفاعلي</span>
+                </a>
+            </div>
+			
+        <p>ثانوية عشيرة</p>
+        <p>معلم المادة الأستاذ عائش فراج المقاطي</p>
+    </footer>
+
+</body>
+</html>
