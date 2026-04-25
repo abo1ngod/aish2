@@ -1,0 +1,1480 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>دروس الحديث النبوي والسنة النبوية</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Amiri:ital,wght@0,400;0,700;1,400&family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+/* ══ DESIGN SYSTEM ══════════════════════════════════════════ */
+:root {
+  --ink:           #16130e;
+  --ink-soft:      #3b3629;
+  --ink-muted:     #6b6252;
+  --cream:         #faf7f2;
+  --parchment:     #f3ead8;
+  --parchment-mid: #ece0c4;
+  --gold:          #b5821a;
+  --gold-bright:   #d4a030;
+  --gold-pale:     #f5e6b8;
+  --green:         #1b3d2c;
+  --green-mid:     #2e6347;
+  --green-light:   #4a8a62;
+  --green-pale:    #e6f0ea;
+  --border:        #d9cdb0;
+  --border-soft:   #e8dfc8;
+  --shadow-sm:     0 2px 8px rgba(22,19,14,.08);
+  --shadow-md:     0 4px 20px rgba(22,19,14,.13);
+  --font-quran:    'Amiri Quran', 'Amiri', serif;
+  --font-hadith:   'Amiri', serif;
+  --font-body:     'Tajawal', sans-serif;
+  --r-sm: 6px; --r-md: 12px; --r-lg: 18px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--cream);
+  color: var(--ink);
+  line-height: 1.85;
+  min-height: 100vh;
+  background-image:
+    radial-gradient(ellipse 80% 60% at 15% 10%, rgba(181,130,26,.06) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 50% at 85% 90%, rgba(46,99,71,.06) 0%, transparent 55%);
+}
+
+/* ══ HEADER ════════════════════════════════════════════════ */
+.site-header {
+  background: var(--green);
+  color: var(--cream);
+  text-align: center;
+  padding: 3rem 1.5rem 2.5rem;
+  position: relative;
+  overflow: hidden;
+}
+.site-header::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image:
+    repeating-linear-gradient(0deg,   transparent, transparent 28px, rgba(255,255,255,.025) 28px, rgba(255,255,255,.025) 29px),
+    repeating-linear-gradient(90deg,  transparent, transparent 28px, rgba(255,255,255,.025) 28px, rgba(255,255,255,.025) 29px);
+}
+.site-header::after {
+  content: '';
+  position: absolute; bottom: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, transparent 0%, var(--gold-bright) 30%, var(--gold) 50%, var(--gold-bright) 70%, transparent 100%);
+}
+.header-inner { position: relative; z-index: 1; }
+.header-ornament { font-family: var(--font-quran); font-size: clamp(1.3rem, 4vw, 2rem); color: var(--gold-bright); margin-bottom: 1rem; opacity: .9; }
+.site-header h1 { font-family: var(--font-hadith); font-size: clamp(1.6rem, 5vw, 2.6rem); font-weight: 700; color: #fff; text-shadow: 0 2px 12px rgba(0,0,0,.35); line-height: 1.4; margin-bottom: .5rem; }
+.subtitle { font-size: .9rem; color: var(--gold-pale); font-weight: 300; opacity: .8; }
+
+/* ══ NAV BAR ════════════════════════════════════════════════ */
+.toc-wrapper {
+  background: var(--green);
+  position: sticky; top: 0; z-index: 200;
+  box-shadow: 0 3px 16px rgba(0,0,0,.25);
+  border-bottom: 2px solid rgba(181,130,26,.35);
+}
+.toc-inner {
+  display: flex; align-items: center; gap: .4rem;
+  padding: .5rem 1rem;
+  overflow-x: auto; scrollbar-width: none;
+}
+.toc-inner::-webkit-scrollbar { display: none; }
+.toc-btn {
+  flex-shrink: 0;
+  background: transparent;
+  border: 1px solid rgba(181,130,26,.4);
+  color: var(--gold-pale);
+  font-family: var(--font-body);
+  font-size: .78rem; font-weight: 500;
+  padding: .3rem .8rem;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: all .2s;
+  white-space: nowrap;
+}
+.toc-btn:hover, .toc-btn.active {
+  background: var(--gold); border-color: var(--gold);
+  color: var(--green); font-weight: 700;
+}
+
+/* ══ MAIN ════════════════════════════════════════════════════ */
+main { max-width: 820px; margin: 0 auto; padding: 2rem 1.2rem 4rem; }
+
+/* ══ LESSON SECTION ══════════════════════════════════════════ */
+.lesson-section {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  margin-bottom: 1.2rem;
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  transition: box-shadow .25s;
+}
+.lesson-section:hover { box-shadow: var(--shadow-md); }
+
+.lesson-header {
+  display: flex; align-items: center; gap: 1rem;
+  padding: 1.1rem 1.3rem;
+  cursor: pointer; user-select: none;
+  background: linear-gradient(135deg, var(--cream) 0%, var(--parchment) 100%);
+  border-bottom: 1px solid transparent;
+  transition: background .2s, border-color .2s;
+}
+.lesson-header:hover { background: var(--parchment); }
+.lesson-header.open {
+  background: linear-gradient(135deg, var(--green) 0%, var(--green-mid) 100%);
+  border-bottom-color: rgba(181,130,26,.35);
+}
+.lesson-header-text { flex: 1; }
+.lesson-header.open .lesson-tag  { background: rgba(255,255,255,.15); color: var(--gold-bright); border-color: rgba(255,255,255,.2); }
+.lesson-header.open h2           { color: #fff; }
+.lesson-header.open .lesson-toggle-btn { color: var(--gold-bright); transform: rotate(180deg); }
+
+.lesson-tag {
+  display: inline-block;
+  font-size: .7rem; font-weight: 700; letter-spacing: .08em;
+  background: var(--green-pale); color: var(--green);
+  border: 1px solid rgba(46,99,71,.2);
+  padding: .22rem .65rem; border-radius: 30px;
+  margin-bottom: .3rem;
+}
+.lesson-header h2 {
+  font-family: var(--font-hadith);
+  font-size: clamp(.95rem, 2.5vw, 1.15rem);
+  font-weight: 700; color: var(--green); line-height: 1.4;
+}
+.lesson-toggle-btn {
+  font-size: 1.2rem; color: var(--green-light);
+  transition: transform .3s, color .2s; flex-shrink: 0;
+}
+
+.lesson-body { display: none; padding: 1.4rem 1.3rem; border-top: 1px solid var(--border-soft); animation: slideIn .25s ease; }
+.lesson-body.open { display: block; }
+@keyframes slideIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ══ CONTENT BLOCKS ══════════════════════════════════════════ */
+.content-block { margin-bottom: 1.4rem; }
+.content-block:last-child { margin-bottom: 0; }
+
+.block-title {
+  font-family: var(--font-hadith); font-size: 1rem; font-weight: 700; color: var(--green);
+  border-right: 3px solid var(--gold); padding-right: .7rem; margin-bottom: .8rem;
+}
+.section-h3 {
+  font-family: var(--font-hadith); font-size: .95rem; font-weight: 700; color: var(--green-mid);
+  margin-bottom: .65rem; display: flex; align-items: center; gap: .5rem;
+}
+.section-h3::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+.body-text { font-size: .95rem; color: var(--ink-soft); line-height: 1.9; }
+
+/* ══ HADITH BLOCK ════════════════════════════════════════════ */
+.hadith-block {
+  background: linear-gradient(135deg, var(--parchment) 0%, #faf3e2 100%);
+  border: 1px solid var(--border);
+  border-right: 4px solid var(--gold);
+  border-radius: var(--r-md);
+  padding: 1.1rem 1.3rem;
+  margin: .8rem 0;
+  position: relative;
+}
+.hadith-block::before {
+  content: '❝';
+  position: absolute; top: .4rem; left: .8rem;
+  font-family: serif; font-size: 2rem; color: var(--gold); opacity: .2; line-height: 1;
+}
+.hadith-text {
+  font-family: var(--font-hadith);
+  font-size: clamp(1rem, 2.5vw, 1.13rem);
+  color: var(--ink); line-height: 2; text-align: center;
+}
+.hadith-source { font-size: .78rem; color: var(--ink-muted); text-align: left; margin-top: .5rem; font-weight: 500; }
+
+/* ══ QURAN VERSE ════════════════════════════════════════════ */
+.quran-verse {
+  background: var(--green-pale);
+  border: 1px solid rgba(46,99,71,.2); border-right: 4px solid var(--green-mid);
+  border-radius: var(--r-md); padding: .9rem 1.1rem; margin: .7rem 0;
+  font-family: var(--font-quran); font-size: clamp(1rem, 2.5vw, 1.15rem);
+  color: var(--green); line-height: 2.1; text-align: center;
+}
+.quran-ref { font-size: .75rem; color: var(--green-light); text-align: left; margin-top: .4rem; font-weight: 500; font-family: var(--font-body); }
+
+/* ══ NOTE BOX ════════════════════════════════════════════════ */
+.note-box {
+  background: #fff8e6; border: 1px solid #e8c96a; border-right: 4px solid var(--gold-bright);
+  border-radius: var(--r-sm); padding: .8rem 1rem;
+  font-family: var(--font-hadith); font-size: .95rem; color: var(--ink-soft); line-height: 1.85;
+  margin: .6rem 0;
+}
+
+/* ══ OBJECTIVES ════════════════════════════════════════════ */
+.objectives-block { background: var(--green-pale); border: 1px solid rgba(46,99,71,.15); border-radius: var(--r-md); padding: 1rem 1.2rem; }
+.objectives-list { list-style: none; display: flex; flex-direction: column; gap: .4rem; }
+.objectives-list li { font-size: .9rem; color: var(--ink-soft); padding-right: 1.4rem; position: relative; }
+.objectives-list li::before { content: '◆'; position: absolute; right: 0; color: var(--green-mid); font-size: .55rem; top: .45em; }
+
+/* ══ DEFINITIONS GRID ════════════════════════════════════════ */
+.definitions-grid { display: grid; gap: .5rem; }
+.def-row {
+  display: grid; grid-template-columns: auto auto 1fr; gap: .6rem;
+  align-items: baseline; background: var(--parchment);
+  border-radius: var(--r-sm); padding: .45rem .8rem; border: 1px solid var(--border-soft);
+}
+.def-term { font-family: var(--font-hadith); font-weight: 700; color: var(--green); font-size: .95rem; white-space: nowrap; }
+.def-sep { color: var(--gold); font-weight: 700; }
+.def-meaning { font-size: .88rem; color: var(--ink-soft); }
+
+/* ══ LISTS ═══════════════════════════════════════════════════ */
+.num-list { list-style: none; counter-reset: nc; display: flex; flex-direction: column; gap: .6rem; }
+.num-list li { counter-increment: nc; padding-right: 2.2rem; position: relative; font-size: .93rem; color: var(--ink-soft); line-height: 1.8; }
+.num-list li::before {
+  content: counter(nc);
+  position: absolute; right: 0; top: .1em;
+  width: 1.6rem; height: 1.6rem; background: var(--green); color: #fff;
+  border-radius: 50%; font-size: .7rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.alpha-list { list-style: none; display: flex; flex-direction: column; gap: .4rem; padding-right: .8rem; margin-top: .4rem; }
+.alpha-list li { font-size: .88rem; color: var(--ink-soft); padding-right: 1.2rem; position: relative; }
+.alpha-list li::before { content: attr(data-marker); position: absolute; right: 0; color: var(--gold); font-weight: 700; font-family: var(--font-hadith); }
+
+/* ══ COMPANION CARD ════════════════════════════════════════ */
+.companion-card {
+  background: linear-gradient(135deg, var(--parchment) 0%, var(--parchment-mid) 100%);
+  border: 1px solid var(--border); border-radius: var(--r-md); padding: 1rem 1.2rem;
+  position: relative; overflow: hidden;
+}
+.companion-card::before {
+  content: '';
+  position: absolute; top: 0; right: 0; width: 80px; height: 80px;
+  background: radial-gradient(circle at top right, rgba(181,130,26,.12) 0%, transparent 70%);
+}
+.companion-name { font-family: var(--font-hadith); font-size: 1.05rem; font-weight: 700; color: var(--green); margin-bottom: .5rem; }
+.companion-body { font-size: .88rem; color: var(--ink-soft); line-height: 1.85; }
+
+/* ══ PHASE CARDS ════════════════════════════════════════════ */
+.phases-grid { display: grid; gap: 1rem; }
+.phase-card { border: 1px solid var(--border); border-radius: var(--r-md); overflow: hidden; }
+.phase-header {
+  background: linear-gradient(135deg, var(--green) 0%, var(--green-mid) 100%);
+  color: #fff; padding: .8rem 1.1rem;
+  display: flex; align-items: center; gap: .8rem;
+  font-family: var(--font-hadith); font-size: .95rem; font-weight: 700;
+}
+.phase-num {
+  width: 2rem; height: 2rem; background: var(--gold); color: var(--green);
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: .95rem; font-weight: 900; flex-shrink: 0; font-family: var(--font-hadith);
+}
+.phase-body { padding: 1rem 1.1rem; background: var(--parchment); font-size: .9rem; color: var(--ink-soft); line-height: 1.85; }
+.phase-body p + p { margin-top: .5rem; }
+
+/* ══ BOOK CARDS ════════════════════════════════════════════ */
+.book-card { border: 1px solid var(--border); border-radius: var(--r-md); overflow: hidden; margin-bottom: .9rem; }
+.book-card:last-child { margin-bottom: 0; }
+.book-card-header {
+  background: linear-gradient(135deg, var(--parchment) 0%, var(--parchment-mid) 100%);
+  padding: .75rem 1.1rem; display: flex; align-items: center; gap: .8rem;
+  border-bottom: 1px solid var(--border);
+}
+.book-num-badge {
+  width: 2rem; height: 2rem; background: var(--gold); color: #fff; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-hadith); font-size: .95rem; font-weight: 700; flex-shrink: 0;
+}
+.book-card-title { font-family: var(--font-hadith); font-size: 1.05rem; font-weight: 700; color: var(--green); }
+.book-card-body { padding: .9rem 1.1rem; font-size: .88rem; color: var(--ink-soft); line-height: 1.85; }
+.book-card-body p + p { margin-top: .4rem; }
+.book-card-body strong { color: var(--ink); }
+
+/* ══ DEFINITION BOX ════════════════════════════════════════ */
+.def-box {
+  background: var(--green); color: var(--gold-pale);
+  border-radius: var(--r-md); padding: 1.1rem 1.3rem; margin: .8rem 0;
+  font-family: var(--font-hadith); font-size: .95rem; line-height: 1.9;
+}
+.def-box strong { color: var(--gold-bright); }
+
+/* ══ TABLE ═══════════════════════════════════════════════════ */
+.styled-table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+.styled-table th { background: var(--green); color: #fff; padding: .6rem .8rem; text-align: center; font-family: var(--font-hadith); }
+.styled-table td { padding: .5rem .8rem; border: 1px solid var(--border); text-align: center; color: var(--ink-soft); }
+.styled-table tr:nth-child(even) td { background: var(--parchment); }
+
+/* ══ SECTION DIVIDER ════════════════════════════════════════ */
+.section-divider {
+  display: flex; align-items: center; gap: .8rem; margin: 2rem 0 1.2rem;
+  color: var(--gold); font-family: var(--font-hadith); font-size: .8rem; letter-spacing: .1em; font-weight: 700;
+}
+.section-divider::before, .section-divider::after {
+  content: ''; flex: 1; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border), transparent);
+}
+
+/* ══ FOOTER ════════════════════════════════════════════════ */
+.footer-bar {
+  background: var(--green); color: var(--gold-pale); text-align: center;
+  padding: 1.8rem 1.5rem;
+  font-family: var(--font-quran); font-size: clamp(1rem, 3vw, 1.2rem);
+  border-top: 3px solid var(--gold); line-height: 2;
+}
+
+/* ══ SEARCH ════════════════════════════════════════════════ */
+.search-wrap {
+  position: relative;
+  max-width: 520px;
+  margin: 1.6rem auto 0;
+}
+.search-box {
+  display: flex;
+  align-items: center;
+  background: rgba(255,255,255,.12);
+  border: 1.5px solid rgba(181,130,26,.5);
+  border-radius: 50px;
+  padding: .55rem 1rem;
+  gap: .6rem;
+  transition: background .2s, border-color .2s;
+  backdrop-filter: blur(4px);
+}
+.search-box:focus-within {
+  background: rgba(255,255,255,.18);
+  border-color: var(--gold-bright);
+  box-shadow: 0 0 0 3px rgba(212,160,48,.2);
+}
+.search-icon { font-size: 1rem; opacity: .7; flex-shrink: 0; }
+#searchInput {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: var(--font-body);
+  font-size: .95rem;
+  color: #fff;
+  direction: rtl;
+  min-width: 0;
+}
+#searchInput::placeholder { color: rgba(255,255,255,.55); }
+.search-clear {
+  background: transparent;
+  border: none;
+  color: rgba(255,255,255,.5);
+  font-size: .85rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 0 .2rem;
+  line-height: 1;
+  display: none;
+  transition: color .15s;
+}
+.search-clear:hover { color: var(--gold-bright); }
+.search-clear.visible { display: block; }
+
+.search-results {
+  position: fixed;
+  top: auto;
+  right: 50%;
+  transform: translateX(50%);
+  width: min(520px, 92vw);
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-lg);
+  z-index: 9999;
+  overflow: hidden;
+  display: none;
+  max-height: 420px;
+  overflow-y: auto;
+}
+.search-results.visible { display: block; }
+.search-result-item {
+  display: flex;
+  align-items: flex-start;
+  gap: .7rem;
+  padding: .75rem 1rem;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border-soft);
+  transition: background .15s;
+  text-align: right;
+}
+.search-result-item:last-child { border-bottom: none; }
+.search-result-item:hover { background: var(--parchment); }
+.sri-badge {
+  flex-shrink: 0;
+  background: var(--green);
+  color: var(--gold-pale);
+  font-size: .65rem;
+  font-weight: 700;
+  padding: .2rem .5rem;
+  border-radius: 20px;
+  margin-top: .15rem;
+  white-space: nowrap;
+}
+.sri-text { flex: 1; }
+.sri-title {
+  font-family: var(--font-hadith);
+  font-size: .93rem;
+  font-weight: 700;
+  color: var(--green);
+  line-height: 1.4;
+  margin-bottom: .2rem;
+}
+.sri-snippet {
+  font-size: .8rem;
+  color: var(--ink-muted);
+  line-height: 1.5;
+}
+.sri-snippet mark {
+  background: var(--gold-pale);
+  color: var(--ink);
+  border-radius: 2px;
+  padding: 0 1px;
+}
+.search-no-result {
+  padding: 1.2rem;
+  text-align: center;
+  color: var(--ink-muted);
+  font-size: .9rem;
+  font-family: var(--font-hadith);
+}
+@media (max-width: 600px) {
+  main { padding: 1.2rem .9rem 3rem; }
+  .lesson-header { padding: .9rem 1rem; gap: .7rem; }
+  .lesson-body   { padding: 1rem; }
+  .def-row { grid-template-columns: 1fr; gap: .2rem; }
+}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-ornament">﷽</div>
+  <h1>دروس الفقه الإسلامي</h1>
+  <p class="subtitle">الفقه وأصوله · فقه الأسرة · المعاملات · الجنايات</p>
+
+  <!-- SEARCH BAR -->
+  <div class="search-wrap">
+    <div class="search-box">
+      <span class="search-icon">🔍</span>
+      <input
+        type="search"
+        id="searchInput"
+        placeholder="ابحث في دروس الفقه الإسلامي…"
+        autocomplete="off"
+        oninput="runSearch(this.value)"
+        onkeydown="if(event.key==='Escape'){clearSearch()}"
+      >
+      <button class="search-clear" id="searchClear" onclick="clearSearch()" title="مسح">✕</button>
+    </div>
+    <div class="search-results" id="searchResults"></div>
+  </div>
+</header>
+
+</div>
+
+<main class="main-content">
+
+<!-- NAVIGATION BAR -->
+<div class="toc-wrapper">
+  <div class="toc-inner">
+    <button class="toc-btn" onclick="document.getElementById('s1').scrollIntoView({behavior:'smooth',block:'start'})">تعريف الفقه</button>
+    <button class="toc-btn" onclick="document.getElementById('s2').scrollIntoView({behavior:'smooth',block:'start'})">نشأة الفقه</button>
+    <button class="toc-btn" onclick="document.getElementById('s3').scrollIntoView({behavior:'smooth',block:'start'})">المذاهب الأربعة</button>
+    <button class="toc-btn" onclick="document.getElementById('s4').scrollIntoView({behavior:'smooth',block:'start'})">خلاف العلماء</button>
+    <button class="toc-btn" onclick="document.getElementById('s5').scrollIntoView({behavior:'smooth',block:'start'})">الفتوى</button>
+    <button class="toc-btn" onclick="document.getElementById('s6').scrollIntoView({behavior:'smooth',block:'start'})">الزواج</button>
+    <button class="toc-btn" onclick="document.getElementById('s7').scrollIntoView({behavior:'smooth',block:'start'})">الخطبة</button>
+    <button class="toc-btn" onclick="document.getElementById('s8').scrollIntoView({behavior:'smooth',block:'start'})">أركان الزواج</button>
+    <button class="toc-btn" onclick="document.getElementById('s9').scrollIntoView({behavior:'smooth',block:'start'})">المحرمات</button>
+    <button class="toc-btn" onclick="document.getElementById('s10').scrollIntoView({behavior:'smooth',block:'start'})">المهر</button>
+    <button class="toc-btn" onclick="document.getElementById('s11').scrollIntoView({behavior:'smooth',block:'start'})">الطلاق</button>
+    <button class="toc-btn" onclick="document.getElementById('s12').scrollIntoView({behavior:'smooth',block:'start'})">العدة والنفقة</button>
+    <button class="toc-btn" onclick="document.getElementById('s13').scrollIntoView({behavior:'smooth',block:'start'})">الحضانة والرضاع</button>
+    <button class="toc-btn" onclick="document.getElementById('s14').scrollIntoView({behavior:'smooth',block:'start'})">البيع</button>
+    <button class="toc-btn" onclick="document.getElementById('s15').scrollIntoView({behavior:'smooth',block:'start'})">الربا</button>
+    <button class="toc-btn" onclick="document.getElementById('s16').scrollIntoView({behavior:'smooth',block:'start'})">البيوع المحرمة</button>
+    <button class="toc-btn" onclick="document.getElementById('s17').scrollIntoView({behavior:'smooth',block:'start'})">المسابقة</button>
+    <button class="toc-btn" onclick="document.getElementById('s18').scrollIntoView({behavior:'smooth',block:'start'})">اللقطة</button>
+    <button class="toc-btn" onclick="document.getElementById('s19').scrollIntoView({behavior:'smooth',block:'start'})">الجناية</button>
+  </div>
+</div>
+
+
+
+<div class="section-divider">الفقه الإسلامي — أسسه وتاريخه</div>
+
+<!-- ══ S1: تعريف الفقه ══ -->
+<section class="lesson-section" id="s1">
+  <div class="lesson-header" onclick="toggleLesson(this)">
+    <div class="lesson-header-text">
+      <div class="lesson-tag">الدرس الأول</div>
+      <h2>تعريف الفقه</h2>
+    </div>
+    <div class="lesson-toggle-btn">▾</div>
+  </div>
+  <div class="lesson-body">
+    <div class="content-block">
+      <div class="section-h3">الفقه في اللغة</div>
+      <p class="body-text">قال الله تعالى: ﴿فَمَالِ هَؤُلَاءِ الْقَوْمِ لَا يَكَادُونَ يَفْقَهُونَ حَدِيثًا﴾. ويقول الناس: فلان لا يفقه شيئاً. يمكنك من خلال ما تقدم التعرف على معنى الفقه في اللغة العربية، وهو: الفهم والإدراك.</p>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">الفقه في الاصطلاح</div>
+      <div class="def-box">معرفة الأحكام الشرعية العملية من أدلتها التفصيلية.</div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">معنى التعريف ومحترزاته</div>
+      <div class="styled-table-wrap" style="overflow-x:auto">
+        <table class="styled-table">
+          <thead><tr><th>العبارة من التعريف</th><th>معناها</th><th>ما يخرج بسببها</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>الأحكام الشرعية</td>
+              <td>الأحكام المستفادة من الشرع لا من العقل والتجربة ونحوهما</td>
+              <td>الأحكام غير الشرعية كالأحكام المستفادة من العقل أو التجربة مثل علم اللغة، والطب، والهندسة</td>
+            </tr>
+            <tr>
+              <td>العملية</td>
+              <td>المتعلقة بأفعال الجوارح، مثل: الصلاة، والحج</td>
+              <td>الأحكام الاعتقادية مثل ما يتعلق بأسماء الله وصفاته</td>
+            </tr>
+            <tr>
+              <td>أدلتها التفصيلية</td>
+              <td>أدلة كل مسألة بعينها، مثل: آية الوضوء تدل على فروض الوضوء</td>
+              <td>يخرج عنه: العلم المأخوذ عن غير الأدلة كعلم المقلد، والأدلة الإجمالية التي تدرس في أصول الفقه</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ S2: نشأة الفقه ══ -->
+<section class="lesson-section" id="s2">
+  <div class="lesson-header" onclick="toggleLesson(this)">
+    <div class="lesson-header-text">
+      <div class="lesson-tag">الدرس الثاني</div>
+      <h2>نشأة علم الفقه والشريعة والفقه</h2>
+    </div>
+    <div class="lesson-toggle-btn">▾</div>
+  </div>
+  <div class="lesson-body">
+    <div class="content-block">
+      <div class="section-h3">نشأة علم الفقه</div>
+      <p class="body-text">كان الصحابة يتلقون الفقه من النبي ﷺ مباشرة، إما من القرآن أو مما يذكره لهم النبي ﷺ من الأحاديث، وكانوا إذا لم يعرفوا حكم مسألة معينة سألوا عنها النبي ﷺ فيخبرهم بحكمها.</p>
+      <p class="body-text" style="margin-top:.6rem">وأما بعد وفاة النبي ﷺ فكان الصحابة ﵃ إذا وردت عليهم مسألة ينظرون في القرآن الكريم والسنة النبوية؛ فإن وجدوا حكم المسألة فيهما أو في أحدهما حكموا به، فإن لم يجدوا نصاً تشاوروا في حكم المسألة، واجتهدوا فيها بحسب ما لديهم من الأصول الشرعية.</p>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">الشريعة والفقه</div>
+      <p class="body-text">الشريعة هي دين الله تعالى الذي يشمل العقائد والأحكام والأخلاق والآداب المستمدة من الكتاب والسنة، وأما الفقه فهو الأحكام المستفادة من اجتهاد الفقهاء في التعرف على الأحكام العملية من الأدلة الشرعية.</p>
+      <p class="body-text" style="margin-top:.7rem"><strong>مرّ التشريع الإسلامي والفقه في خمسة أدوار:</strong></p>
+      <ol class="num-list" style="margin-top:.5rem">
+        <li>الدور الأول: التشريع في عهد الرسول ﷺ وفي عهد الصحابة ﵃.</li>
+        <li>الدور الثاني: دور تأسيس الفقه، ويبدأ من سنة 41 هـ حتى سنة 132 هـ.</li>
+        <li>الدور الثالث: دور نهضة الفقه وتدوينه وجعله علماً، وفيه ظهر الأئمة العظام أصحاب المذاهب المدونة: أبو حنيفة، ومالك، والشافعي، وأحمد ﷺ.</li>
+        <li>الدور الرابع: دور التقليد والتقليل من الاجتهاد، وفيه عكف الناس على المذاهب الأربعة دراسة وفهماً.</li>
+        <li>الدور الخامس: دور الرجوع إلى فتح باب الاجتهاد لأهله المؤهلين، وإثبات أن الشريعة الإسلامية صالحة لكل زمان ومكان.</li>
+      </ol>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">مدارس الفقه وأسباب ظهورها</div>
+      <p class="body-text">بعد وفاة النبي ﷺ اجتهد الصحابة ﵃ في نشر العلم، وانتشروا في أنحاء الأرض يبلغون دين الله تعالى، فانتشر العلم في الأمصار الإسلامية. من أهم حواضر العلم:</p>
+      <ol class="num-list" style="margin-top:.5rem">
+        <li><strong>المدينة النبوية:</strong> وفيها الخلفاء الأربعة، وعائشة وعبد الله بن عمر وزيد بن ثابت وغيرهم ﵃.</li>
+        <li><strong>مكة المكرمة:</strong> وفيها عبد الله بن عباس ﵁.</li>
+        <li><strong>الكوفة:</strong> وفيها عبد الله بن مسعود وأبو موسى وسلمان ﵃، ثم انتقل إليها علي ﵁.</li>
+        <li><strong>البصرة:</strong> وفيها أنس وجابر ﵃.</li>
+        <li><strong>الشام:</strong> وفيها معاذ وأبو الدرداء ومعاوية ﵃.</li>
+        <li><strong>مصر:</strong> وفيها عمرو بن العاص وابنه عبد الله ﵃.</li>
+      </ol>
+      <p class="body-text" style="margin-top:.8rem">وفي أواخر القرن الأول الهجري وبداية القرن الثاني، بدأت الآراء الفقهية تتجه نحو تكوين مدرستين كبيرتين:</p>
+      <div class="definitions-grid" style="margin-top:.6rem">
+        <div class="def-row"><span class="def-term">مدرسة الأثر</span><span class="def-sep">:</span><span class="def-meaning">وتسمى مدرسة المدينة، اعتمدت على الأحاديث والآثار غالباً لكثرتها عندهم. ومن أشهر علمائها: الفقهاء السبعة: سعيد بن المسيب، وعروة بن الزبير، والقاسم بن محمد وغيرهم.</span></div>
+        <div class="def-row"><span class="def-term">مدرسة الرأي</span><span class="def-sep">:</span><span class="def-meaning">وتسمى مدرسة الكوفة، أكثرت من الأخذ بالرأي لكثرة المسائل الحادثة عندهم. ومن أشهر علمائها: علقمة النخعي، ومسروق الهمداني، وإبراهيم النخعي.</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ S3: المذاهب الأربعة ══ -->
+<section class="lesson-section" id="s3">
+  <div class="lesson-header" onclick="toggleLesson(this)">
+    <div class="lesson-header-text">
+      <div class="lesson-tag">الدرس الثالث</div>
+      <h2>المذاهب الأربعة</h2>
+    </div>
+    <div class="lesson-toggle-btn">▾</div>
+  </div>
+  <div class="lesson-body">
+    <div class="content-block">
+      <p class="body-text">قبل منتصف القرن الثاني الهجري وما بعده إلى منتصف القرن الثالث، برز في الفقه عدد من العلماء الذين استفادوا ممن قبلهم، فالتف حولهم الطلاب، وكان من أشهرهم: الأئمة الأربعة الذين تنسب إليهم المذاهب المشهورة الباقية إلى يومنا هذا.</p>
+    </div>
+
+    <div class="content-block">
+      <div class="section-h3">أولاً: مذهب الحنفية</div>
+      <p class="body-text">ورث علم أهل الكوفة إبراهيم النخعي، ثم حماد بن أبي سليمان شيخ الإمام <strong>أبي حنيفة النعمان بن ثابت (ت 150 هـ)</strong>، ثم انتهى علم مدرسة أهل الرأي إلى أبي حنيفة، واجتمع عليه الطلاب واستفادوا منه، واهتم بتفريع المسائل، واشتهر عندهم الفقه الافتراضي. وكان من طلابه أبو يوسف يعقوب بن إبراهيم، تولى رئاسة القضاء في أيام الرشيد فنشر مذهب أبي حنيفة.</p>
+    </div>
+
+    <div class="content-block">
+      <div class="section-h3">ثانياً: مذهب المالكية</div>
+      <p class="body-text">اشتهر في المدينة الفقهاء السبعة، ثم أتى بعدهم <strong>الإمام مالك بن أنس (ت 179 هـ)</strong> فانتهى إليه علم أهل المدينة، وصار هو المرجع في الحديث وفي الفتوى بالمدينة، ورحل إليه طلاب العلم من كل مكان، ثم تفرق هؤلاء الطلاب ونشروا علم مالك خاصة في مصر والمغرب الإسلامي.</p>
+    </div>
+
+    <div class="content-block">
+      <div class="section-h3">ثالثاً: مذهب الشافعية</div>
+      <p class="body-text">في منتصف القرن الثاني ولد <strong>الإمام محمد بن إدريس الشافعي (ت 204 هـ)</strong>، وتتلمذ على علماء أجلاء كان منهم الإمام مالك، كما تتلمذ على محمد بن الحسن تلميذ الإمام أبي حنيفة، وجمع بين فقه المدرستين ولكنه إلى مذهب أهل المدينة أقرب. سميت آراؤه في العراق بمذهبه القديم، وفي مصر بالمذهب الجديد.</p>
+    </div>
+
+    <div class="content-block">
+      <div class="section-h3">رابعاً: مذهب الحنابلة</div>
+      <p class="body-text">نشأ <strong>الإمام أحمد بن محمد بن حنبل (ت 241 هـ)</strong>، وطلب العلم في بغداد، ورحل في طلبه، واهتم بجمع الحديث ونقد الرواة. وكان من شيوخه الإمام الشافعي فاستفاد منه في الرأي، ثم انتشر مذهبه في العراق، خاصة في عهد المتوكل الذي رفع المحنة عن العلماء في مسألة القول بخلق القرآن. وهؤلاء الأئمة وإن اختلفوا في بعض الأحكام الشرعية، إلا أنهم متفقون في أصول الدين والحمد لله.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══ S4: أسباب خلاف العلماء ══ -->
+<section class="lesson-section" id="s4">
+  <div class="lesson-header" onclick="toggleLesson(this)">
+    <div class="lesson-header-text">
+      <div class="lesson-tag">الدرس الرابع</div>
+      <h2>أسباب خلاف العلماء والموقف منه</h2>
+    </div>
+    <div class="lesson-toggle-btn">▾</div>
+  </div>
+  <div class="lesson-body">
+    <div class="content-block">
+      <div class="quran-verse">﴿ فَفَهَّمْنَاهَا سُلَيْمَانَ وَكُلًّا آتَيْنَا حُكْمًا وَعِلْمًا ﴾<div class="quran-ref">الأنبياء: ٧٩</div></div>
+      <p class="body-text">فالعلماء المجتهدون رحمهم الله لم يتكلموا بالهوى، بل كانوا يجتهدون في بيان أحكام الشريعة بحسب ما بلغهم من الأدلة، وبحسب ما فهموه منها. وكل واحد منهم إما أن يكون مصيباً محموداً فله أجران، أو مخطئاً معذوراً فله أجر واحد.</p>
+    </div>
+
+    <div class="content-block">
+      <div class="section-h3">أهم أسباب خلاف العلماء</div>
+      <ol class="num-list">
+        <li><strong>السبب الأول:</strong> كون العالم لم يسمع بهذا الدليل — مثاله: قول عائشة ﵂ لعبدالله بن عمرو حين أمر النساء بنقض رؤوسهن.</li>
+        <li><strong>السبب الثاني:</strong> يبلغ الحديث عالمين لكنه يكون صحيحاً عند عالم وضعيفاً عند الآخر — مثاله: حديث العينة.</li>
+        <li><strong>السبب الثالث:</strong> يبلغ الحديث العالم ويعلم أنه صحيح لكن يظنه منسوخاً والآخر بخلاف ذلك — مثاله: حكم الحجامة للصائم.</li>
+        <li><strong>السبب الرابع:</strong> يبلغ العالم الحديث غير منسوخ لكن يعتبره معارضاً بحديث آخر — مثاله: خلاف العلماء في استقبال القبلة واستدبارها أثناء قضاء الحاجة.</li>
+        <li><strong>السبب الخامس:</strong> الاختلاف في فهم اللفظ — مثاله: اختلافهم في قوله تعالى: ﴿أَوْ لَامَسْتُمُ النِّسَاءَ﴾ هل هو اللمس أم الجماع.</li>
+        <li><strong>السبب السادس:</strong> اختلافهم في قاعدة أو مسألة أصولية — مثاله: الاحتجاج بفعل الصحابي.</li>
+        <li><strong>السبب السابع:</strong> أن بعض العلماء يفهم من الحديث شيئاً، ويفهم غيره منه شيئاً آخر — مثاله: حديث ذي اليدين في سجود السهو.</li>
+        <li><strong>السبب الثامن:</strong> ألا يكون في المسألة نص، فيجتهد العلماء في استنباط حكمها — مثاله: اختلاف العلماء المعاصرين في حكم الإجارة المنتهية بالتمليك.</li>
+      </ol>
+    </div>
+
+    <div class="content-block">
+      <div class="section-h3">الموقف من خلاف العلماء</div>
+      <ol class="num-list">
+        <li>يجب احترام العلماء وإجلالهم؛ المخطئ منهم والمصيب، ولا يبيح خطأ بعض الأئمة المجتهدين التعدي عليهم.</li>
+        <li>الأئمة المجتهدون متفقون في أصول الشريعة، وإنما خلافهم في فروعها.</li>
+        <li>وقوع الخطأ من بعض العلماء يدل على أن التعظيم يكون للنصوص الشرعية لا للأشخاص، فكل يؤخذ من قوله ويرد إلا محمداً ﷺ.</li>
+        <li>لا يجوز التعصب لقول أحد من العلماء ونحن نعلم أن الحق مع العالم الآخر.</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ══ S5: الفتوى ══ -->
+<section class="lesson-section" id="s5">
+  <div class="lesson-header" onclick="toggleLesson(this)">
+    <div class="lesson-header-text">
+      <div class="lesson-tag">الدرس الخامس</div>
+      <h2>الفتوى والاستفتاء</h2>
+    </div>
+    <div class="lesson-toggle-btn">▾</div>
+  </div>
+  <div class="lesson-body">
+    <div class="content-block">
+      <div class="quran-verse">﴿ فَاسْأَلُوا أَهْلَ الذِّكْرِ إِن كُنتُمْ لَا تَعْلَمُونَ ﴾<div class="quran-ref">النحل: ٤٣</div></div>
+      <p class="body-text">يجب على من ليس بعالم أن يسأل أهل العلم فيما أشكل عليه من أمر دينه. وإذا اختلف أهل العلم في مسألة معينة فإن استطاع الترجيح بين الأقوال فيجتهد، وإن لم يكن مستطيعاً فيقلد من يثق في علمه ودينه — كما يفعل المريض يبحث عمن يثق في طبه وأمانته.</p>
+      <div class="quran-verse" style="margin-top:.7rem">﴿ وَلَا تَتَّبِعِ الْهَوَى فَيُضِلَّكَ عَن سَبِيلِ اللَّهِ ﴾<div class="quran-ref">ص: ٢٦</div></div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">تعظيم شأن الفتيا</div>
+      <p class="body-text">كان السلف رحمهم الله يتحاشون الفتيا ويودون أن غيرهم يكفيهم إياها، وما ذلك إلا لعظم خشيتهم من الله وكمال علمهم بالكتاب والسنة. وعن عبد الله بن عمرو ﵄، أن النبي ﷺ قال:</p>
+      <div class="hadith-block">
+        <p class="hadith-text">«إِنَّ اللَّهَ لَا يَقْبِضُ الْعِلْمَ انْتِزَاعًا يَنْتَزِعُهُ مِنَ الْعِبَادِ، وَلَٰكِنْ يَقْبِضُ الْعِلْمَ بِقَبْضِ الْعُلَمَاءِ، حَتَّى إِذَا لَمْ يُبْقِ عَالِمًا اتَّخَذَ النَّاسُ رُؤُوسًا جُهَّالًا، فَسُئِلُوا فَأَفْتَوْا بِغَيْرِ عِلْمٍ، فَضَلُّوا وَأَضَلُّوا»</p>
+        <div class="hadith-source">متفق عليه</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider">فقه الأسرة</div>
+
+<!-- ══ S6: الزواج ══ -->
+<section class="lesson-section" id="s6">
+  <div class="lesson-header" onclick="toggleLesson(this)">
+    <div class="lesson-header-text">
+      <div class="lesson-tag">الدرس السادس</div>
+      <h2>الزواج — تعريفه وحكمه والحكمة من مشروعيته</h2>
+    </div>
+    <div class="lesson-toggle-btn">▾</div>
+  </div>
+  <div class="lesson-body">
+    <div class="content-block">
+      <div class="section-h3">المراد بفقه الأسرة</div>
+      <p class="body-text">يراد بفقه الأسرة الأحكام المتعلقة بكيفية بناء الأسرة عن طريق عقد الزواج، والتعامل بين الزوجين، وكيفية انتهاء هذا العقد عن طريق الطلاق أو الفسخ، وما يتعلق بذلك من أحكام كالنفقة والعدة.</p>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">تعريف الزواج</div>
+      <div class="def-box">هو عقد بأركان وشروط، يرتب حقوقاً وواجبات بين الزوجين، غايته الإحصان وإنشاء أسرة مستقرة يرعاها الزوجان بمودة ورحمة.</div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">حكم الزواج</div>
+      <p class="body-text">الزواج مشروع بالكتاب والسنة وإجماع المسلمين، والأصل فيه أنه سنة مؤكدة للنصوص الحاثة عليه.</p>
+      <div class="quran-verse">﴿ فَانكِحُوا مَا طَابَ لَكُم مِّنَ النِّسَاءِ ﴾<div class="quran-ref">النساء: ٣</div></div>
+      <div class="hadith-block">
+        <p class="hadith-text">«يَا مَعْشَرَ الشَّبَابِ مَنِ اسْتَطَاعَ مِنْكُمُ الْبَاءَةَ فَلْيَتَزَوَّجْ؛ فَإِنَّهُ أَغَضُّ لِلْبَصَرِ وَأَحْصَنُ لِلْفَرْجِ، وَمَنْ لَمْ يَسْتَطِعْ فَعَلَيْهِ بِالصَّوْمِ فَإِنَّهُ لَهُ وِجَاءٌ»</p>
+        <div class="hadith-source">متفق عليه — عن عبد الله بن مسعود ﵁</div>
+      </div>
+      <div class="quran-verse" style="margin-top:.6rem">﴿ وَلَقَدْ أَرْسَلْنَا رُسُلًا مِّن قَبْلِكَ وَجَعَلْنَا لَهُمْ أَزْوَاجًا وَذُرِّيَّةً ﴾<div class="quran-ref">الرعد: ٣٨</div></div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">الحكمة من مشروعية الزواج</div>
+      <div class="quran-verse">﴿ وَمِنْ آيَاتِهِ أَنْ خَلَقَ لَكُم مِّنْ أَنفُسِكُمْ أَزْوَاجًا لِّتَسْكُنُوا إِلَيْهَا وَجَعَلَ بَيْنَكُم مَّوَدَّةً وَرَحْمَةً ﴾<div class="quran-ref">الروم: ٢١</div></div>
+      <ul class="bullet-list" style="margin-top:.6rem">
+        <li>تكوين الأسرة الصالحة التي هي نواة المجتمع.</li>
+        <li>تحقيق السكن والطمأنينة لكلا الزوجين لما يحصل به من الألفة والمودة.</li>
+        <li>إنجاب الأولاد وتكثير النسل مع المحافظة على الأنساب.</li>
+        <li>غض البصر وإعفاف النفس وصيانتها من الوقوع في المحرمات.</li>
+      </ul>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">المعايير التي حث الشرع على مراعاتها عند اختيار الزوجين</div>
+      <div class="hadith-block">
+        <p class="hadith-text">«تُنْكَحُ الْمَرْأَةُ لِأَرْبَعٍ؛ لِمَالِهَا وَلِحَسَبِهَا وَجَمَالِهَا وَلِدِينِهَا، فَاظْفَرْ بِذَاتِ الدِّينِ تَرِبَتْ يَدَاكَ»</p>
+        <div class="hadith-source">متفق عليه</div>
+      </div>
+      <div class="hadith-block">
+        <p class="hadith-text">«إِذَا خَطَبَ إِلَيْكُمْ مَنْ تَرْضَوْنَ دِينَهُ وَخُلُقَهُ فَزَوِّجُوهُ، إِلَّا تَفْعَلُوا تَكُنْ فِتْنَةٌ فِي الْأَرْضِ وَفَسَادٌ عَرِيضٌ»</p>
+        <div class="hadith-source">رواه الترمذي</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ S7: الخطبة ══ -->
+<section class="lesson-section" id="s7">
+  <div class="lesson-header" onclick="toggleLesson(this)">
+    <div class="lesson-header-text">
+      <div class="lesson-tag">الدرس السابع</div>
+      <h2>الخطبة وأحكامها</h2>
+    </div>
+    <div class="lesson-toggle-btn">▾</div>
+  </div>
+  <div class="lesson-body">
+    <div class="content-block">
+      <div class="def-box"><strong>الخطبة:</strong> هي طلب الزواج والوعد به.</div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">أولاً: المرأة في مرحلة الخطبة</div>
+      <p class="body-text">تعد أجنبية بالنسبة للرجل فلا يجوز له الخلوة بها، ولا يجوز له أن يأتي منها ما يأتي الرجل من امرأته.</p>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">ثانياً: النظر إلى المخطوبة</div>
+      <p class="body-text">يستحب لمن خطب امرأة وكان عازماً على نكاحها أن ينظر إليها:</p>
+      <div class="hadith-block"><p class="hadith-text">«انْظُرْ إِلَيْهَا، فَإِنَّهُ أَحْرَى أَنْ يُؤْدَمَ بَيْنَكُمَا»</p><div class="hadith-source">رواه الترمذي — عن المغيرة بن شعبة ﵁</div></div>
+      <p class="body-text" style="margin-top:.5rem">وحدود النظر المسموح به هو ما جرت العادة بكشفه عند المحارم كالشعر وبقية الرأس. وكما أن للرجل أن ينظر للمرأة فكذلك المرأة لها أن تنظر إلى الرجل.</p>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">ثالثاً: حالات تحرم فيها الخطبة</div>
+      <div class="definitions-grid">
+        <div class="def-row"><span class="def-term">الحالة الأولى</span><span class="def-sep">:</span><span class="def-meaning">خطبة الرجل على خطبة أخيه المسلم — لقوله ﷺ: «لَا يَخْطُبِ الرَّجُلُ عَلَى خِطْبَةِ أَخِيهِ».</span></div>
+        <div class="def-row"><span class="def-term">الحالة الثانية</span><span class="def-sep">:</span><span class="def-meaning">خطبة المرأة المعتدة صريحاً — لقوله تعالى: ﴿وَلَا تَعْزِمُوا عُقْدَةَ النِّكَاحِ حَتَّىٰ يَبْلُغَ الْكِتَابُ أَجَلَهُ﴾. يجوز التعريض والتلميح فقط للمعتدة من وفاة.</span></div>
+      </div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">رابعاً: عرض الزواج على الرجل</div>
+      <p class="body-text">يشرع للولي أن يعرض على الرجل الصالح الذي يراه كفئاً لموليته الزواج منها، وما يدل على ذلك قصة الرجل الصالح صاحب مدين مع موسى عليه السلام: ﴿إِنِّي أُرِيدُ أَنْ أُنكِحَكَ إِحْدَى ابْنَتَيَّ هَاتَيْنِ﴾.</p>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">خامساً وسادساً: الاستشارة وصلاة الاستخارة</div>
+      <p class="body-text">يشرع لكل من الخاطب والمخطوبة استشارة من يثقان به قبل الإقدام على الزواج. والمستشار مؤتمن، فلا يجوز له السكوت عن شيء يرى أهميته، وذكر مساوي الرجل أو المرأة لا يعد من الغيبة المحرمة. كذلك يشرع لهما استخارة الله سبحانه قبل الإقدام على ذلك بصلاة ركعتين من غير الفريضة ثم الدعاء الوارد.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══ S8: أركان وشروط الزواج ══ -->
+<section class="lesson-section" id="s8">
+  <div class="lesson-header" onclick="toggleLesson(this)">
+    <div class="lesson-header-text">
+      <div class="lesson-tag">الدرس الثامن</div>
+      <h2>أركان الزواج وشروطه والشروط فيه والصور المحرمة</h2>
+    </div>
+    <div class="lesson-toggle-btn">▾</div>
+  </div>
+  <div class="lesson-body">
+    <div class="content-block">
+      <div class="section-h3">أركان الزواج</div>
+      <ol class="num-list">
+        <li><strong>الزوجان الخاليان من الموانع الشرعية:</strong> من الموانع في الرجل: أن يكون متزوجاً بأربع نسوة، أو أن يكون غير مسلم والمرأة مسلمة. ومن الموانع في المرأة: أن تكون من محارمه، أو في ذمة زوج آخر.</li>
+        <li><strong>الإيجاب:</strong> لفظ التزويج الصادر من ولي المرأة أو نائبه، ويصح بكل لفظ يفهم منه المقصود من النكاح.</li>
+        <li><strong>القبول:</strong> لفظ قبول الزواج الصادر من الزوج أو نائبه، ويصح بكل لفظ يفهم منه القبول. وتقوم إشارة الأخرس المفهومة مقام نطقه.</li>
+      </ol>
+    </div>
+
+    <div class="content-block">
+      <div class="section-h3">شروط الزواج</div>
+      <ol class="num-list">
+        <li><strong>تعيين الزوجين:</strong> لا بد من تحديد الزوجين في عقد الزواج تحديداً ينفي الجهالة.</li>
+        <li><strong>رضا الزوجين:</strong> لا يجوز إجبار أحد الزوجين إذا كان عاقلاً على الزواج بمن لا يريده. قال ﷺ: «لَا تُنْكَحُ الْأَيِّمُ حَتَّى تُسْتَأْمَرَ، وَلَا تُنْكَحُ الْبِكْرُ حَتَّى تُسْتَأْذَنَ».</li>
+        <li><strong>الإيجاب من الولي:</strong> لقوله ﷺ: «لَا نِكَاحَ إِلَّا بِوَلِيٍّ». وترتيب الأولياء: الأب، ثم وصيه، ثم الجد لأب وإن علا، ثم الابن، ثم الإخوة، ثم الأعمام بترتيبهم.</li>
+        <li><strong>شهادة شاهدين:</strong> لقوله ﷺ: «لَا نِكَاحَ إِلَّا بِوَلِيٍّ وَشَاهِدَيْ عَدْلٍ».</li>
+        <li><strong>ألا تكون المرأة محرمة على الرجل</strong> تحريماً مؤبداً أو مؤقتاً.</li>
+      </ol>
+    </div>
+
+    <div class="content-block">
+      <div class="section-h3">الشروط في الزواج</div>
+      <div class="definitions-grid">
+        <div class="def-row"><span class="def-term">شروط صحيحة جائزة</span><span class="def-sep">:</span><span class="def-meaning">ما له فيه مصلحة ولا يتضمن أمراً محرماً — كاشتراط الزوجة إكمال دراستها أو السكن في مدينة معينة. والوفاء بها واجب.</span></div>
+        <div class="def-row"><span class="def-term">شروط فاسدة محرمة</span><span class="def-sep">:</span><span class="def-meaning">ما يخالف الشرع أو مقتضى عقد الزوجية — كاشتراط المرأة على الرجل طلاق زوجته الأولى، أو كون النكاح مؤقتاً.</span></div>
+      </div>
+    </div>
+
+    <div class="content-block">
+      <div class="section-h3">صور محرمة في الزواج</div>
+      <div class="definitions-grid">
+        <div class="def-row"><span class="def-term">زواج المتعة (لأجل)</span><span class="def-sep">:</span><span class="def-meaning">الاتفاق على الزواج إلى أجل معين — دليل تحريمه: نهى النبي ﷺ عنه يوم خيبر.</span></div>
+        <div class="def-row"><span class="def-term">زواج الشغار</span><span class="def-sep">:</span><span class="def-meaning">تزويج موليته على أن يزوجه الآخر موليته — دليل تحريمه: نهى النبي ﷺ عن الشغار.</span></div>
+        <div class="def-row"><span class="def-term">زواج التحليل</span><span class="def-sep">:</span><span class="def-meaning">التزوج بمطلقة ثلاثاً بنية تحليلها للأول — دليل تحريمه: لعن النبي ﷺ المحلل والمحلل له.</span></div>
+      </div>
+      <p class="body-text" style="margin-top:.7rem"><strong>عادات محرمة:</strong> عُضل النساء عن الزواج، وإجبارهن على الزواج ممن لا يرضينه، وتحجير ابن العم على ابنة عمه.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══ S9: المحرمات من النساء ══ -->
+<section class="lesson-section" id="s9">
+  <div class="lesson-header" onclick="toggleLesson(this)">
+    <div class="lesson-header-text">
+      <div class="lesson-tag">الدرس التاسع</div>
+      <h2>المحرمات من النساء</h2>
+    </div>
+    <div class="lesson-toggle-btn">▾</div>
+  </div>
+  <div class="lesson-body">
+    <div class="content-block">
+      <div class="quran-verse">﴿ حُرِّمَتْ عَلَيْكُمْ أُمَّهَاتُكُمْ وَبَنَاتُكُمْ وَأَخَوَاتُكُمْ وَعَمَّاتُكُمْ وَخَالَاتُكُمْ وَبَنَاتُ الْأَخِ وَبَنَاتُ الْأُخْتِ وَأُمَّهَاتُكُمُ اللَّاتِي أَرْضَعْنَكُمْ وَأَخَوَاتُكُم مِّنَ الرَّضَاعَةِ وَأُمَّهَاتُ نِسَائِكُمْ وَرَبَائِبُكُمُ... ﴾<div class="quran-ref">النساء: ٢٣–٢٤</div></div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">القسم الأول: المُحرّمات حرمة مؤبدة</div>
+      <p class="body-text"><strong>أولاً — بسبب النسب:</strong> أمهات الرجل وجداته، بناته وحفيداته، الأخوات، العمات والخالات، بنات الإخوة وبنات الأخوات.</p>
+      <p class="body-text" style="margin-top:.5rem"><strong>ثانياً — بسبب المصاهرة:</strong> زوجات الأبناء والأحفاد، زوجات الآباء والأجداد، أم الزوجة وجداتها، بنات الزوجة (الربائب) بشرط الدخول بأمهن.</p>
+      <p class="body-text" style="margin-top:.5rem"><strong>ثالثاً — بالرضاعة:</strong> «يَحْرُمُ مِنَ الرَّضَاعَةِ مَا يَحْرُمُ مِنَ النَّسَبِ». ولا تنتشر الحرمة لغير الرضيع وأولاده.</p>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">القسم الثاني: المُحرّمات حرمة مؤقتة</div>
+      <p class="body-text"><strong>ما يحرم بسبب الجمع:</strong> أخت الزوجة، عمتها وخالتها — «لَا يُجْمَعُ بَيْنَ الْمَرْأَةِ وَعَمَّتِهَا وَلَا بَيْنَ الْمَرْأَةِ وَخَالَتِهَا»، الزوجة الخامسة.</p>
+      <p class="body-text" style="margin-top:.5rem"><strong>المُحرّمات من أجل أمر قابل للزوال:</strong> المتزوجات، المعتدة، مطلقته ثلاثاً حتى تنكح زوجاً غيره، المحرمة بحج أو عمرة، المشركة حتى تسلم (إلا الكتابيات بضوابط)، الزانية حتى تتوب.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══ S10: المهر والوليمة وتحديد النسل ══ -->
+<section class="lesson-section" id="s10">
+  <div class="lesson-header" onclick="toggleLesson(this)">
+    <div class="lesson-header-text">
+      <div class="lesson-tag">الدرس العاشر</div>
+      <h2>المهر والوليمة وتحديد النسل</h2>
+    </div>
+    <div class="lesson-toggle-btn">▾</div>
+  </div>
+  <div class="lesson-body">
+    <div class="content-block">
+      <div class="section-h3">المهر (الصداق)</div>
+      <div class="def-box"><strong>تعريفه:</strong> المال الذي يدفعه الرجل للمرأة بسبب عقد الزواج.</div>
+      <div class="quran-verse">﴿ وَآتُوا النِّسَاءَ صَدُقَاتِهِنَّ نِحْلَةً ﴾<div class="quran-ref">النساء: ٤</div></div>
+      <p class="body-text" style="margin-top:.6rem"><strong>أحكام المهر:</strong></p>
+      <ol class="num-list" style="margin-top:.4rem">
+        <li>يُسن تخفيف المهر. يجوز تعجيله وتأجيله وتعجيل بعضه وتأجيل البعض الآخر.</li>
+        <li>المهر حق خالص للزوجة تحدده وتملكه وحدها.</li>
+        <li>إذا طلقها قبل الدخول فلها نصف المهر، وإن طلقها بعد الدخول ولو بساعة فلها المهر كله.</li>
+        <li>إذا طلقها قبل الدخول ولم يحدد المهر فلها المتعة.</li>
+      </ol>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">وليمة العرس</div>
+      <p class="body-text">إقامة الوليمة للعرس سنة مؤكدة. قال النبي ﷺ لعبد الرحمن بن عوف ﵁: «أَوْلِمْ وَلَوْ بِشَاةٍ». وإجابة الدعوة لوليمة العرس واجبة إذا تم تعيين المدعو.</p>
+      <p class="body-text" style="margin-top:.5rem"><strong>مخالفات في الولائم:</strong> الإسراف ورمي الأطعمة، الاقتصار على دعوة الأغنياء وترك الأقارب الفقراء، استخدام الأسلحة أو إطلاق النار بما يؤدي إلى هلاك الأرواح.</p>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">تحديد النسل وتنظيم الحمل</div>
+      <p class="body-text">لا يجوز وضع القوانين العامة التي تحدد عدد الأولاد، ولا يجوز استئصال القدرة على الإنجاب إلا في حالات الضرورة. أما <strong>تنظيم الحمل</strong> فيجوز بشروط: أن يكون بتشاور وتراضٍ، ألا يترتب عليه ضرر، أن تكون الوسيلة مشروعة، ألا يكون فيه عدوان على حمل قائم.</p>
+      <p class="body-text" style="margin-top:.5rem">وأما <strong>إسقاط الجنين (الإجهاض)</strong> فلا يجوز في مختلف مراحله إلا لمبرر شرعي وفي حدود ضيقة جداً يقررها جمع من الأطباء المتخصصين الموثوقين.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══ S11: الطلاق ══ -->
+<section class="lesson-section" id="s11">
+  <div class="lesson-header" onclick="toggleLesson(this)">
+    <div class="lesson-header-text">
+      <div class="lesson-tag">الدرس الحادي عشر</div>
+      <h2>الطلاق — حكمه وأنواعه وألفاظه والخلع</h2>
+    </div>
+    <div class="lesson-toggle-btn">▾</div>
+  </div>
+  <div class="lesson-body">
+    <div class="content-block">
+      <div class="section-h3">حكم الطلاق</div>
+      <div class="hadith-block">
+        <p class="hadith-text">«إِنَّ إِبْلِيسَ يَضَعُ عَرْشَهُ عَلَى الْمَاءِ، ثُمَّ يَبْعَثُ سَرَايَاهُ... يَجِيءُ أَحَدُهُمْ فَيَقُولُ: مَا تَرَكْتُهُ حَتَّى فَرَّقْتُ بَيْنَهُ وَبَيْنَ امْرَأَتِهِ، فَيُدْنِيهِ مِنْهُ وَيَقُولُ: نِعْمَ أَنْتَ»</p>
+        <div class="hadith-source">رواه مسلم</div>
+      </div>
+      <p class="body-text">الطلاق قد يكون مكروهاً أو مباحاً عند الحاجة أو محرماً (البدعي) أو مستحباً أو واجباً في حال الإيلاء.</p>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">أنواع الطلاق</div>
+      <div class="definitions-grid">
+        <div class="def-row"><span class="def-term">الطلاق السني</span><span class="def-sep">:</span><span class="def-meaning">أن يطلق الرجل زوجته طلقة واحدة في طهر لم يجامعها فيه.</span></div>
+        <div class="def-row"><span class="def-term">الطلاق البدعي</span><span class="def-sep">:</span><span class="def-meaning">ما اختل فيه أحد شروط الطلاق السني كالطلاق في الحيض، أو في طهر جامعها فيه، أو بثلاث طلقات في مجلس واحد. وهذا النوع حرام.</span></div>
+      </div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">أقسام المطلقات</div>
+      <div class="definitions-grid">
+        <div class="def-row"><span class="def-term">المطلقة الرجعية</span><span class="def-sep">:</span><span class="def-meaning">طلقها طلقة أو طلقتين بعد الدخول. يملك مراجعتها ما دامت في العدة دون عقد جديد.</span></div>
+        <div class="def-row"><span class="def-term">البائن بينونة صغرى</span><span class="def-sep">:</span><span class="def-meaning">طلقها مرة أو مرتين وانتهت عدتها. يمكن الزواج منها بعقد جديد.</span></div>
+        <div class="def-row"><span class="def-term">البائن بينونة كبرى</span><span class="def-sep">:</span><span class="def-meaning">طلقها ثلاث مرات. لا تحل له حتى تنكح زوجاً غيره نكاح رغبة.</span></div>
+      </div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">ألفاظ الطلاق</div>
+      <div class="definitions-grid">
+        <div class="def-row"><span class="def-term">الصريح</span><span class="def-sep">:</span><span class="def-meaning">لفظ الطلاق وما تصرف منه — أنت طالق، مطلقة، طلقتك. يقع بمجرد النطق.</span></div>
+        <div class="def-row"><span class="def-term">الكناية</span><span class="def-sep">:</span><span class="def-meaning">ألفاظ تحتمل الطلاق وغيره كـ«الحقي بأهلك». لا يقع إلا بنية الطلاق.</span></div>
+      </div>
+      <p class="body-text" style="margin-top:.6rem">الطلاق بالكتابة — ورقة أو جوال أو بريد إلكتروني — يقع. ولا يقع حديث النفس إذا لم يتلفظ به أو يكتبه. والجاد والهازل سواء في الطلاق: «ثَلَاثَةٌ جِدُّهُنَّ جِدٌّ وَهَزْلُهُنَّ جِدٌّ: النِّكَاحُ، وَالطَّلَاقُ، وَالرَّجْعَةُ».</p>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">الخلع</div>
+      <div class="quran-verse">﴿ فَإِنْ خِفْتُمْ أَلَّا يُقِيمَا حُدُودَ اللَّهِ فَلَا جُنَاحَ عَلَيْهِمَا فِيمَا افْتَدَتْ بِهِ ﴾<div class="quran-ref">البقرة: ٢٢٩</div></div>
+      <div class="def-box"><strong>الخلع:</strong> حلّ عقد الزوجية بمقابل تدفعه الزوجة أو وليها.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ S12: العدة والنفقات ══ -->
+<section class="lesson-section" id="s12">
+  <div class="lesson-header" onclick="toggleLesson(this)">
+    <div class="lesson-header-text">
+      <div class="lesson-tag">الدرس الثاني عشر</div>
+      <h2>العدة والنفقات</h2>
+    </div>
+    <div class="lesson-toggle-btn">▾</div>
+  </div>
+  <div class="lesson-body">
+    <div class="content-block">
+      <div class="section-h3">العدة</div>
+      <p class="body-text">إذا حصل فراق بين المرأة وزوجها فلا يحل لها أن تتزوج مباشرة بل لا بد لها من الانتظار مدة حددها الشرع.</p>
+      <div class="styled-table-wrap" style="overflow-x:auto">
+        <table class="styled-table">
+          <thead><tr><th>نوع المعتدة</th><th>مدة العدة</th></tr></thead>
+          <tbody>
+            <tr><td>المطلقة قبل الدخول</td><td>لا عدة لها</td></tr>
+            <tr><td>المطلقة ذات الحيض</td><td>ثلاثة قروء (حيضات)</td></tr>
+            <tr><td>اليائسة والتي لم تحض</td><td>ثلاثة أشهر</td></tr>
+            <tr><td>المتوفى عنها غير الحامل</td><td>أربعة أشهر وعشراً</td></tr>
+            <tr><td>الحامل (مطلقة أو متوفى عنها)</td><td>وضع الحمل</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="body-text" style="margin-top:.7rem"><strong>الحكمة من العدة:</strong> التأكد من براءة الرحم، إعطاء مهلة تفكير، رعاية حق الزوج السابق، إعطاء مهلة للمطلّق رجعياً.</p>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">النفقات</div>
+      <p class="body-text"><strong>أولاً — النفقة على الزوجة:</strong> واجبة سواء أكانت غنية أم فقيرة. قال ﷺ في حجة الوداع: «وَلَهُنَّ عَلَيْكُمْ رِزْقُهُنَّ وَكِسْوَتُهُنَّ بِالْمَعْرُوفِ». ومقدارها يرجع إلى العرف ويختلف باختلاف الأزواج غنى وفقراً.</p>
+      <p class="body-text" style="margin-top:.5rem"><strong>ثانياً — النفقة على الأولاد والآباء:</strong> يجب على الوالد النفقة على أولاده. وكذلك يجب على الولد النفقة على أبيه وأمه إذا احتاجوا.</p>
+      <p class="body-text" style="margin-top:.5rem"><strong>ثالثاً — النفقة على الأقارب:</strong> كل قريب يحق لك أن ترثه تجب عليك نفقته في حياته إن كان فقيراً، بشرط أن يكون المنفق غنياً وارثاً للمنفق عليه.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══ S13: الحضانة والرضاع ══ -->
+<section class="lesson-section" id="s13">
+  <div class="lesson-header" onclick="toggleLesson(this)">
+    <div class="lesson-header-text">
+      <div class="lesson-tag">الدرس الثالث عشر</div>
+      <h2>الحضانة والرضاع</h2>
+    </div>
+    <div class="lesson-toggle-btn">▾</div>
+  </div>
+  <div class="lesson-body">
+    <div class="content-block">
+      <div class="section-h3">الحضانة</div>
+      <div class="def-box"><strong>الحضانة:</strong> حفظ من لا يستقل بنفسه عما يضره، وتربيته والقيام على مصالحه بما في ذلك التعليم والعلاج.</div>
+      <p class="body-text" style="margin-top:.6rem"><strong>الأحق بالحضانة</strong> وفق نظام الأحوال الشخصية: الحضانة من واجبات الوالدين معاً ما دامت الزوجية قائمة، فإن افترقا فللأم، ثم الأب، ثم أم الأم، ثم أم الأب.</p>
+      <p class="body-text" style="margin-top:.5rem"><strong>الحضانة بعد الخامسة عشرة:</strong> إذا أتم المحضون الخامسة عشرة فله الاختيار في الإقامة لدى أحد والديه. وتنتهي الحضانة عند بلوغه ثمانية عشر عاماً.</p>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">الرضاع — شروط الرضاع المحرّم</div>
+      <ol class="num-list">
+        <li>أن تكون الرضعات خمساً فأكثر — «خَمْسُ رَضَعَاتٍ مَعْلُومَاتٍ يُحَرِّمْنَ».</li>
+        <li>أن يكون اللبن بسبب حمل نتج عن زواج صحيح.</li>
+        <li>أن يكون الرضاع في الحولين — قال تعالى: ﴿وَالْوَالِدَاتُ يُرْضِعْنَ أَوْلَادَهُنَّ حَوْلَيْنِ كَامِلَيْنِ﴾.</li>
+      </ol>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">أحكام الرضاع</div>
+      <p class="body-text">إذا وجد الرضاع بالشروط السابقة فيترتب عليه حكمان:</p>
+      <div class="definitions-grid" style="margin-top:.5rem">
+        <div class="def-row"><span class="def-term">تحريم الزواج</span><span class="def-sep">:</span><span class="def-meaning">«يَحْرُمُ مِنَ الرَّضَاعَةِ مَا يَحْرُمُ مِنَ الْوِلَادَةِ» — متفق عليه.</span></div>
+        <div class="def-row"><span class="def-term">أحكام المحرمية</span><span class="def-sep">:</span><span class="def-meaning">يجوز النظر إليها والخلوة بها وكونه محرماً لها في السفر.</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider">المعاملات المالية</div>
+
+<!-- ══ S14: البيع ══ -->
+<section class="lesson-section" id="s14">
+  <div class="lesson-header" onclick="toggleLesson(this)">
+    <div class="lesson-header-text">
+      <div class="lesson-tag">الدرس الرابع عشر</div>
+      <h2>تعريف البيع وأركانه وأقسامه وشروطه</h2>
+    </div>
+    <div class="lesson-toggle-btn">▾</div>
+  </div>
+  <div class="lesson-body">
+    <div class="content-block">
+      <div class="section-h3">تعريف البيع وحكمه</div>
+      <div class="definitions-grid">
+        <div class="def-row"><span class="def-term">لغة</span><span class="def-sep">:</span><span class="def-meaning">أخذ شيء وإعطاء شيء آخر، مأخوذ من الباع.</span></div>
+        <div class="def-row"><span class="def-term">اصطلاحاً</span><span class="def-sep">:</span><span class="def-meaning">مبادلة مال بمال لغرض التملك.</span></div>
+      </div>
+      <div class="quran-verse" style="margin-top:.6rem">﴿ وَأَحَلَّ اللَّهُ الْبَيْعَ وَحَرَّمَ الرِّبَا ﴾<div class="quran-ref">البقرة: ٢٧٥</div></div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">أركان البيع</div>
+      <ol class="num-list">
+        <li><strong>العاقدان:</strong> البائع والمشتري.</li>
+        <li><strong>المعقود عليه:</strong> الثمن والمثمن (السلعة).</li>
+        <li><strong>صيغة العقد:</strong> ما يصدر من المتعاقدين دالاً على إرادتهما — بقول (إيجاب وقبول) أو بفعل (معاطاة كالشراء عبر الإنترنت).</li>
+      </ol>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">أقسام البيع من حيث وقت التسليم</div>
+      <div class="definitions-grid">
+        <div class="def-row"><span class="def-term">معجل ثمناً ومثمناً</span><span class="def-sep">:</span><span class="def-meaning">الأصل في البيوع — مباح.</span></div>
+        <div class="def-row"><span class="def-term">بيع السلم</span><span class="def-sep">:</span><span class="def-meaning">تعجيل الثمن وتأجيل المثمن — مباح.</span></div>
+        <div class="def-row"><span class="def-term">بيع الأجل والتقسيط</span><span class="def-sep">:</span><span class="def-meaning">تعجيل المثمن وتأجيل الثمن — مباح.</span></div>
+        <div class="def-row"><span class="def-term">الكالئ بالكالئ</span><span class="def-sep">:</span><span class="def-meaning">تأجيل الثمن والمثمن معاً — محرّم.</span></div>
+      </div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">أقسام البيع من حيث طريقة تحديد الثمن</div>
+      <div class="definitions-grid">
+        <div class="def-row"><span class="def-term">بيع المساومة</span><span class="def-sep">:</span><span class="def-meaning">لا يذكر البائع رأس ماله — الأصل في البيوع.</span></div>
+        <div class="def-row"><span class="def-term">بيع المرابحة</span><span class="def-sep">:</span><span class="def-meaning">يذكر رأس المال ويضع زيادة عليه.</span></div>
+        <div class="def-row"><span class="def-term">بيع الوضيعة</span><span class="def-sep">:</span><span class="def-meaning">يبيع بنقص عن رأس المال.</span></div>
+        <div class="def-row"><span class="def-term">بيع التولية</span><span class="def-sep">:</span><span class="def-meaning">يبيع برأس ماله فيها بالضبط.</span></div>
+        <div class="def-row"><span class="def-term">بيع المزايدة</span><span class="def-sep">:</span><span class="def-meaning">تعرض السلعة للتزايد في ثمنها فيأخذها من يعرض أعلى.</span></div>
+      </div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">شروط البيع السبعة</div>
+      <ol class="num-list">
+        <li>تراضي العاقدين — لقوله تعالى: ﴿إِلَّا أَن تَكُونَ تِجَارَةً عَن تَرَاضٍ مِّنكُمْ﴾.</li>
+        <li>أن يكون كل واحد من المتعاقدين جائز التصرف (بالغاً عاقلاً رشيداً).</li>
+        <li>أن يكون البائع مالكاً للمبيع أو مأذوناً له — «لَا تَبِعْ مَا لَيْسَ عِنْدَكَ».</li>
+        <li>أن يكون المبيع مما يباح الانتفاع به — «إِنَّ اللَّهَ حَرَّمَ بَيْعَ الْخَمْرِ وَالْمَيْتَةِ وَالْخِنْزِيرِ وَالْأَصْنَامِ».</li>
+        <li>أن يكون المبيع مقدوراً على تسليمه — لا يصح بيع السمك في الماء أو الطير في الهواء.</li>
+        <li>أن يكون المبيع معلوماً عند المتعاقدين بالرؤية أو الوصف الدقيق.</li>
+        <li>أن يكون الثمن معلوماً — لأن المجهول من الغرر المنهي عنه.</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ══ S15: الربا ══ -->
+<section class="lesson-section" id="s15">
+  <div class="lesson-header" onclick="toggleLesson(this)">
+    <div class="lesson-header-text">
+      <div class="lesson-tag">الدرس الخامس عشر</div>
+      <h2>الربا — تعريفه وأنواعه والحكمة من تحريمه</h2>
+    </div>
+    <div class="lesson-toggle-btn">▾</div>
+  </div>
+  <div class="lesson-body">
+    <div class="content-block">
+      <div class="section-h3">تعريف الربا وحكمه</div>
+      <div class="definitions-grid">
+        <div class="def-row"><span class="def-term">لغة</span><span class="def-sep">:</span><span class="def-meaning">الزيادة — ﴿يَمْحَقُ اللَّهُ الرِّبَا وَيُرْبِي الصَّدَقَاتِ﴾.</span></div>
+        <div class="def-row"><span class="def-term">شرعاً</span><span class="def-sep">:</span><span class="def-meaning">الزيادة أو التأخير في مبادلة أموال مخصوصة.</span></div>
+      </div>
+      <div class="quran-verse" style="margin-top:.6rem">﴿ يَا أَيُّهَا الَّذِينَ آمَنُوا اتَّقُوا اللَّهَ وَذَرُوا مَا بَقِيَ مِنَ الرِّبَا إِن كُنتُم مُّؤْمِنِينَ * فَإِن لَّمْ تَفْعَلُوا فَأْذَنُوا بِحَرْبٍ مِّنَ اللَّهِ وَرَسُولِهِ ﴾<div class="quran-ref">البقرة: ٢٧٨–٢٧٩</div></div>
+      <div class="hadith-block">
+        <p class="hadith-text">«لَعَنَ رَسُولُ اللَّهِ ﷺ آكِلَ الرِّبَا وَمُوكِلَهُ وَكَاتِبَهُ وَشَاهِدَيْهِ، وَقَالَ: هُمْ سَوَاءٌ»</p>
+        <div class="hadith-source">رواه مسلم — عن جابر ﵁</div>
+      </div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">أنواع الربا</div>
+      <p class="body-text"><strong>النوع الأول: ربا الديون</strong> — يكون في عقود المداينات كالقروض.</p>
+      <div class="definitions-grid" style="margin-top:.4rem">
+        <div class="def-row"><span class="def-term">الزيادة عند حلول الدين</span><span class="def-sep">:</span><span class="def-meaning">أن يزيد الدائن في المهلة مقابل زيادة في قيمة الدين — ربا الجاهلية.</span></div>
+        <div class="def-row"><span class="def-term">الزيادة المشروطة في القرض</span><span class="def-sep">:</span><span class="def-meaning">أن يشترط المقرض على المقترض رد المبلغ بزيادة — ربا القروض.</span></div>
+      </div>
+      <p class="body-text" style="margin-top:.7rem"><strong>النوع الثاني: ربا البيوع</strong></p>
+      <div class="definitions-grid" style="margin-top:.4rem">
+        <div class="def-row"><span class="def-term">ربا الفضل</span><span class="def-sep">:</span><span class="def-meaning">بيع المال الربوي بجنسه متفاضلاً — مثل: مبادلة مائة جرام ذهب بمائتي جرام مع التقابض.</span></div>
+        <div class="def-row"><span class="def-term">ربا النسيئة</span><span class="def-sep">:</span><span class="def-meaning">بيع المال الربوي بمثله في العلة مع عدم التقابض — «الذَّهَبُ بِالذَّهَبِ رِبًا إِلَّا هَاءَ وَهَاءَ».</span></div>
+      </div>
+      <p class="body-text" style="margin-top:.7rem"><strong>الأموال الربوية:</strong> الذهب، والفضة، والأوراق النقدية، والأطعمة المكيلة المدخرة كالبر والتمر والشعير والملح وما في حكمها.</p>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">بيع العينة والتورق</div>
+      <div class="definitions-grid">
+        <div class="def-row"><span class="def-term">بيع العينة — محرم</span><span class="def-sep">:</span><span class="def-meaning">أن يشتري شخص سلعة بثمن مؤجل ثم يبيعها على البائع نفسه بثمن أقل نقداً — حيلة على الربا.</span></div>
+        <div class="def-row"><span class="def-term">التورق — جائز</span><span class="def-sep">:</span><span class="def-meaning">أن يشتري سلعة بثمن مؤجل ثم يبيعها على شخص آخر غير البائع نقداً — جائز عند جمهور العلماء.</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ S16: البيوع المحرمة ══ -->
+<section class="lesson-section" id="s16">
+  <div class="lesson-header" onclick="toggleLesson(this)">
+    <div class="lesson-header-text">
+      <div class="lesson-tag">الدرس السادس عشر</div>
+      <h2>البيوع المحرمة — الغش والنجش والاحتكار وبيع الغرر والقمار</h2>
+    </div>
+    <div class="lesson-toggle-btn">▾</div>
+  </div>
+  <div class="lesson-body">
+    <div class="content-block">
+      <div class="section-h3">الغش في البيع</div>
+      <div class="def-box">كتمان العيوب التي في السلعة أو إظهارها بأحسن مما هي عليه.</div>
+      <div class="hadith-block"><p class="hadith-text">«مَنْ غَشَّ فَلَيْسَ مِنِّي»</p><div class="hadith-source">رواه مسلم — عن أبي هريرة ﵁</div></div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">النجش</div>
+      <p class="body-text"><strong>صوره:</strong> أن يزيد في ثمن السلعة في المزاد وهو لا يريد شراءها، أو أن يصف البائع السلعة بما ليس فيها ليثير رغبة المشتري. <strong>حكمه:</strong> حرام — «نَهَى النَّبِيُّ ﷺ عَنِ النَّجَشِ».</p>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">بيع الرجل على بيع أخيه وسومه على سومه</div>
+      <div class="hadith-block"><p class="hadith-text">«لَا يَبِعْ بَعْضُكُمْ عَلَى بَيْعِ أَخِيهِ»<br>«لَا يَسُومُ الْمُسْلِمُ عَلَى سَوْمِ الْمُسْلِمِ»</p><div class="hadith-source">متفق عليه</div></div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">الاحتكار</div>
+      <div class="def-box">حبس السلعة عن الناس مع حاجتهم إليها ليزداد الطلب عليها ثم بيعها بسعر مرتفع.</div>
+      <div class="hadith-block"><p class="hadith-text">«لَا يَحْتَكِرُ إِلَّا خَاطِئٌ»</p><div class="hadith-source">رواه مسلم — عن معمر بن عبد الله ﵁</div></div>
+      <p class="body-text">لا يكون محرماً إلا بشرطين: وقت الغلاء، وأن تكون السلعة مما يحتاج إليها الناس ويتضررون بحبسها. <strong>حماية الحقوق الفكرية</strong> جائزة شرعاً ولا تعد من الاحتكار المحرم.</p>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">بيع الغرر</div>
+      <div class="definitions-grid">
+        <div class="def-row"><span class="def-term">لغة</span><span class="def-sep">:</span><span class="def-meaning">الخطر والخدعة.</span></div>
+        <div class="def-row"><span class="def-term">شرعاً</span><span class="def-sep">:</span><span class="def-meaning">المجهول العاقبة في المبيع أو الثمن أو الأجل — البيع الذي انطوى على مخاطرة أو مقامرة أو جهالة.</span></div>
+      </div>
+      <div class="hadith-block"><p class="hadith-text">«نَهَى عَنْ بَيْعِ الْحَصَاةِ، وَعَنْ بَيْعِ الْغَرَرِ»</p><div class="hadith-source">رواه مسلم — عن أبي هريرة ﵁</div></div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">القمار</div>
+      <div class="quran-verse">﴿ يَا أَيُّهَا الَّذِينَ آمَنُوا إِنَّمَا الْخَمْرُ وَالْمَيْسِرُ وَالْأَنصَابُ وَالْأَزْلَامُ رِجْسٌ مِّنْ عَمَلِ الشَّيْطَانِ فَاجْتَنِبُوهُ ﴾<div class="quran-ref">المائدة: ٩٠</div></div>
+      <p class="body-text">من صوره: المراهنة بين طرفين على مال، البيع بسحب الأرقام، المسابقات القائمة على رسائل نصية مدفوعة بسحب عشوائي.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══ S17: المسابقة ══ -->
+<section class="lesson-section" id="s17">
+  <div class="lesson-header" onclick="toggleLesson(this)">
+    <div class="lesson-header-text">
+      <div class="lesson-tag">الدرس السابع عشر</div>
+      <h2>المسابقة — حكمها وشروطها وأحكامها</h2>
+    </div>
+    <div class="lesson-toggle-btn">▾</div>
+  </div>
+  <div class="lesson-body">
+    <div class="content-block">
+      <div class="section-h3">تعريف المسابقة وحكمها</div>
+      <p class="body-text">المسابقة من الأمور التي تعارفها الناس قديماً وحديثاً. والأصل في المسابقات الإباحة لما دلت عليه النصوص الشرعية وفعل النبي ﷺ من إباحتها.</p>
+      <div class="hadith-block">
+        <p class="hadith-text">عن عائشة ﵂ قالت: فسابقته (النبيﷺ) فسبقته... ثم سبقني فقال: «هَذِهِ بِتِلْكَ»</p>
+        <div class="hadith-source">رواه أبو داود وابن ماجه</div>
+      </div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">أحكام عارضة للمسابقة</div>
+      <div class="definitions-grid">
+        <div class="def-row"><span class="def-term">مستحبة</span><span class="def-sep">:</span><span class="def-meaning">كل مسابقة فيها عون على طاعة الله — المسابقات بين الخيل والإبل والرماية والعلم الشرعي.</span></div>
+        <div class="def-row"><span class="def-term">مكروهة</span><span class="def-sep">:</span><span class="def-meaning">المسابقات في الأمور المباحة إذا كثرت وصدّت عما هو أهم.</span></div>
+        <div class="def-row"><span class="def-term">محرمة</span><span class="def-sep">:</span><span class="def-meaning">ما تضمنت أمراً محرماً كخطر على النفس، أو إيذاء الآخرين، أو اللعب بالنرد، أو كشف العورات.</span></div>
+      </div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">شروط جواز المسابقات</div>
+      <ol class="num-list">
+        <li>ألا تشغل عن واجب كالصلاة المفروضة.</li>
+        <li>ألا تتضمن معصية: خطر على النفس، إيذاء الآخرين، ضرب الوجه، تعذيب الحيوانات، لعب النرد، كشف العورات.</li>
+      </ol>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">دفع الجوائز في المسابقات</div>
+      <p class="body-text">جائز إذا كان باذل الجائزة: الحاكم أو جهة الدولة، أو طرفاً خارجياً متبرعاً، أو أحد المتسابقين فقط. ومحرم إذا كان جميع المتسابقين يبذلون الجوائز على أن من غلب أخذها — لشبهها بالقمار.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══ S18: اللقطة ══ -->
+<section class="lesson-section" id="s18">
+  <div class="lesson-header" onclick="toggleLesson(this)">
+    <div class="lesson-header-text">
+      <div class="lesson-tag">الدرس الثامن عشر</div>
+      <h2>اللقطة</h2>
+    </div>
+    <div class="lesson-toggle-btn">▾</div>
+  </div>
+  <div class="lesson-body">
+    <div class="content-block">
+      <div class="def-box"><strong>اللقطة اصطلاحاً:</strong> مال فقده صاحبه ووجده غيره.</div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">حكم الالتقاط</div>
+      <div class="definitions-grid">
+        <div class="def-row"><span class="def-term">يعلم أمانة نفسه</span><span class="def-sep">:</span><span class="def-meaning">يستحب له التقاطها لإيصالها لصاحبها.</span></div>
+        <div class="def-row"><span class="def-term">يعلم عجزه عن حملها</span><span class="def-sep">:</span><span class="def-meaning">يحرم عليه أخذها.</span></div>
+        <div class="def-row"><span class="def-term">في مكان مخوف</span><span class="def-sep">:</span><span class="def-meaning">يجب عليه أخذها وإعطاؤها للجهات المسؤولة.</span></div>
+      </div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">أنواع المال الملتقط</div>
+      <ol class="num-list">
+        <li><strong>مال تركه صاحبه رغبة عنه:</strong> يجوز أخذه ولا يجب تعريفه.</li>
+        <li><strong>مال لا تتبعه همة أوساط الناس</strong> كالهللات: يجوز أخذه ولا يجب تعريفه.</li>
+        <li><strong>حيوان يمتنع بنفسه</strong> كالإبل: لا يجوز التقاطه.</li>
+        <li><strong>المال الذي تتبعه همة أوساط الناس</strong> كمائة ريال والأمتعة: يجوز التقاطه ويجب تعريفه سنة كاملة، فإن لم يأت صاحبه تصرف فيه الملتقط كما يتصرف في ملكه مع الضمان.</li>
+      </ol>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">لقطة الحرم</div>
+      <p class="body-text">لا يجوز أخذ لقطة حرم مكة إلا لمن أراد حفظها وتعريفها ولا يملكها أبداً — «لَا تُلْتَقَطُ لُقَطَتُهَا إِلَّا لِمُعَرِّفٍ». والأفضل إذا لم يخش عليها تركها، وإن خشي أخذها وتعريفها ثم دفعها للجهة المسؤولة.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══ S19: الجناية ══ -->
+<section class="lesson-section" id="s19">
+  <div class="lesson-header" onclick="toggleLesson(this)">
+    <div class="lesson-header-text">
+      <div class="lesson-tag">الدرس التاسع عشر</div>
+      <h2>الجناية — القتل وأنواعه والجناية على ما دون النفس</h2>
+    </div>
+    <div class="lesson-toggle-btn">▾</div>
+  </div>
+  <div class="lesson-body">
+    <div class="content-block">
+      <div class="section-h3">تعريف الجناية وأقسامها</div>
+      <div class="def-box"><strong>الجناية شرعاً:</strong> التعدي على بدن الإنسان بما يوجب قصاصاً أو مالاً.</div>
+      <p class="body-text" style="margin-top:.5rem">تنقسم إلى: جناية على النفس (القتل)، وجناية على ما دون النفس كالأطراف والجروح.</p>
+    </div>
+
+    <div class="content-block">
+      <div class="section-h3">أنواع القتل</div>
+
+      <div class="phases-grid">
+        <div class="phase-card">
+          <div class="phase-header"><div class="phase-num">١</div>القتل العمد</div>
+          <div class="phase-body">
+            <p><strong>تعريفه:</strong> أن يقصد الجاني من يعلمه آدمياً معصوماً فيقتله بما يغلب على الظن موته به.</p>
+            <p><strong>حكمه:</strong> محرم وهو من كبائر الذنوب. قال تعالى: ﴿وَمَن يَقْتُلْ مُؤْمِنًا مُّتَعَمِّدًا فَجَزَاؤُهُ جَهَنَّمُ خَالِدًا فِيهَا﴾.</p>
+            <p><strong>ما يترتب عليه — ثلاثة خيارات لأولياء القتيل:</strong></p>
+            <ul class="bullet-list" style="margin-top:.3rem">
+              <li><strong>القصاص:</strong> ﴿وَلَكُمْ فِي الْقِصَاصِ حَيَاةٌ يَا أُولِي الْأَلْبَابِ﴾.</li>
+              <li><strong>الدية:</strong> مائة من الإبل (400 ألف ريال) حالة في مال الجاني.</li>
+              <li><strong>العفو مجاناً:</strong> ﴿فَمَن تَصَدَّقَ بِهِ فَهُوَ كَفَّارَةٌ لَّهُ﴾.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="phase-card">
+          <div class="phase-header"><div class="phase-num">٢</div>القتل شبه العمد</div>
+          <div class="phase-body">
+            <p><strong>تعريفه:</strong> أن يقصد الاعتداء على آدمي معصوم بآلة لا تقتل في الغالب فيموت بذلك.</p>
+            <p><strong>ما يترتب عليه:</strong></p>
+            <ul class="bullet-list" style="margin-top:.3rem">
+              <li>الدية المغلظة على عاقلة الجاني مؤجلة في ثلاث سنوات (لا قصاص).</li>
+              <li>الكفارة: عتق رقبة، فإن لم يجد فصيام شهرين متتابعين.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="phase-card">
+          <div class="phase-header"><div class="phase-num">٣</div>القتل الخطأ</div>
+          <div class="phase-body">
+            <p><strong>تعريفه:</strong> أن يفعل الشخص فعلاً مباحاً له فيصيب آدمياً معصوماً فيقتله.</p>
+            <p><strong>حكمه:</strong> معفو عنه إلا إذا كان المتسبب قد فرّط أو تعدى.</p>
+            <p><strong>ما يترتب عليه:</strong></p>
+            <ul class="bullet-list" style="margin-top:.3rem">
+              <li>الدية المخففة على عاقلته مؤجلة في ثلاث سنوات (300 ألف ريال).</li>
+              <li>الكفارة على القاتل وحده.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content-block">
+      <div class="section-h3">قتل الإنسان نفسه (الانتحار)</div>
+      <p class="body-text">نفس الإنسان ليست ملكاً له وإنما هي ملك لخالقها، ولهذا جعل الله قتل الإنسان نفسه من كبائر الذنوب.</p>
+      <div class="quran-verse">﴿ وَلَا تَقْتُلُوا أَنفُسَكُمْ إِنَّ اللَّهَ كَانَ بِكُمْ رَحِيمًا ﴾<div class="quran-ref">النساء: ٢٩</div></div>
+    </div>
+
+    <div class="content-block">
+      <div class="section-h3">الجناية على ما دون النفس</div>
+      <p class="body-text"><strong>أنواعها:</strong> الجناية على الأطراف (إتلاف العضو)، الجناية على منافع البدن (إتلاف منفعة العضو مع بقائه)، الشجاج والجروح.</p>
+      <p class="body-text" style="margin-top:.5rem"><strong>ما يترتب على الجناية العمد:</strong> المجني عليه مخير بين القصاص (بشرط تحقق المماثلة)، أو الدية، أو العفو مجاناً. <strong>والجناية خطأ:</strong> المجني عليه مخير بين الدية أو العفو.</p>
+      <div class="quran-verse" style="margin-top:.5rem">﴿ وَكَتَبْنَا عَلَيْهِمْ فِيهَا أَنَّ النَّفْسَ بِالنَّفْسِ وَالْعَيْنَ بِالْعَيْنِ وَالْأَنفَ بِالْأَنفِ وَالْأُذُنَ بِالْأُذُنِ وَالسِّنَّ بِالسِّنِّ وَالْجُرُوحَ قِصَاصٌ ﴾<div class="quran-ref">المائدة: ٤٥</div></div>
+    </div>
+  </div>
+</section>
+
+
+</main>
+
+<footer class="footer-bar">
+  ﴿ وَمَا آتَاكُمُ الرَّسُولُ فَخُذُوهُ وَمَا نَهَاكُمْ عَنْهُ فَانتَهُوا ﴾
+</footer>
+
+<script>
+  function toggleLesson(header) {
+    const body = header.nextElementSibling;
+    const isOpen = body.classList.contains('open');
+    header.classList.toggle('open', !isOpen);
+    body.classList.toggle('open', !isOpen);
+  }
+
+  // Open first section by default
+  document.addEventListener('DOMContentLoaded', () => {
+    const first = document.querySelector('.lesson-header');
+    if (first) {
+      first.classList.add('open');
+      first.nextElementSibling.classList.add('open');
+    }
+  });
+
+  /* ══ SEARCH ENGINE ══════════════════════════════════════════ */
+  let searchIndex = null;
+
+  function buildIndex() {
+    if (searchIndex) return;
+    searchIndex = [];
+    document.querySelectorAll('.lesson-section').forEach(sec => {
+      const id      = sec.id;
+      const tag     = sec.querySelector('.lesson-tag')?.textContent?.trim() || '';
+      const title   = sec.querySelector('h2')?.textContent?.trim() || '';
+      const bodyEl  = sec.querySelector('.lesson-body');
+      const fullText = bodyEl ? bodyEl.innerText : '';
+      searchIndex.push({ id, tag, title, fullText });
+    });
+  }
+
+  function highlight(text, query) {
+    if (!query) return text;
+    const safe = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return text.replace(new RegExp(safe, 'gi'), m => `<mark>${m}</mark>`);
+  }
+
+  function getSnippet(text, query, len = 90) {
+    const idx = text.toLowerCase().indexOf(query.toLowerCase());
+    if (idx === -1) return text.slice(0, len) + '…';
+    const start = Math.max(0, idx - 30);
+    const raw = text.slice(start, start + len);
+    return (start > 0 ? '…' : '') + raw + '…';
+  }
+
+  function runSearch(q) {
+    const query = q.trim();
+    const resultsEl = document.getElementById('searchResults');
+    const clearBtn  = document.getElementById('searchClear');
+    const inputEl   = document.getElementById('searchInput');
+
+    clearBtn.classList.toggle('visible', query.length > 0);
+
+    if (query.length < 2) {
+      resultsEl.classList.remove('visible');
+      resultsEl.innerHTML = '';
+      return;
+    }
+
+    // Position results just below the search box
+    const box = inputEl.closest('.search-box');
+    const rect = box.getBoundingClientRect();
+    resultsEl.style.top = (rect.bottom + 8) + 'px';
+
+    buildIndex();
+
+    const hits = searchIndex.filter(item =>
+      item.title.includes(query) || item.fullText.includes(query)
+    ).slice(0, 8);
+
+    if (hits.length === 0) {
+      resultsEl.innerHTML = `<div class="search-no-result">لا توجد نتائج لـ «${query}»</div>`;
+      resultsEl.classList.add('visible');
+      return;
+    }
+
+    resultsEl.innerHTML = hits.map(item => {
+      const snippet = getSnippet(item.fullText, query);
+      return `
+        <div class="search-result-item" onclick="goToResult('${item.id}')">
+          <span class="sri-badge">${item.tag}</span>
+          <div class="sri-text">
+            <div class="sri-title">${highlight(item.title, query)}</div>
+            <div class="sri-snippet">${highlight(snippet, query)}</div>
+          </div>
+        </div>`;
+    }).join('');
+
+    resultsEl.classList.add('visible');
+  }
+
+  function goToResult(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    // open the section
+    const hdr = el.querySelector('.lesson-header');
+    const bdy = el.querySelector('.lesson-body');
+    if (hdr && bdy && !bdy.classList.contains('open')) {
+      hdr.classList.add('open');
+      bdy.classList.add('open');
+    }
+    // close search
+    document.getElementById('searchResults').classList.remove('visible');
+    document.getElementById('searchInput').value = '';
+    document.getElementById('searchClear').classList.remove('visible');
+    // scroll
+    setTimeout(() => {
+      const navH = document.querySelector('.toc-wrapper')?.offsetHeight || 56;
+      const top = el.getBoundingClientRect().top + window.scrollY - navH - 12;
+      window.scrollTo({ top, behavior: 'smooth' });
+    }, 50);
+  }
+
+  function clearSearch() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('searchResults').classList.remove('visible');
+    document.getElementById('searchResults').innerHTML = '';
+    document.getElementById('searchClear').classList.remove('visible');
+    document.getElementById('searchInput').focus();
+  }
+
+  // Close results when clicking outside
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.search-wrap')) {
+      document.getElementById('searchResults').classList.remove('visible');
+    }
+  });
+</script>
+</body>
+</html>

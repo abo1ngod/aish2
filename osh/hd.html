@@ -1,0 +1,2379 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>دروس الحديث النبوي والسنة النبوية</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Amiri:ital,wght@0,400;0,700;1,400&family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+/* ══ DESIGN SYSTEM ══════════════════════════════════════════ */
+:root {
+  --ink:           #16130e;
+  --ink-soft:      #3b3629;
+  --ink-muted:     #6b6252;
+  --cream:         #faf7f2;
+  --parchment:     #f3ead8;
+  --parchment-mid: #ece0c4;
+  --gold:          #b5821a;
+  --gold-bright:   #d4a030;
+  --gold-pale:     #f5e6b8;
+  --green:         #1b3d2c;
+  --green-mid:     #2e6347;
+  --green-light:   #4a8a62;
+  --green-pale:    #e6f0ea;
+  --border:        #d9cdb0;
+  --border-soft:   #e8dfc8;
+  --shadow-sm:     0 2px 8px rgba(22,19,14,.08);
+  --shadow-md:     0 4px 20px rgba(22,19,14,.13);
+  --font-quran:    'Amiri Quran', 'Amiri', serif;
+  --font-hadith:   'Amiri', serif;
+  --font-body:     'Tajawal', sans-serif;
+  --r-sm: 6px; --r-md: 12px; --r-lg: 18px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--cream);
+  color: var(--ink);
+  line-height: 1.85;
+  min-height: 100vh;
+  background-image:
+    radial-gradient(ellipse 80% 60% at 15% 10%, rgba(181,130,26,.06) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 50% at 85% 90%, rgba(46,99,71,.06) 0%, transparent 55%);
+}
+
+/* ══ HEADER ════════════════════════════════════════════════ */
+.site-header {
+  background: var(--green);
+  color: var(--cream);
+  text-align: center;
+  padding: 3rem 1.5rem 2.5rem;
+  position: relative;
+  overflow: hidden;
+}
+.site-header::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image:
+    repeating-linear-gradient(0deg,   transparent, transparent 28px, rgba(255,255,255,.025) 28px, rgba(255,255,255,.025) 29px),
+    repeating-linear-gradient(90deg,  transparent, transparent 28px, rgba(255,255,255,.025) 28px, rgba(255,255,255,.025) 29px);
+}
+.site-header::after {
+  content: '';
+  position: absolute; bottom: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, transparent 0%, var(--gold-bright) 30%, var(--gold) 50%, var(--gold-bright) 70%, transparent 100%);
+}
+.header-inner { position: relative; z-index: 1; }
+.header-ornament { font-family: var(--font-quran); font-size: clamp(1.3rem, 4vw, 2rem); color: var(--gold-bright); margin-bottom: 1rem; opacity: .9; }
+.site-header h1 { font-family: var(--font-hadith); font-size: clamp(1.6rem, 5vw, 2.6rem); font-weight: 700; color: #fff; text-shadow: 0 2px 12px rgba(0,0,0,.35); line-height: 1.4; margin-bottom: .5rem; }
+.subtitle { font-size: .9rem; color: var(--gold-pale); font-weight: 300; opacity: .8; }
+
+/* ══ NAV BAR ════════════════════════════════════════════════ */
+.toc-wrapper {
+  background: var(--green);
+  position: sticky; top: 0; z-index: 200;
+  box-shadow: 0 3px 16px rgba(0,0,0,.25);
+  border-bottom: 2px solid rgba(181,130,26,.35);
+}
+.toc-inner {
+  display: flex; align-items: center; gap: .4rem;
+  padding: .5rem 1rem;
+  overflow-x: auto; scrollbar-width: none;
+}
+.toc-inner::-webkit-scrollbar { display: none; }
+.toc-btn {
+  flex-shrink: 0;
+  background: transparent;
+  border: 1px solid rgba(181,130,26,.4);
+  color: var(--gold-pale);
+  font-family: var(--font-body);
+  font-size: .78rem; font-weight: 500;
+  padding: .3rem .8rem;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: all .2s;
+  white-space: nowrap;
+}
+.toc-btn:hover, .toc-btn.active {
+  background: var(--gold); border-color: var(--gold);
+  color: var(--green); font-weight: 700;
+}
+
+/* ══ MAIN ════════════════════════════════════════════════════ */
+main { max-width: 820px; margin: 0 auto; padding: 2rem 1.2rem 4rem; }
+
+/* ══ LESSON SECTION ══════════════════════════════════════════ */
+.lesson-section {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  margin-bottom: 1.2rem;
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  transition: box-shadow .25s;
+}
+.lesson-section:hover { box-shadow: var(--shadow-md); }
+
+.lesson-header {
+  display: flex; align-items: center; gap: 1rem;
+  padding: 1.1rem 1.3rem;
+  cursor: pointer; user-select: none;
+  background: linear-gradient(135deg, var(--cream) 0%, var(--parchment) 100%);
+  border-bottom: 1px solid transparent;
+  transition: background .2s, border-color .2s;
+}
+.lesson-header:hover { background: var(--parchment); }
+.lesson-header.open {
+  background: linear-gradient(135deg, var(--green) 0%, var(--green-mid) 100%);
+  border-bottom-color: rgba(181,130,26,.35);
+}
+.lesson-header-text { flex: 1; }
+.lesson-header.open .lesson-tag  { background: rgba(255,255,255,.15); color: var(--gold-bright); border-color: rgba(255,255,255,.2); }
+.lesson-header.open h2           { color: #fff; }
+.lesson-header.open .lesson-toggle-btn { color: var(--gold-bright); transform: rotate(180deg); }
+
+.lesson-tag {
+  display: inline-block;
+  font-size: .7rem; font-weight: 700; letter-spacing: .08em;
+  background: var(--green-pale); color: var(--green);
+  border: 1px solid rgba(46,99,71,.2);
+  padding: .22rem .65rem; border-radius: 30px;
+  margin-bottom: .3rem;
+}
+.lesson-header h2 {
+  font-family: var(--font-hadith);
+  font-size: clamp(.95rem, 2.5vw, 1.15rem);
+  font-weight: 700; color: var(--green); line-height: 1.4;
+}
+.lesson-toggle-btn {
+  font-size: 1.2rem; color: var(--green-light);
+  transition: transform .3s, color .2s; flex-shrink: 0;
+}
+
+.lesson-body { display: none; padding: 1.4rem 1.3rem; border-top: 1px solid var(--border-soft); animation: slideIn .25s ease; }
+.lesson-body.open { display: block; }
+@keyframes slideIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ══ CONTENT BLOCKS ══════════════════════════════════════════ */
+.content-block { margin-bottom: 1.4rem; }
+.content-block:last-child { margin-bottom: 0; }
+
+.block-title {
+  font-family: var(--font-hadith); font-size: 1rem; font-weight: 700; color: var(--green);
+  border-right: 3px solid var(--gold); padding-right: .7rem; margin-bottom: .8rem;
+}
+.section-h3 {
+  font-family: var(--font-hadith); font-size: .95rem; font-weight: 700; color: var(--green-mid);
+  margin-bottom: .65rem; display: flex; align-items: center; gap: .5rem;
+}
+.section-h3::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+.body-text { font-size: .95rem; color: var(--ink-soft); line-height: 1.9; }
+
+/* ══ HADITH BLOCK ════════════════════════════════════════════ */
+.hadith-block {
+  background: linear-gradient(135deg, var(--parchment) 0%, #faf3e2 100%);
+  border: 1px solid var(--border);
+  border-right: 4px solid var(--gold);
+  border-radius: var(--r-md);
+  padding: 1.1rem 1.3rem;
+  margin: .8rem 0;
+  position: relative;
+}
+.hadith-block::before {
+  content: '❝';
+  position: absolute; top: .4rem; left: .8rem;
+  font-family: serif; font-size: 2rem; color: var(--gold); opacity: .2; line-height: 1;
+}
+.hadith-text {
+  font-family: var(--font-hadith);
+  font-size: clamp(1rem, 2.5vw, 1.13rem);
+  color: var(--ink); line-height: 2; text-align: center;
+}
+.hadith-source { font-size: .78rem; color: var(--ink-muted); text-align: left; margin-top: .5rem; font-weight: 500; }
+
+/* ══ QURAN VERSE ════════════════════════════════════════════ */
+.quran-verse {
+  background: var(--green-pale);
+  border: 1px solid rgba(46,99,71,.2); border-right: 4px solid var(--green-mid);
+  border-radius: var(--r-md); padding: .9rem 1.1rem; margin: .7rem 0;
+  font-family: var(--font-quran); font-size: clamp(1rem, 2.5vw, 1.15rem);
+  color: var(--green); line-height: 2.1; text-align: center;
+}
+.quran-ref { font-size: .75rem; color: var(--green-light); text-align: left; margin-top: .4rem; font-weight: 500; font-family: var(--font-body); }
+
+/* ══ NOTE BOX ════════════════════════════════════════════════ */
+.note-box {
+  background: #fff8e6; border: 1px solid #e8c96a; border-right: 4px solid var(--gold-bright);
+  border-radius: var(--r-sm); padding: .8rem 1rem;
+  font-family: var(--font-hadith); font-size: .95rem; color: var(--ink-soft); line-height: 1.85;
+  margin: .6rem 0;
+}
+
+/* ══ OBJECTIVES ════════════════════════════════════════════ */
+.objectives-block { background: var(--green-pale); border: 1px solid rgba(46,99,71,.15); border-radius: var(--r-md); padding: 1rem 1.2rem; }
+.objectives-list { list-style: none; display: flex; flex-direction: column; gap: .4rem; }
+.objectives-list li { font-size: .9rem; color: var(--ink-soft); padding-right: 1.4rem; position: relative; }
+.objectives-list li::before { content: '◆'; position: absolute; right: 0; color: var(--green-mid); font-size: .55rem; top: .45em; }
+
+/* ══ DEFINITIONS GRID ════════════════════════════════════════ */
+.definitions-grid { display: grid; gap: .5rem; }
+.def-row {
+  display: grid; grid-template-columns: auto auto 1fr; gap: .6rem;
+  align-items: baseline; background: var(--parchment);
+  border-radius: var(--r-sm); padding: .45rem .8rem; border: 1px solid var(--border-soft);
+}
+.def-term { font-family: var(--font-hadith); font-weight: 700; color: var(--green); font-size: .95rem; white-space: nowrap; }
+.def-sep { color: var(--gold); font-weight: 700; }
+.def-meaning { font-size: .88rem; color: var(--ink-soft); }
+
+/* ══ LISTS ═══════════════════════════════════════════════════ */
+.num-list { list-style: none; counter-reset: nc; display: flex; flex-direction: column; gap: .6rem; }
+.num-list li { counter-increment: nc; padding-right: 2.2rem; position: relative; font-size: .93rem; color: var(--ink-soft); line-height: 1.8; }
+.num-list li::before {
+  content: counter(nc);
+  position: absolute; right: 0; top: .1em;
+  width: 1.6rem; height: 1.6rem; background: var(--green); color: #fff;
+  border-radius: 50%; font-size: .7rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.alpha-list { list-style: none; display: flex; flex-direction: column; gap: .4rem; padding-right: .8rem; margin-top: .4rem; }
+.alpha-list li { font-size: .88rem; color: var(--ink-soft); padding-right: 1.2rem; position: relative; }
+.alpha-list li::before { content: attr(data-marker); position: absolute; right: 0; color: var(--gold); font-weight: 700; font-family: var(--font-hadith); }
+
+/* ══ COMPANION CARD ════════════════════════════════════════ */
+.companion-card {
+  background: linear-gradient(135deg, var(--parchment) 0%, var(--parchment-mid) 100%);
+  border: 1px solid var(--border); border-radius: var(--r-md); padding: 1rem 1.2rem;
+  position: relative; overflow: hidden;
+}
+.companion-card::before {
+  content: '';
+  position: absolute; top: 0; right: 0; width: 80px; height: 80px;
+  background: radial-gradient(circle at top right, rgba(181,130,26,.12) 0%, transparent 70%);
+}
+.companion-name { font-family: var(--font-hadith); font-size: 1.05rem; font-weight: 700; color: var(--green); margin-bottom: .5rem; }
+.companion-body { font-size: .88rem; color: var(--ink-soft); line-height: 1.85; }
+
+/* ══ PHASE CARDS ════════════════════════════════════════════ */
+.phases-grid { display: grid; gap: 1rem; }
+.phase-card { border: 1px solid var(--border); border-radius: var(--r-md); overflow: hidden; }
+.phase-header {
+  background: linear-gradient(135deg, var(--green) 0%, var(--green-mid) 100%);
+  color: #fff; padding: .8rem 1.1rem;
+  display: flex; align-items: center; gap: .8rem;
+  font-family: var(--font-hadith); font-size: .95rem; font-weight: 700;
+}
+.phase-num {
+  width: 2rem; height: 2rem; background: var(--gold); color: var(--green);
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: .95rem; font-weight: 900; flex-shrink: 0; font-family: var(--font-hadith);
+}
+.phase-body { padding: 1rem 1.1rem; background: var(--parchment); font-size: .9rem; color: var(--ink-soft); line-height: 1.85; }
+.phase-body p + p { margin-top: .5rem; }
+
+/* ══ BOOK CARDS ════════════════════════════════════════════ */
+.book-card { border: 1px solid var(--border); border-radius: var(--r-md); overflow: hidden; margin-bottom: .9rem; }
+.book-card:last-child { margin-bottom: 0; }
+.book-card-header {
+  background: linear-gradient(135deg, var(--parchment) 0%, var(--parchment-mid) 100%);
+  padding: .75rem 1.1rem; display: flex; align-items: center; gap: .8rem;
+  border-bottom: 1px solid var(--border);
+}
+.book-num-badge {
+  width: 2rem; height: 2rem; background: var(--gold); color: #fff; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-hadith); font-size: .95rem; font-weight: 700; flex-shrink: 0;
+}
+.book-card-title { font-family: var(--font-hadith); font-size: 1.05rem; font-weight: 700; color: var(--green); }
+.book-card-body { padding: .9rem 1.1rem; font-size: .88rem; color: var(--ink-soft); line-height: 1.85; }
+.book-card-body p + p { margin-top: .4rem; }
+.book-card-body strong { color: var(--ink); }
+
+/* ══ DEFINITION BOX ════════════════════════════════════════ */
+.def-box {
+  background: var(--green); color: var(--gold-pale);
+  border-radius: var(--r-md); padding: 1.1rem 1.3rem; margin: .8rem 0;
+  font-family: var(--font-hadith); font-size: .95rem; line-height: 1.9;
+}
+.def-box strong { color: var(--gold-bright); }
+
+/* ══ TABLE ═══════════════════════════════════════════════════ */
+.styled-table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+.styled-table th { background: var(--green); color: #fff; padding: .6rem .8rem; text-align: center; font-family: var(--font-hadith); }
+.styled-table td { padding: .5rem .8rem; border: 1px solid var(--border); text-align: center; color: var(--ink-soft); }
+.styled-table tr:nth-child(even) td { background: var(--parchment); }
+
+/* ══ SECTION DIVIDER ════════════════════════════════════════ */
+.section-divider {
+  display: flex; align-items: center; gap: .8rem; margin: 2rem 0 1.2rem;
+  color: var(--gold); font-family: var(--font-hadith); font-size: .8rem; letter-spacing: .1em; font-weight: 700;
+}
+.section-divider::before, .section-divider::after {
+  content: ''; flex: 1; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border), transparent);
+}
+
+/* ══ FOOTER ════════════════════════════════════════════════ */
+.footer-bar {
+  background: var(--green); color: var(--gold-pale); text-align: center;
+  padding: 1.8rem 1.5rem;
+  font-family: var(--font-quran); font-size: clamp(1rem, 3vw, 1.2rem);
+  border-top: 3px solid var(--gold); line-height: 2;
+}
+
+/* ══ SEARCH ════════════════════════════════════════════════ */
+.search-wrap {
+  position: relative;
+  max-width: 520px;
+  margin: 1.6rem auto 0;
+}
+.search-box {
+  display: flex;
+  align-items: center;
+  background: rgba(255,255,255,.12);
+  border: 1.5px solid rgba(181,130,26,.5);
+  border-radius: 50px;
+  padding: .55rem 1rem;
+  gap: .6rem;
+  transition: background .2s, border-color .2s;
+  backdrop-filter: blur(4px);
+}
+.search-box:focus-within {
+  background: rgba(255,255,255,.18);
+  border-color: var(--gold-bright);
+  box-shadow: 0 0 0 3px rgba(212,160,48,.2);
+}
+.search-icon { font-size: 1rem; opacity: .7; flex-shrink: 0; }
+#searchInput {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: var(--font-body);
+  font-size: .95rem;
+  color: #fff;
+  direction: rtl;
+  min-width: 0;
+}
+#searchInput::placeholder { color: rgba(255,255,255,.55); }
+.search-clear {
+  background: transparent;
+  border: none;
+  color: rgba(255,255,255,.5);
+  font-size: .85rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 0 .2rem;
+  line-height: 1;
+  display: none;
+  transition: color .15s;
+}
+.search-clear:hover { color: var(--gold-bright); }
+.search-clear.visible { display: block; }
+
+.search-results {
+  position: fixed;
+  top: auto;
+  right: 50%;
+  transform: translateX(50%);
+  width: min(520px, 92vw);
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-lg);
+  z-index: 9999;
+  overflow: hidden;
+  display: none;
+  max-height: 420px;
+  overflow-y: auto;
+}
+.search-results.visible { display: block; }
+.search-result-item {
+  display: flex;
+  align-items: flex-start;
+  gap: .7rem;
+  padding: .75rem 1rem;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border-soft);
+  transition: background .15s;
+  text-align: right;
+}
+.search-result-item:last-child { border-bottom: none; }
+.search-result-item:hover { background: var(--parchment); }
+.sri-badge {
+  flex-shrink: 0;
+  background: var(--green);
+  color: var(--gold-pale);
+  font-size: .65rem;
+  font-weight: 700;
+  padding: .2rem .5rem;
+  border-radius: 20px;
+  margin-top: .15rem;
+  white-space: nowrap;
+}
+.sri-text { flex: 1; }
+.sri-title {
+  font-family: var(--font-hadith);
+  font-size: .93rem;
+  font-weight: 700;
+  color: var(--green);
+  line-height: 1.4;
+  margin-bottom: .2rem;
+}
+.sri-snippet {
+  font-size: .8rem;
+  color: var(--ink-muted);
+  line-height: 1.5;
+}
+.sri-snippet mark {
+  background: var(--gold-pale);
+  color: var(--ink);
+  border-radius: 2px;
+  padding: 0 1px;
+}
+.search-no-result {
+  padding: 1.2rem;
+  text-align: center;
+  color: var(--ink-muted);
+  font-size: .9rem;
+  font-family: var(--font-hadith);
+}
+@media (max-width: 600px) {
+  main { padding: 1.2rem .9rem 3rem; }
+  .lesson-header { padding: .9rem 1rem; gap: .7rem; }
+  .lesson-body   { padding: 1rem; }
+  .def-row { grid-template-columns: 1fr; gap: .2rem; }
+}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-ornament">﷽</div>
+  <h1>دروس الحديث النبوي والسُّنة النبوية</h1>
+  <p class="subtitle">الكتب السبعة · الأحاديث الشريفة · الفقه والآداب الإسلامية</p>
+
+  <!-- SEARCH BAR -->
+  <div class="search-wrap">
+    <div class="search-box">
+      <span class="search-icon">🔍</span>
+      <input
+        type="search"
+        id="searchInput"
+        placeholder="ابحث في الأحاديث والدروس…"
+        autocomplete="off"
+        oninput="runSearch(this.value)"
+        onkeydown="if(event.key==='Escape'){clearSearch()}"
+      >
+      <button class="search-clear" id="searchClear" onclick="clearSearch()" title="مسح">✕</button>
+    </div>
+    <div class="search-results" id="searchResults"></div>
+  </div>
+</header>
+
+<!-- NAVIGATION BAR -->
+<div class="toc-wrapper">
+  <div class="toc-inner">
+    <button class="toc-btn" onclick="document.getElementById('lesson-sunnah').scrollIntoView({behavior:'smooth',block:'start'})">السنة النبوية</button>
+    <button class="toc-btn" onclick="document.getElementById('lesson-hifz').scrollIntoView({behavior:'smooth',block:'start'})">التدوين</button>
+    <button class="toc-btn" onclick="document.getElementById('lesson-kutub').scrollIntoView({behavior:'smooth',block:'start'})">الكتب السبعة</button>
+    <button class="toc-btn" onclick="document.getElementById('h1').scrollIntoView({behavior:'smooth',block:'start'})">ح١</button>
+    <button class="toc-btn" onclick="document.getElementById('h2').scrollIntoView({behavior:'smooth',block:'start'})">ح٢</button>
+    <button class="toc-btn" onclick="document.getElementById('h3').scrollIntoView({behavior:'smooth',block:'start'})">ح٣</button>
+    <button class="toc-btn" onclick="document.getElementById('h4').scrollIntoView({behavior:'smooth',block:'start'})">ح٤</button>
+    <button class="toc-btn" onclick="document.getElementById('h5').scrollIntoView({behavior:'smooth',block:'start'})">ح٥</button>
+    <button class="toc-btn" onclick="document.getElementById('h6').scrollIntoView({behavior:'smooth',block:'start'})">ح٦</button>
+    <button class="toc-btn" onclick="document.getElementById('h7').scrollIntoView({behavior:'smooth',block:'start'})">ح٧</button>
+    <button class="toc-btn" onclick="document.getElementById('h8').scrollIntoView({behavior:'smooth',block:'start'})">ح٨</button>
+    <button class="toc-btn" onclick="document.getElementById('h9').scrollIntoView({behavior:'smooth',block:'start'})">ح٩</button>
+    <button class="toc-btn" onclick="document.getElementById('h10').scrollIntoView({behavior:'smooth',block:'start'})">ح١٠</button>
+    <button class="toc-btn" onclick="document.getElementById('h11').scrollIntoView({behavior:'smooth',block:'start'})">ح١١</button>
+    <button class="toc-btn" onclick="document.getElementById('h12').scrollIntoView({behavior:'smooth',block:'start'})">ح١٢</button>
+    <button class="toc-btn" onclick="document.getElementById('h13').scrollIntoView({behavior:'smooth',block:'start'})">ح١٣</button>
+    <button class="toc-btn" onclick="document.getElementById('h14').scrollIntoView({behavior:'smooth',block:'start'})">ح١٤</button>
+    <button class="toc-btn" onclick="document.getElementById('h15').scrollIntoView({behavior:'smooth',block:'start'})">ح١٥</button>
+    <button class="toc-btn" onclick="document.getElementById('h16').scrollIntoView({behavior:'smooth',block:'start'})">ح١٦</button>
+    <button class="toc-btn" onclick="document.getElementById('h17').scrollIntoView({behavior:'smooth',block:'start'})">ح١٧</button>
+    <button class="toc-btn" onclick="document.getElementById('h18').scrollIntoView({behavior:'smooth',block:'start'})">ح١٨</button>
+    <button class="toc-btn" onclick="document.getElementById('h19').scrollIntoView({behavior:'smooth',block:'start'})">ح١٩</button>
+    <button class="toc-btn" onclick="document.getElementById('h20').scrollIntoView({behavior:'smooth',block:'start'})">ح٢٠</button>
+    <button class="toc-btn" onclick="document.getElementById('h21').scrollIntoView({behavior:'smooth',block:'start'})">ح٢١</button>
+    <button class="toc-btn" onclick="document.getElementById('h22').scrollIntoView({behavior:'smooth',block:'start'})">ح٢٢</button>
+    <button class="toc-btn" onclick="document.getElementById('h23').scrollIntoView({behavior:'smooth',block:'start'})">ح٢٣</button>
+  </div>
+</div>
+
+<main class="main-content">
+
+<!-- ══════════════════════════════════════════════
+     LESSON: السنة النبوية
+══════════════════════════════════════════════ -->
+<section class="lesson-section" id="lesson-sunnah">
+  <div class="lesson-header" onclick="toggleLesson(this)">
+    <div class="lesson-header-text">
+      <div class="lesson-tag">الوحدة الأولى</div>
+      <h2>السُّنة النَّبَوِيَّة — تعريفها، منزلتها، حجيتها</h2>
+    </div>
+    <div class="lesson-toggle-btn">▾</div>
+  </div>
+  <div class="lesson-body">
+
+    <div class="content-block objectives-block">
+      <div class="block-title"><span class="icon">🎯</span> أهداف الدرس</div>
+      <ul class="objectives-list">
+        <li>تُعرّف السُّنة اصطلاحاً.</li>
+        <li>تُبيّن منزلة السُّنة.</li>
+        <li>تُبيّن حجيّة السُّنة النبويّة.</li>
+        <li>تستدل من القرآن والسنة على حجية السنة النبوية.</li>
+      </ul>
+    </div>
+
+    <div class="content-block">
+      <div class="section-h3">تعريف السُّنة</div>
+      <p class="body-text">السنة في اصطلاح المحدِّثين: ما أُضيفَ إلى النبيِّ ﷺ من قولٍ أو فعلٍ أو تَقريرٍ أو صفةٍ خِلْقيةٍ أو خُلُقيةٍ.</p>
+    </div>
+
+    <div class="content-block">
+      <div class="section-h3">منزلة السُّنة النبوية</div>
+      <p class="body-text">للسُّنة النبوية مكانة عظيمة في الإسلام، يمكن تلخيصها في النقاط الآتية:</p>
+      <ol class="num-list">
+        <li>السُّنة هي المصدر الثاني للتشريع بعد القرآن الكريم.</li>
+        <li>السُّنة النبوية وحيٌ من الله تعالى لرسوله ﷺ، ولكنها وحيٌ غيرُ مَتْلُوٍّ؛ فإن الوحيَ وحيانِ: وحيٌ مَتْلُوٌّ وهو: القرآن الكريم، وَوَحْيٌ غيرُ مَتْلُوٍّ وهو: السنة النبوية.</li>
+        <li>السُّنة النبوية تأتي مع القرآن الكريم على ثلاثة أنواع:
+          <ul class="alpha-list" style="margin-top:0.5rem">
+            <li data-marker="أ-">بيانًا للقرآن الكريم، وتوضيحًا لِمَا أُجمل مِن أحكامه؛ كتفصيل أحكام الصلاة والزكاة والحج.</li>
+            <li data-marker="ب-">تأكيدًا وتقريرًا لأحكام القرآن الكريم؛ كإيجاب صلة الأرحام وتحريم السرقة.</li>
+            <li data-marker="ج-">تأتي بأحكامٍ سكتَ عنها القرآنُ الكريم؛ كتحريم الجمع بين المرأة وعَمَّتها أو خالتها.</li>
+          </ul>
+        </li>
+      </ol>
+    </div>
+
+    <div class="content-block">
+      <div class="section-h3">حجية السُّنة النبوية</div>
+      <p class="body-text">السُّنَّةُ النَّبَوِيَّةُ حُجَّةٌ في الأحكام الشرعية الاعتقادية والعملية، فهي واجبة الاتِّباع كالقرآن الكريم، وقد دلَّ على ذلك الكتاب والسنة في نصوص كثيرة؛ منها:</p>
+
+      <div class="quran-verse">
+        {وَأَطِيعُوا اللَّهَ وَأَطِيعُوا الرَّسُولَ}
+        <div class="quran-ref">[التغابن: 12]</div>
+      </div>
+      <div class="quran-verse">
+        {وَمَا آتَاكُمُ الرَّسُولُ فَخُذُوهُ وَمَا نَهَاكُمْ عَنْهُ فَانتَهُوا}
+        <div class="quran-ref">[الحشر: 7]</div>
+      </div>
+
+      <div class="hadith-block">
+        <p class="hadith-text">«يُوشِكُ الرَّجُلُ مُتَّكِئًا عَلَى أَرِيكَتِهِ يُحَدَّثُ بِحَدِيثٍ مِنْ حَدِيثِي فَيَقُولُ: بَيْنَنَا وَبَيْنَكُمْ كِتَابُ اللَّهِ عَزَّ وَجَلَّ، فَمَا وَجَدْنَا فِيهِ مِنْ حَلَالٍ اسْتَحْلَلْنَاهُ، وَمَا وَجَدْنَا فِيهِ مِنْ حَرَامٍ حَرَّمْنَاهُ، أَلَا وَإِنَّ مَا حَرَّمَ رَسُولُ اللَّهِ ﷺ مِثْلُ مَا حَرَّمَ اللَّهُ»</p>
+        <div class="hadith-source">رواه: الترمذي وابن ماجه — عن الْمِقْدَامِ بْنِ مَعْدِيكَرِبَ الْكِنْدِيِّ ﵁</div>
+      </div>
+
+      <p class="body-text">إجماع علماء الإسلام المعتبرين كافة على حجية السُّنة النبوية.</p>
+    </div>
+
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     LESSON: حفظ السنة
+══════════════════════════════════════════════ -->
+<section class="lesson-section" id="lesson-hifz">
+  <div class="lesson-header" onclick="toggleLesson(this)">
+    <div class="lesson-header-text">
+      <div class="lesson-tag">الوحدة الثانية</div>
+      <h2>حفظ الله تعالى للسنة النبوية ومراحل تدوينها</h2>
+    </div>
+    <div class="lesson-toggle-btn">▾</div>
+  </div>
+  <div class="lesson-body">
+
+    <div class="content-block objectives-block">
+      <div class="block-title"><span class="icon">🎯</span> أهداف الدرس</div>
+      <ul class="objectives-list">
+        <li>تبرهن على حفظ الله للسنة النبوية.</li>
+        <li>تبين الحكمة من الأمر بكتابة السنة.</li>
+        <li>تبين مراحل تدوين السنة.</li>
+        <li>تقارن بين مراحل تدوين السنة.</li>
+        <li>تقدر جهود العلماء في حفظ السنة.</li>
+      </ul>
+    </div>
+
+    <div class="content-block">
+      <div class="section-h3">حفظ الله تعالى للسنة النبوية</div>
+      <p class="body-text">لما كان الرسول ﷺ هو المبلغ عن الله تعالى فقد أمر سبحانه نبيه محمداً ﷺ ببيان كتابه للناس، فقال:</p>
+      <div class="quran-verse">
+        {وَأَنزَلْنَا إِلَيْكَ الذِّكْرَ لِتُبَيِّنَ لِلنَّاسِ مَا نُزِّلَ إِلَيْهِمْ}
+        <div class="quran-ref">[النحل: 44]</div>
+      </div>
+      <p class="body-text">فكانت السنة النبوية بياناً للقرآن الكريم، وقد تكفل سبحانه بحفظ هذا القرآن الذي أنزله على نبيه محمد ﷺ، وهذا يتضمن حفظ السنة المبينة له:</p>
+      <div class="quran-verse">
+        {إِنَّا نَحْنُ نَزَّلْنَا الذِّكْرَ وَإِنَّا لَهُ لَحَافِظُونَ}
+        <div class="quran-ref">[الحجر: 9]</div>
+      </div>
+    </div>
+
+    <div class="content-block">
+      <div class="section-h3">حث النبي ﷺ على حفظ السنة وتبليغها</div>
+      <div class="hadith-block">
+        <p class="hadith-text">«نَضَّرَ اللَّهُ امْرَأً سَمِعَ مِنَّا حَدِيثًا فَحَفِظَهُ حَتَّى يُبَلِّغَهُ غَيْرَهُ، فَرُبَّ حَامِلِ فِقْهٍ إِلَى مَنْ هُوَ أَفْقَهُ مِنْهُ، وَرُبَّ حَامِلِ فِقْهٍ لَيْسَ بِفَقِيهٍ»</p>
+      </div>
+      <div class="hadith-block">
+        <p class="hadith-text">«احْفَظُوهُنَّ وَأَخْبِرُوا بِهِنَّ مَنْ وَرَاءَكُمْ»</p>
+        <div class="hadith-source">قاله ﷺ لوفد عبد القيس</div>
+      </div>
+    </div>
+
+    <div class="content-block">
+      <div class="section-h3">مراحل كتابة السنة النبوية وتدوينها</div>
+
+      <div class="phase-card">
+        <div class="phase-header">
+          <div class="phase-num">١</div>
+          المرحلة الأولى: القرن الأول الهجري — عهد النبي ﷺ وأصحابه
+        </div>
+        <div class="phase-body">
+          <p>نهى النبي ﷺ في أول الإسلام عن كتابة أحاديثه خشية اختلاطها بالقرآن، فعن أبي سعيد الخدري ﵁ أن رسول الله ﷺ قال:</p>
+          <div class="hadith-block" style="margin:0.6rem 0">
+            <p class="hadith-text">«لا تَكْتُبُوا عَنِّي، وَمَنْ كَتَبَ عَنِّي غَيْرَ الْقُرْآنِ فَلْيَمْحُهُ»</p>
+          </div>
+          <p>وكان الصحابة ﵃ يحفظون الأحاديث حفظاً متقناً. ثم أَذِنَ النبي ﷺ لبعض الصحابة ﵃ بالكتابة.</p>
+          <p style="margin-top:0.5rem">قال أبو هريرة ﵁: <em>«مَا مِنْ أَصْحَابِ النَّبِيِّ ﷺ أَحَدٌ أَكْثَرَ حَدِيثًا عَنْهُ مِنِّي، إِلَّا مَا كَانَ مِنْ عَبْدِ اللَّهِ بْنِ عَمْرٍو؛ فَإِنَّهُ كَانَ يَكْتُبُ وَلَا أَكْتُبُ».</em></p>
+          <p style="margin-top:0.5rem">وقال عبد الله بن عمرو بن العاص ﵁: <em>كُنْتُ أَكْتُبُ كُلَّ شَيْءٍ أَسْمَعُهُ مِنْ رَسُولِ اللَّهِ ﷺ أُرِيدُ حِفْظَهُ، فَنَهَتْنِي قُرَيْشٌ...</em> فذكرت ذلك لرسول الله ﷺ فأومأ بإصبعه إلى فيه فقال:</p>
+          <div class="hadith-block" style="margin:0.6rem 0">
+            <p class="hadith-text">«اكْتُبْ، فَوَالَّذِي نَفْسِي بِيَدِهِ مَا يَخْرُجُ مِنْهُ إِلَّا حَقٌّ»</p>
+          </div>
+          <p>وكتب ﵁ صحيفة كان يسميها: (الصادقة).</p>
+          <p style="margin-top:0.5rem">وأمر النبي ﷺ بالكتابة لبعض أصحابه ﵃؛ فعن أبي هريرة ﵁ أن النبي ﷺ قال: «اكْتُبُوا لِأَبِي شَاهٍ»، وكتب النبي ﷺ كتاباً في الصدقات.</p>
+          <p style="margin-top:0.5rem">وقد كتب جمع من الصحابة ﵃ الكثير من الأحاديث، وكانت عندهم صحف، منهم: علي بن أبي طالب، وعبدالله بن عمرو بن العاص، وجابر بن سمرة، وغيرهم ﵃ أجمعين.</p>
+        </div>
+      </div>
+
+      <div class="phase-card">
+        <div class="phase-header">
+          <div class="phase-num">٢</div>
+          المرحلة الثانية: القرن الثاني الهجري — أواخر عهد التابعين
+        </div>
+        <div class="phase-body">
+          <p>تميزت هذه الكتابة بالتدوين العام للسنة النبوية، ولكن لم يكن لها ترتيب محدد. وكان أول من أمر بذلك أمير المؤمنين عمر بن عبد العزيز؛ فأمر الإمام محمد بن شهاب الزهري وأبا بكر بن حزم بجمع السُّنة، وكتب إلى الآفاق:</p>
+          <div class="note-box">«انْظُرُوا حَدِيثَ رَسُولِ اللَّهِ ﷺ فَاجْمَعُوهُ وَاحْفَظُوهُ؛ فَإِنِّي أَخَافُ دُرُوسَ الْعِلْمِ وَذَهَابَ الْعُلَمَاءِ»</div>
+          <p>فكان أول من دوّن الحديث بأمرٍ عام هو الإمام الزهري.</p>
+        </div>
+      </div>
+
+      <div class="phase-card">
+        <div class="phase-header">
+          <div class="phase-num">٣</div>
+          المرحلة الثالثة: التأليف على هيئة كتب مصنفة
+        </div>
+        <div class="phase-body">
+          <p>تأليف السنة على هيئة كتب مصنفة مرتبة على الموضوعات كالإيمان والعلم والطهارة والصلاة وغيرها. تميزت هذه المرحلة بالترتيب، ومزج أقوال النبي ﷺ بأقوال الصحابة والتابعين وفتاويهم.</p>
+          <p style="margin-top:0.5rem">في هذه المرحلة صُنِّف: <strong>موطأ الإمام مالك بن أنس</strong>.</p>
+        </div>
+      </div>
+
+      <div class="phase-card">
+        <div class="phase-header">
+          <div class="phase-num">٤</div>
+          المرحلة الرابعة: إفراد حديث النبي ﷺ بالتصنيف — القرن الثالث الهجري
+        </div>
+        <div class="phase-body">
+          <p>جمع حديث النبي ﷺ وترتيبه دون مزجه بغيره من أقوال الصحابة والتابعين، وفيها ظهر التأليف على طريقة المسانيد.</p>
+          <p style="margin-top:0.5rem">من أشهر ما أُلِّفَ فيها: مسند الإمام أحمد، ومسند الحميدي. ثم بلغ تدوين الحديث غايته في منتصف القرن الثالث الهجري؛ حيث أُلِّف:</p>
+          <ul class="alpha-list" style="margin-top:0.4rem">
+            <li data-marker="•">صحيح الإمام البخاري</li>
+            <li data-marker="•">صحيح الإمام مسلم</li>
+            <li data-marker="•">سنن أبي داود، والترمذي، والنسائي، وابن ماجه</li>
+            <li data-marker="•">سنن الدارمي، وغيرها من كتب الحديث المشهورة</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     LESSON: الكتب السبعة
+══════════════════════════════════════════════ -->
+<section class="lesson-section" id="lesson-kutub">
+  <div class="lesson-header" onclick="toggleLesson(this)">
+    <div class="lesson-header-text">
+      <div class="lesson-tag">الوحدة الثالثة</div>
+      <h2>التعريف بالكتب السبعة ومؤلفيها</h2>
+    </div>
+    <div class="lesson-toggle-btn">▾</div>
+  </div>
+  <div class="lesson-body">
+
+    <div class="content-block objectives-block">
+      <div class="block-title"><span class="icon">🎯</span> أهداف الدرس</div>
+      <ul class="objectives-list">
+        <li>تبين المراد بالكتب السبعة.</li>
+        <li>تعرّف بمؤلفي الكتب السبعة.</li>
+        <li>تبين أثر الكتب السبعة في حفظ السنة.</li>
+        <li>تقارن بين الكتب السبعة من حيث: منهج المؤلف، عدد الأحاديث، ترتيب الكتاب.</li>
+        <li>تميز أبرز شروح الكتب السبعة ومختصراتها.</li>
+      </ul>
+    </div>
+
+    <div class="content-block">
+      <p class="body-text">خلال المرحلة الرابعة من مراحل تدوين السنة ظهرت مؤلفات كثيرة في السنة النبوية تنوعت فيها أساليب المؤلفين ومناهجهم، ومن بين تلك المؤلفات برزت كتب سبعة حظيت باهتمام العلماء بها، وقبول الأمة لها، فكثرت شروحها ومختصراتها، وعكف طلاب العلم على حفظها، واستنباط الأحكام منها.</p>
+    </div>
+
+    <div class="content-block">
+
+      <div class="book-card">
+        <div class="book-card-header">
+          <div class="book-num-badge">١</div>
+          <div class="book-card-title">صحيح البخاري</div>
+        </div>
+        <div class="book-card-body">
+          <p><strong>اسم الكتاب:</strong> «الجامع المسند الصحيح المختصر من أمور رسول الله ﷺ وسننه وأيامه».</p>
+          <p style="margin-top:0.4rem"><strong>مُصَنِّفُهُ:</strong> أبو عبد الله، محمد بن إسماعيل بن إبراهيم الجُعفي، البخاري، ولد سنة 194 هـ، وتوفي سنة 256 هـ.</p>
+          <p style="margin-top:0.4rem"><strong>منزلته:</strong> هو أصح كتب السنة بإجماع العلماء.</p>
+          <p style="margin-top:0.4rem"><strong>مما تميز به:</strong> أنه أول كتاب صُنِّفَ في الحديث الصحيح المجرَّد عن الضعيف والموضوع، وتميز بدقة تبويبه، حتى قيل: فِقْهُ البخاري في تراجمه.</p>
+          <p style="margin-top:0.4rem"><strong>أبرز شروحه:</strong> (فتح الباري) لابن حجر العسقلاني. <strong>أجود مختصراته:</strong> (مختصر صحيح البخاري) للزبيدي (ت 893 هـ).</p>
+        </div>
+      </div>
+
+      <div class="book-card">
+        <div class="book-card-header">
+          <div class="book-num-badge">٢</div>
+          <div class="book-card-title">صحيح مسلم</div>
+        </div>
+        <div class="book-card-body">
+          <p><strong>مُصَنِّفُهُ:</strong> أبو الحسين، مسلم بن الحجاج القُشيري النيسابوري، ولد سنة 204 هـ وتوفي سنة 261 هـ.</p>
+          <p style="margin-top:0.4rem"><strong>منزلته:</strong> يأتي بعد صحيح البخاري من حيثُ الصحة.</p>
+          <p style="margin-top:0.4rem"><strong>مما تميز به:</strong> أنه يذكر طرق الحديث، وألفاظه مرتبةً على الأبواب في مكان واحد، لكنه لا يذكر التراجم، قد وضع تراجمه جماعة من شراحه، ومن أحسنها تراجم الإمام النووي رحمه الله.</p>
+          <p style="margin-top:0.4rem"><strong>أشهر شروحه:</strong> شرح النووي، المسمى بالمنهاج في شرح صحيح مسلم بن الحجاج.</p>
+        </div>
+      </div>
+
+      <div class="book-card">
+        <div class="book-card-header">
+          <div class="book-num-badge">٣</div>
+          <div class="book-card-title">سنن أبي داود</div>
+        </div>
+        <div class="book-card-body">
+          <p><strong>مُصَنِّفُهُ:</strong> أبو داود، سليمان بن الأشعث السجستاني، ولد سنة 202 هـ وتوفي سنة 275 هـ.</p>
+          <p style="margin-top:0.4rem"><strong>انتقاه مُصَنِّفُهُ:</strong> من خمس مئة ألف حديث.</p>
+          <p style="margin-top:0.4rem"><strong>مما امتاز به:</strong> قال مُصَنِّفُهُ في وصفه: «ذَكَرتُ فيه الصحيح وما يشبهه وما يقاربه، وما كان في كتابي من حديث فيه وَهَنٌ شديد بيّنتُه، وليس فيه عن رجل متروك الحديث شيء». وقد اعتنى بزيادات المتون، وألفاظ الحديث التي يعتني بها الفقهاء.</p>
+          <p style="margin-top:0.4rem"><strong>أقدم شروحه:</strong> معالم السنن، للإمام الخطابي (ت 388 هـ).</p>
+        </div>
+      </div>
+
+      <div class="book-card">
+        <div class="book-card-header">
+          <div class="book-num-badge">٤</div>
+          <div class="book-card-title">جامع الترمذي</div>
+        </div>
+        <div class="book-card-body">
+          <p><strong>مُصَنِّفُهُ:</strong> أبو عيسى، محمد بن عيسى بن سَوْرَة الترمذي، ولد سنة 209 هـ وتوفي سنة 279 هـ.</p>
+          <p style="margin-top:0.4rem"><strong>مما امتاز به:</strong> أن مصنفه ذكر فيه الصحيح وغيره، مبيناً درجة كل حديث، وأضاف إلى ذلك ذكر أقوال العلماء من الصحابة ومن بعدهم في المسائل التي يتضمنها الباب، ذاكراً ما أجمعوا عليه، وما اختلفوا فيه.</p>
+          <p style="margin-top:0.4rem">قال عن كتابه: «صنفت هذا الكتاب، فعرضته على علماء الحجاز، والعراق، وخراسان، فرضوا به».</p>
+        </div>
+      </div>
+
+      <div class="book-card">
+        <div class="book-card-header">
+          <div class="book-num-badge">٥</div>
+          <div class="book-card-title">سنن النسائي «المُجتبى»</div>
+        </div>
+        <div class="book-card-body">
+          <p><strong>مُصَنِّفُهُ:</strong> أبو عبد الرحمن، أحمد بن شعيب النسائي، نسبةً إلى (نَسَا) بلدة مشهورة بخراسان، ولد سنة 215 هـ وتوفي سنة 303 هـ.</p>
+          <p style="margin-top:0.4rem"><strong>مما امتاز به:</strong> أن غالب أحاديثه صحيحة، وبعض العلماء يقدم كتابه هذا على سنن أبي داود والترمذي؛ لشدة تحري مؤلفه في الرجال، وفي الكتاب تراجم دقيقة، تُنبئ عن فقه مؤلفه.</p>
+        </div>
+      </div>
+
+      <div class="book-card">
+        <div class="book-card-header">
+          <div class="book-num-badge">٦</div>
+          <div class="book-card-title">سنن ابن ماجه</div>
+        </div>
+        <div class="book-card-body">
+          <p><strong>مُصَنِّفُهُ:</strong> أبو عبد الله، محمد بن يزيد بن ماجه، القَزْوِيني، ولد سنة 209 هـ، وتوفي سنة 273 هـ.</p>
+          <p style="margin-top:0.4rem">قال ابن كثير عن سننه: «وهي دالة على علمه وعمله وتبحره، واطلاعه، واتباعه السنة».</p>
+          <p style="margin-top:0.4rem">وهو أقل مرتبة من باقي السنن المذكورة، وغالب ما ينفرد به عنها يكون ضعيفًا.</p>
+        </div>
+      </div>
+
+      <div class="book-card">
+        <div class="book-card-header">
+          <div class="book-num-badge">٧</div>
+          <div class="book-card-title">مسند الإمام أحمد</div>
+        </div>
+        <div class="book-card-body">
+          <p><strong>مُصَنِّفُهُ:</strong> إمام أهل السنة، أبو عبد الله، أحمد بن محمد بن حنبل، الشيباني، توفي سنة 241 هـ.</p>
+          <p style="margin-top:0.4rem">قال عنه علي بن المديني: إن الله أيد هذا الدين بـ (أبي بكر الصديق) يوم الردة، وبـ (أحمد بن حنبل) يوم المحنة.</p>
+          <p style="margin-top:0.4rem"><strong>مما امتاز به:</strong> يعد من أجمع وأكبر كتب الحديث.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     HADITH 1
+══════════════════════════════════════════════ -->
+<section class="lesson-section" id="h1">
+  <div class="lesson-header" onclick="toggleLesson(this)">
+    <div class="lesson-header-text">
+      <div class="lesson-tag">الحديث الأول</div>
+      <h2>مثل ما بعثني الله به من الهدى والعلم كمثل الغيث الكثير</h2>
+    </div>
+    <div class="lesson-toggle-btn">▾</div>
+  </div>
+  <div class="lesson-body">
+
+    <div class="content-block objectives-block">
+      <div class="block-title"><span class="icon">🎯</span> أهداف الدرس</div>
+      <ul class="objectives-list">
+        <li>توضح معاني مفردات الحديث.</li>
+        <li>تقترح عنواناً للحديث.</li>
+        <li>تترجم لراوي الحديث.</li>
+        <li>تبيّن فوائد ضرب الأمثال.</li>
+        <li>تستنتج الصورة التعبيرية في المثل الوارد في الحديث.</li>
+        <li>تقارن بين فئات الناس في موقفها من العلم.</li>
+        <li>تعلل أهمية تعلّم العلم الشرعي.</li>
+        <li>تستنبط بعضاً من فوائد الحديث.</li>
+      </ul>
+    </div>
+
+    <div class="content-block">
+      <div class="section-h3">نص الحديث</div>
+      <div class="hadith-block">
+        <p class="hadith-text">«مَثَلُ مَا بَعَثَنِي اللَّهُ بِهِ مِنَ الْهُدَى وَالْعِلْمِ كَمَثَلِ الْغَيْثِ الْكَثِيرِ أَصَابَ أَرْضًا؛ فَكَانَ مِنْهَا نَقِيَّةٌ قَبِلَتِ الْمَاءَ فَأَنْبَتَتِ الْكَلَأَ وَالْعُشْبَ الْكَثِيرَ، وَكَانَتْ مِنْهَا أَجَادِبُ أَمْسَكَتِ الْمَاءَ فَنَفَعَ اللَّهُ بِهَا النَّاسَ فَشَرِبُوا وَسَقَوْا وَزَرَعُوا، وَأَصَابَتْ مِنْهَا طَائِفَةً أُخْرَى إِنَّمَا هِيَ قِيعَانٌ لَا تُمْسِكُ مَاءً وَلَا تُنْبِتُ كَلَأً؛ فَذَلِكَ مَثَلُ مَنْ فَقُهَ فِي دِينِ اللَّهِ وَنَفَعَهُ مَا بَعَثَنِي اللَّهُ بِهِ فَعَلِمَ وَعَلَّمَ، وَمَثَلُ مَنْ لَمْ يَرْفَعْ بِذَلِكَ رَأْسًا وَلَمْ يَقْبَلْ هُدَى اللَّهِ الَّذِي أُرْسِلْتُ بِهِ»</p>
+        <div class="hadith-source">أخرجه البخاري ومسلم — عن أبي مُوسَى الأشعريِّ ﵁</div>
+      </div>
+    </div>
+
+    <div class="content-block">
+      <div class="section-h3">معاني الكلمات</div>
+      <div class="definitions-grid">
+        <div class="def-row"><span class="def-term">نَقِيَّةٌ</span><span class="def-sep">:</span><span class="def-meaning">طيِّبَةٌ.</span></div>
+        <div class="def-row"><span class="def-term">الْكَلَأَ</span><span class="def-sep">:</span><span class="def-meaning">النبات الرَّطبُ واليابسُ.</span></div>
+        <div class="def-row"><span class="def-term">الْعُشْبَ</span><span class="def-sep">:</span><span class="def-meaning">النبات الرَّطبُ، وهذا من ذكر الخاص بعد العام.</span></div>
+        <div class="def-row"><span class="def-term">أَجَادِبُ</span><span class="def-sep">:</span><span class="def-meaning">الأرض الصُّلبة التي تمسك الماء ولا تُنبت.</span></div>
+        <div class="def-row"><span class="def-term">قِيعَانٌ</span><span class="def-sep">:</span><span class="def-meaning">الأرض المستوية الملساءُ التي لا تُمسك ماءً ولا تُنبت.</span></div>
+      </div>
+    </div>
+
+    <div class="content-block">
+      <div class="section-h3">ترجمة راوي الحديث</div>
+      <div class="companion-card">
+        <div class="companion-name">أبو موسى الأشعري ﵁ — عَبْدُالله بنُ قَيْسِ الأشعريُّ اليمانيُّ</div>
+        <ol class="num-list">
+          <li>كان حسن الصوت بالقرآن جداً، وكان النبي ﷺ يستمع إليه، وقال يوماً: «لَوْ رَأَيْتَنِي وَأَنَا أَسْتَمِعُ لِقِرَاءَتِكَ الْبَارِحَةَ، لَقَدْ أُوتِيتَ مِزْمَارًا مِنْ مَزَامِيرِ آلِ دَاوُدَ».</li>
+          <li>دعا له النبيُّ ﷺ فقَالَ: «اللَّهُمَّ اغْفِرْ لِعَبْدِاللَّهِ بْنِ قَيْسٍ ذَنْبَهُ، وَأَدْخِلْهُ يَوْمَ الْقِيَامَةِ مُدْخَلًا كَرِيمًا».</li>
+          <li>أحَدُ كبارِ فقهاءِ الصحابة وقُرَّائِهم.</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="content-block">
+      <div class="section-h3">فئات الناس في تلقي العلم</div>
+      <div style="overflow-x:auto">
+        <table class="styled-table">
+          <thead>
+            <tr><th>المشبَّه</th><th>المشبَّه به</th><th>وجه الشبه</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>المنتفعون بالعلم المبلغون له</td><td>الأرض النقية</td><td>الانتفاع والنفع</td></tr>
+            <tr><td>المبلغون للعلم دون أن ينتفعوا به</td><td>الأرض الأجادب</td><td>النفع دون الانتفاع الشخصي</td></tr>
+            <tr><td>المعرضون عن العلم</td><td>الأرض القيعان</td><td>عدم الانتفاع ولا النفع</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="content-block">
+      <div class="section-h3">إرشادات الحديث</div>
+      <ol class="num-list">
+        <li>في الحديث بيانٌ لفضل العلم الشرعي وأهمية تعلّمه، فهو أشرف العلوم وأرفعها؛ لأنه الموصل إلى معرفة الله تعالى وشريعته، والسبيل إلى الوصول إلى الغاية التي لأجلها خلق الله الخلق، وهي: عبادته بما يحبه ويرضاه.</li>
+        <li>من السُّنَّة لمن أراد التربيةَ والتعليمَ: أن يضرب الأمثال، ولا يُؤتي الْمَثَلُ المضروبُ ثَمَرَتَهُ حتى يكون واضحًا للمتعلمين، متناسبًا مع أفهامهم ومداركهم، ومن واقع البيئة التي يعرفونها.</li>
+        <li>لضرب الأمثال فوائد كثيرة منها: تقريب المعلومة للمتعلمين، وتيسير الفَهم عليهم.</li>
+        <li>شبَّه النبيُّ ﷺ الوحي الذي أنزله الله عليه بما فيه من العلم والهداية بالغيث الكثير؛ لأن كلاًّ منهما سبب للحياة؛ فالغيثُ سَبَبُ حياةِ الأبدان، والعِلْمُ سَبَبُ حياةِ القلوب.</li>
+        <li>فَقْدُ العِلم الشرعيِّ له آثارٌ سيئةٌ منها: انتشارُ البدع، والبُعد عن شريعة الله.</li>
+        <li>الحث على أن يتعلم المسلم ما تسلم به عقيدته، وما تصحُّ به عباداته ومعاملاته.</li>
+        <li>وَصَفَ النبيُّ ﷺ ما جاء به بأنه هُدًى، فالهدى كله في الوحي المنزل من الله تعالى في كتابه أو سنة رسوله ﷺ.
+          <div class="quran-verse" style="margin-top:0.5rem">{فَإِمَّا يَأْتِيَنَّكُمْ مِنِّي هُدًى فَمَنِ اتَّبَعَ هُدَايَ فَلَا يَضِلُّ وَلَا يَشْقَى}<div class="quran-ref">[طه: 123]</div></div>
+        </li>
+        <li>انصراف الناس عن العلم له أسباب متعددة أشار الحديث إلى أهمها وهو: الكبر والتعالي، والإعراض عن العلم زهدًا فيه، أو جهلًا بأهميته.</li>
+        <li>في قوله ﷺ: «مَا بَعَثَنِي اللَّهُ بِهِ مِنَ الْهُدَى وَالْعِلْمِ» دلالةٌ على أن كلَّ ما جاء به النبيُّ ﷺ فهو من عند الله تعالى، وهذا موافق لقوله تعالى:
+          <div class="quran-verse" style="margin-top:0.5rem">{وَمَا يَنْطِقُ عَنِ الْهَوَى * إِنْ هُوَ إِلَّا وَحْيٌ يُوحَى}<div class="quran-ref">[النجم: 3-4]</div></div>
+        </li>
+      </ol>
+    </div>
+
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     HADITH 2
+══════════════════════════════════════════════ -->
+<section class="lesson-section" id="h2">
+  <div class="lesson-header" onclick="toggleLesson(this)">
+    <div class="lesson-header-text">
+      <div class="lesson-tag">الحديث الثاني</div>
+      <h2>مَنْ سَنَّ في الإسلام سُنَّةً حسنةً</h2>
+    </div>
+    <div class="lesson-toggle-btn">▾</div>
+  </div>
+  <div class="lesson-body">
+    <div class="content-block objectives-block">
+      <div class="block-title"><span class="icon">🎯</span> أهداف الدرس</div>
+      <ul class="objectives-list">
+        <li>تبيّن معاني مفردات الحديث.</li>
+        <li>تقترح عنواناً للحديث.</li>
+        <li>تترجم لراوي الحديث.</li>
+        <li>تمثّل لكل من: (السنة الحسنة، السنة السيئة).</li>
+        <li>تستنبط بعضاً من فوائد الحديث.</li>
+        <li>تحفظ نص الحديث.</li>
+      </ul>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">نص الحديث</div>
+      <div class="hadith-block">
+        <p class="hadith-text">«مَنْ سَنَّ فِي الْإِسْلَامِ سُنَّةً حَسَنَةً فَلَهُ أَجْرُهَا وَأَجْرُ مَنْ عَمِلَ بِهَا -بَعْدَهُ- مِنْ غَيْرِ أَنْ يَنْقُصَ مِنْ أُجُورِهِمْ شَيْءٌ، وَمَنْ سَنَّ فِي الْإِسْلَامِ سُنَّةً سَيِّئَةً كَانَ عَلَيْهِ وِزْرُهَا وَوِزْرُ مَنْ عَمِلَ بِهَا -مِنْ بَعْدِهِ- مِنْ غَيْرِ أَنْ يَنْقُصَ مِنْ أَوْزَارِهِمْ شَيْءٌ»</p>
+        <div class="hadith-source">أخرجه مسلم — عن جَرِيرِ بْنِ عَبْدِ اللَّهِ ﵁</div>
+      </div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">معاني الكلمات</div>
+      <div class="definitions-grid">
+        <div class="def-row"><span class="def-term">سُنَّةً</span><span class="def-sep">:</span><span class="def-meaning">الطريقة المتبعة في الخير أو الشر.</span></div>
+        <div class="def-row"><span class="def-term">حَسَنَةً</span><span class="def-sep">:</span><span class="def-meaning">موافقة للشريعة.</span></div>
+        <div class="def-row"><span class="def-term">سَيِّئَةً</span><span class="def-sep">:</span><span class="def-meaning">مخالفة للشريعة.</span></div>
+        <div class="def-row"><span class="def-term">وِزْرُهَا</span><span class="def-sep">:</span><span class="def-meaning">إثمها.</span></div>
+      </div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">ترجمة راوي الحديث</div>
+      <div class="companion-card">
+        <div class="companion-name">جَرِيرُ بنُ عبدِاللهِ الْبَجَلِيُّ اليَمَانِيُّ ﵁</div>
+        <ol class="num-list">
+          <li>كان النبي ﷺ يكرمه، قال جَرِيرُ ﵁: «مَا حَجَبَنِي رَسُولُ اللَّهِ ﷺ مُنْذُ أَسْلَمْتُ، وَلَا رَآنِي إِلَّا ضَحِكَ».</li>
+          <li>دعا له النبي ﷺ أن يكون هادياً مهدياً، قال جريرٌ ﵁: «شَكَوْتُ إِلَى النَّبِيِّ ﷺ أَنِّي لَا أَثْبُتُ عَلَى الْخَيْلِ، فَضَرَبَ بِيَدِهِ فِي صَدْرِي وَقَالَ: اللَّهُمَّ ثَبِّتْهُ، وَاجْعَلْهُ هَادِيًا مَهْدِيًّا».</li>
+        </ol>
+      </div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">إرشادات الحديث</div>
+      <ol class="num-list">
+        <li>في الحديث حث على سلوك الطريقة الحسنة التي يقتدي بها الناس، وأن من فعل ذلك فله أجر فعله، وأجر من اقتدى به إلى يوم القيامة من غير أن ينقص ذلك من أجر من عمل بهذا العمل شيئاً.</li>
+        <li>قول النبي ﷺ: «مَنْ سَنَّ فِي الْإِسْلَامِ سُنَّةً حَسَنَةً» يتضمن ثلاثة أنواع من الأعمال:
+          <ul class="alpha-list" style="margin-top:0.4rem">
+            <li data-marker="أ-">المبادرة إلى العمل بالسنة الثابتة إذا سمع الإنسان الحثَّ عليها، فيكون أول من يفعلها في مكانه أو زمانه فَيَقْتَدِي به الناس في ذلك.</li>
+            <li data-marker="ب-">إحياء السنة إذا أُميتت وتُرك العمل بها؛ فمن أحياها وأظهرها بالعمل بها والدعوة إليها كان له أجر إحيائها، وأجر من عمل بها بعده إلى يوم القيامة.</li>
+            <li data-marker="ج-">ابتكار وسيلة نافعة لعملٍ مشروع؛ مثل: جَمْعِ الصحابة ﵃ للقرآن الكريم في مُصحفٍ واحدٍ، وابتكارِ طريقةٍ لتخريج الحديث النبوي، أو برمجةٍ حَاسُوبيَّةٍ للبحث عن الأحاديث، ونحو ذلك.</li>
+          </ul>
+        </li>
+        <li>في الحديث تحذير من سلوك الطريقة السيئة التي يَقتدي بها الناس، وأن من فعل ذلك فعليه إثم فعله، وإثم من اقتدى به إلى يوم القيامة.</li>
+        <li>دَلَّ الحديثُ على عدم مشروعية إهداء ثواب الأعمال الصالحة للنبي ﷺ، وذلك لأن جميع حسنات المسلمين في صحيفته ﷺ فإن لَهُ مِثلَ أجورِ جميعِ أُمَّتِهِ.</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     HADITH 3
+══════════════════════════════════════════════ -->
+<section class="lesson-section" id="h3">
+  <div class="lesson-header" onclick="toggleLesson(this)">
+    <div class="lesson-header-text">
+      <div class="lesson-tag">الحديث الثالث</div>
+      <h2>إنَّ الحلالَ بيِّنٌ وإنَّ الحرامَ بيِّنٌ</h2>
+    </div>
+    <div class="lesson-toggle-btn">▾</div>
+  </div>
+  <div class="lesson-body">
+    <div class="content-block objectives-block">
+      <div class="block-title"><span class="icon">🎯</span> أهداف الدرس</div>
+      <ul class="objectives-list">
+        <li>توضح معاني مفردات الحديث.</li>
+        <li>تقترح عنواناً للحديث.</li>
+        <li>تترجم لراوي الحديث.</li>
+        <li>تستنتج الصورة التعبيرية في المثل الوارد في الحديث.</li>
+        <li>تستدل للموقف الشرعي من الشبهات.</li>
+        <li>تعدّد فوائد البعد عن الشبهات.</li>
+        <li>تبيّن أثر صلاح القلب في البعد عن الشبهات.</li>
+        <li>تستنبط بعضاً من فوائد الحديث.</li>
+      </ul>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">نص الحديث</div>
+      <div class="hadith-block">
+        <p class="hadith-text">«إِنَّ الْحَلَالَ بَيِّنٌ وَإِنَّ الْحَرَامَ بَيِّنٌ، وَبَيْنَهُمَا مُشْتَبِهَاتٌ لَا يَعْلَمُهُنَّ كَثِيرٌ مِنَ النَّاسِ، فَمَنِ اتَّقَى الشُّبُهَاتِ اسْتَبْرَأَ لِدِينِهِ وَعِرْضِهِ، وَمَنْ وَقَعَ فِي الشُّبُهَاتِ وَقَعَ فِي الْحَرَامِ، كَالرَّاعِي يَرْعَى حَوْلَ الْحِمَى يُوشِكُ أَنْ يَرْتَعَ فِيهِ، أَلَا وَإِنَّ لِكُلِّ مَلِكٍ حِمًى، أَلَا وَإِنَّ حِمَى اللَّهِ مَحَارِمُهُ، أَلَا وَإِنَّ فِي الْجَسَدِ مُضْغَةً إِذَا صَلَحَتْ صَلَحَ الْجَسَدُ كُلُّهُ، وَإِذَا فَسَدَتْ فَسَدَ الْجَسَدُ كُلُّهُ، أَلَا وَهِيَ الْقَلْبُ»</p>
+        <div class="hadith-source">أخرجه البخاري ومسلم — عن النُّعْمَانِ بْنِ بَشِيرٍ ﵁</div>
+      </div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">معاني الكلمات</div>
+      <div class="definitions-grid">
+        <div class="def-row"><span class="def-term">بَيِّنٌ</span><span class="def-sep">:</span><span class="def-meaning">واضح.</span></div>
+        <div class="def-row"><span class="def-term">مُشْتَبِهَاتٌ</span><span class="def-sep">:</span><span class="def-meaning">يشكل حكمها ويخفى.</span></div>
+        <div class="def-row"><span class="def-term">الْحِمَى</span><span class="def-sep">:</span><span class="def-meaning">المرعى الذي يحجزه الملك عن الناس.</span></div>
+        <div class="def-row"><span class="def-term">يَرْتَعَ</span><span class="def-sep">:</span><span class="def-meaning">يقع فيه.</span></div>
+      </div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">ترجمة راوي الحديث</div>
+      <div class="companion-card">
+        <div class="companion-name">النعمان بن بَشِير بنِ سعدٍ الأنصاري الخزرجي ﵁</div>
+        <ol class="num-list">
+          <li>هو وأبوه صحابيَّان ﵃، وخاله الصحابي الجليل عبدالله بن رواحة ﵁.</li>
+          <li>أول مولود ولد في الأنصار بعد قدوم النبي ﷺ، وكان من أخطب الناس وأحسنهم كلامًا.</li>
+        </ol>
+      </div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">إرشادات الحديث</div>
+      <ol class="num-list">
+        <li>هذا الحديث العظيم تحدث عن قضيتين أساسيتين، هما: «تصحيح العمل، وسلامة القلب».</li>
+        <li>دلَّ الحديثُ على أن الأشياء من حيثُ الحكم ثلاثة أقسام:
+          <ul class="alpha-list" style="margin-top:0.4rem">
+            <li data-marker="أ-">حلال بيِّن ظاهر لا شبهة فيه، وهو: كلُّ ما أَذِنَ الشرع في فعله.</li>
+            <li data-marker="ب-">حرام بيِّن ظاهر لا شبهة فيه كشرب الخمر وأكل الربا وأكل مال اليتيم ونحوها.</li>
+            <li data-marker="ج-">مشتبه بين الحلال والحرام، والشبهة هي كل أمر تردد حكمه بين الحلال والحرام.</li>
+          </ul>
+        </li>
+        <li>الاِشْتِبَاهُ في معرفة الأحكام الشرعية أمرٌ نِسْبِيٌّ؛ فقد يكون الحكم مُشْتَبِهًا عند شخص واضحًا عند آخر.</li>
+        <li>المسلم مأمور بحفظ دِينِهِ وعِرضهِ عن كلِّ ما يُدَنِّسُهُ.</li>
+        <li>بيَّن النبيُّ ﷺ فائدتين عظيمتين تحصل لمن اتقى الشبهات:
+          <ul class="alpha-list" style="margin-top:0.4rem">
+            <li data-marker="أ-">الاسْتِبْرَاءُ للدِّين: صيانة المسلم لِدِينِهِ من وقوعه في النقص أو الخلل.</li>
+            <li data-marker="ب-">الاسْتِبْرَاءُ لِلْعِرْضِ: صيانة المسلم نفسه من كلام الناس فيه.</li>
+          </ul>
+        </li>
+        <li>بيَّن النبيُّ ﷺ الأثَرَ المترتبَ على الوقوع في الْمُشْتَبِهات، وهو الوقوع في الحرام.</li>
+        <li>للقلب أهمية عظيمة؛ فهو المحرك لسائر الأعضاء، وبصلاحه يصلح جميع البدن، وبفساده يفسد جميع البدن.</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     HADITH 4
+══════════════════════════════════════════════ -->
+<section class="lesson-section" id="h4">
+  <div class="lesson-header" onclick="toggleLesson(this)">
+    <div class="lesson-header-text">
+      <div class="lesson-tag">الحديث الرابع</div>
+      <h2>سَبْعَةٌ يُظِلُّهُمُ اللَّهُ في ظِلِّهِ يومَ لا ظِلَّ إلا ظِلُّهُ</h2>
+    </div>
+    <div class="lesson-toggle-btn">▾</div>
+  </div>
+  <div class="lesson-body">
+    <div class="content-block objectives-block">
+      <div class="block-title"><span class="icon">🎯</span> أهداف الدرس</div>
+      <ul class="objectives-list">
+        <li>توضح معاني مفردات الحديث.</li>
+        <li>تقترح عنواناً للحديث.</li>
+        <li>تترجم لراوي الحديث.</li>
+        <li>تستنتج من الحديث بعض أهوال القيامة.</li>
+        <li>تعدّد السبعة الذين يظلهم الله في ظله.</li>
+        <li>تبيّن فضيلة الأعمال السبعة التي وردت في الحديث.</li>
+        <li>تستدل لعدم اختصاص السبعة بالاستظلال في ظل الرحمن يوم القيامة.</li>
+        <li>تستنبط بعضاً من فوائد الحديث.</li>
+        <li>تحفظ نص الحديث.</li>
+      </ul>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">نص الحديث</div>
+      <div class="hadith-block">
+        <p class="hadith-text">«سَبْعَةٌ يُظِلُّهُمُ اللَّهُ تَعَالَى فِي ظِلِّهِ يَوْمَ لَا ظِلَّ إِلَّا ظِلُّهُ: إِمَامٌ عَدْلٌ، وَشَابٌّ نَشَأَ فِي عِبَادَةِ اللَّهِ، وَرَجُلٌ قَلْبُهُ مُعَلَّقٌ فِي الْمَسَاجِدِ، وَرَجُلَانِ تَحَابَّا فِي اللَّهِ اجْتَمَعَا عَلَيْهِ وَتَفَرَّقَا عَلَيْهِ، وَرَجُلٌ دَعَتْهُ امْرَأَةٌ ذَاتُ مَنْصِبٍ وَجَمَالٍ فَقَالَ: إِنِّي أَخَافُ اللَّهَ، وَرَجُلٌ تَصَدَّقَ بِصَدَقَةٍ فَأَخْفَاهَا حَتَّى لَا تَعْلَمَ شِمَالُهُ مَا تُنْفِقُ يَمِينُهُ، وَرَجُلٌ ذَكَرَ اللَّهَ خَالِيًا فَفَاضَتْ عَيْنَاهُ»</p>
+        <div class="hadith-source">أخرجه البخاري ومسلم — عن أَبِي هُرَيْرَةَ ﵁</div>
+      </div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">ترجمة راوي الحديث</div>
+      <div class="companion-card">
+        <div class="companion-name">أبو هريرة ﵁ — عبد الرحمن بن صخر الدَّوْسِي</div>
+        <ol class="num-list">
+          <li>اجتهد في طلب الحديث والحرص عليه، دائم الملازمة للنبي ﷺ، فحفظ عنه علماً كثيراً، حتى كان أكثر الصحابة رواية للحديث.</li>
+          <li>حظي بعناية النبي ﷺ واهتمامه؛ دعا الله أن يرزقه عِلْماً لَا يُنْسَى، فأمَّن النبيُّ ﷺ على دعائه.</li>
+          <li>كان من فقهاء الصحابة، وكان صاحب عبادة.</li>
+        </ol>
+      </div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">إرشادات الحديث</div>
+      <ol class="num-list">
+        <li>دل الحديث على فضل السبعة الواردِ ذِكرُهم، وأن أعمالهم سبب لحصول الاستظلال بظل الرحمن يوم القيامة حين تدنو الشمس من الخلائق قدر مِيلٍ.</li>
+        <li>لا تصلح حياة الناس بغير ولي أمر يحكم بينهم، وينظِّم أمورهم، ولا تستقيم أحوالهم حتى يحكم بينهم بالعدل الذي أنزله الله تعالى في كتابه.</li>
+        <li>من نشأ في طاعة الله تعالى استحق الفضلَ الموعودَ به في هذا الحديث، وتتحقق النشأة في طاعة الله بأمرين: فعل الواجبات، وترك المحرمات.</li>
+        <li>المساجد بيوت الله تعالى، وهي أطهر البقاع وأفضلها، وأحبها إلى الله تعالى.</li>
+        <li>الْحُبُّ في الله: محبة المسلم لما فيه من خصال الخير وطاعة لله تعالى، وهي المحبةُ النافعةُ يوم القيامة.</li>
+        <li>إِعفافُ النفس من فعل الفاحشة وسائلِها واجبٌ عظيم.
+          <div class="quran-verse" style="margin-top:0.4rem">{وَلْيَسْتَعْفِفِ الَّذِينَ لَا يَجِدُونَ نِكَاحًا حَتَّى يُغْنِيَهُمُ اللَّهُ مِنْ فَضْلِهِ}<div class="quran-ref">[النور: 33]</div></div>
+        </li>
+        <li>الصَّدقَةُ بالمال من الأعمال التي يحبها الله تعالى، وإذا كانت في الخفاء فهي أحب إلى الله تعالى.
+          <div class="quran-verse" style="margin-top:0.4rem">{إِنْ تُبْدُوا الصَّدَقَاتِ فَنِعِمَّا هِيَ وَإِنْ تُخْفُوهَا وَتُؤْتُوهَا الْفُقَرَاءَ فَهُوَ خَيْرٌ لَكُمْ}<div class="quran-ref">[البقرة: 271]</div></div>
+        </li>
+        <li>البُكَاءُ من خشية الله تعالى دليل على حياة القلب، قال ابن عباس ﵄: سمعت النبي ﷺ يقول: «عَيْنَانِ لَا تَمَسُّهُمَا النَّارُ: عَيْنٌ بَكَتْ مِنْ خَشْيَةِ اللَّهِ، وَعَيْنٌ بَاتَتْ تَحْرُسُ فِي سَبِيلِ اللَّهِ».</li>
+        <li>ذِكْرُ السبعة في هذا الحديث لا يدل على الحصر؛ لأنه قد ثبت في أحاديث أخرى غير هؤلاء ممن يظلهم الله في ظله، منهم: مَن أنظر مُعسرًا أو وضع عنه من الدَّين.</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     HADITH 5
+══════════════════════════════════════════════ -->
+<section class="lesson-section" id="h5">
+  <div class="lesson-header" onclick="toggleLesson(this)">
+    <div class="lesson-header-text">
+      <div class="lesson-tag">الحديث الخامس</div>
+      <h2>مَنْ عَادَى لِي وَلِيًّا فَقَدْ آذَنْتُهُ بِالْحَرْبِ</h2>
+    </div>
+    <div class="lesson-toggle-btn">▾</div>
+  </div>
+  <div class="lesson-body">
+    <div class="content-block objectives-block">
+      <div class="block-title"><span class="icon">🎯</span> أهداف الدرس</div>
+      <ul class="objectives-list">
+        <li>توضح معاني مفردات الحديث.</li>
+        <li>تقترح عنواناً للحديث.</li>
+        <li>تبيّن المراد بـ (الولي).</li>
+        <li>تستنتج طريق تحقيق ولاية الله.</li>
+        <li>تحرص على الفرائض وتستكثر من نوافل العبادات.</li>
+        <li>تستنتج آثار ولاية الله للعبد.</li>
+        <li>تستنبط بعضاً من فوائد الحديث.</li>
+      </ul>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">نص الحديث (حديث قدسي)</div>
+      <div class="hadith-block">
+        <p class="hadith-text">«إِنَّ اللَّهَ قَالَ: مَنْ عَادَى لِي وَلِيًّا فَقَدْ آذَنْتُهُ بِالْحَرْبِ، وَمَا تَقَرَّبَ إِلَيَّ عَبْدِي بِشَيْءٍ أَحَبَّ إِلَيَّ مِمَّا افْتَرَضْتُ عَلَيْهِ، وَمَا يَزَالُ عَبْدِي يَتَقَرَّبُ إِلَيَّ بِالنَّوَافِلِ حَتَّى أُحِبَّهُ، فَإِذَا أَحْبَبْتُهُ كُنْتُ سَمْعَهُ الَّذِي يَسْمَعُ بِهِ، وَبَصَرَهُ الَّذِي يُبْصِرُ بِهِ، وَيَدَهُ الَّتِي يَبْطِشُ بِهَا، وَرِجْلَهُ الَّتِي يَمْشِي بِهَا، وَإِنْ سَأَلَنِي لَأُعْطِيَنَّهُ، وَلَئِنِ اسْتَعَاذَنِي لَأُعِيذَنَّهُ، وَمَا تَرَدَّدْتُ عَنْ شَيْءٍ أَنَا فَاعِلُهُ تَرَدُّدِي عَنْ نَفْسِ الْمُؤْمِنِ؛ يَكْرَهُ الْمَوْتَ وَأَنَا أَكْرَهُ مَسَاءَتَهُ»</p>
+        <div class="hadith-source">أخرجه البخاري — عن أَبِي هُرَيْرَةَ ﵁</div>
+      </div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">معاني الكلمات</div>
+      <div class="definitions-grid">
+        <div class="def-row"><span class="def-term">آذَنْتُهُ بِالْحَرْبِ</span><span class="def-sep">:</span><span class="def-meaning">أعلنت عليه الحرب.</span></div>
+        <div class="def-row"><span class="def-term">البَطْش</span><span class="def-sep">:</span><span class="def-meaning">الأخْذُ القَوِيُّ الشَّدِيدُ.</span></div>
+      </div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">إرشادات الحديث</div>
+      <ol class="num-list">
+        <li>وَلِيُّ اللهِ تعالى هو المؤمن التَّقيُّ؛ كما قال تعالى:
+          <div class="quran-verse" style="margin-top:0.4rem">{أَلَا إِنَّ أَوْلِيَاءَ اللَّهِ لَا خَوْفٌ عَلَيْهِمْ وَلَا هُمْ يَحْزَنُونَ * الَّذِينَ آمَنُوا وَكَانُوا يَتَّقُونَ}<div class="quran-ref">[يونس: 62-63]</div></div>
+        </li>
+        <li>بيَّن الحديثُ الطريقَ الصحيحَ إلى وَلاية الله تعالى، وهو يتلخص في أمرين: التقرب إلى الله تعالى بالفرائض، والتقرب إليه بالنوافل.</li>
+        <li>دَلَّ الحديثُ على مشروعية الإكثار من النوافل، والمداومة على فعلها بجميع أنواعها.</li>
+        <li>التقرُّب إلى الله تعالى بالفرائض مقدَّمٌ على التقرب بالنوافل.</li>
+        <li>إذا أحب الله العبد المحبة الكاملة فإنه يوفقه في جميع أعماله؛ في سمعه وبصره ويده ورجله.</li>
+        <li>في الحديث تهديدٌ شديدٌ لِمَن يعادي أولياء الله تعالى بأيِّ نوع من المعاداة.</li>
+        <li>في الحديث إثبات صفة المحبة لله تعالى على الوجه اللائق به.</li>
+        <li>كراهيةُ الموت طَبْعٌ في بني آدم لا يُعاب عليه.</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     HADITH 6
+══════════════════════════════════════════════ -->
+<section class="lesson-section" id="h6">
+  <div class="lesson-header" onclick="toggleLesson(this)">
+    <div class="lesson-header-text">
+      <div class="lesson-tag">الحديث السادس</div>
+      <h2>لَنْ يُنَجِّيَ أَحَدًا مِنْكُمْ عَمَلُهُ</h2>
+    </div>
+    <div class="lesson-toggle-btn">▾</div>
+  </div>
+  <div class="lesson-body">
+    <div class="content-block objectives-block">
+      <div class="block-title"><span class="icon">🎯</span> أهداف الدرس</div>
+      <ul class="objectives-list">
+        <li>تبيّن معاني مفردات الحديث.</li>
+        <li>تقترح عنواناً للحديث.</li>
+        <li>تستنتج أثر العمل في النجاة من النار.</li>
+        <li>توضّح الأسباب الموصلة إلى رحمة الله.</li>
+        <li>تبيّن العبادات التي تشرع في أوقات: الغدو، الرواح، الدلجة.</li>
+        <li>تجمع بين هذا الحديث والآيات الدّالة على أنّ الأعمال تُدخل صاحبها الجنة.</li>
+        <li>تستنبط بعضاً من فوائد الحديث.</li>
+      </ul>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">نص الحديث</div>
+      <div class="hadith-block">
+        <p class="hadith-text">«لَنْ يُنَجِّيَ أَحَدًا مِنْكُمْ عَمَلُهُ»، قَالُوا: وَلَا أَنْتَ يَا رَسُولَ اللَّهِ؟ قَالَ: «وَلَا أَنَا؛ إِلَّا أَنْ يَتَغَمَّدَنِي اللَّهُ بِرَحْمَةٍ، سَدِّدُوا وَقَارِبُوا، وَاغْدُوا وَرُوحُوا، وَشَيْءٌ مِنَ الدُّلْجَةِ، وَالْقَصْدَ الْقَصْدَ تَبْلُغُوا»</p>
+        <div class="hadith-source">أخرجه البخاري ومسلم — عن أَبِي هُرَيْرَةَ ﵁</div>
+      </div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">معاني الكلمات</div>
+      <div class="definitions-grid">
+        <div class="def-row"><span class="def-term">سَدِّدُوا</span><span class="def-sep">:</span><span class="def-meaning">الزموا السداد وهو الصواب والتوسط في العمل من غير إفراط ولا تفريط.</span></div>
+        <div class="def-row"><span class="def-term">وَقَارِبُوا</span><span class="def-sep">:</span><span class="def-meaning">إذا لم تستطيعوا عمل الأكمل فاعملوا ما يقرب منه.</span></div>
+        <div class="def-row"><span class="def-term">وَاغْدُوا</span><span class="def-sep">:</span><span class="def-meaning">الغَدوة: السير أول النهار.</span></div>
+        <div class="def-row"><span class="def-term">وَرُوحُوا</span><span class="def-sep">:</span><span class="def-meaning">الروحة: السير بعد الزوال.</span></div>
+        <div class="def-row"><span class="def-term">الدُّلْجَةِ</span><span class="def-sep">:</span><span class="def-meaning">سير الليل.</span></div>
+        <div class="def-row"><span class="def-term">وَالْقَصْدَ الْقَصْدَ</span><span class="def-sep">:</span><span class="def-meaning">الزموا الطريق الوسط المعتدل تبلغوا الجنة.</span></div>
+      </div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">إرشادات الحديث</div>
+      <ol class="num-list">
+        <li>المراد بالنجاة في الحديث: النجاةُ مِن النار ودخولُ الجنة.</li>
+        <li>ليس لأحدٍ مِن العِبَادِ أن يَمُنَّ على الله تعالى بعملٍ صالحٍ عمله.</li>
+        <li>عمل الإنسان مُجرَّدًا لا يُنجيهِ مِن النار ولا يُدخله الجنة، وإنما يحصل له ذلك برحمة الله تعالى.</li>
+        <li>على المسلم أن يفعل الأسبابَ الموصّلةَ إلى رحمة الله تعالى ومغفرته، وأفضلُ الأعمالِ عند الله تعالى ما كان على وجه السداد والاقتصاد.</li>
+        <li>ذَكَرَ النبيُّ ﷺ في هذا الحديث ثلاثةَ أوقات حاثًّا على العمل الصالح فيهن: الغدو (أول النهار)، والرواح (آخر النهار)، والدلجة (سير الليل).</li>
+        <li>أَمَرَ النبيُّ ﷺ بالقصدِ في العبادة، وهو التوسُّطُ والاعتدالُ.</li>
+        <li>هذا الحديث لا يتعارض مع الآياتِ الدالةِ على أن الأعمالَ تُدخلُ صاحبَها الجنةَ، فدخولُ الجنةِ بسبب الأعمال الصالحة، لكن التوفيقُ لهذه الأعمال إنما كان برحمة الله تعالى وفضله.</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     HADITH 7
+══════════════════════════════════════════════ -->
+<section class="lesson-section" id="h7">
+  <div class="lesson-header" onclick="toggleLesson(this)">
+    <div class="lesson-header-text">
+      <div class="lesson-tag">الحديث السابع</div>
+      <h2>مَثَلُ الْمُؤْمِنِ كَالْخَامَةِ مِنَ الزَّرْعِ</h2>
+    </div>
+    <div class="lesson-toggle-btn">▾</div>
+  </div>
+  <div class="lesson-body">
+    <div class="content-block objectives-block">
+      <div class="block-title"><span class="icon">🎯</span> أهداف الدرس</div>
+      <ul class="objectives-list">
+        <li>توضح معاني مفردات الحديث.</li>
+        <li>تقترح عنواناً للحديث.</li>
+        <li>تترجم لراوي الحديث.</li>
+        <li>تستنتج الصورة التشبيهية الواردة في الحديث.</li>
+        <li>تقارن بين موقف كلّ من: المؤمن والمنافق من الابتلاء.</li>
+        <li>توضّح مفهوم الابتلاء.</li>
+        <li>تعدّد صور الابتلاء.</li>
+        <li>تستنتج فوائد الابتلاء للمؤمن.</li>
+        <li>تستنبط بعضاً من فوائد الحديث.</li>
+      </ul>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">نص الحديث</div>
+      <div class="hadith-block">
+        <p class="hadith-text">«مَثَلُ الْمُؤْمِنِ كَالْخَامَةِ مِنَ الزَّرْعِ، تُفَيِّئُهَا الرِّيحُ مَرَّةً، وَتَعْدِلُهَا مَرَّةً، وَمَثَلُ الْمُنَافِقِ كَالْأَرْزَةِ، لَا تَزَالُ حَتَّى يَكُونَ انْجِعَافُهَا مَرَّةً وَاحِدَةً»</p>
+        <div class="hadith-source">أخرجه البخاري — عن كَعْبِ بْنِ مَالِكٍ ﵁</div>
+      </div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">معاني الكلمات</div>
+      <div class="definitions-grid">
+        <div class="def-row"><span class="def-term">كَالْخَامَةِ</span><span class="def-sep">:</span><span class="def-meaning">النبت الصغير الرطب.</span></div>
+        <div class="def-row"><span class="def-term">كَالْأَرْزَةِ</span><span class="def-sep">:</span><span class="def-meaning">شجرة كبيرة.</span></div>
+        <div class="def-row"><span class="def-term">انْجِعَافُهَا</span><span class="def-sep">:</span><span class="def-meaning">انقلاعها وسقوطها.</span></div>
+      </div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">ترجمة راوي الحديث</div>
+      <div class="companion-card">
+        <div class="companion-name">كعب بن مالك بن عمرو الخزرجي ﵁</div>
+        <p class="body-text">شاعر رسول الله ﷺ وصاحبه، كان أحد الثلاثة الذين تخلفوا عن غزوة تبوك، فتاب الله عليهم، وأنزل الله فيهم قوله تعالى:
+          <div class="quran-verse" style="margin-top:0.4rem">{وَعَلَى الثَّلَاثَةِ الَّذِينَ خُلِّفُوا حَتَّى إِذَا ضَاقَتْ عَلَيْهِمُ الْأَرْضُ بِمَا رَحُبَتْ... ثُمَّ تَابَ عَلَيْهِمْ لِيَتُوبُوا إِنَّ اللَّهَ هُوَ التَّوَّابُ الرَّحِيمُ}<div class="quran-ref">[التوبة: 118]</div></div>
+        </p>
+      </div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">إرشادات الحديث</div>
+      <ol class="num-list">
+        <li>شبَّه النبيُّ ﷺ المؤمنَ الصادقَ في كثرة ما يصيبه من البلاء وموقِفِهِ منه بالنبات الصغير الرَّطب الذي تصيبه الرياح فَتُمِيلُهُ يمينًا ويسارًا، وهكذا المؤمن تصيبه الابتلاءات في نفسه وولده وأهله وماله فتؤثر فيه ولكنها لا تبعده عن دينه.</li>
+        <li>شبَّه النبيُّ ﷺ المنافق في قِلَّةِ ما يصيبه من البلاء بالشجرة الكبيرة التي لا تؤثر فيها الرياح، ولكن يأتي عليها يوم فتنكسر وتتحطم.</li>
+        <li>الحياة كلها بما فيها ابتلاءٌ واختبارٌ من الله تعالى للناس.</li>
+        <li>قد يكون الابتلاء بالأقدار الكونية المؤلمة كالمصائب والأمراض، وقد يكون بالنِّعم.</li>
+        <li>كلُّ مؤمن يبتلى، ولكنهم يُبتلون على قدر إيمانهم.</li>
+        <li>لاِبْتِلاَءِ اللهِ لعبادهِ المؤمنين فوائدُ منها: الاِخْتبارُ ليتبين صدقُ الإيمان، والتطهيرُ من الذنوب، ولجوء المؤمنين إلى ربِّهم.</li>
+        <li>مهما أصاب العبدَ البلاءُ في الدنيا فإن ما أعطاه النِّعمَ وما صَرَفَ عنه مِن أنواع البلاء الأخرى أكثر وأعظم.</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     HADITH 8
+══════════════════════════════════════════════ -->
+<section class="lesson-section" id="h8">
+  <div class="lesson-header" onclick="toggleLesson(this)">
+    <div class="lesson-header-text">
+      <div class="lesson-tag">الحديث الثامن</div>
+      <h2>إِنَّ أَثْقَلَ صَلَاةٍ عَلَى الْمُنَافِقِينَ صَلَاةُ الْعِشَاءِ وَصَلَاةُ الْفَجْرِ</h2>
+    </div>
+    <div class="lesson-toggle-btn">▾</div>
+  </div>
+  <div class="lesson-body">
+    <div class="content-block objectives-block">
+      <div class="block-title"><span class="icon">🎯</span> أهداف الدرس</div>
+      <ul class="objectives-list">
+        <li>توضح معاني مفردات الحديث.</li>
+        <li>تقترح عنواناً للحديث.</li>
+        <li>تحدّد السبب في تثاقل المنافقين عن صلاتي الفجر والعشاء.</li>
+        <li>توضّح أهمية صلاة الجماعة.</li>
+        <li>تشرح قوله ﷺ: «ولو يعلمون ما فيهما لأتوهما ولو حبوًا».</li>
+        <li>تبيّن حكم التكاسل والتثاقل عن أداء الصلاة.</li>
+        <li>تحذّر من التشبه بالمنافقين في التأخر عن الصلاة.</li>
+        <li>تستنبط بعضاً من فوائد الحديث.</li>
+      </ul>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">نص الحديث</div>
+      <div class="hadith-block">
+        <p class="hadith-text">«إِنَّ أَثْقَلَ صَلَاةٍ عَلَى الْمُنَافِقِينَ صَلَاةُ الْعِشَاءِ وَصَلَاةُ الْفَجْرِ، وَلَوْ يَعْلَمُونَ مَا فِيهِمَا لَأَتَوْهُمَا وَلَوْ حَبْوًا»</p>
+        <div class="hadith-source">أخرجه البخاري ومسلم — عن أَبِي هُرَيْرَةَ ﵁</div>
+      </div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">معاني الكلمات</div>
+      <div class="definitions-grid">
+        <div class="def-row"><span class="def-term">أَثْقَلَ</span><span class="def-sep">:</span><span class="def-meaning">أشدَّ في المُواظَبةِ والحِفاظِ عليها، وأدائِها في وقتها.</span></div>
+        <div class="def-row"><span class="def-term">مَا فِيهِمَا</span><span class="def-sep">:</span><span class="def-meaning">من عظيم الأجر والثواب.</span></div>
+        <div class="def-row"><span class="def-term">حَبْوًا</span><span class="def-sep">:</span><span class="def-meaning">أي زحفًا.</span></div>
+      </div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">إرشادات الحديث</div>
+      <ol class="num-list">
+        <li>الصلاة هي الركن الثاني من أركان الإسلام، والمؤمن الصادق يحبها، ويؤديها مُخْلِصًا لله تعالى؛ بخلاف المنافق.</li>
+        <li>دلَّ الحديثُ على فضيلةٍ خاصَّةٍ لِصَلاَتَيِ العشاءِ والفجرِ، ومما ثبت في ذلك حديث عثمان ﵁ أن النبي ﷺ قال: «مَنْ صَلَّى الْعِشَاءَ فِي جَمَاعَةٍ فَكَأَنَّمَا قَامَ نِصْفَ اللَّيْلِ، وَمَنْ صَلَّى الصُّبْحَ فِي جَمَاعَةٍ فَكَأَنَّمَا صَلَّى اللَّيْلَ كُلَّهُ».</li>
+        <li>المؤمن الصادق يحب الصلاة مع الجماعة في بيوت الله تعالى ولا يستثقلها؛ لأن الله تعالى يحب ذلك منه، وصلاةَ الجماعةِ أفضلُ مِن صلاةِ الفرد بسبع وعشرين درجة.</li>
+        <li>كان الصحابةُ ﵃ أحرصَ الناس على صلاة الجماعة؛ فلم يكونوا يتخلفون عنها إلا مِن عُذْرٍ.</li>
+        <li>التخلُّفُ عن صلاة الجماعة: من الأعذار التي يمكن معها التخلف المرضِ الذي يشق معه الحضور، والمطرِ الشديدِ.</li>
+        <li>مِ نْ صفات المنافقين: التَّثاقُلُ لِصلاة الجماعة، فلا يقومون إليها إلا كُسَالَى.
+          <div class="quran-verse" style="margin-top:0.4rem">{وَلَا يَأْتُونَ الصَّلَاةَ إِلَّا وَهُمْ كُسَالَى وَلَا يُنْفِقُونَ إِلَّا وَهُمْ كَارِهُونَ}<div class="quran-ref">[التوبة: 54]</div></div>
+        </li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     HADITH 9
+══════════════════════════════════════════════ -->
+<section class="lesson-section" id="h9">
+  <div class="lesson-header" onclick="toggleLesson(this)">
+    <div class="lesson-header-text">
+      <div class="lesson-tag">الحديث التاسع</div>
+      <h2>الْفِطْرَةُ خَمْسٌ</h2>
+    </div>
+    <div class="lesson-toggle-btn">▾</div>
+  </div>
+  <div class="lesson-body">
+    <div class="content-block objectives-block">
+      <div class="block-title"><span class="icon">🎯</span> أهداف الدرس</div>
+      <ul class="objectives-list">
+        <li>توضح معاني مفردات الحديث.</li>
+        <li>تقترح عنواناً للحديث.</li>
+        <li>تعدّد خصال الفطرة.</li>
+        <li>تُصنّف خصال الفطرة بحسب ما يختص به الرجال وما هو مشترك.</li>
+        <li>تبيّن أهم الأحكام المتعلقة بخصال الفطرة.</li>
+        <li>تستنتج فوائد المحافظة على خصال الفطرة.</li>
+        <li>تستنبط بعضاً من فوائد الحديث.</li>
+        <li>تحفظ نص الحديث.</li>
+      </ul>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">نص الحديث</div>
+      <div class="hadith-block">
+        <p class="hadith-text">«الْفِطْرَةُ خَمْسٌ: الْخِتَانُ، وَالِاسْتِحْدَادُ، وَقَصُّ الشَّارِبِ، وَتَقْلِيمُ الْأَظْفَارِ، وَنَتْفُ الْآبَاطِ»</p>
+        <div class="hadith-source">أخرجه البخاري ومسلم — عن أَبِي هُرَيْرَةَ ﵁</div>
+      </div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">معاني الكلمات</div>
+      <div class="definitions-grid">
+        <div class="def-row"><span class="def-term">الْفِطْرَةُ</span><span class="def-sep">:</span><span class="def-meaning">السُّنة.</span></div>
+        <div class="def-row"><span class="def-term">الِاسْتِحْدَادُ</span><span class="def-sep">:</span><span class="def-meaning">أخذ شعر العانة بالحديدة وهي الموسَى (شفرة الحلاقة).</span></div>
+      </div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">إرشادات الحديث</div>
+      <ol class="num-list">
+        <li>الفِطرةُ هي السُّنَّة، ومعنى أن هذه الخصال مِن سنن الأنبياء والمرسلين ﵊.</li>
+        <li>الْخِتَانُ واجبٌ في حقِّ الذُّكورِ، ومن فوائده اتباع السنة والنظافة.</li>
+        <li>الاِسْتِحْدَادُ سُنَّةٌ لِلرِّجَال والنساء، وهو إزالة شعر العانة.</li>
+        <li>قَصُّ الشَّارِبِ سُنَّةٌ لِلرِّجَال، والأفضل في قَصِّهِ المبالغةُ فيه.</li>
+        <li>تَقْلِيمُ أَظْفَارِ اليدينِ والقدمينِ سُنَّةٌ لِلرِّجَال والنساء.</li>
+        <li>نَتْفُ الآبَاطِ سُنَّةٌ لِلرِّجَال والنساء، والنتف أفضل لمن قَوِيَ عليه.</li>
+        <li>لِخِصَالِ الْفِطْرَةِ عمومًا فوائدُ كثيرةٌ منها: تحسينُ الْهَيْئَةِ، وتنظيفُ البَدَنِ، والاحتياطُ للطهارتين، والإحسانُ إلى الآخرين.</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     HADITH 10
+══════════════════════════════════════════════ -->
+<section class="lesson-section" id="h10">
+  <div class="lesson-header" onclick="toggleLesson(this)">
+    <div class="lesson-header-text">
+      <div class="lesson-tag">الحديث العاشر</div>
+      <h2>أَنَا زَعِيمٌ بِبَيْتٍ في رَبَضِ الجنة لمن ترك المِرَاء</h2>
+    </div>
+    <div class="lesson-toggle-btn">▾</div>
+  </div>
+  <div class="lesson-body">
+    <div class="content-block objectives-block">
+      <div class="block-title"><span class="icon">🎯</span> أهداف الدرس</div>
+      <ul class="objectives-list">
+        <li>تبين معاني مفردات الحديث.</li>
+        <li>تقترح عنواناً للحديث.</li>
+        <li>تستدل من الحديث على تفاوت منازل الجنة.</li>
+        <li>تفرّق بين الجدال المحمود والجدال المذموم.</li>
+        <li>تستنتج خطورة الكذب وعلو منزلة الصدق.</li>
+        <li>توضّح فضل حسن الخُلق.</li>
+        <li>تستنبط بعضاً من فوائد الحديث.</li>
+        <li>تحفظ نص الحديث.</li>
+      </ul>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">نص الحديث</div>
+      <div class="hadith-block">
+        <p class="hadith-text">«أَنَا زَعِيمٌ بِبَيْتٍ فِي رَبَضِ الْجَنَّةِ لِمَنْ تَرَكَ الْمِرَاءَ وَإِنْ كَانَ مُحِقًّا، وَبِبَيْتٍ فِي وَسَطِ الْجَنَّةِ لِمَنْ تَرَكَ الْكَذِبَ وَإِنْ كَانَ مَازِحًا، وَبِبَيْتٍ فِي أَعْلَى الْجَنَّةِ لِمَنْ حَسُنَ خُلُقُهُ»</p>
+        <div class="hadith-source">أخرجه أبو داود بإسناد حسن — عن أَبِي أُمَامَةَ ﵁</div>
+      </div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">معاني الكلمات</div>
+      <div class="definitions-grid">
+        <div class="def-row"><span class="def-term">زَعِيمٌ</span><span class="def-sep">:</span><span class="def-meaning">ضامن.</span></div>
+        <div class="def-row"><span class="def-term">رَبَضِ</span><span class="def-sep">:</span><span class="def-meaning">أسفلها.</span></div>
+        <div class="def-row"><span class="def-term">الْمِرَاءَ</span><span class="def-sep">:</span><span class="def-meaning">الجدال.</span></div>
+      </div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">ترجمة راوي الحديث</div>
+      <div class="companion-card">
+        <div class="companion-name">أبو أُمَامَةَ: صُدَيّ بن عَجْلاَن البَاهِلِيُّ ﵁</div>
+        <ol class="num-list">
+          <li>بَعَثَهُ النبيُّ ﷺ إلى قومه بَاهِلَةَ فأسلموا عن آَخِرِهِمْ.</li>
+          <li>كان من المكثرين من رواية الحديث عن النبي ﷺ.</li>
+          <li>كان عابداً كثير الصيام، حريصاً على نشر العلم.</li>
+        </ol>
+      </div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">إرشادات الحديث</div>
+      <ol class="num-list">
+        <li>دلَّ الحديثُ على أن الجنة درجات متفاوتة، وأن هذه الدرجات ينالها العباد بحسب أعمالهم.</li>
+        <li>يستحب ترك الجدال إذا كان مما لا يترتب عليه فائدة، حتى وإن كان الإنسان على حق.</li>
+        <li>لَمَّا كان الناسُ يتساهلون في الكذب حالَ المزاح؛ بيَّن النبيُّ ﷺ أن الكذب لا يجوز في هذه الأحوال.</li>
+        <li>ينبغي للمسلم أن يحرصَ عَلَى حُسنِ الْخُلُقِ مع الناس كافَّة. وقد كان النبيُّ ﷺ أحسنَ الناس خُلُقًا، وقد زكَّى الله تعالى أخلاقَ رسولِهِ ﷺ فقال:
+          <div class="quran-verse" style="margin-top:0.4rem">{وَإِنَّكَ لَعَلَى خُلُقٍ عَظِيمٍ}<div class="quran-ref">[القلم: 4]</div></div>
+        </li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     HADITH 11
+══════════════════════════════════════════════ -->
+<section class="lesson-section" id="h11">
+  <div class="lesson-header" onclick="toggleLesson(this)">
+    <div class="lesson-header-text">
+      <div class="lesson-tag">الحديث الحادي عشر</div>
+      <h2>لَا تَغْضَبْ</h2>
+    </div>
+    <div class="lesson-toggle-btn">▾</div>
+  </div>
+  <div class="lesson-body">
+    <div class="content-block objectives-block">
+      <div class="block-title"><span class="icon">🎯</span> أهداف الدرس</div>
+      <ul class="objectives-list">
+        <li>تفسّر معنى قول النبي ﷺ: (لا تغضب).</li>
+        <li>تقترح عنواناً للحديث.</li>
+        <li>تعدّد أنواع الغضب.</li>
+        <li>تبيّن علاقة الشيطان بالغضب المذموم.</li>
+        <li>توضّح وسائل دفع الغضب.</li>
+        <li>تستنتج آثار الغضب على الفرد والأسرة والمجتمع.</li>
+        <li>تستنبط بعضاً من فوائد الحديث.</li>
+        <li>تحفظ نص الحديث.</li>
+      </ul>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">نص الحديث</div>
+      <div class="hadith-block">
+        <p class="hadith-text">أَنَّ رَجُلًا قَالَ لِلنَّبِيِّ ﷺ: أَوْصِنِي، قَالَ: «لَا تَغْضَبْ»، فَرَدَّدَ مِرَارًا، قَالَ: «لَا تَغْضَبْ»</p>
+        <div class="hadith-source">أخرجه البخاري — عن أَبِي هُرَيْرَةَ ﵁</div>
+      </div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">معاني الكلمات</div>
+      <div class="definitions-grid">
+        <div class="def-row"><span class="def-term">أَوْصِنِي</span><span class="def-sep">:</span><span class="def-meaning">طلب الوصية.</span></div>
+        <div class="def-row"><span class="def-term">لَا تَغْضَبْ</span><span class="def-sep">:</span><span class="def-meaning">اجتنب أسباب الغضب ونتائجه.</span></div>
+      </div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">إرشادات الحديث</div>
+      <ol class="num-list">
+        <li>الغضب غَرِيزَةٌ مِن الغرائز، وقد جاء الإسلام بتوجيه هذه الغريزة وتهذيبها.</li>
+        <li>الغضبُ نوعان:
+          <ul class="alpha-list" style="margin-top:0.4rem">
+            <li data-marker="أ-"><strong>غضبٌ محمودٌ:</strong> وهو الغضب لله تعالى غيرة على انتهاك حرمات الشريعة.</li>
+            <li data-marker="ب-"><strong>غضبٌ مذمومٌ:</strong> وهو الغضب للنفس لأي سبب من الأسباب.</li>
+          </ul>
+        </li>
+        <li>دلَّت الأدلة الشرعية على أن الغضب غير المحمود يكون من الشيطان الرجيم.</li>
+        <li>دلَّ الحديثُ على أن ترك الغضب والتحكُّمَ فيه خُلُقٌ مُكْتَسَبٌ. ومن الوسائل التي تدفع الغضب:
+          <ul class="alpha-list" style="margin-top:0.4rem">
+            <li data-marker="أ-">ذِكْرُ الله تعالى بالاستغفار وغيره.</li>
+            <li data-marker="ب-">الاستعاذة بالله من الشيطان الرجيم.</li>
+            <li data-marker="ج-">الوضوء.</li>
+            <li data-marker="د-">تغيير الهيئة التي هو عليها.</li>
+            <li data-marker="هـ-">البعد عن محل الغضب وسببه.</li>
+            <li data-marker="و-">السكوت وترك الكلام في الموضوع الذي غضب بسببه.</li>
+          </ul>
+        </li>
+        <li>من آثار الغضب على الفرد والأسرة والمجتمع: اتخاذ القرارات الخاطئة، وإصابته ببعض الأمراض، وتوليد العداوة والبغضاء، وحصول المشاجرات وسفك الدماء.</li>
+        <li>في الحديث إرشادُ المنصوح إلى ما يهمه ويناسبه بكلامٍ واضح ومختصر.</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     HADITH 12
+══════════════════════════════════════════════ -->
+<section class="lesson-section" id="h12">
+  <div class="lesson-header" onclick="toggleLesson(this)">
+    <div class="lesson-header-text">
+      <div class="lesson-tag">الحديث الثاني عشر</div>
+      <h2>صلاة الاستخارة</h2>
+    </div>
+    <div class="lesson-toggle-btn">▾</div>
+  </div>
+  <div class="lesson-body">
+    <div class="content-block objectives-block">
+      <div class="block-title"><span class="icon">🎯</span> أهداف الدرس</div>
+      <ul class="objectives-list">
+        <li>تقترح عنواناً للحديث.</li>
+        <li>تترجم لراوي الحديث.</li>
+        <li>تبيّن وجه تشبيه الاستخارة بالسورة من القرآن.</li>
+        <li>تستنتج الحكمة من مشروعية صلاة الاستخارة.</li>
+        <li>تفرّق بين الحالات التي تشرع فيها صلاة الاستخارة والحالات التي لا تشرع فيها.</li>
+        <li>تحدّد موضع دعاء الاستخارة.</li>
+        <li>تستنبط بعضاً من فوائد الحديث.</li>
+        <li>تحفظ نص الحديث.</li>
+      </ul>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">نص الحديث</div>
+      <div class="hadith-block">
+        <p class="hadith-text">كَانَ النَّبِيُّ ﷺ يُعَلِّمُنَا الِاسْتِخَارَةَ فِي الْأُمُورِ كُلِّهَا كَالسُّورَةِ مِنَ الْقُرْآنِ، يَقُولُ: «إِذَا هَمَّ أَحَدُكُمْ بِالْأَمْرِ فَلْيَرْكَعْ رَكْعَتَيْنِ مِنْ غَيْرِ الْفَرِيضَةِ، ثُمَّ لِيَقُلْ: اللَّهُمَّ إِنِّي أَسْتَخِيرُكَ بِعِلْمِكَ، وَأَسْتَقْدِرُكَ بِقُدْرَتِكَ، وَأَسْأَلُكَ مِنْ فَضْلِكَ الْعَظِيمِ، فَإِنَّكَ تَقْدِرُ وَلَا أَقْدِرُ، وَتَعْلَمُ وَلَا أَعْلَمُ، وَأَنْتَ عَلَّامُ الْغُيُوبِ، اللَّهُمَّ إِنْ كُنْتَ تَعْلَمُ أَنَّ هَذَا الْأَمْرَ خَيْرٌ لِي فِي دِينِي وَمَعَاشِي وَعَاقِبَةِ أَمْرِي -أَوْ قَالَ عَاجِلِ أَمْرِي وَآجِلِهِ- فَاقْدُرْهُ لِي وَيَسِّرْهُ لِي، ثُمَّ بَارِكْ لِي فِيهِ، وَإِنْ كُنْتَ تَعْلَمُ أَنَّ هَذَا الْأَمْرَ شَرٌّ لِي فِي دِينِي وَمَعَاشِي وَعَاقِبَةِ أَمْرِي -أَوْ قَالَ فِي عَاجِلِ أَمْرِي وَآجِلِهِ- فَاصْرِفْهُ عَنِّي وَاصْرِفْنِي عَنْهُ، وَاقْدُرْ لِيَ الْخَيْرَ حَيْثُ كَانَ، ثُمَّ رَضِّنِي بِهِ»، وَيُسَمِّي حَاجَتَهُ»</p>
+        <div class="hadith-source">أخرجه البخاري — عن جَابِرٍ ﵁</div>
+      </div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">ترجمة راوي الحديث</div>
+      <div class="companion-card">
+        <div class="companion-name">جابر بن عبدالله بن عَمْرِو بن حَرَامٍ الأنصاري ﵄</div>
+        <ol class="num-list">
+          <li>شَهِدَ بيعةَ العقبة الثانية مع والده، وكان أصغرهم.</li>
+          <li>شَهِدَ بيعةَ الرضوان.</li>
+          <li>كان من فقهاء الصحابة، ومن المكثرين للرواية عن النبي ﷺ.</li>
+          <li>كان مفتي المدينة في زمانه.</li>
+        </ol>
+      </div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">إرشادات الحديث</div>
+      <ol class="num-list">
+        <li>كان النبيُّ ﷺ رحيمًا بأمتِه حريصًا على تعليمهم كلَّ ما ينفعهم في أمر دينهم ودنياهم.</li>
+        <li>الاسْتِخَارَةُ: أن يطلب المسلم من الله تعالى أن يختار له ما فيه الخير في أمرٍ يريد فعلَه أو تركَه، وهي سُنَّةٌ عندما يريد المسلم أن يفعل أمرًا من المباحات.</li>
+        <li>لا تشرع الاستخارة في: فعل الطاعات الواجبة، وفعل المحرمات والمكروهات.</li>
+        <li>السنة عند إرادة الاستخارة: صلاةُ ركعتان نافلة، ثم الدعاء بعد السلام بهذا الدعاء المذكور في الحديث، ويسمي حاجته.</li>
+        <li>دعاء الاستخارة يقرؤه الإنسان من حِفظِه إن تَيَسَّرَ، وإن لم يحفظه قرأه من كتابٍ أو ورقةٍ.</li>
+        <li>إذا استخار الانسان فإنه يمضي لِما أراد، فإن كان خيرًا يسَّره الله له.</li>
+        <li>الاسْتِخَارَةُ لجوءٌ إلى الله تعالى وإخلاصٌ في دعائه وحده لا شريك له.</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     HADITH 13
+══════════════════════════════════════════════ -->
+<section class="lesson-section" id="h13">
+  <div class="lesson-header" onclick="toggleLesson(this)">
+    <div class="lesson-header-text">
+      <div class="lesson-tag">الحديث الثالث عشر</div>
+      <h2>اجْتَنِبُوا السَّبْعَ الْمُوبِقَاتِ</h2>
+    </div>
+    <div class="lesson-toggle-btn">▾</div>
+  </div>
+  <div class="lesson-body">
+    <div class="content-block objectives-block">
+      <div class="block-title"><span class="icon">🎯</span> أهداف الدرس</div>
+      <ul class="objectives-list">
+        <li>توضّح معنى كلمة: (الموبقات).</li>
+        <li>تقترح عنواناً للحديث.</li>
+        <li>تبرهن على أن السبع الموبقات من كبائر الذنوب.</li>
+        <li>تعدّد السبع الموبقات.</li>
+        <li>تُصنّف السبع الموبقات إلى ما يوجب الكفر وما لا يوجبه.</li>
+        <li>تبيّن خطورة الوقوع في السبع الموبقات.</li>
+        <li>تستنتج من الحديث أسلوباً من أساليب شد انتباه السامع.</li>
+        <li>تستنبط بعضاً من فوائد الحديث.</li>
+      </ul>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">نص الحديث</div>
+      <div class="hadith-block">
+        <p class="hadith-text">«اجْتَنِبُوا السَّبْعَ الْمُوبِقَاتِ»، قَالُوا: يَا رَسُولَ اللَّهِ، وَمَا هُنَّ؟ قَالَ: «الشِّرْكُ بِاللَّهِ، وَالسِّحْرُ، وَقَتْلُ النَّفْسِ الَّتِي حَرَّمَ اللَّهُ إِلَّا بِالْحَقِّ، وَأَكْلُ الرِّبَا، وَأَكْلُ مَالِ الْيَتِيمِ، وَالتَّوَلِّي يَوْمَ الزَّحْفِ، وَقَذْفُ الْمُحْصَنَاتِ الْمُؤْمِنَاتِ الْغَافِلَاتِ»</p>
+        <div class="hadith-source">أخرجه البخاري ومسلم — عن أَبِي هُرَيْرَةَ ﵁</div>
+      </div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">معاني الكلمات</div>
+      <div class="definitions-grid">
+        <div class="def-row"><span class="def-term">الْمُوبِقَاتِ</span><span class="def-sep">:</span><span class="def-meaning">المهلكات.</span></div>
+      </div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">إرشادات الحديث</div>
+      <ol class="num-list">
+        <li>الاجتناب هو الابتعاد عن الشيء، وعن الأسباب الموصلة إليه.</li>
+        <li>وصْفُ بعضِ الذنوب بالْمُهْلِكَات يدل على أنها من كبائر الذنوب.</li>
+        <li>الشِّرْكُ: هو صرف شيءٍ من العبادة لغير الله تعالى، وهو أعظم الذنوب وأشدها، وهو الذنب الوحيد الذي لا يغفره الله تعالى.</li>
+        <li>السحر من أكبر الكبائر، ويحصل بخضوع الساحر للشياطين.</li>
+        <li>قَتْلُ النَّفْسِ البريئة من أشنع الجرائم وأكبر الكبائر.
+          <div class="quran-verse" style="margin-top:0.4rem">{وَمَنْ يَقْتُلْ مُؤْمِنًا مُتَعَمِّدًا فَجَزَاؤُهُ جَهَنَّمُ خَالِدًا فِيهَا}<div class="quran-ref">[النساء: 93]</div></div>
+        </li>
+        <li>أَكْلُ الرِّبا من أكبر الكبائر المنهي عنها.</li>
+        <li>أكل أموال الناس بالباطل جريمة كبيرة، وإذا كان الذي يؤكل ماله يتيماً فهو أشد عند الله تعالى.</li>
+        <li>الفرار من المعركة عند الجهاد في سبيل الله من كبائر الذنوب.</li>
+        <li>قَذْفُ النساء الْمُؤْمِنَاتِ العفيفاتِ من الجرائم الكبيرة.</li>
+        <li>في الحديث أسلوب من أساليب النبيِّ ﷺ في تشويق السامعين وجذب انتباههم.</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     HADITH 14
+══════════════════════════════════════════════ -->
+<section class="lesson-section" id="h14">
+  <div class="lesson-header" onclick="toggleLesson(this)">
+    <div class="lesson-header-text">
+      <div class="lesson-tag">الحديث الرابع عشر</div>
+      <h2>كُتِبَ عَلَى ابْنِ آدَمَ نَصِيبُهُ مِنَ الزِّنَا</h2>
+    </div>
+    <div class="lesson-toggle-btn">▾</div>
+  </div>
+  <div class="lesson-body">
+    <div class="content-block objectives-block">
+      <div class="block-title"><span class="icon">🎯</span> أهداف الدرس</div>
+      <ul class="objectives-list">
+        <li>تبين معاني مفردات الحديث.</li>
+        <li>تقترح عنواناً للحديث.</li>
+        <li>تدرك أهمية الاستقامة والعفة وحفظ الجوارح.</li>
+        <li>تبيّن خطر إطلاق النظر وأثره في انحراف القلب.</li>
+        <li>تضرب مثالاً على زنا: العين والأذن واليد والرجل.</li>
+        <li>تبيّن الحكمة من تسمية هذه المعاصي بالزنا.</li>
+        <li>تستنبط بعضاً من فوائد الحديث.</li>
+      </ul>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">نص الحديث</div>
+      <div class="hadith-block">
+        <p class="hadith-text">«كُتِبَ عَلَى ابْنِ آدَمَ نَصِيبُهُ مِنَ الزِّنَا مُدْرِكٌ ذَلِكَ لَا مَحَالَةَ، فَالْعَيْنَانِ زِنَاهُمَا النَّظَرُ، وَالْأُذُنَانِ زِنَاهُمَا الِاسْتِمَاعُ، وَاللِّسَانُ زِنَاهُ الْكَلَامُ، وَالْيَدُ زِنَاهَا الْبَطْشُ، وَالرِّجْلُ زِنَاهَا الْخُطَا، وَالْقَلْبُ يَهْوَى وَيَتَمَنَّى، وَيُصَدِّقُ ذَلِكَ الْفَرْجُ وَيُكَذِّبُهُ»</p>
+        <div class="hadith-source">أخرجه البخاري ومسلم — عن أَبِي هُرَيْرَةَ ﵁</div>
+      </div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">معاني الكلمات</div>
+      <div class="definitions-grid">
+        <div class="def-row"><span class="def-term">كُتِبَ</span><span class="def-sep">:</span><span class="def-meaning">قُدِّر.</span></div>
+        <div class="def-row"><span class="def-term">وَيُصَدِّقُ</span><span class="def-sep">:</span><span class="def-meaning">يعني بفعل الفاحشة.</span></div>
+      </div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">إرشادات الحديث</div>
+      <ol class="num-list">
+        <li>يجب على المؤمن أن يَحْفَظَ عينَه من النَّظَرِ إلى المحرَّماتِ؛ فإن العين طريقٌ من أعظم الطرق المؤدِّية إلى الفاحشة.</li>
+        <li>إذا نَظَرَ المسلِمُ إلى ما لا يحل له قَصْدًا فهو آثِمٌ، وإن وقع نظره عن غير قصد فيجب عليه أن يصرف بَصَرَهُ.</li>
+        <li>السمع نعمة عظيمة، والواجب شكر الله تعالى عليها باجتناب الاستماع إلى الحرام.</li>
+        <li>نبَّه النبيُّ ﷺ في هذا الحديث إلى خطورة زنا اللِّسَانِ بصوره المتعدِّدة.</li>
+        <li>زنا اليدين يُقصد به كل منكر يرتكب باليدين، قد يُوصِلُ صاحبه إلى الزنا الحقيقي.</li>
+        <li>المشي على القدمين نعمة عظيمة، والواجب على المسلم أن لا يستعملها في معصية الله تعالى.</li>
+        <li>الْقَلْبُ عليه مدار الأعمال، وهو قد يَهْوَى وَيَتَمَنَّى الشهوات، فعلى المؤمن أن يجاهد نفسه حتى تستقيم.</li>
+        <li>قد يقع المسلم في وسيلة من الوسائل الموصلة إلى الحرام، وهو هنا إما أن يتوقف، وإما أن يتمادى حتى يقع في الفاحشة.</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     HADITH 15
+══════════════════════════════════════════════ -->
+<section class="lesson-section" id="h15">
+  <div class="lesson-header" onclick="toggleLesson(this)">
+    <div class="lesson-header-text">
+      <div class="lesson-tag">الحديث الخامس عشر</div>
+      <h2>مَنْ غَشَّ فَلَيْسَ مِنِّي</h2>
+    </div>
+    <div class="lesson-toggle-btn">▾</div>
+  </div>
+  <div class="lesson-body">
+    <div class="content-block objectives-block">
+      <div class="block-title"><span class="icon">🎯</span> أهداف الدرس</div>
+      <ul class="objectives-list">
+        <li>تبيّن معاني مفردات الحديث.</li>
+        <li>تقترح عنواناً للحديث.</li>
+        <li>تبيّن معنى الغش، وحكمه.</li>
+        <li>تعدّد بعض الأمثلة التي يمكن أن يقع فيها الغش.</li>
+        <li>تستنتج حكم إظهار عيب السلعة.</li>
+        <li>تبيّن الوسائل المشروعة لحفظ حق المشتري عند وجود الغش.</li>
+        <li>تعدّد الآثار السلبية المترتبة على الغش.</li>
+        <li>تستنبط بعضاً من فوائد الحديث.</li>
+      </ul>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">نص الحديث</div>
+      <div class="hadith-block">
+        <p class="hadith-text">أَنَّ رَسُولَ اللَّهِ ﷺ مَرَّ عَلَى صُبْرَةِ طَعَامٍ، فَأَدْخَلَ يَدَهُ فِيهَا، فَنَالَتْ أَصَابِعُهُ بَلَلًا، فَقَالَ: «مَا هَذَا يَا صَاحِبَ الطَّعَامِ؟» قَالَ: أَصَابَتْهُ السَّمَاءُ يَا رَسُولَ اللَّهِ، قَالَ: «أَفَلَا جَعَلْتَهُ فَوْقَ الطَّعَامِ كَيْ يَرَاهُ النَّاسُ؟! مَنْ غَشَّ فَلَيْسَ مِنِّي». وفي حديث آخر: «مَنْ غَشَّنَا فَلَيْسَ مِنَّا»</p>
+        <div class="hadith-source">أخرجه مسلم — عن أَبِي هُرَيْرَةَ ﵁</div>
+      </div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">معاني الكلمات</div>
+      <div class="definitions-grid">
+        <div class="def-row"><span class="def-term">صُبْرَةِ طَعَامٍ</span><span class="def-sep">:</span><span class="def-meaning">كومة.</span></div>
+        <div class="def-row"><span class="def-term">بَلَلًا</span><span class="def-sep">:</span><span class="def-meaning">رطوبة المطر.</span></div>
+      </div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">إرشادات الحديث</div>
+      <ol class="num-list">
+        <li>يُقَرِّرُ النَّبِيُّ ﷺ في هذا الحديث مبدأً كبيراً: تحريم الغش بكل صوره وأشكاله، ومن هذه الصور:
+          <ul class="alpha-list" style="margin-top:0.4rem">
+            <li data-marker="أ-">الغش بِالْقَوْلِ: كأن يقول هذه السلعة لا يوجد أحسن منها والواقع خلاف ذلك.</li>
+            <li data-marker="ب-">الغش بِالْفِعْلِ: ويدخل فيه كل أنواع الغش في البيع والشراء وغيرها من المعاملات المالية.</li>
+            <li data-marker="ج-">الغش بِالسُّكُوتِ: السكوت عن العيب الذي يترتب على جهله وقوع ضرر.</li>
+          </ul>
+        </li>
+        <li>دَلَّ الحديثُ عَلَى أن الغشَّ من كبائر الذنوب؛ لأن النَّبِيَّ ﷺ تَبَرَّأَ من الغاشِّ.</li>
+        <li>يجب على المسلم أن يوافق في بيعه وشرائه أحكام الشرع المطهر.</li>
+        <li>تحريم الغش لا يقتصر على الجانب الاقتصادي فقط، بل يشمل الغش في الجانب العلمي كالغش في الاختبارات، وتزوير الشهادات، وانتهاك الملكية الفكرية.</li>
+        <li>دَلَّ الحديث على أنه لا بأس ببيع الشيء الرديء إذا علم المشتري بعيبه.</li>
+        <li>يترتب على الغش مفاسدُ كثيرة: ظهور العداوة والبغضاء، وانتشار المكر والخديعة، وأكل المال بالباطل، والإضرار بالآخرين، وقلة الثقة بين الناس.</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     HADITH 16
+══════════════════════════════════════════════ -->
+<section class="lesson-section" id="h16">
+  <div class="lesson-header" onclick="toggleLesson(this)">
+    <div class="lesson-header-text">
+      <div class="lesson-tag">الحديث السادس عشر</div>
+      <h2>إِذَا مَاتَ الْإِنسَانُ انْقَطَعَ عَنْهُ عَمَلُهُ إِلَّا مِنْ ثَلَاثَةٍ</h2>
+    </div>
+    <div class="lesson-toggle-btn">▾</div>
+  </div>
+  <div class="lesson-body">
+    <div class="content-block objectives-block">
+      <div class="block-title"><span class="icon">🎯</span> أهداف الدرس</div>
+      <ul class="objectives-list">
+        <li>توضّح المراد بـ: (الصدقة الجارية).</li>
+        <li>تقترح عنواناً للحديث.</li>
+        <li>تعدّد أمثلة الصدقة الجارية.</li>
+        <li>تبيّن فضيلة نشر العلم.</li>
+        <li>تبيّن فضل التربية الصالحة للأولاد.</li>
+        <li>تعدّد وسائل اغتنام الحياة الدنيا بما ينفع بعد الممات.</li>
+        <li>تحرص على الأعمال التي يستمر ثوابها.</li>
+        <li>تستنبط بعضاً من فوائد الحديث.</li>
+      </ul>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">نص الحديث</div>
+      <div class="hadith-block">
+        <p class="hadith-text">«إِذَا مَاتَ الْإِنسَانُ انْقَطَعَ عَنْهُ عَمَلُهُ إِلَّا مِنْ ثَلَاثَةٍ: إِلَّا مِنْ صَدَقَةٍ جَارِيَةٍ، أَوْ عِلْمٍ يُنْتَفَعُ بِهِ، أَوْ وَلَدٍ صَالِحٍ يَدْعُو لَهُ»</p>
+        <div class="hadith-source">أخرجه مسلم — عن أَبِي هُرَيْرَةَ ﵁</div>
+      </div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">معاني الكلمات</div>
+      <div class="definitions-grid">
+        <div class="def-row"><span class="def-term">صَدَقَةٍ جَارِيَةٍ</span><span class="def-sep">:</span><span class="def-meaning">الصدقة التي يستمر ثوابها بعد موت الإنسان.</span></div>
+      </div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">إرشادات الحديث</div>
+      <ol class="num-list">
+        <li>مِنْ رحمة الله تعالى بعباده المؤمنين أن أبقى لهم بعد موتهم من الأعمال ما لا ينقطع ثوابه عنهم.</li>
+        <li>في الحديث حثٌ على الصدقة الجارية، ومن أمثلتها: الوقف، وبناء المساجد، وطباعة المصحف وتوزيعه، وغرس الأشجار، وحفر الآبار، وسُقيا الماء.</li>
+        <li>دلَّ الحديثُ على فضل نشر العلم النافع، وهو كل علم مباح ينتفع به الناس.</li>
+        <li>في الحديث أهميَّةُ الدعاء للوالدين، وأنه ينبغي على الولد أن يحرص على الدعاء لوالديه.</li>
+        <li>في الحديث الحث على حسن تربية الأولاد، فهم الذين ينفعون والديهم في الآخرة.</li>
+        <li>في الحديث حثٌّ للإنسان على اغتنام فرصة الحياة بعمل الصالحات؛ لأنه بالموت ينقطع عمله.</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     HADITH 17
+══════════════════════════════════════════════ -->
+<section class="lesson-section" id="h17">
+  <div class="lesson-header" onclick="toggleLesson(this)">
+    <div class="lesson-header-text">
+      <div class="lesson-tag">الحديث السابع عشر</div>
+      <h2>لَا تَزُولُ قَدَمَا عَبْدٍ يَوْمَ الْقِيَامَةِ حَتَّى يُسْأَلَ</h2>
+    </div>
+    <div class="lesson-toggle-btn">▾</div>
+  </div>
+  <div class="lesson-body">
+    <div class="content-block objectives-block">
+      <div class="block-title"><span class="icon">🎯</span> أهداف الدرس</div>
+      <ul class="objectives-list">
+        <li>تبين معاني مفردات الحديث.</li>
+        <li>تقترح عنواناً للحديث.</li>
+        <li>تستدل بالحديث على إثبات الحساب يوم القيامة.</li>
+        <li>تعدّد أهم الأسئلة التي يُسأل عنها العبد يوم القيامة.</li>
+        <li>تبيّن أهمية محاسبة النفس في الدنيا.</li>
+        <li>تحرص على وقتك وتستثمره.</li>
+        <li>تحرص على جمع المال من الحلال وإنفاقه فيه.</li>
+        <li>تستنبط بعضاً من فوائد الحديث.</li>
+      </ul>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">نص الحديث</div>
+      <div class="hadith-block">
+        <p class="hadith-text">«لَا تَزُولُ قَدَمَا عَبْدٍ يَوْمَ الْقِيَامَةِ حَتَّى يُسْأَلَ عَنْ عُمُرِهِ فِيمَا أَفْنَاهُ، وَعَنْ عِلْمِهِ فِيمَ فَعَلَ، وَعَنْ مَالِهِ مِنْ أَيْنَ اكْتَسَبَهُ وَفِيمَا أَنْفَقَهُ، وَعَنْ جِسْمِهِ فِيمَ أَبْلَاهُ»</p>
+        <div class="hadith-source">أخرجه الترمذي — عن أَبِي بَرْزَةَ الْأَسْلَمِيِّ ﵁</div>
+      </div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">معاني الكلمات</div>
+      <div class="definitions-grid">
+        <div class="def-row"><span class="def-term">لَا تَزُولُ قَدَمَا</span><span class="def-sep">:</span><span class="def-meaning">لا يتزحزح خارجًا من أرض المحشر حتى يسأل.</span></div>
+        <div class="def-row"><span class="def-term">أَبْلَاهُ</span><span class="def-sep">:</span><span class="def-meaning">بلي الشيء إذا صار قديمًا.</span></div>
+      </div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">ترجمة راوي الحديث</div>
+      <div class="companion-card">
+        <div class="companion-name">أبو بَرْزَةَ الْأَسْلَمِيُّ ﵁ — نَضْلةُ بنُ عُبَيْد الأسْلَميُّ</div>
+        <ol class="num-list">
+          <li>أسلم قبل فتح مكة.</li>
+          <li>قاتل الخوارج يوم النهروان مع علي ﵁، وشهد معه صفّين.</li>
+        </ol>
+      </div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">إرشادات الحديث</div>
+      <ol class="num-list">
+        <li>في الحديث إثبات الحساب يوم القيامة.</li>
+        <li>نَبَّهَ النبيُّ ﷺ في هذا الحديث على أهم الأسئلة التي يواجهها العبد يوم القيامة.</li>
+        <li>حساب يوم القيامة يدعونا لمحاسبة أنفسنا في هذه الدنيا.</li>
+        <li>مما يُسأل عنه العبد: عُمُرُهُ — هل قضاه في طاعة الله أو معصيته؟ وأخصُّ ما يُسأل عنه فترة الشباب.</li>
+        <li>مما يُسأل عنه: علمه فيم فعل، والمراد بالعلم هنا العلم الشرعي.</li>
+        <li>مما يُسأل عنه: مالُهُ — مِنْ أَيْنَ اكْتَسَبَهُ؟ وفِيمَ أَنْفَقَهُ؟</li>
+        <li>مما يُسأل عنه: جِسْمُهُ فِيمَ أَبْلَاهُ؟</li>
+        <li>ما ذُكِرَ في هذا الحديث بعضُ ما يُسأل عنه العبد، وهي الأسئلة العَامَّة.</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     HADITH 18
+══════════════════════════════════════════════ -->
+<section class="lesson-section" id="h18">
+  <div class="lesson-header" onclick="toggleLesson(this)">
+    <div class="lesson-header-text">
+      <div class="lesson-tag">الحديث الثامن عشر</div>
+      <h2>إِنَّ الظُّلْمَ ظُلُمَاتٌ يَوْمَ الْقِيَامَةِ</h2>
+    </div>
+    <div class="lesson-toggle-btn">▾</div>
+  </div>
+  <div class="lesson-body">
+    <div class="content-block objectives-block">
+      <div class="block-title"><span class="icon">🎯</span> أهداف الدرس</div>
+      <ul class="objectives-list">
+        <li>تبيّن المراد بالظلم.</li>
+        <li>تقترح عنواناً للحديث.</li>
+        <li>توضّح حكم الظلم وخطورته.</li>
+        <li>تمثّل لأنواع الظلم.</li>
+        <li>تبيّن عاقبة الظلم.</li>
+        <li>تحدّد شروط التوبة من المظالم.</li>
+        <li>تستنبط بعضاً من فوائد الحديث.</li>
+      </ul>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">نص الحديث</div>
+      <div class="hadith-block">
+        <p class="hadith-text">«إِنَّ الظُّلْمَ ظُلُمَاتٌ يَوْمَ الْقِيَامَةِ»</p>
+        <div class="hadith-source">أخرجه البخاري ومسلم — عن عَبْدِ اللَّهِ بْنِ عُمَرَ ﵄</div>
+      </div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">ترجمة راوي الحديث</div>
+      <div class="companion-card">
+        <div class="companion-name">عبد الله بن عمرَ بن الخطاب العَدَوِي ﵄</div>
+        <ol class="num-list">
+          <li>ولد بعد البعثة بسنتين، وأسلم مع أبيه وعمره أربع سنوات.</li>
+          <li>كان مُتمسكًا بالسنة، مُحافظًا عليها.</li>
+          <li>كان فقيهًا عابدًا زاهدًا، من المكثرين من رواية الحديث.</li>
+        </ol>
+      </div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">إرشادات الحديث</div>
+      <ol class="num-list">
+        <li>الظلم بمعناه العام يشمل كلّ تجاوزٍ لحدودِ اللهِ تعالى، وينقسم إلى ثلاثة أنواع:
+          <ul class="alpha-list" style="margin-top:0.4rem">
+            <li data-marker="أ-"><strong>الظلم العظيم:</strong> وهو الشرك بالله تعالى، وهو أشد أنواع الظلم.</li>
+            <li data-marker="ب-"><strong>ظُلم الإنسان لنفسه:</strong> ويكون بإسرافه عليها بفعل الذنوب والمعاصي، وتركِ أوامرِ اللهِ تعالى.</li>
+            <li data-marker="ج-"><strong>ظُلم الإنسان لغيره:</strong> من إنسانٍ أو حيوان.</li>
+          </ul>
+        </li>
+        <li>دل الحديث على تحريم الظلم كله قليله وكثيره.</li>
+        <li>يَجِبُ على الظالم أن يتوب إلى الله تعالى من ظلمه، ومن تمام التوبة: إن كان الظلم في مالٍ فيجب إعادته، وإن كان في أمرٍ معنوي وجب التحلل من صاحبه.</li>
+        <li>قد يُعجِّلُ اللهُ عقوبةَ الظالم في الدنيا، وقد يؤخرها لعله يتوب.
+          <div class="quran-verse" style="margin-top:0.4rem">{وَلَا تَحْسَبَنَّ اللَّهَ غَافِلًا عَمَّا يَعْمَلُ الظَّالِمُونَ إِنَّمَا يُؤَخِّرُهُمْ لِيَوْمٍ تَشْخَصُ فِيهِ الْأَبْصَارُ}<div class="quran-ref">[إبراهيم: 42]</div></div>
+        </li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     HADITH 19
+══════════════════════════════════════════════ -->
+<section class="lesson-section" id="h19">
+  <div class="lesson-header" onclick="toggleLesson(this)">
+    <div class="lesson-header-text">
+      <div class="lesson-tag">الحديث التاسع عشر</div>
+      <h2>أَتَدْرُونَ مَا الْمُفْلِسُ؟</h2>
+    </div>
+    <div class="lesson-toggle-btn">▾</div>
+  </div>
+  <div class="lesson-body">
+    <div class="content-block objectives-block">
+      <div class="block-title"><span class="icon">🎯</span> أهداف الدرس</div>
+      <ul class="objectives-list">
+        <li>تحدّد المراد بالمفلس في الحديث.</li>
+        <li>تقترح عنواناً للحديث.</li>
+        <li>تمثّل لصور من إيقاع الأذى بالناس.</li>
+        <li>توضّح كيف تكون المقاصة يوم القيامة.</li>
+        <li>تبيّن حكم رد المظالم لأهلها.</li>
+        <li>تستنتج السبيل لتجنب الإفلاس يوم القيامة.</li>
+        <li>تستنبط بعضاً من فوائد الحديث.</li>
+      </ul>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">نص الحديث</div>
+      <div class="hadith-block">
+        <p class="hadith-text">«أَتَدْرُونَ مَا الْمُفْلِسُ؟» قَالُوا: الْمُفْلِسُ فِينَا مَنْ لَا دِرْهَمَ لَهُ وَلَا مَتَاعَ، فَقَالَ: «إِنَّ الْمُفْلِسَ مِنْ أُمَّتِي يَأْتِي يَوْمَ الْقِيَامَةِ بِصَلَاةٍ وَصِيَامٍ وَزَكَاةٍ، وَيَأْتِي قَدْ شَتَمَ هَذَا، وَقَذَفَ هَذَا، وَأَكَلَ مَالَ هَذَا، وَسَفَكَ دَمَ هَذَا، وَضَرَبَ هَذَا، فَيُعْطَى هَذَا مِنْ حَسَنَاتِهِ، وَهَذَا مِنْ حَسَنَاتِهِ، فَإِنْ فَنِيَتْ حَسَنَاتُهُ قَبْلَ أَنْ يُقْضَى مَا عَلَيْهِ أُخِذَ مِنْ خَطَايَاهُمْ فَطُرِحَتْ عَلَيْهِ، ثُمَّ طُرِحَ فِي النَّارِ»</p>
+        <div class="hadith-source">أخرجه مسلم — عن أَبِي هُرَيْرَةَ ﵁</div>
+      </div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">إرشادات الحديث</div>
+      <ol class="num-list">
+        <li>دل الحديث على تحريم أذى الناس بأي لون من ألوان الأذى.</li>
+        <li>سبُّ الناس وشتمُهم مِن الأخلاق الذميمة التي يجب على المسلم أن يترفع عنها.</li>
+        <li>قذف المسلمين بالمعاصي سواء بالكذب أو الظن محرم.</li>
+        <li>أمر الإسلام بحفظ أموال الناس، ومُحَرَّمٌ أَكْلُهَا بأي وجه.</li>
+        <li>سفك الدماء المعصومة من كبائر الذنوب.</li>
+        <li>تَسَلُّطُ القويِّ على الضعيف بِالضَّرْبِ بغير وجه حقٍّ جناية يُعَاقِبُ عليها.</li>
+        <li>السبيل الشرعي إلى تجنب الإفلاس يوم القيامة: تركُ الظلم وردُّ الحقوق لأهلها والتحلل منهم.</li>
+        <li>مَن مات وعليه ديون للناس أو حقوق فإن على ورثته قضاءها من تَرِكَتِهِ.</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     HADITH 20
+══════════════════════════════════════════════ -->
+<section class="lesson-section" id="h20">
+  <div class="lesson-header" onclick="toggleLesson(this)">
+    <div class="lesson-header-text">
+      <div class="lesson-tag">الحديث العشرون</div>
+      <h2>إِنَّ اللَّهَ طَيِّبٌ لَا يَقْبَلُ إِلَّا طَيِّبًا</h2>
+    </div>
+    <div class="lesson-toggle-btn">▾</div>
+  </div>
+  <div class="lesson-body">
+    <div class="content-block objectives-block">
+      <div class="block-title"><span class="icon">🎯</span> أهداف الدرس</div>
+      <ul class="objectives-list">
+        <li>توضح معاني مفردات الحديث.</li>
+        <li>تقترح عنواناً للحديث.</li>
+        <li>توضح المراد بقوله ﷺ: «إنَّ اللهَ طَيِّبٌ لا يَقبَلُ إلا طيِّبًا».</li>
+        <li>تذكر حكم الامتناع عن الطيبات لغير سبب شرعي.</li>
+        <li>تفصّل القول في أنواع الخبائث التي حرّم الله أكلها.</li>
+        <li>تستدل من الحديث على موانع استجابة الدعاء.</li>
+        <li>تستنبط بعضاً من فوائد الحديث.</li>
+      </ul>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">نص الحديث</div>
+      <div class="hadith-block">
+        <p class="hadith-text">«أَيُّهَا النَّاسُ، إِنَّ اللَّهَ طَيِّبٌ لَا يَقْبَلُ إِلَّا طَيِّبًا، وَإِنَّ اللَّهَ أَمَرَ الْمُؤْمِنِينَ بِمَا أَمَرَ بِهِ الْمُرْسَلِينَ، فَقَالَ: {يَا أَيُّهَا الرُّسُلُ كُلُوا مِنَ الطَّيِّبَاتِ وَاعْمَلُوا صَالِحًا إِنِّي بِمَا تَعْمَلُونَ عَلِيمٌ}، وَقَالَ: {يَا أَيُّهَا الَّذِينَ آمَنُوا كُلُوا مِنْ طَيِّبَاتِ مَا رَزَقْنَاكُمْ}، ثُمَّ ذَكَرَ الرَّجُلَ يُطِيلُ السَّفَرَ أَشْعَثَ أَغْبَرَ، يَمُدُّ يَدَيْهِ إِلَى السَّمَاءِ: يَا رَبِّ، يَا رَبِّ، وَمَطْعَمُهُ حَرَامٌ، وَمَشْرَبُهُ حَرَامٌ، وَمَلْبَسُهُ حَرَامٌ، وَغُذِّيَ بِالْحَرَامِ، فَأَنَّى يُسْتَجَابُ لِذَلِكَ؟!»</p>
+        <div class="hadith-source">أخرجه مسلم — عن أَبِي هُرَيْرَةَ ﵁</div>
+      </div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">معاني الكلمات</div>
+      <div class="definitions-grid">
+        <div class="def-row"><span class="def-term">طَيِّبٌ</span><span class="def-sep">:</span><span class="def-meaning">أي طاهر منزهٌ عن النقائص سبحانه.</span></div>
+        <div class="def-row"><span class="def-term">أَشْعَثَ</span><span class="def-sep">:</span><span class="def-meaning">ثائر شعر الرأس لعدم تسريحه ومشطه.</span></div>
+        <div class="def-row"><span class="def-term">أَغْبَرَ</span><span class="def-sep">:</span><span class="def-meaning">غيَّر الغبارُ لون شعره.</span></div>
+        <div class="def-row"><span class="def-term">يَمُدُّ يَدَيْهِ</span><span class="def-sep">:</span><span class="def-meaning">يرفعهما داعيًا.</span></div>
+        <div class="def-row"><span class="def-term">فَأَنَّى يُسْتَجَابُ لِذَلِكَ؟!</span><span class="def-sep">:</span><span class="def-meaning">كيف سيستجاب له؟!</span></div>
+      </div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">إرشادات الحديث</div>
+      <ol class="num-list">
+        <li>كمال الله في صفاته وأفعاله وأحكامه، لقوله ﷺ: «إِنَّ اللَّهَ طَيِّبٌ».</li>
+        <li>الله سبحانه لا يقبل إلا الطّيب من الأعمال والأموال؛ والطّيب من الأعمال: ما كان خالصاً لله، موافقاً لسنة النبي ﷺ، والطّيب من الأموال: ما اكتُسب من طريقٍ حلال.</li>
+        <li>في أمر الله رسله وعباده المؤمنين بالأكل من الطيبات، دلالةٌ على أنّ الامتناع عن الطيبات لغير سببٍ شرعيّ أمرٌ مذموم.</li>
+        <li>تحريم الخبائث؛ لأن الخبيث ضدّ الطّيب.</li>
+        <li>السّفر، ورفع اليدين أثناء الدّعاء، والتوسل إلى الله بوصف الربوبية، من أسباب إجابة الدّعاء.</li>
+        <li>في قوله ﷺ: «فَأَنَّى يُسْتَجَابُ لِذَلِكَ؟!» دليلٌ على أنّ موانع استجابة الدّعاء أكل الحرام ولبسه والتغذي به.</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     HADITH 21
+══════════════════════════════════════════════ -->
+<section class="lesson-section" id="h21">
+  <div class="lesson-header" onclick="toggleLesson(this)">
+    <div class="lesson-header-text">
+      <div class="lesson-tag">الحديث الحادي والعشرون</div>
+      <h2>كُلُّ مُسْكِرٍ حَرَامٌ</h2>
+    </div>
+    <div class="lesson-toggle-btn">▾</div>
+  </div>
+  <div class="lesson-body">
+    <div class="content-block objectives-block">
+      <div class="block-title"><span class="icon">🎯</span> أهداف الدرس</div>
+      <ul class="objectives-list">
+        <li>توضح معاني مفردات الحديث.</li>
+        <li>تقترح عنواناً للحديث.</li>
+        <li>توضح أهمية العقل في الإسلام.</li>
+        <li>تستنتج العِلّة في تحريم الخمر.</li>
+        <li>تبين الحكم الشرعي لتعاطي المؤثرات العقلية والسموم.</li>
+        <li>تفصّل القول في الأضرار المترتبة على تعاطي المؤثرات العقلية.</li>
+        <li>تستنبط بعضاً من فوائد الحديث.</li>
+      </ul>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">نص الحديث</div>
+      <div class="hadith-block">
+        <p class="hadith-text">أَنَّ رَجُلًا قَدِمَ مِنْ جَيْشَانَ -وَجَيْشَانُ مِنَ الْيَمَنِ- فَسَأَلَ النَّبِيَّ ﷺ عَنْ شَرَابٍ يَشْرَبُونَهُ بِأَرْضِهِمْ مِنَ الذُّرَةِ يُقَالُ لَهُ الْمِزْرُ، فَقَالَ النَّبِيُّ ﷺ: «أَوَمُسْكِرٌ هُوَ؟» قَالَ: نَعَمْ، قَالَ رَسُولُ اللَّهِ ﷺ: «كُلُّ مُسْكِرٍ حَرَامٌ، إِنَّ عَلَى اللَّهِ عَزَّ وَجَلَّ عَهْدًا لِمَنْ يَشْرَبُ الْمُسْكِرَ أَنْ يَسْقِيَهُ مِنْ طِينَةِ الْخَبَالِ»، قَالُوا: يَا رَسُولَ اللَّهِ، وَمَا طِينَةُ الْخَبَالِ؟ قَالَ: «عَرَقُ أَهْلِ النَّارِ -أَوْ- عُصَارَةُ أَهْلِ النَّارِ»</p>
+        <div class="hadith-source">أخرجه مسلم — عن جَابِرٍ ﵁</div>
+      </div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">معاني الكلمات</div>
+      <div class="definitions-grid">
+        <div class="def-row"><span class="def-term">كُلُّ مُسْكِرٍ حَرَامٌ</span><span class="def-sep">:</span><span class="def-meaning">أي أن كل شراب يسكر العقل ويذهبه فهو حرام.</span></div>
+        <div class="def-row"><span class="def-term">الْمِزْرُ</span><span class="def-sep">:</span><span class="def-meaning">يصنعونه من حبوب الذُّرة.</span></div>
+        <div class="def-row"><span class="def-term">طِينَةِ الْخَبَالِ</span><span class="def-sep">:</span><span class="def-meaning">ما يسيل من جلود أهل النار من صديد من شدَّة النار.</span></div>
+      </div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">إرشادات الحديث</div>
+      <ol class="num-list">
+        <li>حرص الصحابة ﵃ على سؤال النبي ﷺ عن أمور دينهم ودنياهم.</li>
+        <li>للعقل في الإسلام أهمية كبرى، فهو مناط المسؤولية، وبه كرَّم الله الإنسان.</li>
+        <li>في سؤال النبي ﷺ: «أَوَمُسْكِرٌ هُوَ؟» بيانٌ لعِلّة التحريم، وهي الإسكار، أي: ذهاب العقل.</li>
+        <li>شُرب المسكر وتعاطي المؤثرات العقلية يؤثر على سائر الضرورات الكلية: حفظ الدين، وحفظ البدن، وحفظ النَّسل، وحفظ المال.</li>
+        <li>في قوله ﷺ: «إِنَّ عَلَى اللَّهِ عَهْدًا لِمَنْ يَشْرَبُ الْمُسْكِرَ» دليلٌ على العقوبة الشديدة التي تنتظر شارب الخمر في الآخرة.</li>
+        <li>تُعَدُّ مشكلة المخدِّرات وتَعَاطي السُّموم من أكبر المشكلات التي تعانيها دول العالم.</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     HADITH 22
+══════════════════════════════════════════════ -->
+<section class="lesson-section" id="h22">
+  <div class="lesson-header" onclick="toggleLesson(this)">
+    <div class="lesson-header-text">
+      <div class="lesson-tag">الحديث الثاني والعشرون</div>
+      <h2>لَا يُؤْمِنُ أَحَدُكُمْ حَتَّى يُحِبَّ لِأَخِيهِ مَا يُحِبُّ لِنَفْسِهِ</h2>
+    </div>
+    <div class="lesson-toggle-btn">▾</div>
+  </div>
+  <div class="lesson-body">
+    <div class="content-block objectives-block">
+      <div class="block-title"><span class="icon">🎯</span> أهداف الدرس</div>
+      <ul class="objectives-list">
+        <li>توضح معاني مفردات الحديث.</li>
+        <li>تقترح عنواناً للحديث.</li>
+        <li>تترجم لراوي الحديث.</li>
+        <li>توضح المراد بنفي الإيمان في قوله ﷺ: «لا يؤمن».</li>
+        <li>تستنتج حكم محبة المؤمن لغيره ما يحبه لنفسه.</li>
+        <li>تمثّل لصور من محبة المؤمن لغيره ما يحبه لنفسه من الخير.</li>
+        <li>تستنبط بعضاً من فوائد الحديث.</li>
+        <li>تحفظ نص الحديث.</li>
+      </ul>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">نص الحديث</div>
+      <div class="hadith-block">
+        <p class="hadith-text">«لَا يُؤْمِنُ أَحَدُكُمْ حَتَّى يُحِبَّ لِأَخِيهِ مَا يُحِبُّ لِنَفْسِهِ»</p>
+        <div class="hadith-source">أخرجه البخاري ومسلم — عن أَنَسِ بْنِ مَالِكٍ ﵁</div>
+      </div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">معاني الكلمات</div>
+      <div class="definitions-grid">
+        <div class="def-row"><span class="def-term">لَا يُؤْمِنُ</span><span class="def-sep">:</span><span class="def-meaning">أي لا يتحقق الإيمان الكامل.</span></div>
+        <div class="def-row"><span class="def-term">لِأَخِيهِ</span><span class="def-sep">:</span><span class="def-meaning">أي لأخيه المؤمن.</span></div>
+        <div class="def-row"><span class="def-term">مَا يُحِبُّ لِنَفْسِهِ</span><span class="def-sep">:</span><span class="def-meaning">أي مثل الذي يحبه لنفسه من الخير.</span></div>
+      </div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">ترجمة راوي الحديث</div>
+      <div class="companion-card">
+        <div class="companion-name">أنس بن مالك بن النضر النجاري الخزرجي الأنصاري ﵁</div>
+        <ol class="num-list">
+          <li>لازم النبيَّ ﷺ من عمر عشر سنوات حتى وفاته.</li>
+          <li>كان حريصًا على اتباع السُّنة، وكان من المكثرين من رواية الحديث.</li>
+          <li>دعا له النبي ﷺ فقال: «اللَّهُمَّ أَكْثِرْ مَالَهُ وَوَلَدَهُ، وَبَارِكْ لَهُ فِيمَا أَعْطَيْتَهُ».</li>
+        </ol>
+      </div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">إرشادات الحديث</div>
+      <ol class="num-list">
+        <li>المراد بنفي الإيمان في قوله ﷺ: «لَا يُؤْمِنُ» أي: لا يؤمن الإيمان التام.</li>
+        <li>وجوب محبة المرء لأخيه المؤمن ما يُحِبُّ لنفسه.</li>
+        <li>المؤمن مع المؤمن كالنفس الواحدة.</li>
+        <li>المراد بقوله ﷺ: «يُحِبَّ لِأَخِيهِ مَا يُحِبُّ لِنَفْسِهِ» أي: من الخير.</li>
+        <li>في الحديث حَثٌّ على التواضع.</li>
+        <li>في الحديث تحذيرٌ من الحسد والغِل.</li>
+        <li>كما أن من كمال الإيمان أن يحب المرء لأخيه من الخير ما يُحِبُّ لنفسه، كذلك من الإيمان أن يُبغِض لأخيه ما يُبغِض لنفسه من الشر.</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     HADITH 23
+══════════════════════════════════════════════ -->
+<section class="lesson-section" id="h23">
+  <div class="lesson-header" onclick="toggleLesson(this)">
+    <div class="lesson-header-text">
+      <div class="lesson-tag">الحديث الثالث والعشرون</div>
+      <h2>إماطة الأذى عن الطريق</h2>
+    </div>
+    <div class="lesson-toggle-btn">▾</div>
+  </div>
+  <div class="lesson-body">
+    <div class="content-block objectives-block">
+      <div class="block-title"><span class="icon">🎯</span> أهداف الدرس</div>
+      <ul class="objectives-list">
+        <li>توضح معاني مفردات الحديث.</li>
+        <li>تقترح عنواناً للحديث.</li>
+        <li>تستنتج من الحديث أن العمل القليل قد يكون سبباً لغفران الكثير من الذنوب.</li>
+        <li>تبيّن المنزلة الهامّة للعناية بالطرق العامّة في الإسلام.</li>
+        <li>تستدل من السنّة على فضل إماطة الأذى عن الطريق.</li>
+        <li>تمثّل لصور الأذى التي تُرتكب على الطرقات.</li>
+        <li>تستنبط بعضاً من فوائد الحديث.</li>
+      </ul>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">نص الحديث</div>
+      <div class="hadith-block">
+        <p class="hadith-text">«بَيْنَمَا رَجُلٌ يَمْشِي بِطَرِيقٍ، وَجَدَ غُصْنَ شَوْكٍ عَلَى الطَّرِيقِ، فَأَخَذَهُ، فَشَكَرَ اللَّهُ لَهُ، فَغَفَرَ لَهُ»</p>
+        <p class="hadith-text" style="margin-top:0.6rem">وفي رواية: «مَرَّ رَجُلٌ بِغُصْنِ شَجَرَةٍ عَلَى ظَهْرِ طَرِيقٍ، فَقَالَ: وَاللَّهِ لَأُنَحِّيَنَّ هَذَا عَنِ الْمُسْلِمِينَ لَا يُؤْذِيهِمْ، فَأُدْخِلَ الْجَنَّةَ»</p>
+        <div class="hadith-source">أخرجه البخاري ومسلم — عن أَبِي هُرَيْرَةَ ﵁</div>
+      </div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">معاني الكلمات</div>
+      <div class="definitions-grid">
+        <div class="def-row"><span class="def-term">لَا يُؤْذِيهِمْ</span><span class="def-sep">:</span><span class="def-meaning">أي لكيلا يؤذيهم.</span></div>
+        <div class="def-row"><span class="def-term">لَأُنَحِّيَنَّ</span><span class="def-sep">:</span><span class="def-meaning">أي لأبعدن.</span></div>
+        <div class="def-row"><span class="def-term">فَشَكَرَ اللَّهُ لَهُ</span><span class="def-sep">:</span><span class="def-meaning">أي أثنى عليه، وكافأه على فعله.</span></div>
+        <div class="def-row"><span class="def-term">ظَهْرِ طَرِيقٍ</span><span class="def-sep">:</span><span class="def-meaning">أي وسط الطريق.</span></div>
+      </div>
+    </div>
+    <div class="content-block">
+      <div class="section-h3">إرشادات الحديث</div>
+      <ol class="num-list">
+        <li>يدل الحديث على أن كل ما نفع المسلمين، وأزال عنهم ضرراً، كان سبباً للمغفرة ودخول الجنة.</li>
+        <li>يدل الحديث على أن العمل القليل إذا خالطته النية الصالحة قد يغفر الله به ذنوباً كثيرة، فعلى المسلم ألا يستصغر الأعمال اليسيرة.</li>
+        <li>بيان المنزلة الهامة للعناية بالطرق العامة في الإسلام؛ فإزالة كل ما يؤذي المارة من شعب الإيمان:
+          <div class="hadith-block" style="margin-top:0.5rem">
+            <p class="hadith-text">«الْإِيمَانُ بِضْعٌ وَسَبْعُونَ... وَأَدْنَاهَا إِمَاطَةُ الْأَذَى عَنِ الطَّرِيقِ»</p>
+          </div>
+        </li>
+        <li>عِظَم الأجر المترتب على إماطة الأذى يدل على حرص الإسلام على إعطاء الطريق حقه. ومن أمثلة ما يجب تجنبه: رمي النفايات في طريق الناس، والوقوف بالمركبات في الأماكن المخالفة، وتجاوز الإشارات المرورية.</li>
+        <li>التأكيد المستمر على العناية بالطرق العامة؛ لأنها من الخدمات التي يشترك في الاستفادة منها عامة الناس، والمحافظة عليها واجب ديني ووطني.</li>
+        <li>إن إماطة الأذى مسؤولية الجميع، فعلينا أن نتعاون فيما بيننا على القضاء على الظواهر السلبية.</li>
+      </ol>
+    </div>
+
+    <div class="content-block">
+      <div class="section-h3">المقاصد الشرعية الإسلامية</div>
+      <p class="body-text">وضعت الشريعة الإسلامية الضرورية خمسة مقاصد للحفاظ عليها، وتُعرف بالكليات الخمس، يقول الشاطبي رحمه الله:</p>
+      <div class="note-box">«اتَّفَقَتِ الْأُمَّةُ بَلْ سَائِرُ الْمِلَلِ عَلَى أَنَّ الشَّرِيعَةَ وُضِعَتْ لِلْمُحَافَظَةِ عَلَى الضَّرُورِيَّاتِ الْخَمْسِ، وَهِيَ: الدِّينُ، وَالنَّفْسُ، وَالنَّسْلُ، وَالْمَالُ، وَالْعَقْلُ» (الموافقات 1/31).</div>
+    </div>
+
+  </div>
+</section>
+
+</main>
+
+<footer class="footer-bar">
+  ﴿ وَمَا آتَاكُمُ الرَّسُولُ فَخُذُوهُ وَمَا نَهَاكُمْ عَنْهُ فَانتَهُوا ﴾
+</footer>
+
+<script>
+  function toggleLesson(header) {
+    const body = header.nextElementSibling;
+    const isOpen = body.classList.contains('open');
+    header.classList.toggle('open', !isOpen);
+    body.classList.toggle('open', !isOpen);
+  }
+
+  // Open first section by default
+  document.addEventListener('DOMContentLoaded', () => {
+    const first = document.querySelector('.lesson-header');
+    if (first) {
+      first.classList.add('open');
+      first.nextElementSibling.classList.add('open');
+    }
+  });
+
+  /* ══ SEARCH ENGINE ══════════════════════════════════════════ */
+  let searchIndex = null;
+
+  function buildIndex() {
+    if (searchIndex) return;
+    searchIndex = [];
+    document.querySelectorAll('.lesson-section').forEach(sec => {
+      const id      = sec.id;
+      const tag     = sec.querySelector('.lesson-tag')?.textContent?.trim() || '';
+      const title   = sec.querySelector('h2')?.textContent?.trim() || '';
+      const bodyEl  = sec.querySelector('.lesson-body');
+      const fullText = bodyEl ? bodyEl.innerText : '';
+      searchIndex.push({ id, tag, title, fullText });
+    });
+  }
+
+  function highlight(text, query) {
+    if (!query) return text;
+    const safe = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return text.replace(new RegExp(safe, 'gi'), m => `<mark>${m}</mark>`);
+  }
+
+  function getSnippet(text, query, len = 90) {
+    const idx = text.toLowerCase().indexOf(query.toLowerCase());
+    if (idx === -1) return text.slice(0, len) + '…';
+    const start = Math.max(0, idx - 30);
+    const raw = text.slice(start, start + len);
+    return (start > 0 ? '…' : '') + raw + '…';
+  }
+
+  function runSearch(q) {
+    const query = q.trim();
+    const resultsEl = document.getElementById('searchResults');
+    const clearBtn  = document.getElementById('searchClear');
+    const inputEl   = document.getElementById('searchInput');
+
+    clearBtn.classList.toggle('visible', query.length > 0);
+
+    if (query.length < 2) {
+      resultsEl.classList.remove('visible');
+      resultsEl.innerHTML = '';
+      return;
+    }
+
+    // Position results just below the search box
+    const box = inputEl.closest('.search-box');
+    const rect = box.getBoundingClientRect();
+    resultsEl.style.top = (rect.bottom + 8) + 'px';
+
+    buildIndex();
+
+    const hits = searchIndex.filter(item =>
+      item.title.includes(query) || item.fullText.includes(query)
+    ).slice(0, 8);
+
+    if (hits.length === 0) {
+      resultsEl.innerHTML = `<div class="search-no-result">لا توجد نتائج لـ «${query}»</div>`;
+      resultsEl.classList.add('visible');
+      return;
+    }
+
+    resultsEl.innerHTML = hits.map(item => {
+      const snippet = getSnippet(item.fullText, query);
+      return `
+        <div class="search-result-item" onclick="goToResult('${item.id}')">
+          <span class="sri-badge">${item.tag}</span>
+          <div class="sri-text">
+            <div class="sri-title">${highlight(item.title, query)}</div>
+            <div class="sri-snippet">${highlight(snippet, query)}</div>
+          </div>
+        </div>`;
+    }).join('');
+
+    resultsEl.classList.add('visible');
+  }
+
+  function goToResult(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    // open the section
+    const hdr = el.querySelector('.lesson-header');
+    const bdy = el.querySelector('.lesson-body');
+    if (hdr && bdy && !bdy.classList.contains('open')) {
+      hdr.classList.add('open');
+      bdy.classList.add('open');
+    }
+    // close search
+    document.getElementById('searchResults').classList.remove('visible');
+    document.getElementById('searchInput').value = '';
+    document.getElementById('searchClear').classList.remove('visible');
+    // scroll
+    setTimeout(() => {
+      const navH = document.querySelector('.toc-wrapper')?.offsetHeight || 56;
+      const top = el.getBoundingClientRect().top + window.scrollY - navH - 12;
+      window.scrollTo({ top, behavior: 'smooth' });
+    }, 50);
+  }
+
+  function clearSearch() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('searchResults').classList.remove('visible');
+    document.getElementById('searchResults').innerHTML = '';
+    document.getElementById('searchClear').classList.remove('visible');
+    document.getElementById('searchInput').focus();
+  }
+
+  // Close results when clicking outside
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.search-wrap')) {
+      document.getElementById('searchResults').classList.remove('visible');
+    }
+  });
+</script>
+</body>
+</html>
