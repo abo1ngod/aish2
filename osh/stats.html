@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>إحصائيات الاختبارات - ثانوية عشيرة</title>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary: #1a5f7a;
+            --primary-dark: #134b5f;
+            --primary-light: #2d7d9a;
+            --secondary: #c49b3f;
+            --secondary-light: #d4af5f;
+            --accent: #e8c872;
+            --success: #2ecc71;
+            --danger: #e74c3c;
+            --warning: #f39c12;
+            --dark: #1a1a2e;
+            --light: #f8f9fa;
+            --gray: #6c757d;
+            --bg-gradient: linear-gradient(135deg, #1a5f7a 0%, #134b5f 50%, #0d3d4d 100%);
+            --card-bg: rgba(255, 255, 255, 0.97);
+            --shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            --radius: 16px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            color: var(--dark);
+            overflow-x: hidden;
+        }
+
+        /* Background Pattern */
+        .bg-pattern {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.07;
+            background-image:
+                radial-gradient(circle at 20% 80%, var(--secondary) 1px, transparent 1px),
+                radial-gradient(circle at 80% 20%, var(--secondary) 1px, transparent 1px),
+                radial-gradient(circle at 40% 40%, var(--accent) 0.5px, transparent 0.5px);
+            background-size: 100px 100px, 150px 150px, 50px 50px;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* ===== HEADER ===== */
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 24px 0 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+            animation: fadeInDown 0.6s ease;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .header-icon {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, var(--secondary), var(--accent));
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 20px rgba(196, 155, 63, 0.35);
+        }
+
+        .header-icon i { font-size: 26px; color: white; }
+
+        .header-titles h1 {
+            font-family: 'Amiri', serif;
+            font-size: 22px;
+            font-weight: 700;
+            color: white;
+        }
+
+        .header-titles p {
+            font-size: 13px;
+            color: rgba(255,255,255,0.7);
+            margin-top: 2px;
+        }
+
+        .back-btn {
+            background: rgba(255,255,255,0.15);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.25);
+            padding: 10px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-family: 'Tajawal', sans-serif;
+            font-weight: 600;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .back-btn:hover {
+            background: rgba(255,255,255,0.25);
+            transform: translateX(3px);
+        }
+
+        /* ===== KPI CARDS ===== */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+            animation: fadeInUp 0.6s ease 0.1s both;
+        }
+
+        .kpi-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 20px;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        .kpi-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+
+        .kpi-icon.blue   { background: rgba(26,95,122,0.12);  color: var(--primary); }
+        .kpi-icon.gold   { background: rgba(196,155,63,0.12); color: var(--secondary); }
+        .kpi-icon.green  { background: rgba(46,204,113,0.12); color: var(--success); }
+        .kpi-icon.orange { background: rgba(243,156,18,0.12); color: var(--warning); }
+
+        .kpi-info { flex: 1; min-width: 0; }
+
+        .kpi-value {
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--primary);
+            line-height: 1;
+        }
+
+        .kpi-label {
+            font-size: 13px;
+            color: var(--gray);
+            margin-top: 4px;
+        }
+
+        /* ===== SECTION CARDS ===== */
+        .section-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 25px;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            animation: fadeInUp 0.6s ease 0.2s both;
+        }
+
+        .section-card:last-child { margin-bottom: 40px; }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 24px;
+            border-bottom: 1px solid rgba(0,0,0,0.06);
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .section-title i {
+            width: 34px;
+            height: 34px;
+            background: rgba(26,95,122,0.1);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .section-badge {
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            background: rgba(26,95,122,0.1);
+            color: var(--primary);
+        }
+
+        /* ===== DATA TABLE ===== */
+        .table-wrapper {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+        }
+
+        thead tr {
+            background: rgba(26,95,122,0.06);
+        }
+
+        th {
+            padding: 13px 16px;
+            text-align: right;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--primary);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 13px 16px;
+            text-align: right;
+            font-size: 14px;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            color: var(--dark);
+        }
+
+        tbody tr:hover { background: rgba(26,95,122,0.03); }
+        tbody tr:last-child td { border-bottom: none; }
+
+        /* ===== SCORE CHIP ===== */
+        .score-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .score-chip.excellent { background: rgba(46,204,113,0.12); color: #27ae60; }
+        .score-chip.good      { background: rgba(26,95,122,0.12);  color: var(--primary); }
+        .score-chip.average   { background: rgba(243,156,18,0.12); color: #d68910; }
+        .score-chip.weak      { background: rgba(231,76,60,0.12);  color: var(--danger); }
+
+        /* ===== AVATAR ===== */
+        .student-name-cell {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .avatar.gold {
+            background: linear-gradient(135deg, var(--secondary), var(--accent));
+        }
+
+        /* ===== RANK BADGE ===== */
+        .rank-badge {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .rank-badge.r1 { background: linear-gradient(135deg,#c49b3f,#e8c872); color:white; }
+        .rank-badge.r2 { background: linear-gradient(135deg,#9e9e9e,#bdbdbd); color:white; }
+        .rank-badge.r3 { background: linear-gradient(135deg,#a0522d,#cd853f); color:white; }
+        .rank-badge.rn { background: rgba(108,117,125,0.12); color: var(--gray); }
+
+        /* ===== LOADING ===== */
+        .loading-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+            gap: 16px;
+            color: var(--gray);
+        }
+
+        .spinner {
+            width: 44px;
+            height: 44px;
+            border: 4px solid rgba(26,95,122,0.15);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.9s linear infinite;
+        }
+
+        .loading-state p { font-size: 15px; }
+
+        /* ===== EMPTY STATE ===== */
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: var(--gray);
+        }
+
+        .empty-state i {
+            font-size: 40px;
+            margin-bottom: 12px;
+            opacity: 0.4;
+            display: block;
+        }
+
+        /* ===== REFRESH BTN ===== */
+        .refresh-btn {
+            background: rgba(26,95,122,0.1);
+            color: var(--primary);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: 'Tajawal', sans-serif;
+            font-weight: 600;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .refresh-btn:hover {
+            background: rgba(26,95,122,0.18);
+        }
+
+        .refresh-btn.spinning i { animation: spin 0.9s linear infinite; }
+
+        /* ===== TIMESTAMP ===== */
+        .update-time {
+            font-size: 12px;
+            color: rgba(255,255,255,0.55);
+            text-align: center;
+            padding-bottom: 10px;
+        }
+
+        /* ===== EXAM BADGE ===== */
+        .exam-name-badge {
+            display: inline-block;
+            background: rgba(196,155,63,0.12);
+            color: #8a6a00;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* ===== COMPLETED STAR ===== */
+        .completed-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(46,204,113,0.1);
+            color: #27ae60;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* ===== ANIMATIONS ===== */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 600px) {
+            .container { padding: 15px; }
+            .header-titles h1 { font-size: 18px; }
+            .kpi-value { font-size: 22px; }
+            th, td { padding: 10px 12px; font-size: 13px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="bg-pattern"></div>
+
+<div class="container">
+
+    <!-- Header -->
+    <div class="page-header">
+        <div class="header-right">
+            <div class="header-icon">
+                <i class="fas fa-chart-bar"></i>
+            </div>
+            <div class="header-titles">
+                <h1>إحصائيات الاختبارات</h1>
+                <p>ثانوية عشيرة — الفصل الدراسي الثاني 2026</p>
+            </div>
+        </div>
+        <a href="index.html" class="back-btn">
+            <i class="fas fa-arrow-right"></i>
+            العودة للبوابة
+        </a>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="kpi-grid" id="kpiGrid">
+        <div class="kpi-card">
+            <div class="kpi-icon blue"><i class="fas fa-users"></i></div>
+            <div class="kpi-info">
+                <div class="kpi-value" id="kpiStudents">—</div>
+                <div class="kpi-label">إجمالي الطلاب</div>
+            </div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-icon gold"><i class="fas fa-file-alt"></i></div>
+            <div class="kpi-info">
+                <div class="kpi-value" id="kpiExams">—</div>
+                <div class="kpi-label">اختبارات منشورة</div>
+            </div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-icon green"><i class="fas fa-check-circle"></i></div>
+            <div class="kpi-info">
+                <div class="kpi-value" id="kpiCompleted">—</div>
+                <div class="kpi-label">أكملوا جميع الاختبارات</div>
+            </div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-icon orange"><i class="fas fa-clock"></i></div>
+            <div class="kpi-info">
+                <div class="kpi-value" id="kpiSubmissions">—</div>
+                <div class="kpi-label">إجمالي التسليمات</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Completed Students Table -->
+    <div class="section-card">
+        <div class="section-header">
+            <div class="section-title">
+                <i class="fas fa-trophy"></i>
+                الطلاب الذين أكملوا جميع الاختبارات
+            </div>
+            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                <span class="section-badge" id="completedBadge">—</span>
+                <button class="refresh-btn" id="refreshBtn" onclick="loadData()">
+                    <i class="fas fa-sync-alt"></i> تحديث
+                </button>
+            </div>
+        </div>
+        <div class="table-wrapper">
+            <div id="completedContainer">
+                <div class="loading-state">
+                    <div class="spinner"></div>
+                    <p>جاري تحميل البيانات...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Last 40 Submissions Table -->
+    <div class="section-card">
+        <div class="section-header">
+            <div class="section-title">
+                <i class="fas fa-history"></i>
+                آخر 40 تسليم اختبار
+            </div>
+            <span class="section-badge" id="recentBadge">—</span>
+        </div>
+        <div class="table-wrapper">
+            <div id="recentContainer">
+                <div class="loading-state">
+                    <div class="spinner"></div>
+                    <p>جاري تحميل البيانات...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Update Time -->
+    <p class="update-time" id="updateTime"></p>
+
+</div>
+
+<script>
+    // ===== Firebase Config =====
+    const firebaseConfig = {
+        apiKey: "AIzaSyBxPO6RKsQ1Cq-mqlCpFTrCuIyxnYdB37U",
+        authDomain: "studentsystem-c1ab1.firebaseapp.com",
+        databaseURL: "https://studentsystem-c1ab1-default-rtdb.firebaseio.com",
+        projectId: "studentsystem-c1ab1",
+        storageBucket: "studentsystem-c1ab1.firebasestorage.app",
+        messagingSenderId: "112215023848",
+        appId: "1:112215023848:web:0adba326a527ee7e37e95d"
+    };
+
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+
+    const db = firebase.database();
+    const rootRef = db.ref('q2026_2');
+
+    // ===== Helpers =====
+    function scoreChipClass(pct) {
+        if (pct >= 90) return 'excellent';
+        if (pct >= 75) return 'good';
+        if (pct >= 60) return 'average';
+        return 'weak';
+    }
+
+    function formatDateTime(ts) {
+        const d = new Date(ts);
+        const day   = d.getDate();
+        const month = d.getMonth() + 1;
+        const hh    = String(d.getHours()).padStart(2, '0');
+        const mm    = String(d.getMinutes()).padStart(2, '0');
+        return `${day}/${month} - ${hh}:${mm}`;
+    }
+
+    function getInitial(name) {
+        return name ? name.trim()[0] : '?';
+    }
+
+    function rankBadge(i) {
+        const cls = i === 0 ? 'r1' : i === 1 ? 'r2' : i === 2 ? 'r3' : 'rn';
+        return `<div class="rank-badge ${cls}">${i + 1}</div>`;
+    }
+
+    // ===== Load All Data =====
+    async function loadData() {
+        // Spin the button
+        const btn = document.getElementById('refreshBtn');
+        btn.classList.add('spinning');
+
+        try {
+            const [studentsSnap, examsSnap, responsesSnap] = await Promise.all([
+                rootRef.child('students').once('value'),
+                rootRef.child('exams').once('value'),
+                rootRef.child('responses').once('value')
+            ]);
+
+            const students  = studentsSnap.val()  || {};
+            const examsRaw  = examsSnap.val()      || {};
+            const responses = responsesSnap.val()  || {};
+
+            // Published exams only
+            const publishedExams = {};
+            Object.entries(examsRaw).forEach(([id, exam]) => {
+                if (exam.settings?.isPublished) {
+                    publishedExams[id] = exam;
+                }
+            });
+
+            const publishedIds   = Object.keys(publishedExams);
+            const totalStudents  = Object.keys(students).length;
+            const totalExams     = publishedIds.length;
+
+            // ===== Build all submissions flat list =====
+            const allSubmissions = [];
+            publishedIds.forEach(examId => {
+                const examResponses = responses[examId] || {};
+                Object.entries(examResponses).forEach(([studentId, resp]) => {
+                    if (resp.submitted && resp.submitTime) {
+                        const student = students[studentId] || {};
+                        allSubmissions.push({
+                            studentId,
+                            name    : student.name    || resp.studentName || studentId,
+                            grade   : student.grade   || resp.grade       || '—',
+                            section : student.section || resp.section     || '—',
+                            examId,
+                            examTitle: publishedExams[examId]?.title || examId,
+                            score    : resp.score      || 0,
+                            total    : resp.totalPoints || 1,
+                            submitTime: resp.submitTime
+                        });
+                    }
+                });
+            });
+
+            const totalSubmissions = allSubmissions.length;
+
+            // ===== Who completed ALL published exams =====
+            const completedMap = {};
+            Object.keys(students).forEach(sid => {
+                const done = publishedIds.filter(eid => {
+                    const r = responses[eid]?.[sid];
+                    return r && r.submitted;
+                });
+                if (done.length === totalExams && totalExams > 0) {
+                    // Calc avg percentage
+                    let sumPct = 0;
+                    done.forEach(eid => {
+                        const r = responses[eid][sid];
+                        sumPct += (r.score || 0) / (r.totalPoints || 1) * 100;
+                    });
+                    const avgPct = Math.round(sumPct / done.length);
+                    completedMap[sid] = {
+                        name    : students[sid].name    || sid,
+                        grade   : students[sid].grade   || '—',
+                        section : students[sid].section || '—',
+                        count   : done.length,
+                        avgPct
+                    };
+                }
+            });
+
+            const completedList = Object.values(completedMap)
+                .sort((a, b) => b.avgPct - a.avgPct);
+
+            // ===== KPIs =====
+            document.getElementById('kpiStudents').textContent    = totalStudents;
+            document.getElementById('kpiExams').textContent       = totalExams;
+            document.getElementById('kpiCompleted').textContent   = completedList.length;
+            document.getElementById('kpiSubmissions').textContent = totalSubmissions;
+            document.getElementById('completedBadge').textContent = `${completedList.length} طالب`;
+
+            // ===== Render Completed Table =====
+            renderCompletedTable(completedList, totalExams);
+
+            // ===== Last 40 submissions =====
+            const last40 = allSubmissions
+                .sort((a, b) => b.submitTime - a.submitTime)
+                .slice(0, 40);
+
+            document.getElementById('recentBadge').textContent = `${last40.length} تسليم`;
+            renderRecentTable(last40);
+
+            // Update time
+            document.getElementById('updateTime').textContent =
+                `آخر تحديث: ${formatDateTime(Date.now())}`;
+
+        } catch (err) {
+            console.error(err);
+            document.getElementById('completedContainer').innerHTML =
+                `<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>حدث خطأ في تحميل البيانات</p></div>`;
+        }
+
+        btn.classList.remove('spinning');
+    }
+
+    // ===== Render Completed =====
+    function renderCompletedTable(list, totalExams) {
+        const container = document.getElementById('completedContainer');
+
+        if (list.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-inbox"></i>
+                    <p>لا يوجد طلاب أكملوا جميع الاختبارات (${totalExams}) بعد</p>
+                </div>`;
+            return;
+        }
+
+        let rows = '';
+        list.forEach((s, i) => {
+            const cls = scoreChipClass(s.avgPct);
+            rows += `
+                <tr>
+                    <td>${rankBadge(i)}</td>
+                    <td>
+                        <div class="student-name-cell">
+                            <div class="avatar ${i < 3 ? 'gold' : ''}">${getInitial(s.name)}</div>
+                            <span>${s.name}</span>
+                        </div>
+                    </td>
+                    <td>${s.grade}</td>
+                    <td>شعبة ${s.section}</td>
+                    <td>
+                        <span class="completed-tag">
+                            <i class="fas fa-check"></i> ${s.count} / ${totalExams}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="score-chip ${cls}">${s.avgPct}%</span>
+                    </td>
+                </tr>`;
+        });
+
+        container.innerHTML = `
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>اسم الطالب</th>
+                        <th>الصف</th>
+                        <th>الشعبة</th>
+                        <th>الاختبارات المكتملة</th>
+                        <th>متوسط الدرجة</th>
+                    </tr>
+                </thead>
+                <tbody>${rows}</tbody>
+            </table>`;
+    }
+
+    // ===== Render Recent =====
+    function renderRecentTable(list) {
+        const container = document.getElementById('recentContainer');
+
+        if (list.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-inbox"></i>
+                    <p>لا توجد تسليمات بعد</p>
+                </div>`;
+            return;
+        }
+
+        let rows = '';
+        list.forEach((s, i) => {
+            const pct = Math.round((s.score / s.total) * 100);
+            const cls = scoreChipClass(pct);
+            rows += `
+                <tr>
+                    <td style="color:var(--gray); font-size:13px;">${i + 1}</td>
+                    <td>
+                        <div class="student-name-cell">
+                            <div class="avatar">${getInitial(s.name)}</div>
+                            <span>${s.name}</span>
+                        </div>
+                    </td>
+                    <td>${s.grade}</td>
+                    <td>شعبة ${s.section}</td>
+                    <td><span class="exam-name-badge" title="${s.examTitle}">${s.examTitle}</span></td>
+                    <td>
+                        <span class="score-chip ${cls}">${s.score}/${s.total} (${pct}%)</span>
+                    </td>
+                    <td style="color:var(--gray); font-size:13px; white-space:nowrap;">${formatDateTime(s.submitTime)}</td>
+                </tr>`;
+        });
+
+        container.innerHTML = `
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>اسم الطالب</th>
+                        <th>الصف</th>
+                        <th>الشعبة</th>
+                        <th>الاختبار</th>
+                        <th>الدرجة</th>
+                        <th>وقت التسليم</th>
+                    </tr>
+                </thead>
+                <tbody>${rows}</tbody>
+            </table>`;
+    }
+
+    // ===== Init =====
+    loadData();
+</script>
+</body>
+</html>
