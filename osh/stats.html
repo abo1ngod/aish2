@@ -598,11 +598,54 @@
         return `<div class="rank-badge ${cls}">${i + 1}</div>`;
     }
 
+    // ===== نفس منطق الصفحة الأصلية تماماً =====
+    function gradeToNum(grade) {
+        if (grade === 'أول ثانوي')  return '1';
+        if (grade === 'ثاني ثانوي') return '2';
+        return '3';
+    }
+
+    function isStudentTargeted(settings, student) {
+        if (!settings) return true;
+        const targetType = settings.targetType || 'all';
+        switch (targetType) {
+            case 'all':
+                return true;
+            case 'grade':
+                return student.grade === settings.targetGrade;
+            case 'section': {
+                const targetSections = settings.targetSections || [];
+                if (targetSections.length > 0) {
+                    const gradeNum = gradeToNum(student.grade);
+                    return targetSections.some(
+                        sec => sec.grade === gradeNum && sec.section === student.section
+                    );
+                }
+                return student.grade === settings.targetGrade &&
+                       student.section === settings.targetSection;
+            }
+            case 'specific':
+                return (settings.targetStudents || []).includes(student.civilId);
+            default:
+                return true;
+        }
+    }
+
+    function getExamsForStudent(publishedExams, student) {
+        return Object.entries(publishedExams).filter(([, exam]) =>
+            isStudentTargeted(exam.settings, student)
+        );
+    }
+
     // ===== Load All Data =====
     async function loadData() {
-        // Spin the button
         const btn = document.getElementById('refreshBtn');
         btn.classList.add('spinning');
+
+        document.getElementById('completedContainer').innerHTML =
+            '<div class="loading-state"><div class="spinner"></div><p>جاري تحميل البيانات...</p></div>';
+        document.getElementById('recentContainer').innerHTML =
+            '<div class="loading-state"><div class="spinner"></div><p>جاري تحميل البيانات...</p></div>';
 
         try {
             const [studentsSnap, examsSnap, responsesSnap] = await Promise.all([
@@ -611,11 +654,17 @@
                 rootRef.child('responses').once('value')
             ]);
 
-            const students  = studentsSnap.val()  || {};
-            const examsRaw  = examsSnap.val()      || {};
-            const responses = responsesSnap.val()  || {};
+            const studentsRaw = studentsSnap.val() || {};
+            const examsRaw    = examsSnap.val()    || {};
+            const responses   = responsesSnap.val() || {};
 
-            // Published exams only
+            // أضف civilId لكل طالب ليُستخدم في فلتر specific
+            const students = {};
+            Object.entries(studentsRaw).forEach(([id, s]) => {
+                students[id] = { ...s, civilId: id };
+            });
+
+            // الاختبارات المنشورة فقط
             const publishedExams = {};
             Object.entries(examsRaw).forEach(([id, exam]) => {
                 if (exam.settings?.isPublished) {
@@ -623,73 +672,73 @@
                 }
             });
 
-            const publishedIds   = Object.keys(publishedExams);
             const totalStudents  = Object.keys(students).length;
-            const totalExams     = publishedIds.length;
+            const totalPublished = Object.keys(publishedExams).length;
 
-            // ===== Build all submissions flat list =====
+            // ===== قائمة التسليمات - فقط الاختبارات التي تخص الطالب =====
             const allSubmissions = [];
-            publishedIds.forEach(examId => {
+            Object.entries(publishedExams).forEach(([examId, exam]) => {
                 const examResponses = responses[examId] || {};
                 Object.entries(examResponses).forEach(([studentId, resp]) => {
-                    if (resp.submitted && resp.submitTime) {
-                        const student = students[studentId] || {};
-                        allSubmissions.push({
-                            studentId,
-                            name    : student.name    || resp.studentName || studentId,
-                            grade   : student.grade   || resp.grade       || '—',
-                            section : student.section || resp.section     || '—',
-                            examId,
-                            examTitle: publishedExams[examId]?.title || examId,
-                            score    : resp.score      || 0,
-                            total    : resp.totalPoints || 1,
-                            submitTime: resp.submitTime
-                        });
-                    }
+                    if (!resp.submitted || !resp.submitTime) return;
+                    const student = students[studentId];
+                    if (!student) return;
+                    if (!isStudentTargeted(exam.settings, student)) return;
+
+                    allSubmissions.push({
+                        studentId,
+                        name      : student.name    || resp.studentName || studentId,
+                        grade     : student.grade   || '—',
+                        section   : student.section || '—',
+                        examId,
+                        examTitle : exam.title || examId,
+                        score     : resp.score      || 0,
+                        total     : resp.totalPoints || 1,
+                        submitTime: resp.submitTime
+                    });
                 });
             });
 
             const totalSubmissions = allSubmissions.length;
 
-            // ===== Who completed ALL published exams =====
-            const completedMap = {};
-            Object.keys(students).forEach(sid => {
-                const done = publishedIds.filter(eid => {
+            // ===== من أكمل جميع الاختبارات التي تخصه =====
+            const completedList = [];
+            Object.entries(students).forEach(([sid, student]) => {
+                const myExams = getExamsForStudent(publishedExams, student);
+                if (myExams.length === 0) return;
+
+                const doneExams = myExams.filter(([eid]) => {
                     const r = responses[eid]?.[sid];
                     return r && r.submitted;
                 });
-                if (done.length === totalExams && totalExams > 0) {
-                    // Calc avg percentage
+
+                if (doneExams.length === myExams.length) {
                     let sumPct = 0;
-                    done.forEach(eid => {
+                    doneExams.forEach(([eid]) => {
                         const r = responses[eid][sid];
                         sumPct += (r.score || 0) / (r.totalPoints || 1) * 100;
                     });
-                    const avgPct = Math.round(sumPct / done.length);
-                    completedMap[sid] = {
-                        name    : students[sid].name    || sid,
-                        grade   : students[sid].grade   || '—',
-                        section : students[sid].section || '—',
-                        count   : done.length,
-                        avgPct
-                    };
+                    completedList.push({
+                        name    : student.name    || sid,
+                        grade   : student.grade   || '—',
+                        section : student.section || '—',
+                        count   : doneExams.length,
+                        avgPct  : Math.round(sumPct / doneExams.length)
+                    });
                 }
             });
 
-            const completedList = Object.values(completedMap)
-                .sort((a, b) => b.avgPct - a.avgPct);
+            completedList.sort((a, b) => b.avgPct - a.avgPct);
 
             // ===== KPIs =====
             document.getElementById('kpiStudents').textContent    = totalStudents;
-            document.getElementById('kpiExams').textContent       = totalExams;
+            document.getElementById('kpiExams').textContent       = totalPublished;
             document.getElementById('kpiCompleted').textContent   = completedList.length;
             document.getElementById('kpiSubmissions').textContent = totalSubmissions;
             document.getElementById('completedBadge').textContent = `${completedList.length} طالب`;
 
-            // ===== Render Completed Table =====
-            renderCompletedTable(completedList, totalExams);
+            renderCompletedTable(completedList);
 
-            // ===== Last 40 submissions =====
             const last40 = allSubmissions
                 .sort((a, b) => b.submitTime - a.submitTime)
                 .slice(0, 40);
@@ -697,28 +746,29 @@
             document.getElementById('recentBadge').textContent = `${last40.length} تسليم`;
             renderRecentTable(last40);
 
-            // Update time
             document.getElementById('updateTime').textContent =
                 `آخر تحديث: ${formatDateTime(Date.now())}`;
 
         } catch (err) {
             console.error(err);
             document.getElementById('completedContainer').innerHTML =
-                `<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>حدث خطأ في تحميل البيانات</p></div>`;
+                '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>حدث خطأ في تحميل البيانات</p></div>';
+            document.getElementById('recentContainer').innerHTML =
+                '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>حدث خطأ في تحميل البيانات</p></div>';
         }
 
         btn.classList.remove('spinning');
     }
 
     // ===== Render Completed =====
-    function renderCompletedTable(list, totalExams) {
+    function renderCompletedTable(list) {
         const container = document.getElementById('completedContainer');
 
         if (list.length === 0) {
             container.innerHTML = `
                 <div class="empty-state">
                     <i class="fas fa-inbox"></i>
-                    <p>لا يوجد طلاب أكملوا جميع الاختبارات (${totalExams}) بعد</p>
+                    <p>لا يوجد طلاب أكملوا جميع الاختبارات المخصصة لهم بعد</p>
                 </div>`;
             return;
         }
@@ -739,7 +789,7 @@
                     <td>شعبة ${s.section}</td>
                     <td>
                         <span class="completed-tag">
-                            <i class="fas fa-check"></i> ${s.count} / ${totalExams}
+                            <i class="fas fa-check"></i> ${s.count} اختبار
                         </span>
                     </td>
                     <td>
