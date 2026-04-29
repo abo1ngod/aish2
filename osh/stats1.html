@@ -492,6 +492,37 @@
             color: var(--gray);
         }
 
+        /* ===== SEARCH INPUT ===== */
+        .search-input-wrap {
+            position: relative;
+            flex: 1;
+            min-width: 180px;
+            max-width: 280px;
+        }
+        .search-input-wrap i {
+            position: absolute;
+            right: 11px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray);
+            font-size: 13px;
+            pointer-events: none;
+        }
+        .search-input {
+            width: 100%;
+            border: 1px solid rgba(26,95,122,0.2);
+            border-radius: 10px;
+            padding: 7px 32px 7px 12px;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 13px;
+            color: var(--dark);
+            background: white;
+            outline: none;
+            transition: border 0.2s;
+        }
+        .search-input:focus { border-color: var(--primary); }
+        .search-input::placeholder { color: #aaa; }
+
         /* ===== PAGINATION ===== */
         .pagination {
             display: flex;
@@ -729,6 +760,10 @@
         </div>
         <!-- Filter Bar -->
         <div class="filter-bar" id="studentsFilterBar" style="display:none;">
+            <div class="search-input-wrap">
+                <i class="fas fa-search"></i>
+                <input type="text" class="search-input" id="searchStudent" placeholder="ابحث باسم الطالب..." oninput="applyFilter()">
+            </div>
             <label>فرز حسب:</label>
             <select class="filter-select" id="filterGrade" onchange="applyFilter()">
                 <option value="all">كل الصفوف</option>
@@ -1008,8 +1043,8 @@
 
                 // متوسط الدرجة على الاختبارات المنجزة فقط
                 const doneList = examDetails.filter(e => e.done);
-                const avgPct   = doneList.length > 0
-                    ? Math.round(doneList.reduce((s, e) => s + (e.score / e.total * 100), 0) / doneList.length)
+                const avgPct   = totalCount > 0
+                    ? Math.round(doneList.reduce((s, e) => s + (e.score / e.total * 100), 0) / totalCount)
                     : 0;
 
                 allStudentsData.push({
@@ -1096,9 +1131,11 @@
     function applyFilter() {
         const grade   = document.getElementById('filterGrade').value;
         const section = document.getElementById('filterSection').value;
+        const query   = document.getElementById('searchStudent').value.trim().toLowerCase();
         filteredStudents = allStudentsData.filter(s =>
             (grade   === 'all' || s.grade   === grade) &&
-            (section === 'all' || s.section === section)
+            (section === 'all' || s.section === section) &&
+            (!query || s.name.toLowerCase().includes(query))
         );
         currentPage = 1;
         renderStudentsTable();
