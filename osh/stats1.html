@@ -687,6 +687,290 @@
         }
         .refresh-btn-header:hover { background: rgba(255,255,255,0.25); }
         .refresh-btn-header.spinning i { animation: spin 0.9s linear infinite; }
+
+        /* ===== EXAM LINK ===== */
+        .exam-link {
+            cursor: pointer;
+            color: var(--primary);
+            text-decoration: underline dotted;
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+        .exam-link:hover { color: var(--primary-dark); }
+
+        /* ===== ANSWERS MODAL (فوق النافذة الأولى) ===== */
+        .answers-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.45);
+            z-index: 1100;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            backdrop-filter: blur(2px);
+        }
+        .answers-overlay.open { display: flex; }
+        .answers-box {
+            background: white;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 700px;
+            max-height: 88vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 24px 70px rgba(0,0,0,0.3);
+            animation: fadeInUp 0.25s ease;
+            overflow: hidden;
+        }
+        .answers-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 22px;
+            border-bottom: 1px solid rgba(0,0,0,0.08);
+            flex-shrink: 0;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .answers-head h3 {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .answers-body {
+            overflow-y: auto;
+            padding: 16px 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .q-card {
+            border-radius: 12px;
+            padding: 14px 16px;
+            border: 1.5px solid;
+        }
+        .q-card.correct {
+            background: rgba(46,204,113,0.06);
+            border-color: rgba(46,204,113,0.3);
+        }
+        .q-card.wrong {
+            background: rgba(231,76,60,0.05);
+            border-color: rgba(231,76,60,0.25);
+        }
+        .q-card.skipped {
+            background: rgba(108,117,125,0.05);
+            border-color: rgba(108,117,125,0.2);
+        }
+        .q-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .q-num {
+            min-width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+        .q-card.correct .q-num  { background: rgba(46,204,113,0.15); color: #27ae60; }
+        .q-card.wrong   .q-num  { background: rgba(231,76,60,0.12);  color: var(--danger); }
+        .q-card.skipped .q-num  { background: rgba(108,117,125,0.12); color: var(--gray); }
+        .q-text {
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 1.5;
+            flex: 1;
+        }
+        .q-status-icon {
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+        .q-card.correct .q-status-icon { color: #27ae60; }
+        .q-card.wrong   .q-status-icon { color: var(--danger); }
+        .q-card.skipped .q-status-icon { color: var(--gray); }
+        .q-options {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding-right: 36px;
+        }
+        .q-opt {
+            padding: 7px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .q-opt.correct-opt {
+            background: rgba(46,204,113,0.12);
+            color: #27ae60;
+            font-weight: 700;
+        }
+        .q-opt.wrong-opt {
+            background: rgba(231,76,60,0.08);
+            color: var(--danger);
+            text-decoration: line-through;
+        }
+        .q-opt.neutral-opt {
+            background: rgba(0,0,0,0.03);
+            color: var(--dark);
+        }
+        .answers-footer {
+            padding: 14px 22px;
+            border-top: 1px solid rgba(0,0,0,0.07);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .answers-stat {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+        .astat {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .astat.correct { color: #27ae60; }
+        .astat.wrong   { color: var(--danger); }
+        .astat.skipped { color: var(--gray); }
+
+        /* ===== STATS MODAL ===== */
+        .stats-btn {
+            background: rgba(255,255,255,0.15);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.25);
+            padding: 10px 18px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-family: 'Tajawal', sans-serif;
+            font-weight: 600;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+        .stats-btn:hover { background: rgba(255,255,255,0.25); }
+        .stats-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 900;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            backdrop-filter: blur(4px);
+        }
+        .stats-modal-overlay.open { display: flex; }
+        .stats-modal-box {
+            background: white;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 720px;
+            max-height: 88vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+            animation: fadeInUp 0.3s ease;
+            overflow: hidden;
+        }
+        .stats-modal-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 24px;
+            border-bottom: 1px solid rgba(0,0,0,0.08);
+            flex-shrink: 0;
+        }
+        .stats-modal-head h3 {
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .stats-modal-body {
+            overflow-y: auto;
+            padding: 20px 24px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .stats-section-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .stats-section-title i {
+            width: 28px; height: 28px;
+            background: rgba(26,95,122,0.1);
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px;
+        }
+        .stats-table { width: 100%; border-collapse: collapse; }
+        .stats-table th {
+            padding: 10px 14px; font-size: 13px; font-weight: 700;
+            color: var(--primary); background: rgba(26,95,122,0.05);
+            text-align: right; white-space: nowrap;
+        }
+        .stats-table td {
+            padding: 10px 14px; font-size: 13px;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            text-align: right;
+        }
+        .stats-table tbody tr:last-child td { border-bottom: none; }
+        .pct-bar-wrap {
+            display: flex; align-items: center; gap: 8px;
+        }
+        .pct-bar {
+            flex: 1; height: 8px; background: rgba(0,0,0,0.07);
+            border-radius: 10px; overflow: hidden; min-width: 60px;
+        }
+        .pct-bar-fill {
+            height: 100%; border-radius: 10px;
+            background: linear-gradient(90deg, var(--primary), var(--primary-light));
+            transition: width 0.6s ease;
+        }
+        .pct-bar-fill.high   { background: linear-gradient(90deg,#27ae60,#2ecc71); }
+        .pct-bar-fill.medium { background: linear-gradient(90deg,#d68910,#f39c12); }
+        .pct-bar-fill.low    { background: linear-gradient(90deg,var(--danger),#e67e73); }
+        .pct-label { font-size: 13px; font-weight: 700; min-width: 38px; color: var(--dark); }
+
+        /* ===== TOTAL DURATION ===== */
+        .dur-chip {
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600;
+            background: rgba(26,95,122,0.08); color: var(--primary);
+            white-space: nowrap;
+        }
     </style>
 </head>
 <body>
@@ -710,10 +994,9 @@
             <button class="refresh-btn-header" id="refreshBtn" onclick="loadData()">
                 <i class="fas fa-sync-alt"></i> تحديث
             </button>
-            <a href="index.html" class="back-btn">
-                <i class="fas fa-arrow-right"></i>
-                العودة للبوابة
-            </a>
+            <button class="stats-btn" onclick="openStatsModal()">
+                <i class="fas fa-chart-pie"></i> إحصائيات عامة
+            </button>
         </div>
     </div>
 
@@ -805,6 +1088,40 @@
 
     <!-- Update Time -->
     <p class="update-time" id="updateTime"></p>
+
+    <!-- General Stats Modal -->
+    <div class="stats-modal-overlay" id="statsModal" onclick="closeStatsModal(event)">
+        <div class="stats-modal-box">
+            <div class="stats-modal-head">
+                <h3><i class="fas fa-chart-pie" style="font-size:20px;"></i> الإحصائيات العامة</h3>
+                <button class="modal-close" onclick="closeStatsModalDirect()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="stats-modal-body" id="statsModalBody">
+                <div class="loading-state"><div class="spinner"></div><p>جاري الحساب...</p></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Answers Modal -->
+    <div class="answers-overlay" id="answersModal" onclick="closeAnswersModal(event)">
+        <div class="answers-box">
+            <div class="answers-head">
+                <h3><i class="fas fa-list-check" style="font-size:18px;"></i> <span id="answersExamTitle"></span></h3>
+                <button class="modal-close" onclick="closeAnswersDirect()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="answers-body" id="answersBody"></div>
+            <div class="answers-footer">
+                <div class="answers-stat">
+                    <span class="astat correct"><i class="fas fa-check-circle"></i> <span id="aStatCorrect">0</span> صحيحة</span>
+                    <span class="astat wrong"><i class="fas fa-times-circle"></i> <span id="aStatWrong">0</span> خاطئة</span>
+                    <span class="astat skipped"><i class="fas fa-minus-circle"></i> <span id="aStatSkipped">0</span> متروكة</span>
+                </div>
+                <button class="modal-close" style="width:auto;border-radius:10px;padding:0 14px;font-family:Tajawal,sans-serif;font-size:13px;font-weight:600;gap:6px;display:flex;align-items:center;" onclick="closeAnswersDirect()">
+                    <i class="fas fa-arrow-right"></i> عودة
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- Student Modal -->
     <div class="modal-overlay" id="studentModal" onclick="closeModal(event)">
@@ -1034,6 +1351,8 @@
                         total     : done ? (r.totalPoints || 1) : null,
                         startTime : done ? (r.startTime   || null) : null,
                         submitTime: done ? (r.submitTime  || null) : null,
+                        answers   : done ? (r.answers     || {}) : {},
+                        questions : exam.questions || {},
                     };
                 });
                 const doneCount  = examDetails.filter(e => e.done).length;
@@ -1047,10 +1366,22 @@
                     ? Math.round(doneList.reduce((s, e) => s + (e.score / e.total * 100), 0) / totalCount)
                     : 0;
 
+                // آخر استجابة: أعلى submitTime بين الاختبارات المنجزة
+                const lastResponse = examDetails
+                    .filter(e => e.done && e.submitTime)
+                    .reduce((max, e) => e.submitTime > max ? e.submitTime : max, 0);
+
+                // مجموع مدة الاختبارات المنجزة بالثواني
+                const totalDurationSec = examDetails
+                    .filter(e => e.done && e.startTime && e.submitTime && e.submitTime > e.startTime)
+                    .reduce((sum, e) => sum + Math.round((e.submitTime - e.startTime) / 1000), 0);
+
                 allStudentsData.push({
                     sid, name: student.name || sid,
                     grade: student.grade || '—', section: student.section || '—',
-                    examDetails, doneCount, totalCount, allDone, avgPct
+                    examDetails, doneCount, totalCount, allDone, avgPct,
+                    lastResponse: lastResponse || null,
+                    totalDurationSec
                 });
             });
 
@@ -1119,6 +1450,8 @@
                 case 'section' : va = a.section; vb = b.section; break;
                 case 'done'    : va = a.doneCount;  vb = b.doneCount;  break;
                 case 'avg'     : va = a.avgPct;  vb = b.avgPct;  break;
+                case 'lastResp' : va = a.lastResponse || 0; vb = b.lastResponse || 0; break;
+                case 'dur'      : va = a.totalDurationSec || 0; vb = b.totalDurationSec || 0; break;
                 default        : va = a.name;    vb = b.name;
             }
             if (typeof va === 'string') va = va.localeCompare(vb, 'ar');
@@ -1199,6 +1532,8 @@
                         </span>
                     </td>
                     <td>${avgText}</td>
+                    <td style="color:var(--gray);font-size:12px;white-space:nowrap;">${s.lastResponse ? formatDateTime(s.lastResponse) : '—'}</td>
+                    <td>${s.totalDurationSec > 0 ? formatTotalDuration(s.totalDurationSec) : '<span style="color:var(--gray);font-size:12px;">—</span>'}</td>
                 </tr>`;
         });
 
@@ -1212,6 +1547,8 @@
                         <th class="${thClass('section')}" onclick="toggleSort('section')">الشعبة</th>
                         <th class="${thClass('done')}" onclick="toggleSort('done')">الاختبارات المنجزة</th>
                         <th class="${thClass('avg')}" onclick="toggleSort('avg')">متوسط الدرجة</th>
+                        <th class="${thClass('lastResp')}" onclick="toggleSort('lastResp')">آخر استجابة</th>
+                        <th class="${thClass('dur')}" onclick="toggleSort('dur')">مجموع الوقت</th>
                     </tr>
                 </thead>
                 <tbody>${rows}</tbody>
@@ -1263,9 +1600,9 @@
                 const pct = Math.round(e.score / e.total * 100);
                 const cls = scoreChipClass(pct);
                 const dur = formatDuration(e.startTime, e.submitTime);
-                rows += `<tr>
+                rows += `<tr style="cursor:pointer;" onclick="openAnswersModal('${s.sid}','${e.examId}')" title="انقر لعرض الإجابات">
                     <td style="color:var(--gray);font-size:12px;">${i+1}</td>
-                    <td style="font-weight:600;">${e.examTitle}</td>
+                    <td><span class="exam-link">${e.examTitle}</span></td>
                     <td><span class="score-chip ${cls}">${e.score}/${e.total} (${pct}%)</span></td>
                     <td style="color:var(--gray);font-size:13px;">${dur}</td>
                 </tr>`;
@@ -1298,7 +1635,187 @@
         document.getElementById('studentModal').classList.remove('open');
         document.body.style.overflow = '';
     }
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModalDirect(); });
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+            if (document.getElementById('answersModal').classList.contains('open')) closeAnswersDirect();
+            else if (document.getElementById('statsModal').classList.contains('open')) closeStatsModalDirect();
+            else closeModalDirect();
+        }
+    });
+
+    // ===== نافذة الإجابات =====
+    function openAnswersModal(sid, examId) {
+        const s = allStudentsData.find(x => x.sid === sid);
+        if (!s) return;
+        const exam = s.examDetails.find(e => e.examId === examId);
+        if (!exam || !exam.done) return;
+
+        document.getElementById('answersExamTitle').textContent = exam.examTitle;
+
+        const questions = Object.entries(exam.questions);
+        const answers   = exam.answers;
+
+        let correctCount = 0, wrongCount = 0, skippedCount = 0;
+        let cards = '';
+
+        questions.forEach(([qId, q], idx) => {
+            const userAns    = answers[qId];
+            const hasAnswer  = userAns !== undefined && userAns !== null;
+            const isCorrect  = hasAnswer && userAns === q.correctAnswer;
+            const cardClass  = !hasAnswer ? 'skipped' : isCorrect ? 'correct' : 'wrong';
+            const icon       = !hasAnswer ? 'fa-minus-circle' : isCorrect ? 'fa-check-circle' : 'fa-times-circle';
+
+            if (!hasAnswer) skippedCount++;
+            else if (isCorrect) correctCount++;
+            else wrongCount++;
+
+            const opts = (q.options || []).map((opt, optIdx) => {
+                let cls = 'neutral-opt';
+                let prefix = '';
+                if (optIdx === q.correctAnswer) { cls = 'correct-opt'; prefix = '✓ '; }
+                else if (hasAnswer && optIdx === userAns && !isCorrect) { cls = 'wrong-opt'; prefix = '✗ '; }
+                return `<div class="q-opt ${cls}">${prefix}${opt}</div>`;
+            }).join('');
+
+            cards += `
+                <div class="q-card ${cardClass}">
+                    <div class="q-header">
+                        <div class="q-num">${idx + 1}</div>
+                        <div class="q-text">${q.text || q.question || ''}</div>
+                        <i class="fas ${icon} q-status-icon"></i>
+                    </div>
+                    <div class="q-options">${opts}</div>
+                </div>`;
+        });
+
+        document.getElementById('answersBody').innerHTML = cards || '<p style="text-align:center;color:var(--gray);padding:30px;">لا توجد أسئلة</p>';
+        document.getElementById('aStatCorrect').textContent = correctCount;
+        document.getElementById('aStatWrong').textContent   = wrongCount;
+        document.getElementById('aStatSkipped').textContent = skippedCount;
+
+        document.getElementById('answersModal').classList.add('open');
+    }
+
+    function closeAnswersModal(e) {
+        if (e.target === document.getElementById('answersModal')) closeAnswersDirect();
+    }
+    function closeAnswersDirect() {
+        document.getElementById('answersModal').classList.remove('open');
+    }
+
+    // ===== تنسيق المدة الإجمالية =====
+    function formatTotalDuration(sec) {
+        if (!sec || sec <= 0) return '—';
+        const m = Math.floor(sec / 60);
+        const s = sec % 60;
+        if (m === 0) return `<span class="dur-chip"><i class="fas fa-clock"></i> ${s}ث</span>`;
+        return `<span class="dur-chip"><i class="fas fa-clock"></i> ${m}د ${s}ث</span>`;
+    }
+
+    // ===== نافذة الإحصائيات العامة =====
+    function openStatsModal() {
+        if (allStudentsData.length === 0) return;
+
+        // حساب الإحصائيات حسب الصف
+        const gradeMap = {};
+        allStudentsData.forEach(s => {
+            const g = s.grade;
+            if (!gradeMap[g]) gradeMap[g] = { total: 0, completed: 0 };
+            gradeMap[g].total++;
+            if (s.allDone && s.totalCount > 0) gradeMap[g].completed++;
+        });
+
+        // حساب الإحصائيات حسب الشعبة
+        const sectionMap = {};
+        allStudentsData.forEach(s => {
+            const key = `${s.grade}__${s.section}`;
+            if (!sectionMap[key]) sectionMap[key] = { grade: s.grade, section: s.section, total: 0, completed: 0 };
+            sectionMap[key].total++;
+            if (s.allDone && s.totalCount > 0) sectionMap[key].completed++;
+        });
+
+        // دالة مساعدة لشريط النسبة
+        function pctBar(pct) {
+            const cls = pct >= 75 ? 'high' : pct >= 40 ? 'medium' : 'low';
+            return `<div class="pct-bar-wrap">
+                <div class="pct-bar"><div class="pct-bar-fill ${cls}" style="width:${pct}%"></div></div>
+                <span class="pct-label">${pct}%</span>
+            </div>`;
+        }
+
+        // جدول الصفوف
+        const gradeRows = Object.entries(gradeMap)
+            .sort(([a],[b]) => a.localeCompare(b, 'ar'))
+            .map(([grade, d]) => {
+                const pct = d.total > 0 ? Math.round(d.completed / d.total * 100) : 0;
+                return `<tr>
+                    <td style="font-weight:700;">${grade}</td>
+                    <td style="text-align:center;">${d.total}</td>
+                    <td style="text-align:center;">${d.completed}</td>
+                    <td>${pctBar(pct)}</td>
+                </tr>`;
+            }).join('');
+
+        // جدول الشعب
+        const sectionRows = Object.values(sectionMap)
+            .sort((a,b) => a.grade.localeCompare(b.grade,'ar') || a.section.localeCompare(b.section,'ar'))
+            .map(d => {
+                const pct = d.total > 0 ? Math.round(d.completed / d.total * 100) : 0;
+                return `<tr>
+                    <td style="font-weight:700;">${d.grade}</td>
+                    <td style="text-align:center;">شعبة ${d.section}</td>
+                    <td style="text-align:center;">${d.total}</td>
+                    <td style="text-align:center;">${d.completed}</td>
+                    <td>${pctBar(pct)}</td>
+                </tr>`;
+            }).join('');
+
+        document.getElementById('statsModalBody').innerHTML = `
+            <div>
+                <div class="stats-section-title">
+                    <i class="fas fa-graduation-cap"></i> حسب الصف
+                </div>
+                <div style="overflow-x:auto;">
+                    <table class="stats-table">
+                        <thead><tr>
+                            <th>الصف</th>
+                            <th style="text-align:center;">عدد الطلاب</th>
+                            <th style="text-align:center;">أكملوا الجميع</th>
+                            <th>نسبة الإنجاز</th>
+                        </tr></thead>
+                        <tbody>${gradeRows || '<tr><td colspan="4" style="text-align:center;color:var(--gray);">لا توجد بيانات</td></tr>'}</tbody>
+                    </table>
+                </div>
+            </div>
+            <div>
+                <div class="stats-section-title">
+                    <i class="fas fa-users"></i> حسب الشعبة
+                </div>
+                <div style="overflow-x:auto;">
+                    <table class="stats-table">
+                        <thead><tr>
+                            <th>الصف</th>
+                            <th style="text-align:center;">الشعبة</th>
+                            <th style="text-align:center;">عدد الطلاب</th>
+                            <th style="text-align:center;">أكملوا الجميع</th>
+                            <th>نسبة الإنجاز</th>
+                        </tr></thead>
+                        <tbody>${sectionRows || '<tr><td colspan="5" style="text-align:center;color:var(--gray);">لا توجد بيانات</td></tr>'}</tbody>
+                    </table>
+                </div>
+            </div>`;
+
+        document.getElementById('statsModal').classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeStatsModal(e) {
+        if (e.target === document.getElementById('statsModal')) closeStatsModalDirect();
+    }
+    function closeStatsModalDirect() {
+        document.getElementById('statsModal').classList.remove('open');
+        document.body.style.overflow = '';
+    }
 
     // ===== Render Recent =====
     function renderRecentTable(list) {
