@@ -1,0 +1,1496 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>بوابة الطلاب - ثانوية عشيرة</title>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary: #1a5f7a;
+            --primary-dark: #134b5f;
+            --primary-light: #2d7d9a;
+            --secondary: #c49b3f;
+            --secondary-light: #d4af5f;
+            --accent: #e8c872;
+            --success: #2ecc71;
+            --danger: #e74c3c;
+            --warning: #f39c12;
+            --dark: #1a1a2e;
+            --light: #f8f9fa;
+            --gray: #6c757d;
+            --bg-gradient: linear-gradient(135deg, #1a5f7a 0%, #134b5f 50%, #0d3d4d 100%);
+            --card-bg: rgba(255,255,255,0.97);
+            --shadow: 0 10px 40px rgba(0,0,0,0.2);
+            --radius: 16px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            color: var(--dark);
+            overflow-x: hidden;
+        }
+
+        /* Background */
+        .bg-pattern {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.1;
+            background-image:
+                radial-gradient(circle at 20% 80%, var(--secondary) 1px, transparent 1px),
+                radial-gradient(circle at 80% 20%, var(--secondary) 1px, transparent 1px),
+                radial-gradient(circle at 40% 40%, var(--accent) 0.5px, transparent 0.5px);
+            background-size: 100px 100px, 150px 150px, 50px 50px;
+            animation: floatBg 20s ease-in-out infinite;
+        }
+        @keyframes floatBg {
+            0%,100% { transform: translateY(0) rotate(0deg); }
+            50%      { transform: translateY(-20px) rotate(1deg); }
+        }
+
+        /* Container */
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        /* Logo */
+        .logo-section {
+            text-align: center;
+            padding: 30px 0;
+            animation: fadeInDown 0.8s ease;
+        }
+        .logo-icon {
+            width: 100px; height: 100px;
+            background: linear-gradient(135deg, var(--secondary), var(--accent));
+            border-radius: 24px;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 20px;
+            box-shadow: 0 10px 30px rgba(196,155,63,0.3);
+        }
+        .logo-icon i { font-size: 48px; color: white; }
+        .school-name {
+            font-family: 'Amiri', serif;
+            font-size: 28px; font-weight: 700;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            margin-bottom: 8px;
+        }
+        .portal-name { font-size: 18px; color: var(--accent); font-weight: 500; }
+        .dua-text {
+            font-family: 'Amiri', serif;
+            font-size: 16px; color: rgba(255,255,255,0.8);
+            margin-top: 15px; font-style: italic;
+        }
+
+        /* Card */
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 24px;
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+            animation: fadeInUp 0.6s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        /* Login */
+        .login-title {
+            font-size: 20px; font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 20px;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .input-group { position: relative; margin-bottom: 20px; }
+        .input-group input {
+            width: 100%;
+            padding: 16px 20px 16px 50px;
+            font-size: 18px;
+            font-family: 'Tajawal', sans-serif;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            background: white;
+            text-align: center;
+            letter-spacing: 2px;
+        }
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(26,95,122,0.1);
+        }
+        .input-group i {
+            position: absolute; right: 16px; top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray); font-size: 20px;
+        }
+
+        /* Buttons */
+        .btn {
+            width: 100%; padding: 16px;
+            font-size: 18px; font-weight: 700;
+            font-family: 'Tajawal', sans-serif;
+            border: none; border-radius: 12px;
+            cursor: pointer; transition: all 0.3s ease;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            box-shadow: 0 4px 15px rgba(26,95,122,0.3);
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(26,95,122,0.4); }
+        .btn-secondary { background: linear-gradient(135deg, var(--secondary), var(--secondary-light)); color: white; }
+        .btn-success   { background: linear-gradient(135deg, var(--success), #27ae60); color: white; }
+        .btn:disabled  { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+        /* Student Header */
+        .student-header {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+        }
+        .student-info { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
+        .student-avatar {
+            width: 60px; height: 60px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-size: 24px; font-weight: 700;
+        }
+        .student-details h3 { font-size: 18px; font-weight: 700; color: var(--primary); margin-bottom: 4px; }
+        .student-details p  { font-size: 14px; color: var(--gray); }
+        .student-stats { display: flex; gap: 10px; flex-wrap: wrap; }
+        .stat-badge {
+            padding: 8px 14px; border-radius: 20px;
+            font-size: 13px; font-weight: 500;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .stat-badge.total   { background: rgba(26,95,122,0.1);  color: var(--primary); }
+        .stat-badge.done    { background: rgba(46,204,113,0.1);  color: var(--success); }
+        .stat-badge.pending { background: rgba(243,156,18,0.1);  color: var(--warning); }
+
+        /* Logout */
+        .logout-btn {
+            position: absolute; left: 20px; top: 20px;
+            background: rgba(231,76,60,0.1); color: var(--danger);
+            border: none; padding: 10px 16px; border-radius: 10px;
+            cursor: pointer; font-family: 'Tajawal', sans-serif;
+            font-weight: 600; display: flex; align-items: center; gap: 6px;
+            transition: all 0.3s ease;
+        }
+        .logout-btn:hover { background: var(--danger); color: white; }
+
+        /* Lesson Links */
+        .lesson-links { display: flex; gap: 12px; margin-bottom: 18px; }
+        .lesson-link {
+            flex: 1; display: flex; align-items: center; gap: 10px;
+            padding: 14px 16px; background: var(--card-bg);
+            border-radius: var(--radius); text-decoration: none; color: var(--dark);
+            border-right: 4px solid var(--secondary);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+        .lesson-link:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.15); }
+        .lesson-link .link-icon {
+            width: 42px; height: 42px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; flex-shrink: 0;
+        }
+        .lesson-link.fiqh   .link-icon { background: linear-gradient(135deg,#1a5f7a,#2d7d9a); color:white; }
+        .lesson-link.hadith .link-icon { background: linear-gradient(135deg,#c49b3f,#d4af5f); color:white; }
+        .lesson-link .link-text { font-size: 13px; font-weight: 700; line-height: 1.5; }
+        .lesson-link .link-arrow { margin-right: auto; font-size: 14px; color: var(--gray); transition: transform 0.3s ease; }
+        .lesson-link:hover .link-arrow { transform: translateX(-4px); }
+
+        /* Exam Cards */
+        .exams-section h2 {
+            color: white; font-size: 20px; margin-bottom: 15px;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .exam-card {
+            background: var(--card-bg); border-radius: var(--radius);
+            padding: 20px; margin-bottom: 15px;
+            cursor: pointer; transition: all 0.3s ease;
+            border-right: 5px solid var(--primary);
+            position: relative; overflow: hidden;
+        }
+        .exam-card:hover { transform: translateX(-5px); box-shadow: 0 15px 40px rgba(0,0,0,0.15); }
+        .exam-card.new       { border-right-color: var(--success); animation: pulse 2s infinite; }
+        .exam-card.closed    { border-right-color: var(--gray); opacity: 0.8; }
+        .exam-card.completed { border-right-color: var(--secondary); }
+
+        @keyframes pulse {
+            0%,100% { box-shadow: 0 0 0 0 rgba(46,204,113,0.4); }
+            50%      { box-shadow: 0 0 0 10px rgba(46,204,113,0); }
+        }
+
+        .exam-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+        .exam-title  { font-size: 17px; font-weight: 700; color: var(--dark); }
+        .exam-badge  { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .exam-badge.new    { background: var(--success); color: white; }
+        .exam-badge.closed { background: var(--gray);    color: white; }
+        .exam-badge.timed  { background: var(--warning); color: white; }
+        .exam-meta {
+            display: flex; gap: 15px; font-size: 13px; color: var(--gray); flex-wrap: wrap;
+        }
+        .exam-meta span { display: flex; align-items: center; gap: 5px; }
+        .exam-score { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); text-align: center; }
+        .score-circle {
+            width: 50px; height: 50px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--success), #27ae60);
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-weight: 700; font-size: 16px;
+        }
+        .score-circle.pending { background: linear-gradient(135deg, var(--gray), #5a6268); font-size: 12px; }
+
+        /* Exam View */
+        .exam-top-bar {
+            background: var(--card-bg); border-radius: var(--radius);
+            padding: 15px 20px; margin-bottom: 20px;
+            display: flex; justify-content: space-between; align-items: center;
+            flex-wrap: wrap; gap: 10px;
+            position: sticky; top: 10px; z-index: 100;
+            box-shadow: var(--shadow);
+        }
+        .timer {
+            font-size: 24px; font-weight: 700; color: var(--danger);
+            display: flex; align-items: center; gap: 8px;
+        }
+        .timer.warning { animation: timerBlink 0.5s infinite; }
+        @keyframes timerBlink { 0%,100%{opacity:1} 50%{opacity:0.5} }
+        .progress-info { font-size: 14px; color: var(--gray); }
+        .back-btn {
+            background: none; border: none; color: var(--primary);
+            font-size: 16px; cursor: pointer;
+            display: flex; align-items: center; gap: 5px;
+            font-family: 'Tajawal', sans-serif; font-weight: 600;
+        }
+
+        /* Questions */
+        .question-card {
+            background: var(--card-bg); border-radius: var(--radius);
+            padding: 24px; margin-bottom: 20px;
+            animation: fadeInUp 0.4s ease;
+        }
+        .question-card.unanswered { border: 2px solid var(--warning); }
+        .question-number {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white; padding: 6px 14px; border-radius: 20px;
+            font-size: 14px; font-weight: 600; margin-bottom: 15px;
+        }
+        .question-text { font-size: 17px; font-weight: 600; line-height: 1.8; margin-bottom: 20px; color: var(--dark); }
+        .options-list  { display: flex; flex-direction: column; gap: 12px; }
+        .option-item {
+            padding: 16px 20px; border: 2px solid #e0e0e0; border-radius: 12px;
+            cursor: pointer; transition: all 0.3s ease;
+            display: flex; align-items: center; gap: 12px; font-size: 16px;
+        }
+        .option-item:hover   { border-color: var(--primary); background: rgba(26,95,122,0.05); }
+        .option-item.selected{ border-color: var(--primary); background: rgba(26,95,122,0.1); }
+        .option-item.correct { border-color: var(--success); background: rgba(46,204,113,0.1); }
+        .option-item.wrong   { border-color: var(--danger);  background: rgba(231,76,60,0.1); }
+        .option-radio {
+            width: 24px; height: 24px; border: 2px solid #ccc; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0; transition: all 0.3s ease;
+        }
+        .option-item.selected .option-radio { border-color: var(--primary); background: var(--primary); }
+        .option-item.selected .option-radio::after { content: '✓'; color: white; font-size: 14px; }
+        .option-item.correct  .option-radio { border-color: var(--success); background: var(--success); }
+        .option-item.correct  .option-radio::after { content: '✓'; color: white; }
+        .option-item.wrong    .option-radio { border-color: var(--danger); background: var(--danger); }
+        .option-item.wrong    .option-radio::after { content: '✗'; color: white; }
+
+        /* Submit */
+        .submit-section { margin-top: 30px; padding-top: 20px; border-top: 2px dashed #e0e0e0; }
+
+        /* Survey */
+        .survey-container { text-align: right; }
+        .survey-question { margin-bottom: 20px; }
+        .survey-question label { display: block; margin-bottom: 10px; font-weight: 600; }
+        .rating-stars { display: flex; gap: 10px; justify-content: center; direction: ltr; }
+        .rating-stars i { font-size: 28px; color: #ddd; cursor: pointer; transition: all 0.2s ease; }
+        .rating-stars i.active, .rating-stars i:hover { color: var(--secondary); transform: scale(1.2); }
+        .survey-textarea {
+            width: 100%; padding: 15px;
+            border: 2px solid #e0e0e0; border-radius: 12px;
+            font-family: 'Tajawal', sans-serif; font-size: 16px;
+            resize: none; height: 100px;
+        }
+        .char-counter { text-align: left; font-size: 12px; color: var(--gray); margin-top: 5px; }
+
+        /* Review */
+        .review-header {
+            background: linear-gradient(135deg, var(--success), #27ae60);
+            color: white; padding: 30px; border-radius: var(--radius);
+            text-align: center; margin-bottom: 20px;
+        }
+        .review-header.perfect { background: linear-gradient(135deg, var(--secondary), var(--accent)); }
+        .review-score { font-size: 48px; font-weight: 800; }
+
+        /* Navigation */
+        .questions-nav {
+            display: flex; flex-wrap: wrap; gap: 8px;
+            margin-bottom: 20px; justify-content: center;
+        }
+        .q-nav-btn {
+            width: 40px; height: 40px; border-radius: 50%;
+            border: 2px solid var(--primary); background: white;
+            color: var(--primary); font-weight: 700; cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .q-nav-btn.answered { background: var(--primary); color: white; }
+        .q-nav-btn.current  { transform: scale(1.2); box-shadow: 0 0 10px rgba(26,95,122,0.5); }
+
+        /* Loading */
+        .loading-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.7);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 10000;
+        }
+        .loading-spinner {
+            width: 60px; height: 60px;
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top-color: var(--secondary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Violation */
+        .violation-badge {
+            position: fixed; bottom: 20px; left: 20px;
+            background: var(--danger); color: white;
+            padding: 10px 20px; border-radius: 30px;
+            font-weight: 600; display: flex; align-items: center; gap: 8px;
+            z-index: 1000; animation: shake 0.5s ease;
+        }
+        @keyframes shake {
+            0%,100%{transform:translateX(0)} 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)}
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from { opacity:0; transform:translateY(30px); }
+            to   { opacity:1; transform:translateY(0); }
+        }
+        @keyframes fadeInDown {
+            from { opacity:0; transform:translateY(-30px); }
+            to   { opacity:1; transform:translateY(0); }
+        }
+
+        /* Hidden */
+        .hidden { display: none !important; }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .container    { padding: 15px; }
+            .logo-icon    { width: 80px; height: 80px; }
+            .logo-icon i  { font-size: 36px; }
+            .school-name  { font-size: 22px; }
+            .student-info { flex-direction: column; text-align: center; }
+            .exam-header  { flex-direction: column; gap: 10px; }
+            .exam-score   { position: static; transform: none; margin-top: 10px; }
+            .lesson-links { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="bg-pattern"></div>
+
+<div class="container">
+
+    <!-- ===== LOGIN ===== -->
+    <div id="loginSection">
+        <div class="logo-section">
+            <div class="logo-icon">
+                <i class="fas fa-graduation-cap"></i>
+            </div>
+            <h1 class="school-name">ثانوية عشيرة</h1>
+            <p class="portal-name">بوابة الاختبارات الذكية</p>
+            <p class="dua-text">اللهم لا سهل إلا ما جعلته سهلاً</p>
+        </div>
+
+        <div class="card">
+            <h2 class="login-title">
+                <i class="fas fa-sign-in-alt"></i>
+                دخول الطلاب
+            </h2>
+            <div class="input-group">
+                <input type="text" id="civilIdInput" placeholder="السجل المدني"
+                       maxlength="10" inputmode="numeric" pattern="[0-9]*"
+                       onkeydown="if(event.key==='Enter') handleLogin()">
+                <i class="fas fa-id-card"></i>
+            </div>
+            <button class="btn btn-primary" onclick="handleLogin()">
+                <i class="fas fa-arrow-left"></i>
+                دخول
+            </button>
+        </div>
+    </div>
+
+    <!-- ===== DASHBOARD ===== -->
+    <div id="dashboardSection" class="hidden">
+        <button class="logout-btn" onclick="handleLogout()">
+            <i class="fas fa-sign-out-alt"></i>
+            خروج
+        </button>
+
+        <div class="logo-section" style="padding: 15px 0;">
+            <div class="logo-icon" style="width:60px;height:60px;border-radius:16px;">
+                <i class="fas fa-graduation-cap" style="font-size:28px;"></i>
+            </div>
+        </div>
+
+        <div class="student-header">
+            <div class="student-info">
+                <div class="student-avatar" id="studentAvatar">م</div>
+                <div class="student-details">
+                    <h3 id="studentName">—</h3>
+                    <p  id="studentInfo">—</p>
+                    <p  id="studentCivilId" style="font-size:12px;color:var(--gray);">—</p>
+                </div>
+            </div>
+            <div class="student-stats">
+                <span class="stat-badge total">
+                    <i class="fas fa-file-alt"></i>
+                    <span id="totalExams">0</span> اختبار
+                </span>
+                <span class="stat-badge done">
+                    <i class="fas fa-check-circle"></i>
+                    <span id="completedExams">0</span> مكتمل
+                </span>
+                <span class="stat-badge pending">
+                    <i class="fas fa-clock"></i>
+                    <span id="pendingExams">0</span> متبقي
+                </span>
+            </div>
+        </div>
+
+        <div class="lesson-links">
+            <a href="https://ushayrah.com/osh/fg.html" target="_blank" class="lesson-link fiqh">
+                <div class="link-icon"><i class="fas fa-book-open"></i></div>
+                <span class="link-text">دروس الفقه<br>للصف الثالث ثانوي</span>
+                <i class="fas fa-chevron-left link-arrow"></i>
+            </a>
+            <a href="https://ushayrah.com/osh/hd.html" target="_blank" class="lesson-link hadith">
+                <div class="link-icon"><i class="fas fa-book"></i></div>
+                <span class="link-text">دروس الحديث<br>للصف الأول ثانوي</span>
+                <i class="fas fa-chevron-left link-arrow"></i>
+            </a>
+        </div>
+
+        <div class="exams-section">
+            <h2><i class="fas fa-list-alt"></i> الاختبارات المتاحة</h2>
+            <div id="examsList"></div>
+        </div>
+    </div>
+
+    <!-- ===== EXAM ===== -->
+    <div id="examSection" class="hidden">
+        <div class="exam-top-bar">
+            <button class="back-btn" onclick="exitExam()">
+                <i class="fas fa-arrow-right"></i> رجوع
+            </button>
+            <div class="progress-info">
+                <span id="answeredCount">0</span> / <span id="totalQuestions">0</span>
+            </div>
+            <div class="timer hidden" id="examTimer">
+                <i class="fas fa-stopwatch"></i>
+                <span id="timerDisplay">00:00</span>
+            </div>
+        </div>
+
+        <div class="questions-nav" id="questionsNav"></div>
+        <div id="questionsContainer"></div>
+
+        <div class="submit-section">
+            <button class="btn btn-success" onclick="submitExam()">
+                <i class="fas fa-paper-plane"></i>
+                إرسال الإجابات
+            </button>
+        </div>
+    </div>
+
+    <!-- ===== REVIEW ===== -->
+    <div id="reviewSection" class="hidden">
+        <div class="exam-top-bar">
+            <button class="back-btn" onclick="exitReview()">
+                <i class="fas fa-arrow-right"></i> رجوع للقائمة
+            </button>
+            <div id="reviewExamTitle" style="font-weight:600;"></div>
+        </div>
+
+        <div id="reviewHeader" class="review-header">
+            <div class="review-score" id="reviewScore">—</div>
+            <p id="reviewMessage"></p>
+        </div>
+
+        <div id="reviewQuestionsContainer"></div>
+
+        <div class="submit-section" id="retakeSection">
+            <button class="btn btn-secondary" onclick="requestRetake()">
+                <i class="fas fa-redo"></i>
+                طلب إعادة الاختبار
+            </button>
+        </div>
+    </div>
+
+</div><!-- /container -->
+
+<!-- Loading -->
+<div class="loading-overlay hidden" id="loadingOverlay">
+    <div class="loading-spinner"></div>
+</div>
+
+<!-- Violation Badge -->
+<div class="violation-badge hidden" id="violationBadge">
+    <i class="fas fa-exclamation-triangle"></i>
+    <span>مخالفات: <span id="violationCount">0</span></span>
+</div>
+
+<script>
+// ===== Firebase =====
+const firebaseConfig = {
+    apiKey: "AIzaSyBxPO6RKsQ1Cq-mqlCpFTrCuIyxnYdB37U",
+    authDomain: "studentsystem-c1ab1.firebaseapp.com",
+    databaseURL: "https://studentsystem-c1ab1-default-rtdb.firebaseio.com",
+    projectId: "studentsystem-c1ab1",
+    storageBucket: "studentsystem-c1ab1.firebasestorage.app",
+    messagingSenderId: "112215023848",
+    appId: "1:112215023848:web:0adba326a527ee7e37e95d"
+};
+if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+const db      = firebase.database();
+const rootRef = db.ref('q2026_2');
+
+// ===== State =====
+let currentStudent = null;
+let currentExam    = null;
+let currentAnswers = {};
+let timerInterval  = null;
+let remainingTime  = 0;
+let violations     = 0;
+let examStartTime  = null;
+let isInExam       = false;
+
+// ===== Cache =====
+const dataCache = {
+    exams:     { data: null, timestamp: 0 },
+    responses: { data: null, timestamp: 0 }
+};
+const CACHE_DURATION = 30000;
+
+async function getCachedData(key, fetchFn) {
+    const cache = dataCache[key];
+    const now   = Date.now();
+    if (cache.data && (now - cache.timestamp) < CACHE_DURATION) return cache.data;
+    const data = await fetchFn();
+    dataCache[key] = { data, timestamp: now };
+    return data;
+}
+function invalidateCache(key) {
+    if (key) dataCache[key] = { data: null, timestamp: 0 };
+    else Object.keys(dataCache).forEach(k => { dataCache[k] = { data: null, timestamp: 0 }; });
+}
+
+// ===== Storage =====
+window.tempStorage = window.tempStorage || {};
+function isLocalStorageAvailable() {
+    try { localStorage.setItem('__t','1'); localStorage.removeItem('__t'); return true; } catch(e) { return false; }
+}
+const useLocalStorage = isLocalStorageAvailable();
+
+function saveToStorage(key, value) {
+    if (useLocalStorage) { try { localStorage.setItem(key, JSON.stringify(value)); return; } catch(e){} }
+    window.tempStorage[key] = value;
+}
+function getFromStorage(key) {
+    if (useLocalStorage) { try { const i = localStorage.getItem(key); return i ? JSON.parse(i) : null; } catch(e){} }
+    return window.tempStorage[key] || null;
+}
+function removeFromStorage(key) {
+    if (useLocalStorage) { try { localStorage.removeItem(key); } catch(e){} }
+    delete window.tempStorage[key];
+}
+
+// ===== Draft Answers (Firebase) =====
+async function loadDraftAnswers(examId, civilId) {
+    const snap = await rootRef.child('drafts').child(civilId).child(examId).once('value');
+    return snap.val()?.answers || null;
+}
+async function saveDraftAnswers(examId, civilId, answers) {
+    await rootRef.child('drafts').child(civilId).child(examId).set({
+        answers, timestamp: firebase.database.ServerValue.TIMESTAMP
+    });
+}
+async function clearDraftAnswers(examId, civilId) {
+    await rootRef.child('drafts').child(civilId).child(examId).remove();
+}
+
+// ===== Check Saved Session =====
+async function checkSavedSession() {
+    const saved = getFromStorage('currentStudent');
+    if (!saved) return false;
+    const snap = await rootRef.child('students').child(saved.civilId).once('value');
+    if (snap.exists()) {
+        currentStudent = { civilId: saved.civilId, ...snap.val() };
+        showDashboard();
+        return true;
+    }
+    removeFromStorage('currentStudent');
+    return false;
+}
+
+// ===== Login =====
+async function handleLogin() {
+    const civilId = document.getElementById('civilIdInput').value.trim();
+    if (!civilId || civilId.length !== 10 || !/^\d+$/.test(civilId)) {
+        showAlert('خطأ', 'يرجى إدخال السجل المدني بشكل صحيح (10 أرقام)', 'error');
+        return;
+    }
+    showLoading(true);
+    try {
+        const snap = await rootRef.child('students').child(civilId).once('value');
+        showLoading(false);
+        if (!snap.exists()) {
+            showAlert('غير موجود', 'السجل المدني غير موجود في النظام. راجع معلم المادة.', 'error');
+            return;
+        }
+        const studentData = snap.val();
+        const result = await Swal.fire({
+            title: 'تأكيد الهوية',
+            html: `<p style="font-size:18px;">هل أنت <strong>${studentData.name}</strong>؟</p>
+                   <p style="color:#666;margin-top:10px;">${studentData.grade} - شعبة ${studentData.section}</p>`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'نعم، أنا',
+            cancelButtonText: 'لا',
+            confirmButtonColor: '#1a5f7a',
+            cancelButtonColor: '#6c757d'
+        });
+        if (result.isConfirmed) {
+            currentStudent = { civilId, ...studentData };
+            saveToStorage('currentStudent', { civilId });
+            showDashboard();
+        }
+    } catch (err) {
+        showLoading(false);
+        showAlert('خطأ', 'حدث خطأ في الاتصال. حاول مرة أخرى.', 'error');
+    }
+}
+
+// ===== Logout =====
+function handleLogout() {
+    Swal.fire({
+        title: 'تسجيل الخروج',
+        text: 'هل تريد تسجيل الخروج من النظام؟',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'نعم',
+        cancelButtonText: 'إلغاء',
+        confirmButtonColor: '#e74c3c'
+    }).then(result => {
+        if (result.isConfirmed) {
+            currentStudent = null;
+            removeFromStorage('currentStudent');
+            document.getElementById('loginSection').classList.remove('hidden');
+            document.getElementById('dashboardSection').classList.add('hidden');
+            document.getElementById('civilIdInput').value = '';
+        }
+    });
+}
+
+// ===== Dashboard =====
+async function showDashboard() {
+    document.getElementById('loginSection').classList.add('hidden');
+    document.getElementById('dashboardSection').classList.remove('hidden');
+    document.getElementById('studentName').textContent    = currentStudent.name;
+    document.getElementById('studentInfo').textContent    = `${currentStudent.grade} - شعبة ${currentStudent.section}`;
+    document.getElementById('studentCivilId').textContent = currentStudent.civilId;
+    document.getElementById('studentAvatar').textContent  = currentStudent.name.charAt(0);
+    await loadExams();
+}
+
+// ===== Load Exams =====
+window.loadedExamsData = {};
+async function loadExams() {
+    showLoading(true);
+    const examsList = document.getElementById('examsList');
+    examsList.innerHTML = '';
+    window.loadedExamsData = {};
+
+    try {
+        const [exams, responses] = await Promise.all([
+            getCachedData('exams',     async () => (await rootRef.child('exams').once('value')).val()     || {}),
+            getCachedData('responses', async () => (await rootRef.child('responses').once('value')).val() || {})
+        ]);
+
+        let total = 0, completed = 0;
+
+        for (const [examId, exam] of Object.entries(exams)) {
+            if (!isStudentTargeted(exam.settings)) continue;
+            if (!exam.settings?.isPublished) continue;
+            total++;
+
+            const studentResponse = responses[examId]?.[currentStudent.civilId];
+            if (studentResponse?.submitted) completed++;
+
+            window.loadedExamsData[examId] = { exam, studentResponse };
+            examsList.appendChild(createExamCard(examId, exam, studentResponse));
+        }
+
+        document.getElementById('totalExams').textContent    = total;
+        document.getElementById('completedExams').textContent = completed;
+        document.getElementById('pendingExams').textContent  = total - completed;
+
+        if (total === 0) {
+            examsList.innerHTML = `
+                <div class="card" style="text-align:center;padding:40px;">
+                    <i class="fas fa-inbox" style="font-size:48px;color:var(--gray);margin-bottom:15px;"></i>
+                    <p style="color:var(--gray);">لا توجد اختبارات متاحة حالياً</p>
+                </div>`;
+        }
+    } catch (err) {
+        console.error(err);
+        examsList.innerHTML = `<div class="card" style="text-align:center;"><p style="color:var(--danger);">حدث خطأ في تحميل الاختبارات</p></div>`;
+    }
+    showLoading(false);
+}
+
+// ===== isStudentTargeted =====
+function isStudentTargeted(settings) {
+    if (!settings) return true;
+    const t = settings.targetType || 'all';
+    switch (t) {
+        case 'all': return true;
+        case 'grade': return currentStudent.grade === settings.targetGrade;
+        case 'section': {
+            const secs = settings.targetSections || [];
+            if (secs.length > 0) {
+                const gNum = currentStudent.grade === 'أول ثانوي' ? '1' : currentStudent.grade === 'ثاني ثانوي' ? '2' : '3';
+                return secs.some(s => s.grade === gNum && s.section === currentStudent.section);
+            }
+            return currentStudent.grade === settings.targetGrade && currentStudent.section === settings.targetSection;
+        }
+        case 'specific': return settings.targetStudents?.includes(currentStudent.civilId);
+        default: return true;
+    }
+}
+
+// ===== Create Exam Card =====
+function createExamCard(examId, exam, studentResponse) {
+    const hasCompleted = studentResponse?.submitted;
+    const isOpen       = exam.settings?.isOpen;
+    const hasTimer     = exam.settings?.hasTimer;
+    const showResults  = exam.settings?.showResults;
+    const hasSchedule  = exam.settings?.hasSchedule;
+
+    let cardClass = 'exam-card';
+    let badgeHTML = '';
+    let scoreHTML = '';
+
+    if (hasCompleted) {
+        cardClass += ' completed';
+        if (showResults && studentResponse.score !== undefined) {
+            const pct = Math.round((studentResponse.score / studentResponse.totalPoints) * 100);
+            scoreHTML = `<div class="exam-score"><div class="score-circle">${pct}%</div></div>`;
+        } else {
+            scoreHTML = `<div class="exam-score"><div class="score-circle pending">قريباً</div></div>`;
+        }
+        badgeHTML = '<span class="exam-badge" style="background:var(--secondary);">مكتمل</span>';
+    } else if (!isOpen) {
+        cardClass += ' closed';
+        badgeHTML = '<span class="exam-badge closed">مغلق</span>';
+    } else {
+        cardClass += ' new';
+        badgeHTML  = '<span class="exam-badge new">جديد</span>';
+        if (hasTimer) {
+            badgeHTML += `<span class="exam-badge timed" style="margin-right:5px;">
+                <i class="fas fa-clock"></i> ${exam.settings.timerMinutes} دقيقة</span>`;
+        }
+    }
+
+    const questionsCount = Object.keys(exam.questions || {}).length;
+
+    const fmt = ts => {
+        if (!ts) return '';
+        const d = new Date(ts);
+        return d.toLocaleDateString('ar-SA',{day:'numeric',month:'short'}) + ' ' +
+               d.toLocaleTimeString('ar-SA',{hour:'2-digit',minute:'2-digit'});
+    };
+
+    const scheduleHTML = hasSchedule && exam.settings?.scheduledStart && exam.settings?.scheduledEnd
+        ? `<div style="font-size:11px;color:var(--secondary);margin-top:5px;padding:5px;background:rgba(196,155,63,0.1);border-radius:5px;">
+            <i class="fas fa-calendar-alt"></i> من: ${fmt(exam.settings.scheduledStart)} | إلى: ${fmt(exam.settings.scheduledEnd)}
+           </div>` : '';
+
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = `
+        <div class="${cardClass}" onclick="handleExamClick('${examId}')">
+            <div class="exam-header">
+                <div class="exam-title">${exam.title}</div>
+                <div>${badgeHTML}</div>
+            </div>
+            ${scheduleHTML}
+            <div class="exam-meta">
+                <span><i class="fas fa-book"></i> ${exam.subject || 'غير محدد'}</span>
+                <span><i class="fas fa-user-tie"></i> ${exam.teacherName || 'غير محدد'}</span>
+                <span><i class="fas fa-question-circle"></i> ${questionsCount} سؤال</span>
+            </div>
+            ${scoreHTML}
+        </div>`;
+    return wrapper.firstElementChild;
+}
+
+// ===== Handle Exam Click =====
+window.handleExamClick = async function(examId) {
+    try {
+        const [examSnap, respSnap] = await Promise.all([
+            rootRef.child('exams').child(examId).once('value'),
+            rootRef.child('responses').child(examId).child(currentStudent.civilId).once('value')
+        ]);
+        const exam = examSnap.val();
+        const studentResponse = respSnap.val();
+        if (exam) {
+            window.loadedExamsData[examId] = { exam, studentResponse };
+            await openExam(examId, exam, studentResponse);
+        } else {
+            showAlert('خطأ', 'الاختبار غير موجود', 'error');
+        }
+    } catch (err) {
+        console.error(err);
+        if (window.loadedExamsData[examId]) {
+            const { exam, studentResponse } = window.loadedExamsData[examId];
+            await openExam(examId, exam, studentResponse);
+        }
+    }
+};
+
+// ===== Open Exam =====
+async function openExam(examId, exam, studentResponse) {
+    const hasCompleted = studentResponse?.submitted;
+    const isOpen       = exam.settings?.isOpen;
+    const hasTimer     = exam.settings?.hasTimer;
+    const timerMinutes = exam.settings?.timerMinutes || 0;
+
+    if (hasCompleted) { showReview(examId, exam, studentResponse); return; }
+    if (!isOpen) { showAlert('الاختبار مغلق', 'هذا الاختبار مغلق حالياً ولا يمكن الإجابة عليه.', 'info'); return; }
+
+    if (hasTimer) {
+        const result = await Swal.fire({
+            title: 'اختبار موقوت',
+            html: `<p style="margin-bottom:15px;">هذا الاختبار له مؤقت <strong>${timerMinutes} دقيقة</strong></p>
+                   <p style="color:#e74c3c;font-weight:600;">⚠️ بمجرد البدء لا يمكنك المقاطعة</p>
+                   <p style="margin-top:15px;">هل أنت مستعد للبدء الآن؟</p>`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'ابدأ الآن',
+            cancelButtonText: 'لاحقاً',
+            confirmButtonColor: '#2ecc71',
+            cancelButtonColor: '#6c757d'
+        });
+        if (!result.isConfirmed) return;
+    }
+    startExam(examId, exam, hasTimer, timerMinutes);
+}
+
+// ===== Start Exam =====
+async function startExam(examId, exam, hasTimer, timerMinutes) {
+    currentExam    = { id: examId, ...exam };
+    currentAnswers = {};
+    violations     = 0;
+    isInExam       = true;
+
+    const serverTimeSnap = await db.ref('.info/serverTimeOffset').once('value');
+    examStartTime = Date.now() + (serverTimeSnap.val() || 0);
+
+    await rootRef.child('responses').child(examId).child(currentStudent.civilId).update({
+        startTime   : firebase.database.ServerValue.TIMESTAMP,
+        studentName : currentStudent.name,
+        grade       : currentStudent.grade,
+        section     : currentStudent.section
+    });
+
+    const savedAnswers = await loadDraftAnswers(examId, currentStudent.civilId);
+    if (savedAnswers) currentAnswers = savedAnswers;
+
+    if (hasTimer) {
+        remainingTime = timerMinutes * 60;
+        document.getElementById('examTimer').classList.remove('hidden');
+        startTimer();
+    } else {
+        document.getElementById('examTimer').classList.add('hidden');
+    }
+
+    document.getElementById('dashboardSection').classList.add('hidden');
+    document.getElementById('examSection').classList.remove('hidden');
+    renderQuestions();
+    setupVisibilityTracking();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ===== Shuffle =====
+function shuffleArray(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+}
+
+// ===== Render Questions =====
+function renderQuestions() {
+    const container = document.getElementById('questionsContainer');
+    const nav       = document.getElementById('questionsNav');
+    container.innerHTML = '';
+    nav.innerHTML = '';
+
+    let questions = Object.entries(currentExam.questions || {});
+    if (currentExam.settings?.shuffleQuestions) questions = shuffleArray(questions);
+
+    document.getElementById('totalQuestions').textContent = questions.length;
+
+    questions.forEach(([qId, q], index) => {
+        const navBtn = document.createElement('button');
+        navBtn.className = 'q-nav-btn' + (currentAnswers[qId] !== undefined ? ' answered' : '');
+        navBtn.textContent = index + 1;
+        navBtn.onclick = () => scrollToQuestion(qId);
+        nav.appendChild(navBtn);
+
+        const card = document.createElement('div');
+        card.className = 'question-card' + (currentAnswers[qId] === undefined ? ' unanswered' : '');
+        card.id = `question_${qId}`;
+
+        const typeLabel = q.type === 'truefalse' ? 'صح/خطأ' : 'اختيار متعدد';
+        card.innerHTML = `
+            <span class="question-number">السؤال ${index + 1} - ${typeLabel}</span>
+            <div class="question-text">${q.text}</div>
+            <div class="options-list">
+                ${q.options.map((opt, i) => `
+                    <div class="option-item ${currentAnswers[qId] === i ? 'selected' : ''}"
+                         onclick="selectAnswer('${qId}', ${i}, this)">
+                        <div class="option-radio"></div>
+                        <span>${opt}</span>
+                    </div>`).join('')}
+            </div>`;
+        container.appendChild(card);
+    });
+
+    updateProgress();
+}
+
+// ===== Select Answer =====
+function selectAnswer(questionId, optionIndex, element) {
+    currentAnswers[questionId] = optionIndex;
+    saveDraftAnswers(currentExam.id, currentStudent.civilId, currentAnswers);
+
+    const card = element.closest('.question-card');
+    card.querySelectorAll('.option-item').forEach(o => o.classList.remove('selected'));
+    element.classList.add('selected');
+    card.classList.remove('unanswered');
+
+    const qIdx = Object.keys(currentExam.questions).indexOf(questionId);
+    const navBtns = document.querySelectorAll('.q-nav-btn');
+    if (navBtns[qIdx]) navBtns[qIdx].classList.add('answered');
+
+    updateProgress();
+}
+
+function scrollToQuestion(qId) {
+    document.getElementById(`question_${qId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function updateProgress() {
+    document.getElementById('answeredCount').textContent = Object.keys(currentAnswers).length;
+}
+
+// ===== Timer =====
+function startTimer() {
+    updateTimerDisplay();
+    timerInterval = setInterval(() => {
+        remainingTime--;
+        updateTimerDisplay();
+        if (remainingTime <= 60) document.getElementById('examTimer').classList.add('warning');
+        if (remainingTime <= 0) { clearInterval(timerInterval); autoSubmit(); }
+    }, 1000);
+}
+
+function updateTimerDisplay() {
+    const m = Math.floor(remainingTime / 60);
+    const s = remainingTime % 60;
+    document.getElementById('timerDisplay').textContent =
+        `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+function autoSubmit() {
+    Swal.fire({
+        title: 'انتهى الوقت!', text: 'تم إرسال إجاباتك تلقائياً',
+        icon: 'info', confirmButtonText: 'حسناً', allowOutsideClick: false
+    }).then(() => submitExamData());
+}
+
+// ===== Visibility Tracking =====
+function setupVisibilityTracking() {
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+}
+
+function handleVisibilityChange() {
+    if (!isInExam) return;
+    if (document.hidden) {
+        violations++;
+        document.getElementById('violationCount').textContent = violations;
+        document.getElementById('violationBadge').classList.remove('hidden');
+        rootRef.child('responses').child(currentExam.id).child(currentStudent.civilId)
+               .child('violations').set(violations);
+    } else {
+        Swal.fire({
+            title: '⚠️ تحذير',
+            html: `<p>تم تسجيل خروجك من صفحة الاختبار!</p>
+                   <p style="color:#e74c3c;font-weight:600;">عدد المخالفات: ${violations}</p>`,
+            icon: 'warning', confirmButtonText: 'موافق', confirmButtonColor: '#e74c3c'
+        });
+    }
+}
+
+// ===== Submit Exam =====
+async function submitExam() {
+    const total    = Object.keys(currentExam.questions || {}).length;
+    const answered = Object.keys(currentAnswers).length;
+
+    if (answered < total) {
+        const unansweredCards = document.querySelectorAll('.question-card.unanswered');
+        unansweredCards.forEach(c => { c.style.border = '2px solid var(--danger)'; c.style.animation = 'shake 0.5s ease'; });
+        document.querySelectorAll('.q-nav-btn:not(.answered)').forEach(b => { b.style.background = 'var(--danger)'; b.style.color = 'white'; });
+        await showAlert('يجب إكمال جميع الأسئلة',
+            `لديك ${total - answered} سؤال بدون إجابة. يرجى الإجابة على جميع الأسئلة قبل الإرسال.`, 'error');
+        unansweredCards[0]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+    }
+
+    const confirm = await Swal.fire({
+        title: 'تأكيد الإرسال',
+        text: 'هل أنت متأكد من إرسال إجاباتك؟ لن تتمكن من التعديل بعد ذلك.',
+        icon: 'question', showCancelButton: true,
+        confirmButtonText: 'إرسال', cancelButtonText: 'مراجعة',
+        confirmButtonColor: '#2ecc71'
+    });
+    if (confirm.isConfirmed) await submitExamData();
+}
+
+// ===== Submit Exam Data =====
+async function submitExamData() {
+    showLoading(true);
+    clearInterval(timerInterval);
+
+    try {
+        let score = 0, totalPoints = 0;
+        for (const [qId, q] of Object.entries(currentExam.questions)) {
+            totalPoints += q.points || 1;
+            if (currentAnswers[qId] === q.correctAnswer) score += q.points || 1;
+        }
+
+        const respSnap = await rootRef.child('responses').child(currentExam.id).once('value');
+        const rank = Object.values(respSnap.val() || {}).filter(r => r.submitted).length + 1;
+
+        await rootRef.child('responses').child(currentExam.id).child(currentStudent.civilId).update({
+            answers: currentAnswers, score, totalPoints,
+            submitted: true, submitTime: firebase.database.ServerValue.TIMESTAMP,
+            violations, rank
+        });
+
+        await clearDraftAnswers(currentExam.id, currentStudent.civilId);
+        invalidateCache('responses');
+
+        isInExam = false;
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+        showLoading(false);
+
+        if (currentExam.settings?.showAnswersAfterSubmit) {
+            await showCorrectAnswers(score, totalPoints, rank);
+        } else {
+            await showSurvey(rank, score, totalPoints);
+        }
+    } catch (err) {
+        showLoading(false);
+        showAlert('خطأ', 'حدث خطأ في إرسال الإجابات. حاول مرة أخرى.', 'error');
+        console.error(err);
+    }
+}
+
+// ===== Show Correct Answers =====
+async function showCorrectAnswers(score, totalPoints, rank) {
+    const questions = Object.entries(currentExam.questions || {});
+    const answersHtml = questions.map(([qId, q], i) => {
+        const userAns   = currentAnswers[qId];
+        const isCorrect = userAns === q.correctAnswer;
+        const correctOpt = q.options[q.correctAnswer];
+        const userOpt    = userAns !== undefined ? q.options[userAns] : 'لم تتم الإجابة';
+        return `<div style="background:${isCorrect ? '#d4edda' : '#f8d7da'};padding:12px;border-radius:8px;margin-bottom:10px;text-align:right;">
+            <strong>س${i+1}: ${q.text}</strong><br>
+            <span style="color:${isCorrect ? '#155724' : '#721c24'};">
+                إجابتك: ${userOpt} ${isCorrect ? '✓' : '✗'}
+            </span>
+            ${!isCorrect ? `<br><span style="color:#155724;">الإجابة الصحيحة: ${correctOpt}</span>` : ''}
+        </div>`;
+    }).join('');
+
+    await Swal.fire({
+        title: `📊 نتيجتك: ${score}/${totalPoints}`,
+        html: `<div style="text-align:center;margin-bottom:15px;">
+                    <p style="font-size:18px;color:var(--primary);">ترتيبك: <strong>المختبر رقم ${rank}</strong></p>
+                    <p style="color:${score >= totalPoints*0.6 ? '#28a745' : '#dc3545'};font-weight:bold;">
+                        النسبة: ${Math.round(score/totalPoints*100)}%
+                    </p>
+               </div>
+               <div style="max-height:300px;overflow-y:auto;">${answersHtml}</div>`,
+        confirmButtonText: 'متابعة للتقييم',
+        confirmButtonColor: '#1a5f7a',
+        allowOutsideClick: false, width: '90%'
+    });
+    await showSurvey(rank, score, totalPoints);
+}
+
+// ===== Survey =====
+async function showSurvey(rank, score, totalPoints) {
+    const hasSurvey       = currentExam.settings?.hasSurvey;
+    const surveySettings  = currentExam.settings?.surveySettings;
+    const showResults     = currentExam.settings?.showResults;
+    const percentage      = totalPoints > 0 ? Math.round(score / totalPoints * 100) : 0;
+
+    const resultHtml = `
+        <div style="text-align:center;margin-bottom:15px;">
+            <p style="font-size:18px;color:var(--primary);">ترتيبك: <strong>المختبر رقم ${rank}</strong></p>
+            ${showResults
+                ? `<p style="color:${percentage>=60?'#28a745':'#dc3545'};font-weight:bold;font-size:20px;">النتيجة: ${score}/${totalPoints} (${percentage}%)</p>`
+                : '<p style="color:#666;">ستظهر النتيجة في وقت لاحق</p>'}
+        </div>`;
+
+    if (!hasSurvey) {
+        await Swal.fire({
+            title: '✅ تم استلام إجاباتك', html: resultHtml,
+            confirmButtonText: 'حسناً', confirmButtonColor: '#1a5f7a',
+            allowOutsideClick: false, allowEscapeKey: false
+        });
+        exitExam(); return;
+    }
+
+    const diffEnabled  = surveySettings?.difficulty?.enabled !== false;
+    const clarEnabled  = surveySettings?.clarity?.enabled    !== false;
+    const fbEnabled    = surveySettings?.feedback?.enabled   !== false;
+    const diffRequired = surveySettings?.difficulty?.required !== false;
+    const clarRequired = surveySettings?.clarity?.required   !== false;
+    const fbRequired   = surveySettings?.feedback?.required  === true;
+
+    let surveyHtml = '<div class="survey-container">';
+    if (diffEnabled) {
+        surveyHtml += `<div class="survey-question">
+            <label>مستوى صعوبة الأسئلة:${diffRequired ? ' <span style="color:red;">*</span>' : ''}</label>
+            <div class="rating-stars" id="difficultyStars">
+                ${[1,2,3,4,5].map(i => `<i class="far fa-star" onclick="setRating('difficulty',${i})"></i>`).join('')}
+            </div></div>`;
+    }
+    if (clarEnabled) {
+        surveyHtml += `<div class="survey-question">
+            <label>وضوح الأسئلة:${clarRequired ? ' <span style="color:red;">*</span>' : ''}</label>
+            <div class="rating-stars" id="clarityStars">
+                ${[1,2,3,4,5].map(i => `<i class="far fa-star" onclick="setRating('clarity',${i})"></i>`).join('')}
+            </div></div>`;
+    }
+    if (fbEnabled) {
+        surveyHtml += `<div class="survey-question">
+            <label>ملاحظاتك${fbRequired ? ' <span style="color:red;">*</span>' : ' (اختياري)'}:</label>
+            <textarea class="survey-textarea" id="surveyFeedback" maxlength="200" placeholder="اكتب ملاحظاتك هنا..."></textarea>
+            <div class="char-counter"><span id="charCount">0</span>/200</div>
+        </div>`;
+    }
+    surveyHtml += '</div>';
+
+    window.surveyRatings = { difficulty: 0, clarity: 0 };
+
+    const result = await Swal.fire({
+        title: '✅ تم استلام إجاباتك',
+        html: resultHtml + surveyHtml,
+        confirmButtonText: 'إرسال التقييم',
+        confirmButtonColor: '#1a5f7a',
+        allowOutsideClick: false, allowEscapeKey: false,
+        didOpen: () => {
+            document.getElementById('surveyFeedback')?.addEventListener('input', e => {
+                document.getElementById('charCount').textContent = e.target.value.length;
+            });
+        },
+        preConfirm: () => {
+            const diff     = window.surveyRatings?.difficulty || 0;
+            const clar     = window.surveyRatings?.clarity    || 0;
+            const feedback = document.getElementById('surveyFeedback')?.value || '';
+            if (diffEnabled && diffRequired && diff === 0) { Swal.showValidationMessage('يرجى تقييم مستوى صعوبة الأسئلة'); return false; }
+            if (clarEnabled && clarRequired && clar === 0) { Swal.showValidationMessage('يرجى تقييم وضوح الأسئلة'); return false; }
+            if (fbEnabled && fbRequired && !feedback.trim()) { Swal.showValidationMessage('يرجى كتابة ملاحظاتك'); return false; }
+            return { difficulty: diff, clarity: clar, feedback };
+        }
+    });
+
+    if (result.isConfirmed) {
+        await rootRef.child('surveys').child(currentExam.id).child(currentStudent.civilId).set({
+            ...result.value,
+            timestamp: firebase.database.ServerValue.TIMESTAMP
+        });
+        exitExam();
+    }
+}
+
+// ===== Rating =====
+window.surveyRatings = { difficulty: 0, clarity: 0 };
+window.setRating = function(type, rating) {
+    window.surveyRatings[type] = rating;
+    const id = type === 'difficulty' ? 'difficultyStars' : 'clarityStars';
+    document.getElementById(id)?.querySelectorAll('i').forEach((star, i) => {
+        if (i < rating) { star.classList.remove('far'); star.classList.add('fas','active'); }
+        else            { star.classList.remove('fas','active'); star.classList.add('far'); }
+    });
+};
+
+// ===== Exit Exam =====
+async function exitExam() {
+    if (currentExam?.settings?.hasTimer && isInExam) {
+        const result = await Swal.fire({
+            title: 'تأكيد المغادرة',
+            html: `<div style="text-align:center;">
+                    <i class="fas fa-exclamation-triangle" style="font-size:48px;color:var(--warning);margin-bottom:15px;"></i>
+                    <p style="font-size:16px;color:var(--danger);font-weight:bold;">تحذير: ستُرصد عليك مخالفة!</p>
+                    <p style="color:var(--gray);">إذا غادرت الاختبار ودخلت مرة أخرى، ستُسجل مخالفة مرصودة عليك.</p>
+                   </div>`,
+            showCancelButton: true,
+            confirmButtonText: '<i class="fas fa-door-open"></i> مغادرة مع رصد المخالفة',
+            cancelButtonText:  '<i class="fas fa-arrow-right"></i> الاستمرار في الاختبار',
+            confirmButtonColor: '#e74c3c', cancelButtonColor: '#27ae60',
+            reverseButtons: true
+        });
+        if (!result.isConfirmed) return;
+    }
+
+    clearInterval(timerInterval);
+    isInExam       = false;
+    currentExam    = null;
+    currentAnswers = {};
+    violations     = 0;
+
+    document.getElementById('violationBadge').classList.add('hidden');
+    document.getElementById('examSection').classList.add('hidden');
+    document.getElementById('dashboardSection').classList.remove('hidden');
+    loadExams();
+}
+
+// ===== Show Review =====
+function showReview(examId, exam, studentResponse) {
+    currentExam = { id: examId, ...exam };
+    const showResults = exam.settings?.showResults;
+    const score       = studentResponse.score || 0;
+    const totalPoints = studentResponse.totalPoints || 1;
+    const percentage  = Math.round(score / totalPoints * 100);
+
+    document.getElementById('dashboardSection').classList.add('hidden');
+    document.getElementById('reviewSection').classList.remove('hidden');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    document.getElementById('reviewExamTitle').textContent = exam.title;
+    document.getElementById('reviewScore').textContent     = showResults ? `${percentage}%` : '---';
+
+    const header = document.getElementById('reviewHeader');
+    if (showResults) {
+        if (percentage === 100) {
+            header.className = 'review-header perfect';
+            document.getElementById('reviewMessage').textContent = '🎉 ممتاز! درجة كاملة';
+            showCelebration();
+        } else if (percentage >= 80) {
+            document.getElementById('reviewMessage').textContent = '👏 أحسنت! نتيجة ممتازة';
+        } else if (percentage >= 60) {
+            document.getElementById('reviewMessage').textContent = '👍 جيد، يمكنك التحسن';
+        } else {
+            document.getElementById('reviewMessage').textContent = '💪 حاول مرة أخرى';
+            header.style.background = 'linear-gradient(135deg,#e74c3c,#c0392b)';
+        }
+    } else {
+        document.getElementById('reviewMessage').textContent = 'النتيجة ستعلن قريباً';
+        header.style.background = 'linear-gradient(135deg,#6c757d,#5a6268)';
+    }
+
+    const container = document.getElementById('reviewQuestionsContainer');
+    container.innerHTML = '';
+    Object.entries(exam.questions || {}).forEach(([qId, q], index) => {
+        const studentAnswer = studentResponse.answers?.[qId];
+        const isCorrect     = studentAnswer === q.correctAnswer;
+        const isUnanswered  = studentAnswer === undefined || studentAnswer === null;
+
+        const card = document.createElement('div');
+        card.className = 'question-card';
+        if (isUnanswered) { card.style.borderRight = '4px solid var(--warning)'; card.style.background = 'rgba(243,156,18,0.05)'; }
+
+        card.innerHTML = `
+            <span class="question-number">السؤال ${index + 1}${isUnanswered ? ' <span style="color:var(--warning);font-size:12px;">(لم تُجب)</span>' : ''}</span>
+            <div class="question-text">${q.text}</div>
+            <div class="options-list">
+                ${q.options.map((opt, i) => {
+                    let cls = 'option-item';
+                    if (showResults) {
+                        if (i === q.correctAnswer) cls += ' correct';
+                        else if (i === studentAnswer && !isCorrect) cls += ' wrong';
+                    } else {
+                        if (i === studentAnswer) cls += ' selected';
+                    }
+                    return `<div class="${cls}"><div class="option-radio"></div><span>${opt}</span></div>`;
+                }).join('')}
+            </div>`;
+        container.appendChild(card);
+    });
+
+    document.getElementById('retakeSection').style.display = showResults ? 'block' : 'none';
+}
+
+// ===== Exit Review =====
+function exitReview() {
+    document.getElementById('reviewSection').classList.add('hidden');
+    document.getElementById('dashboardSection').classList.remove('hidden');
+}
+
+// ===== Request Retake =====
+async function requestRetake() {
+    const existingSnap = await rootRef.child('retakeRequests')
+        .orderByChild('studentId').equalTo(currentStudent.civilId).once('value');
+
+    let alreadyRequested = false, wasRejected = false;
+    if (existingSnap.exists()) {
+        existingSnap.forEach(snap => {
+            const r = snap.val();
+            if (r.examId === currentExam.id) {
+                if (r.status === 'rejected') wasRejected = true;
+                else if (r.status === 'pending') alreadyRequested = true;
+            }
+        });
+    }
+
+    if (wasRejected)      { showAlert('تم رفض طلبك', 'تم رفض طلب إعادة الاختبار سابقاً. تواصل مع المعلم مباشرة.', 'error'); return; }
+    if (alreadyRequested) { showAlert('تم الطلب سابقاً', 'لقد قمت بطلب إعادة هذا الاختبار مسبقاً. يرجى انتظار رد المعلم.', 'info'); return; }
+
+    const { value: reason } = await Swal.fire({
+        title: 'طلب إعادة الاختبار',
+        input: 'textarea', inputLabel: 'سبب طلب الإعادة:',
+        inputPlaceholder: 'اكتب السبب هنا...',
+        showCancelButton: true,
+        confirmButtonText: 'إرسال الطلب', cancelButtonText: 'إلغاء',
+        confirmButtonColor: '#1a5f7a',
+        inputValidator: v => { if (!v) return 'يرجى كتابة سبب الطلب'; }
+    });
+
+    if (reason) {
+        await rootRef.child('retakeRequests').push({
+            examId: currentExam.id, examTitle: currentExam.title,
+            studentId: currentStudent.civilId, studentName: currentStudent.name,
+            reason, status: 'pending',
+            timestamp: firebase.database.ServerValue.TIMESTAMP
+        });
+        showAlert('تم الإرسال', 'تم إرسال طلبك للمعلم', 'success');
+    }
+}
+
+// ===== Celebration =====
+function showCelebration() {
+    const colors = ['#f39c12','#e74c3c','#2ecc71','#3498db','#9b59b6'];
+    for (let i = 0; i < 50; i++) {
+        setTimeout(() => {
+            const c = document.createElement('div');
+            c.style.cssText = `position:fixed;top:-10px;left:${Math.random()*100}%;
+                width:10px;height:10px;background:${colors[Math.floor(Math.random()*colors.length)]};
+                border-radius:${Math.random()>0.5?'50%':'0'};pointer-events:none;z-index:9999;
+                animation:confettiFall ${2+Math.random()*2}s linear forwards;`;
+            document.body.appendChild(c);
+            setTimeout(() => c.remove(), 4000);
+        }, i * 50);
+    }
+    const style = document.createElement('style');
+    style.textContent = '@keyframes confettiFall{to{transform:translateY(100vh) rotate(720deg);opacity:0;}}';
+    document.head.appendChild(style);
+}
+
+// ===== Check Exam Schedules =====
+async function checkExamSchedules() {
+    try {
+        const serverTimeSnap = await db.ref('.info/serverTimeOffset').once('value');
+        const serverTime = Date.now() + (serverTimeSnap.val() || 0);
+        const examsSnap  = await rootRef.child('exams').once('value');
+        if (!examsSnap.exists()) return;
+
+        examsSnap.forEach(child => {
+            const exam = child.val();
+            const s    = exam.settings;
+            if (!s?.hasSchedule) return;
+
+            const updates = {};
+            const examId  = child.key;
+
+            if (s.scheduledStart && serverTime >= s.scheduledStart && !s.isPublished) {
+                updates['settings/isPublished'] = true;
+                updates['settings/isOpen']      = true;
+            }
+            if (s.scheduledEnd) {
+                const closeTime = s.hasTimer ? s.scheduledEnd - (s.timerMinutes * 60000) : s.scheduledEnd;
+                if (serverTime >= closeTime && s.isOpen) updates['settings/isOpen'] = false;
+            }
+            if (Object.keys(updates).length > 0) {
+                rootRef.child('exams').child(examId).update(updates);
+            }
+        });
+    } catch (err) { console.error('Schedule check error:', err); }
+}
+
+// ===== Helpers =====
+function showLoading(show) {
+    document.getElementById('loadingOverlay').classList.toggle('hidden', !show);
+}
+function showAlert(title, text, icon) {
+    return Swal.fire({ title, text, icon, confirmButtonText: 'حسناً', confirmButtonColor: '#1a5f7a' });
+}
+
+// ===== Init =====
+setInterval(checkExamSchedules, 60000);
+
+(async () => {
+    const hasSession = await checkSavedSession();
+    if (!hasSession) {
+        document.getElementById('loginSection').classList.remove('hidden');
+    }
+    checkExamSchedules();
+})();
+</script>
+</body>
+</html>
