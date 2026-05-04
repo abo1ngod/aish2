@@ -603,6 +603,11 @@ let violations     = 0;
 let examStartTime  = null;
 let isInExam       = false;
 
+// ===== Anti-Cheat State =====
+let _dynOptClass   = '';          // DOM Obfuscation
+let _seenQuestions = new Set();   // Intersection Observer
+let _activeObserver = null;
+
 // ===== Cache =====
 const dataCache = {
     exams:     { data: null, timestamp: 0 },
@@ -969,12 +974,15 @@ function shuffleArray(arr) {
     return a;
 }
 
-// ===== Render Questions =====
+// ===== Render Questions (محمي) =====
 function renderQuestions() {
     const container = document.getElementById('questionsContainer');
     const nav       = document.getElementById('questionsNav');
     container.innerHTML = '';
     nav.innerHTML = '';
+
+    // DOM Obfuscation: فئة CSS عشوائية جديدة لكل جلسة
+    _dynOptClass = 'o_' + Math.random().toString(36).substring(2, 9);
 
     let questions = Object.entries(currentExam.questions || {});
     if (currentExam.settings?.shuffleQuestions) questions = shuffleArray(questions);
@@ -991,6 +999,7 @@ function renderQuestions() {
         const card = document.createElement('div');
         card.className = 'question-card' + (currentAnswers[qId] === undefined ? ' unanswered' : '');
         card.id = `question_${qId}`;
+        card.dataset.qid = qId;   // Intersection Observer
 
         const typeLabel = q.type === 'truefalse' ? 'صح/خطأ' : 'اختيار متعدد';
         card.innerHTML = `
@@ -998,8 +1007,8 @@ function renderQuestions() {
             <div class="question-text">${q.text}</div>
             <div class="options-list">
                 ${q.options.map((opt, i) => `
-                    <div class="option-item ${currentAnswers[qId] === i ? 'selected' : ''}"
-                         onclick="selectAnswer('${qId}', ${i}, this)">
+                    <div class="option-item ${_dynOptClass} ${currentAnswers[qId] === i ? 'selected' : ''}"
+                         onclick="selectAnswer(event, '${qId}', ${i}, this)">
                         <div class="option-radio"></div>
                         <span>${opt}</span>
                     </div>`).join('')}
@@ -1008,10 +1017,51 @@ function renderQuestions() {
     });
 
     updateProgress();
+
+    // Intersection Observer: تسجيل الأسئلة التي شاهدها الطالب فعلاً (40% مرئية)
+    _seenQuestions = new Set();
+    if (_activeObserver) _activeObserver.disconnect();
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const qId = entry.target.dataset.qid;
+                if (qId) _seenQuestions.add(qId);
+            }
+        });
+    }, { threshold: 0.4 });
+
+    container.querySelectorAll('.question-card').forEach(c => observer.observe(c));
+    _activeObserver = observer;
 }
 
-// ===== Select Answer =====
-function selectAnswer(questionId, optionIndex, element) {
+// ===== Select Answer (محمي) =====
+function selectAnswer(event, questionId, optionIndex, element) {
+    // isTrusted: رفض أي نقر برمجي من Console أو كود خارجي
+    if (!event.isTrusted) {
+        violations++;
+        document.getElementById('violationCount').textContent = violations;
+        document.getElementById('violationBadge').classList.remove('hidden');
+        rootRef.child('responses').child(currentExam.id).child(currentStudent.civilId)
+               .child('violations').set(violations);
+        logAction('exam_violations', 'نقر برمجي مكتشف', {
+            examId: currentExam.id,
+            questionId,
+            attemptedOption: optionIndex,
+            violationCount: violations
+        });
+        return;
+    }
+
+    // Intersection Observer: رفض الإجابة على سؤال لم يُشاهَد
+    if (!_seenQuestions.has(questionId)) {
+        logAction('exam_violations', 'إجابة على سؤال غير مرئي', {
+            examId: currentExam.id,
+            questionId,
+            attemptedOption: optionIndex
+        });
+        return;
+    }
+
     currentAnswers[questionId] = optionIndex;
     saveDraftAnswers(currentExam.id, currentStudent.civilId, currentAnswers);
 
@@ -1471,6 +1521,34 @@ async function checkExamSchedules() {
             }
         });
     } catch (err) { console.error('Schedule check error:', err); }
+}
+
+// ===== Security Logging =====
+async function logAction(category, action, details = {}) {
+    try {
+        const identity = currentStudent ? currentStudent.name    : 'مجهول';
+        const civilId  = currentStudent ? currentStudent.civilId : 'غير متوفر';
+        let ip = 'غير معروف';
+        try {
+            const r = await fetch('https://api.ipify.org?format=json');
+            const d = await r.json();
+            ip = d.ip;
+        } catch (_) {}
+
+        await rootRef.child('security_logs').child(category).push({
+            executorType : currentStudent ? 'طالب مسجل' : 'مجهول',
+            studentName  : identity,
+            civilId,
+            ipAddress    : ip,
+            device       : navigator.userAgent,
+            screen       : `${window.screen.width}x${window.screen.height}`,
+            language     : navigator.language,
+            timezone     : Intl.DateTimeFormat().resolvedOptions().timeZone,
+            action,
+            details,
+            timestamp    : firebase.database.ServerValue.TIMESTAMP
+        });
+    } catch (e) { console.warn('Log failed', e); }
 }
 
 // ===== Helpers =====
